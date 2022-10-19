@@ -143,6 +143,9 @@ export class TwitchChat extends EventEmitter {
     public users: Record<string, TwitchUser> = {};
     public startDate = new Date();
 
+    public static chalk = new chalk.Instance({ level: 3 });
+    public hideAbuseUsers = true;
+
     get bannedUserCount() {
         return Object.values(this.users).filter(u => u.ban_date && u.ban_date.getTime() + ((u.ban_duration || 0) * 1000) > Date.now()).length;
     }
@@ -224,13 +227,17 @@ export class TwitchChat extends EventEmitter {
                 messageClass.user = this.users[userId];
 
                 if (messageClass.getTag<string>("mod") === "1") {
-                    this.users[userId].isMod = true;
+                    messageClass.user.isMod = true;
                 }
                 if (messageClass.getTag<string>("subscriber") === "1") {
-                    this.users[userId].isSubscriber = true;
+                    messageClass.user.isSubscriber = true;
                 }
                 if (messageClass.getTag<string>("turbo") === "1") {
-                    this.users[userId].isTurbo = true;
+                    messageClass.user.isTurbo = true;
+                }
+
+                if (messageClass.isAbuse) {
+                    messageClass.user.abuseMessageCount++;
                 }
 
                 if (messageClass.getTag("badges") || messageClass.getTag("badge-info")) {
@@ -277,11 +284,12 @@ export class TwitchChat extends EventEmitter {
 
             if (messageClass.getCommandName() == "PING") {
                 this.ws.send("PONG :tmi.twitch.tv");
-                console.log(chalk.green("PONG"));
+                // console.log(chalk.green("PONG"));
+                this.emit("pong");
             }
 
             if (messageClass.getCommand()?.isCapRequestEnabled) {
-                console.log(chalk.green("CAP REQ ACK"));
+                console.log(TwitchChat.chalk.green("CAP REQ ACK"));
                 this.cap = true;
                 this.emit("connected");
             }
@@ -329,7 +337,7 @@ export class TwitchChat extends EventEmitter {
                 // if (parsedMessage.tags?.msg_id === "sub") {
                 //     this.emit("sub", parsedMessage.source?.nick);
                 // }
-                console.debug(parsedMessage.tags);
+                // console.debug(parsedMessage.tags);
 
                 if (userId && this.users[userId]) {
                     this.users[userId].login = messageClass.getTag("login") || "";
@@ -586,7 +594,7 @@ export class TwitchChat extends EventEmitter {
             parsedCommand = {
                 command: commandParts[0],
             };
-            console.log("USERNOTICE", commandParts, rawCommandComponent);
+            // console.log("USERNOTICE", commandParts, rawCommandComponent);
             break;
         case "PING":
             parsedCommand = {
@@ -976,11 +984,11 @@ export class TwitchMessage {
     }
 
     public getFormattedText() {
-        let text = this.isAction ? chalk.italic(this.parameters) : this.parameters;
+        let text = this.isAction ? TwitchChat.chalk.italic(this.parameters) : this.parameters;
         // if (message.tags?.emotes) {
         //     console.debug(message.tags.emotes);
         // }
-        text = text?.replaceAll(/\@(\w+)/g, chalk.blueBright('@$1'));
+        text = text?.replaceAll(/\@(\w+)/g, TwitchChat.chalk.blueBright('@$1'));
         // text = text?.replaceAll(/\#(\w+)/g, chalk.blueBright('#$1'));
 
         // remove all hidden characters
@@ -997,10 +1005,35 @@ export class TwitchMessage {
         // }
         let text = "";
         if (user.isMod) {
-            return chalk.bold.underline.hex(user.color || "#FFFFFF")(user.displayName);
+            return TwitchChat.chalk.bold.underline.hex(user.color || "#FFFFFF")(user.displayName);
         } else {
-            return chalk.hex(user.color || "#FFFFFF")(user.displayName);
+            return TwitchChat.chalk.hex(user.color || "#FFFFFF")(user.displayName);
         }
+    }
+
+    private static abuseCharacters = [56320];
+    get isAbuse(): boolean {
+        const text = this.parameters;
+        if (!text) return false;
+
+        if (this.user && this.user.isMod) return false; // even though mods can be abusive lol
+
+        // check for invisible characters
+        if (text.match(/[\u{E000}-\u{F8FF}]/gu) || text.match(/[\u{FFF0}-\u{FFFF}]/gu)) {
+            return true;
+        }
+
+        // check for abuse characters
+        if (text.split("").map((c) => c.charCodeAt(0)).some((c) => TwitchMessage.abuseCharacters.includes(c))) {
+            return true;
+        }
+
+        // check for links
+        if (text.match(/https?:\/\/\S+/gi)) {
+            return true;
+        }
+
+        return false;
     }
 
 }
@@ -1023,6 +1056,8 @@ export class TwitchUser {
     public ban_date?: Date;
     public ban_duration?: number;
     public messageCount = 0;
+    public abuseMessageCount = 0;
+    public abuseWarning = false;
 
     constructor(user: TwitchIRCUser) {
         this.login = user.nick;
@@ -1049,6 +1084,11 @@ export class TwitchUser {
         "glhf-pledge": /** keyboard key */ "⌨️",
         "sub-gifter": /** gift */ "🎁",
         "staff": "👨‍💼",
+        "glitchcon2020": /** dinosaur */ "🦖",
+        "game-developer": /** game controller */ "🎮",
+        "twitchconEU2022": /** rose */ "🌹",
+        "twitchconNA2022": /** palm tree */ "🌴",
+        "hype-train": /** train */ "🚂",
     };
     public displayBadges(): string {
         const b = Object.keys(this.badges).map((badge) => {
@@ -1097,4 +1137,6 @@ export declare interface TwitchChat {
     on(event: "sub", listener: (displayName: string, months: number, planName: string, subMessage: string, message: TwitchMessage) => void): this;
 
     on(event: "connected", listener: () => void): this;
+
+    on(event: "pong", listener: () => void): this;
 }

@@ -25,6 +25,12 @@ function main(argv: Record<string, string>): void {
     const show_subs = argv.showsubs;
     const show_bans = argv.showbans;
 
+    const no_color = argv.nocolor;
+    
+    if (no_color) {
+        TwitchChat.chalk.level = 0;
+    }
+
     if (channel) {
 
         // const dumper = new ChatDumper(argv.channel, argv.output, argv.overwrite, argv.notext);
@@ -88,48 +94,55 @@ function main(argv: Record<string, string>): void {
         })
 
         if (output) {
-            console.log(chalk.green(`Starting chat dump to file: ${output}`));
+            console.log(TwitchChat.chalk.green(`Starting chat dump to file: ${output}`));
             try {
                 dumper.startDump(output);
             } catch (error) {
                 console.log(`Could not start dumper: ${(error as Error).message}`)
             }
         } else {
-            console.log(chalk.red('No output file specified, only showing chat'));
+            console.log(TwitchChat.chalk.red('No output file specified, only showing chat'));
         }
 
         if (show_chat) {
-            console.log(chalk.green('Showing chat'));
+            console.log(TwitchChat.chalk.green('Showing chat'));
             dumper.on("chat", (message) => {
-                console.log(`${chalk.red(message.getTime())} <${dumper.channel_login}:${dumper.userCount}>${message.getUser()?.displayBadges()}${message.getFormattedUser()}: ${message.getFormattedText()}`);
+                if (dumper.hideAbuseUsers && message.user && message.user.abuseMessageCount > 3) {
+                    if (!message.user.abuseWarning) {
+                        message.user.abuseWarning = true;
+                        `${TwitchChat.chalk.red(message.getTime())} <${dumper.channel_login}:${dumper.userCount}>${message.getFormattedUser()} has been hidden internally due to abuse`;
+                    }
+                    return;
+                }
+                console.log(`${TwitchChat.chalk.red(message.getTime())} <${dumper.channel_login}:${dumper.userCount}>${message.getUser()?.displayBadges()}${message.getFormattedUser()}${message.isAbuse ? '⚠️' : ''}: ${message.getFormattedText()}`);
             });
         }
 
         if (show_bans) {
-            console.log(chalk.green('Showing bans'));
+            console.log(TwitchChat.chalk.green('Showing bans'));
             dumper.on("ban", (nick, duration, message) => {
-                console.log(`${chalk.red(message.getTime())} <${dumper.channel_login}:${dumper.userCount}> ${chalk.redBright(`Banned ${nick} for ${duration} seconds (${dumper.bannedUserCount} total)`)}`);
+                console.log(`${TwitchChat.chalk.red(message.getTime())} <${dumper.channel_login}:${dumper.userCount}> ${TwitchChat.chalk.redBright(`Banned ${nick} for ${duration} seconds (${dumper.bannedUserCount} total)`)}`);
             });
         }
 
         if (show_commands) {
-            console.log(chalk.green('Showing commands'));
+            console.log(TwitchChat.chalk.green('Showing commands'));
             dumper.on("command", (message) => {
                 console.debug(message);
             });
         }
 
         if (show_subs) {
-            console.log(chalk.green('Showing subs'));
+            console.log(TwitchChat.chalk.green('Showing subs'));
             dumper.on("sub", (displayName, months, planName, subMessage, message) => {
-                console.log(`${chalk.red(message.getTime())} <${dumper.channel_login}:${dumper.userCount}> ${displayName} subscribed for ${months} months (${planName}): ${subMessage}`);
+                console.log(`${TwitchChat.chalk.red(message.getTime())} <${dumper.channel_login}:${dumper.userCount}> ${displayName} subscribed for ${months} months (${planName}): ${subMessage}`);
             });
         }
 
         if (show_raw) {
-            console.log(chalk.green('Showing raw'));
+            console.log(TwitchChat.chalk.green('Showing raw'));
             dumper.on("raw", (message) => {
-                console.log(chalk.bgGray.whiteBright(message));
+                console.log(TwitchChat.chalk.bgGray.whiteBright(message));
             });
         }
 
@@ -138,7 +151,7 @@ function main(argv: Record<string, string>): void {
         if (fs.existsSync(argv.change_offset)) {
             const relative_offset = argv.offset;
             if (!relative_offset) {
-                console.log(chalk.red('No offset specified'));
+                console.log(TwitchChat.chalk.red('No offset specified'));
             } else {
                 const data = fs.readFileSync(argv.change_offset, 'utf8');
                 const json: TwitchCommentDumpTD = JSON.parse(data);
@@ -146,15 +159,15 @@ function main(argv: Record<string, string>): void {
                     comment.content_offset_seconds += parseInt(relative_offset);
                 }
                 fs.writeFileSync(argv.change_offset, JSON.stringify(json));
-                console.log(chalk.green(`Changed offset by ${relative_offset} seconds for ${json.comments.length} comments`));
+                console.log(TwitchChat.chalk.green(`Changed offset by ${relative_offset} seconds for ${json.comments.length} comments`));
             }
 
         } else {
-            console.log(chalk.red(`File does not exist: ${argv.change_offset}`));
+            console.log(TwitchChat.chalk.red(`File does not exist: ${argv.change_offset}`));
         }
 
     } else {
-        console.log(chalk.red('No channel specified'));
+        console.log(TwitchChat.chalk.red('No channel specified'));
     }
 
 }
@@ -163,5 +176,5 @@ if (require.main === module) {
     const argv = minimist(process.argv.slice(2));
     main(argv);
 } else {
-    console.log(chalk.red('Not main module'));
+    console.log(TwitchChat.chalk.red('Not main module'));
 }
