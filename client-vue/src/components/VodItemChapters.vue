@@ -70,12 +70,11 @@
 
                     <!-- duration -->
                     <td data-contents="duration">
-                        <span
+                        <template
                             v-if="chapter.duration"
-                            class="grey"
                         >
                             {{ niceDuration(chapter.duration) }}
-                        </span>
+                        </template>
                         <template v-else>
                             <duration-display
                                 :start-date="chapter.started_at.toISOString()"
@@ -149,7 +148,7 @@
 
                     <!-- title -->
                     <td
-                        class="text-overflow text-long is-text-darker"
+                        class="text-overflow text-long"
                         data-contents="title"
                     >
                         {{ chapter.title }}
@@ -158,7 +157,6 @@
                     <!-- viewer count -->
                     <td
                         v-if="hasViewerCount"
-                        class="is-text-grey"
                         data-contents="viewers"
                     >
                         <template
@@ -299,8 +297,16 @@ function addFavouriteGame(game_id: string) {
         color: #eee;
     }
     */
-    td:nth-child(4) {
-        color: #444;
+    // td:nth-child(4) {
+    //     color: #444;
+    // }
+
+    td[data-contents="title"] {
+        color: var(--gamelist-title-color);
+    }
+
+    td[data-contents="viewers"] {
+        color: var(--gamelist-viewers-color);
     }
 
     tr.favourite {
@@ -309,10 +315,26 @@ function addFavouriteGame(game_id: string) {
         td {
             background-color: var(--gamelist-favourite);
         }
+
+        td[data-contents="title"] {
+            color: var(--gamelist-favourite-title-color);
+        }
+
+        td[data-contents="viewers"] {
+            color: var(--gamelist-favourite-viewers-color);
+        }
     }
 
     tr.current {
         background-color: var(--gamelist-current);
+
+        td[data-contents="title"] {
+            color: var(--gamelist-current-title-color);
+        }
+
+        td[data-contents="viewers"] {
+            color: var(--gamelist-current-viewers-color);
+        }
     }
 
     a {

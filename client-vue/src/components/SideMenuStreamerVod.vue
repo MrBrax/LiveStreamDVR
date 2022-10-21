@@ -284,6 +284,23 @@ $waiting-base: #2b2b2b;
     font-size: 0.8em;
     transition: 0.1s border-width ease-in-out;
 
+    .size {
+        color: #9fdaad80;
+        // &::before {
+        //     // &middot;
+        //     content: " • ";
+        //     font-size: 0.7em;
+        // }
+    }
+    .duration {
+        color: #d4da9fb3;
+        // &::before {
+        //     // &middot;
+        //     content: " • ";
+        //     font-size: 0.7em;
+        // }
+    }
+
     &.is-favourite {
         background-color: $favourite-base;
 
@@ -311,6 +328,14 @@ $waiting-base: #2b2b2b;
 
         .tooltip {
             background-color: rgba($recording-base, 0.95);
+        }
+
+        .size {
+            color: #faffb6;
+        }
+
+        .duration {
+            color: #e3e991;
         }
     }
 
@@ -420,23 +445,6 @@ $waiting-base: #2b2b2b;
 
     &:hover>.tooltip {
         display: block;
-    }
-
-    .size {
-        color: rgba(159, 218, 173, 0.5);
-        // &::before {
-        //     // &middot;
-        //     content: " • ";
-        //     font-size: 0.7em;
-        // }
-    }
-    .duration {
-        color: rgba(212, 218, 159, 0.7);
-        // &::before {
-        //     // &middot;
-        //     content: " • ";
-        //     font-size: 0.7em;
-        // }
     }
 
     &:hover {

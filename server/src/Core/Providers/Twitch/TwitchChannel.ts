@@ -97,15 +97,15 @@ export class TwitchChannel extends BaseChannel {
 
         if (fs.existsSync(path.join(BaseConfigDataFolder.vods_db, `${this.internalName}.json`)) && !rescan) {
             let list: string[] = JSON.parse(fs.readFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.internalName}.json`), { encoding: "utf-8" }));
-            Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Found ${list.length} stored VODs in database for ${this.internalName}`);
+            Log.logAdvanced(LOGLEVEL.DEBUG, "channel.parseVODs", `Found ${list.length} stored VODs in database for ${this.internalName}`);
             // console.log(list);
             list = list.filter(p => fs.existsSync(path.join(BaseConfigDataFolder.vod, p)));
             // console.log(list);
             this.vods_raw = list;
-            Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Found ${this.vods_raw.length} existing VODs in database for ${this.internalName}`);
+            Log.logAdvanced(LOGLEVEL.DEBUG, "channel.parseVODs", `Found ${this.vods_raw.length} existing VODs in database for ${this.internalName}`);
         } else {
             this.vods_raw = this.rescanVods();
-            Log.logAdvanced(LOGLEVEL.INFO, "channel", `No VODs in database found for ${this.internalName}, migrate ${this.vods_raw.length} from recursive file search`);
+            Log.logAdvanced(LOGLEVEL.INFO, "channel.parseVODs", `No VODs in database found for ${this.internalName}, migrate ${this.vods_raw.length} from recursive file search`);
             // fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.internalName}.json`), JSON.stringify(this.vods_raw));
             this.saveVodDatabase();
         }
@@ -114,7 +114,7 @@ export class TwitchChannel extends BaseChannel {
 
         for (const vod of this.vods_raw) {
 
-            Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Try to parse VOD ${vod}`);
+            Log.logAdvanced(LOGLEVEL.DEBUG, "channel.parseVODs", `Try to parse VOD ${vod}`);
 
             const vod_full_path = path.join(BaseConfigDataFolder.vod, vod);
 
@@ -123,7 +123,7 @@ export class TwitchChannel extends BaseChannel {
             try {
                 vodclass = await TwitchVOD.load(vod_full_path, true);
             } catch (e) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not load VOD ${vod}: ${(e as Error).message}`, e);
+                Log.logAdvanced(LOGLEVEL.ERROR, "channel.parseVODs", `Could not load VOD ${vod}: ${(e as Error).message}`, e);
                 console.error(e);
                 continue;
             }
@@ -133,12 +133,12 @@ export class TwitchChannel extends BaseChannel {
             }
 
             if (!vodclass.channel_uuid) {
-                Log.logAdvanced(LOGLEVEL.INFO, "channel", `VOD '${vod}' does not have a channel UUID, setting it to '${this.uuid}'`);
+                Log.logAdvanced(LOGLEVEL.INFO, "channel.parseVODs", `VOD '${vod}' does not have a channel UUID, setting it to '${this.uuid}'`);
                 vodclass.channel_uuid = this.uuid;
             }
 
             // await vodclass.fixIssues();
-            Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `Fix issues for ${vod}`);
+            Log.logAdvanced(LOGLEVEL.DEBUG, "channel.parseVODs", `Fix issues for ${vod}`);
             let noIssues = false;
             do {
                 noIssues = await vodclass.fixIssues("channel parseVODs");
@@ -159,7 +159,7 @@ export class TwitchChannel extends BaseChannel {
             //     this.vods_size += vodclass.segments.reduce((acc, seg) => acc + (seg && seg.filesize ? seg.filesize : 0), 0);
             // }
 
-            Log.logAdvanced(LOGLEVEL.DEBUG, "channel", `VOD ${vod} added to ${this.internalName}`);
+            Log.logAdvanced(LOGLEVEL.DEBUG, "channel.parseVODs", `VOD ${vod} added to ${this.internalName}`);
 
             this.addVod(vodclass);
         }

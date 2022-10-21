@@ -279,6 +279,12 @@ body.is-dark {
 
     --gamelist-favourite: #278242;
     --gamelist-current: #732828;
+    --gamelist-title-color: #999;
+    --gamelist-viewers-color: #999;
+    --gamelist-current-title-color: #ed7f7f;
+    --gamelist-current-viewers-color: #ed7f7f;
+    --gamelist-favourite-title-color: #83f6bd;
+    --gamelist-favourite-viewers-color: #83f6bd;
 
     --modal-background-color: #444;
 
@@ -298,6 +304,7 @@ body.is-dark {
 }
 
 body.is-hotdogstand {
+    // @extend .is-dark;
     --body-background: #ff0;
     --body-color: #000;
     --text-darker: #222;
@@ -333,6 +340,8 @@ body.is-basalt {
     --video-controls-background-color: #384d7d;
     --video-segments-background-color: #4c5884;
 
+    --video-bookmarks-background-color: #3c4564;
+
     --link-color: #75ccee;
     --link-hover-color: #fff;
     --link-active-color: #f78c00;
@@ -363,6 +372,12 @@ body.is-basalt {
 
     --gamelist-favourite: #278242;
     --gamelist-current: #732828;
+    --gamelist-title-color: #999;
+    --gamelist-viewers-color: #999;
+    --gamelist-current-title-color: #ed7f7f;
+    --gamelist-current-viewers-color: #ed7f7f;
+    --gamelist-favourite-title-color: #83f6bd;
+    --gamelist-favourite-viewers-color: #83f6bd;
 
     --modal-background-color: #444;
 

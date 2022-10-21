@@ -125,8 +125,8 @@ export class Log {
         const dateString = format(date, dateFormat);
 
         // write cleartext
-        const textOutput = `${dateString} ${process.pid} | ${module} <${level}> ${text}`;
-        fs.appendFileSync(filepath_combined, textOutput + "\n");
+        const textOutput = `${dateString} ${process.pid}+${Config.getInstance().gitHash?.substring(0, 4)} | ${module} <${level}> ${text}`;
+        fs.appendFileSync(filepath_combined, `${textOutput}\n`);
         // fs.appendFileSync(filepath_separate, textOutput + "\n");
         // fs.appendFileSync(filepath_level, textOutput + "\n");
 
@@ -159,7 +159,7 @@ export class Log {
         }
 
         // write jsonline
-        fs.appendFileSync(jsonlinename_combined, stringy_log_data + "\n");
+        fs.appendFileSync(jsonlinename_combined, `${stringy_log_data}\n`);
         // fs.appendFileSync(jsonlinename_separate, stringy_log_data + "\n");
         // fs.appendFileSync(jsonlinename_level, stringy_log_data + "\n");
         this.lines.push(log_data);

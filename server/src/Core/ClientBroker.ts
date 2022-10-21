@@ -305,7 +305,7 @@ export class ClientBroker {
                 Log.logAdvanced(LOGLEVEL.DEBUG, "notify", "Discord response", res.data);
             }).catch((err: AxiosError) => {
                 if (axios.isAxiosError(err)) {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "notify", `Discord error: ${err.message} (${err.response?.data})`, { err: err, response: err.response?.data });
+                    Log.logAdvanced(LOGLEVEL.ERROR, "notify", `Discord axios error: ${err.message} (${JSON.stringify(err.response?.data)})`, { err: err, response: err.response?.data });
                 } else {
                     Log.logAdvanced(LOGLEVEL.ERROR, "notify", `Discord error: ${(err as Error).message}`, err);
                 }

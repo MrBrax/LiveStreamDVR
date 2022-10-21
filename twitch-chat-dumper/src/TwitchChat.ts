@@ -1,7 +1,7 @@
 import chalk from "chalk";
-import { randomUUID } from "crypto";
-import { EventEmitter } from "events";
-import fs from "fs";
+import { randomUUID } from "node:crypto";
+import { EventEmitter } from "node:events";
+import fs from "node:fs";
 import { WebSocket } from "ws";
 import { TwitchComment, TwitchCommentDumpTD, TwitchCommentMessageFragment, TwitchCommentEmoticons, TwitchCommentUserBadge } from "../../common/Comments";
 
@@ -29,6 +29,8 @@ function twitchDuration(seconds: number): string {
     // return trim(str_replace(" ", "", self::getNiceDuration($seconds)));
 }
 
+type UserType = "" | "admin" | "global_mod" | "staff";
+
 interface TwitchIRCMessage {
     // tags?: Record<string, TagTypes>;
     tags?: Tags;
@@ -42,19 +44,20 @@ interface TwitchIRCMessage {
 }
 
 interface Tags {
-    badges?: Badge;
+    // badges?: Badge;
+    badges?: Record<string, string>;
     color?: string;
     "display-name"?: string;
     "emote-only"?: string;
     emotes?: Emote;
     id?: string;
-    mod?: string; // number
+    mod?: "1" | "0"; // number
     "room-id"?: string;
-    subscriber?: string;
-    turbo?: string;
+    subscriber?: "1" | "0";
+    turbo?: "1" | "0";
     "tmi-sent-ts"?: string;
     "user-id"?: string;
-    "user-type"?: string;
+    "user-type"?: UserType;
     "badge-info"?: Record<string, string>;
     login?: string;
 
@@ -126,7 +129,7 @@ interface TwitchIRCUser {
 type TagTypes = string | Badge | Emote | string[] | null;
 
 export class TwitchChat extends EventEmitter {
-    public ws: WebSocket;
+    declare public ws: WebSocket;
     public channel_login = "";
     public channel_id = "";
     public cap = false;
@@ -137,11 +140,18 @@ export class TwitchChat extends EventEmitter {
     public static readonly liveTerms = ["live", "hi youtube", "hi yt", "pog", "pogchamp"];
     public lastLiveEmit: Date | undefined;
     public lastTenMessages: TwitchIRCMessage[] = [];
-    public users: Record<string, TwitchIRCUser> = {};
+    public users: Record<string, TwitchUser> = {};
     public startDate = new Date();
 
+    public static chalk = new chalk.Instance({ level: 3 });
+    public hideAbuseUsers = true;
+
     get bannedUserCount() {
-        return Object.values(this.users).filter(u => u.ban_date && u.ban_date.getTime() + (u.ban_duration || 0) > Date.now()).length;
+        return Object.values(this.users).filter(u => u.ban_date && u.ban_date.getTime() + ((u.ban_duration || 0) * 1000) > Date.now()).length;
+    }
+
+    get userCount() {
+        return Object.keys(this.users).length;
     }
 
     constructor(channel_login: string, channel_id?: string, start_date?: string) {
@@ -149,6 +159,10 @@ export class TwitchChat extends EventEmitter {
         this.channel_login = channel_login;
         if (channel_id) this.channel_id = channel_id;
         if (start_date) this.startDate = new Date(start_date);
+        // this.connect();
+    }
+
+    public connect() {
         this.ws = new WebSocket("wss://irc-ws.chat.twitch.tv:443");
         this.ws.onopen = () => {
             this.loginAnonymous();
@@ -159,145 +173,191 @@ export class TwitchChat extends EventEmitter {
             const messages = event.data.toString("utf-8").split("\r\n");  // The IRC message may contain one or more messages.
             messages.forEach(message => {
                 if (message === "") return;
-                // console.log(event.data);
-                const parsedMessage = this.parseMessage(message.toString());
-                // console.log(message);
-                if (parsedMessage) {
-                    /*
-                    if (parsedMessage.tags) {
-                        console.log("\t", chalk.yellow(JSON.stringify(parsedMessage.tags)));
-                    } else {
-                        console.log("\t", chalk.red(event.data.toString().trim()));
-                    }
-                    */
-
-                    const userId = parsedMessage.tags?.["user-id"];
-                    const roomId = parsedMessage.tags?.["room-id"];
-
-                    if (parsedMessage.tags?.["tmi-sent-ts"]) {
-                        parsedMessage.date = new Date(parseInt(parsedMessage.tags["tmi-sent-ts"]));
-                    }
-
-                    if (userId) {
-                        if (!this.users[userId]) {
-                            this.users[userId] = {
-                                nick: parsedMessage.tags?.login || "",
-                                id: parsedMessage.tags?.["user-id"] || "",
-                                login: parsedMessage.tags?.login || "",
-                                displayName: parsedMessage.tags?.["display-name"] || "",
-                                color: parsedMessage.tags?.color || "",
-                                badges: parsedMessage.tags?.["badge-info"] || parsedMessage.tags?.badges || {},
-                                messageCount: 0,
-                                isMod: parsedMessage.tags?.mod === "1",
-                                isSubscriber: parsedMessage.tags?.subscriber === "1",
-                                isTurbo: parsedMessage.tags?.turbo === "1",
-                            };
-                        } else {
-                            this.users[userId].messageCount++;
-                        }
-                        parsedMessage.user = this.users[userId];
-
-                        if (parsedMessage.tags?.mod === "1") {
-                            this.users[userId].isMod = true;
-                        }
-                        if (parsedMessage.tags?.subscriber === "1") {
-                            this.users[userId].isSubscriber = true;
-                        }
-                        if (parsedMessage.tags?.turbo === "1") {
-                            this.users[userId].isTurbo = true;
-                        }
-                    }
-
-                    if (roomId) {
-                        this.channel_id = roomId;
-                    }
-
-                    if (parsedMessage.command?.command === "PRIVMSG") {
-                        this.emit("chat", parsedMessage);
-                    } else {
-                        this.emit("command", parsedMessage);
-                    }
-                    
-                    this.emit("message", parsedMessage);
-
-                    if (parsedMessage.command?.command == "PING") {
-                        this.ws.send("PONG :tmi.twitch.tv");
-                        console.log(chalk.green("PONG"));
-                    }
-
-                    if (parsedMessage.command?.isCapRequestEnabled) {
-                        console.log(chalk.green("CAP REQ ACK"));
-                        this.cap = true;
-                        this.emit("connected");
-                    }
-
-                    if (this.dumpStream && this.dumpStart && parsedMessage.command?.command === "PRIVMSG") {
-                        const offset = (new Date().getTime() - this.startDate.getTime()) / 1000;
-                        this.dumpStream.write(JSON.stringify(this.messageToDump(parsedMessage, this.channel_id, offset)) + "\n");
-                    }
-
-                    this.lastTenMessages.push(parsedMessage);
-                    if (this.lastTenMessages.length > 10) {
-                        this.lastTenMessages.shift();
-                    }
-
-                    // if more than half of the last 10 messages contain a live term, emit live
-                    if (this.lastTenMessages.filter(message => TwitchChat.liveTerms.some(term => message.parameters?.includes(term))).length > 5) {
-                        if (!this.lastLiveEmit || (new Date().getTime() - this.lastLiveEmit.getTime()) > 1000 * 60) {
-                            this.emit("live", parsedMessage);
-                            this.lastLiveEmit = new Date();
-                        }
-                    }
-
-                    if (parsedMessage.command?.command === "CLEARCHAT") {
-                        const targetUserId = parsedMessage.tags?.["target-user-id"];
-
-                        if (parsedMessage.parameters && targetUserId && this.users[targetUserId]) {
-                            const user = this.users[targetUserId];
-                            user.ban_date = new Date();
-                            user.ban_duration = parseInt(parsedMessage.tags?.["ban-duration"] || "0");
-                        }
-
-                        this.emit(
-                            "ban",
-                            parsedMessage.parameters,
-                            parseInt(parsedMessage.tags?.["ban-duration"] || "0"),
-                            parsedMessage
-                        );
-
-                        console.debug(`${Object.keys(this.users).length} users`);
-                    }
-
-                    if (parsedMessage.command?.command === "USERNOTICE") {
-                        // if (parsedMessage.tags?.msg_id === "sub") {
-                        //     this.emit("sub", parsedMessage.source?.nick);
-                        // }
-                        console.debug(parsedMessage.tags);
-
-                        if (userId && this.users[userId]) {
-                            this.users[userId].login = parsedMessage.tags?.login || "";
-                        }
-
-                        if (parsedMessage.tags?.["msg-id"] === "sub" || parsedMessage.tags?.["msg-id"] === "resub" || parsedMessage.tags?.["msg-id"] === "subgift") {
-                            this.emit(
-                                "sub",
-                                parsedMessage.tags["display-name"],
-                                parseInt(parsedMessage.tags["msg-param-cumulative-months"] || "0"),
-                                parsedMessage.tags["msg-param-sub-plan-name"]?.replace(/\\\\s/g, " ").replace(/\\s/g, " "),
-                                parsedMessage.parameters,
-                                parsedMessage
-                            );
-                        }
-                    }
-
-                }
+                this.emit("raw", message);
+                this.handleMessage(message.toString());
             });
         };
-        this.ws.onclose = () => {
-            console.log("Connection closed");
+        this.ws.onclose = (ev) => {
+            console.log("Connection closed", ev.code, ev.reason);
             this.stopDump();
             this.emit("close");
         };
+    }
+
+    public handleMessage(message: string): TwitchMessage | undefined {
+
+        const parsedMessage = this.parseMessage(message.toString());
+        // console.log(message);
+        if (parsedMessage) {
+            /*
+            if (parsedMessage.tags) {
+                console.log("\t", chalk.yellow(JSON.stringify(parsedMessage.tags)));
+            } else {
+                console.log("\t", chalk.red(event.data.toString().trim()));
+            }
+            */
+
+            const messageClass = new TwitchMessage(parsedMessage);
+
+            const userId = messageClass.getTag<string>("user-id");
+            const roomId = messageClass.getTag<string>("room-id");
+
+            if (messageClass.getTag("tmi-sent-ts")) {
+                messageClass.date = new Date(parseInt(messageClass.getTag("tmi-sent-ts") || "0"));
+            }
+
+            if (userId && messageClass.getCommandName() === "PRIVMSG") {
+                if (!this.users[userId]) {
+                    this.users[userId] = new TwitchUser({
+                        nick: parsedMessage.tags?.login || "",
+                        id: parsedMessage.tags?.["user-id"] || "",
+                        login: parsedMessage.tags?.login || "",
+                        displayName: parsedMessage.tags?.["display-name"] || "",
+                        color: parsedMessage.tags?.color || "",
+                        badges: parsedMessage.tags?.["badge-info"] || parsedMessage.tags?.badges || {},
+                        messageCount: 0,
+                        isMod: parsedMessage.tags?.mod === "1",
+                        isSubscriber: parsedMessage.tags?.subscriber === "1",
+                        isTurbo: parsedMessage.tags?.turbo === "1",
+                    });
+                } else {
+                    this.users[userId].messageCount++;
+                }
+
+                messageClass.user = this.users[userId];
+
+                if (messageClass.getTag<string>("mod") === "1") {
+                    messageClass.user.isMod = true;
+                }
+                if (messageClass.getTag<string>("subscriber") === "1") {
+                    messageClass.user.isSubscriber = true;
+                }
+                if (messageClass.getTag<string>("turbo") === "1") {
+                    messageClass.user.isTurbo = true;
+                }
+
+                if (messageClass.isAbuse) {
+                    messageClass.user.abuseMessageCount++;
+                }
+
+                if (messageClass.getTag("badges") || messageClass.getTag("badge-info")) {
+                    const allBadges: Record<string, string> = {};
+                    const badgeInfo = messageClass.getTag<Record<string, string>>("badge-info");
+                    const badges = messageClass.getTag<Record<string, string>>("badges");
+                    if (badgeInfo) {
+                        Object.keys(badgeInfo).forEach(badge => {
+                            allBadges[badge] = badgeInfo[badge];
+                        });
+                    }
+                    if (badges) {
+                        Object.keys(badges).forEach(badge => {
+                            allBadges[badge] = badges[badge];
+                        });
+                    }
+                    this.users[userId].badges = allBadges;
+                    // console.debug(messageClass.tags);
+                    /*
+                    console.debug(
+                        "Updated badges for user",
+                        badgeInfo,
+                        badges,
+                        userId,
+                        this.users[userId].badges
+                    );
+                    */
+                }
+
+
+            }
+
+            if (roomId) {
+                this.channel_id = roomId;
+            }
+
+            if (messageClass.getCommandName() === "PRIVMSG") {
+                this.emit("chat", messageClass);
+            } else {
+                this.emit("command", messageClass);
+            }
+
+            this.emit("message", messageClass);
+
+            if (messageClass.getCommandName() == "PING") {
+                this.ws.send("PONG :tmi.twitch.tv");
+                // console.log(chalk.green("PONG"));
+                this.emit("pong");
+            }
+
+            if (messageClass.getCommand()?.isCapRequestEnabled) {
+                console.log(TwitchChat.chalk.green("CAP REQ ACK"));
+                this.cap = true;
+                this.emit("connected");
+            }
+
+            // dump to file
+            if (this.dumpStream && this.dumpStart && messageClass.getCommandName() === "PRIVMSG") {
+                const offset = (new Date().getTime() - this.startDate.getTime()) / 1000;
+                this.dumpStream.write(JSON.stringify(this.messageToDump(messageClass, this.channel_id, offset)) + "\n");
+            }
+
+            this.lastTenMessages.push(parsedMessage);
+            if (this.lastTenMessages.length > 10) {
+                this.lastTenMessages.shift();
+            }
+
+            // if more than half of the last 10 messages contain a live term, emit live
+            if (this.lastTenMessages.filter(message => TwitchChat.liveTerms.some(term => message.parameters?.includes(term))).length > 5) {
+                if (!this.lastLiveEmit || (new Date().getTime() - this.lastLiveEmit.getTime()) > 1000 * 60) {
+                    this.emit("live", messageClass);
+                    this.lastLiveEmit = new Date();
+                }
+            }
+
+            if (messageClass.getCommandName() === "CLEARCHAT") {
+
+                const targetUserId = messageClass.getTag<string>("target-user-id");
+
+                if (messageClass.parameters && targetUserId && this.users[targetUserId]) {
+                    const user = this.users[targetUserId];
+                    user.ban_date = new Date();
+                    user.ban_duration = parseInt(messageClass.getTag("ban-duration") || "0");
+                }
+
+                this.emit(
+                    "ban",
+                    messageClass.parameters,
+                    parseInt(messageClass.getTag("ban-duration") || "0"),
+                    messageClass
+                );
+
+                // console.debug(`${Object.keys(this.users).length} users`);
+            }
+
+            if (messageClass.getCommandName() === "USERNOTICE") {
+                // if (parsedMessage.tags?.msg_id === "sub") {
+                //     this.emit("sub", parsedMessage.source?.nick);
+                // }
+                // console.debug(parsedMessage.tags);
+
+                if (userId && this.users[userId]) {
+                    this.users[userId].login = messageClass.getTag("login") || "";
+                }
+
+                if (messageClass.getTag("msg-id") === "sub" || messageClass.getTag("msg-id") === "resub" || messageClass.getTag("msg-id") === "subgift") {
+                    this.emit(
+                        "sub",
+                        messageClass.getTag("display-name"),
+                        parseInt(messageClass.getTag("msg-param-cumulative-months") || "0"),
+                        messageClass.getTag<string>("msg-param-sub-plan-name"),
+                        messageClass.parameters,
+                        messageClass
+                    );
+                }
+            }
+
+            return messageClass;
+
+        }
     }
 
     public close() {
@@ -411,7 +471,7 @@ export class TwitchChat extends EventEmitter {
                     parsedMessage.command
                 );
             }
-            
+
             // action message
             if (rawParametersComponent && rawParametersComponent.charCodeAt(0) === 1 && rawParametersComponent.charCodeAt(rawParametersComponent.length - 1) === 1) {
                 parsedMessage.parameters = rawParametersComponent.slice(1, rawParametersComponent.length - 1);
@@ -429,7 +489,7 @@ export class TwitchChat extends EventEmitter {
             // if (parsedMessage.parameters) {
             //     parsedMessage.parameters = parsedMessage.parameters.replace(/[\u0000-\u001f]/g, "");
             // }
-            
+
         }
 
         return parsedMessage;
@@ -448,9 +508,8 @@ export class TwitchChat extends EventEmitter {
             const parsedTag = tag.split("="); // Tags are key/value pairs.
             const tagValue = parsedTag[1] === "" ? null : parsedTag[1];
             const tagName = parsedTag[0];
-            if (tagName == "badges") {
-                // Switch on tag name
-            } else if (tagName == "badge-info") {
+            // Switch on tag name
+            if (tagName == "badges" || tagName == "badge-info") {
                 // badges=staff/1,broadcaster/1,turbo/1;
 
                 if (tagValue) {
@@ -535,7 +594,7 @@ export class TwitchChat extends EventEmitter {
             parsedCommand = {
                 command: commandParts[0],
             };
-            console.log("USERNOTICE", commandParts, rawCommandComponent);
+            // console.log("USERNOTICE", commandParts, rawCommandComponent);
             break;
         case "PING":
             parsedCommand = {
@@ -625,14 +684,14 @@ export class TwitchChat extends EventEmitter {
         return command;
     }
 
-    messageToDump(message: TwitchIRCMessage, channel_id: string, offset_seconds: number): TwitchComment {
+    messageToDump(message: TwitchMessage, channel_id: string, offset_seconds: number): TwitchComment {
 
         if (!message.parameters) {
             throw new Error("messageToDump: message.parameters is undefined");
         }
 
         const emoticons: TwitchCommentEmoticons[] = [];
-        if (message.tags?.emotes) {
+        if (message.getTag('emotes')) {
             for (const emote in message.tags.emotes) {
                 for (const pos of message.tags.emotes[emote]) {
                     emoticons.push({
@@ -644,7 +703,33 @@ export class TwitchChat extends EventEmitter {
             }
         }
 
+        // console.debug(`Got ${emoticons.length} emoticons`);
+
         const fragments: TwitchCommentMessageFragment[] = [];
+        let lastEnd = 0;
+        for (const emoticon of emoticons) {
+            if (emoticon.begin > lastEnd) {
+                fragments.push({
+                    text: message.parameters.slice(lastEnd, emoticon.begin),
+                    emoticon: null,
+                });
+            }
+            fragments.push({
+                text: message.parameters.slice(emoticon.begin, emoticon.end),
+                emoticon: {
+                    emoticon_id: emoticon._id,
+                }
+            });
+            lastEnd = emoticon.end;
+        }
+        if (lastEnd < message.parameters.length) {
+            fragments.push({
+                text: message.parameters.slice(lastEnd),
+                emoticon: null,
+            });
+        }
+
+        /*
         const words = message.parameters.split(" ");
 
         for (let i = 0; i < words.length; i++) {
@@ -655,21 +740,27 @@ export class TwitchChat extends EventEmitter {
             };
 
             if (emoticons.length > 0) {
-                for (let j = 0; j < emoticons.length; j++) {
-                    const emoticon = emoticons[j];
-                    if (emoticon.begin <= fragment.text.length) {
-                        fragment.emoticon = {
-                            "emoticon_id": emoticon._id,
-                        };
-                        break;
-                    }
+                // find emoticon based on entire message text position
+                // i in this case is the word index, not the character index
+                const emoticon = emoticons.find(e => e.begin <= i && e.end >= i);
+                if (emoticon) {
+                    fragment.emoticon = {
+                        emoticon_id: emoticon._id,
+                        // emoticon_set_id: message.tags["emote-sets"][0],
+                    };
+                } else {
+                    console.debug(`No emoticon found for word ${word}`);
                 }
             }
 
             fragments.push(fragment);
         }
+        */
+
+        // console.debug(`Got ${fragments.length} fragments`, fragments);
 
         // merge fragments with only text
+        /*
         const mergedFragments: TwitchCommentMessageFragment[] = [];
         let currentFragment: TwitchCommentMessageFragment | undefined = undefined;
         for (let i = 0; i < fragments.length; i++) {
@@ -678,19 +769,25 @@ export class TwitchChat extends EventEmitter {
                 if (currentFragment) {
                     mergedFragments.push(currentFragment);
                 }
-                currentFragment = fragment;
+                currentFragment = undefined;
+                mergedFragments.push(fragment);
             } else {
-                if (currentFragment) {
+                if (!currentFragment) {
+                    currentFragment = {
+                        text: fragment.text,
+                        emoticon: null,
+                    };
+                } else {
                     currentFragment.text += " " + fragment.text;
-                }
-                else {
-                    currentFragment = fragment;
                 }
             }
         }
         if (currentFragment) {
             mergedFragments.push(currentFragment);
         }
+
+        console.debug(`Merged ${fragments.length} fragments to ${mergedFragments.length}`);
+        */
 
         const badges: TwitchCommentUserBadge[] = [];
         if (message.tags?.badges) {
@@ -730,7 +827,7 @@ export class TwitchChat extends EventEmitter {
             message: {
                 body: message.parameters || "",
                 emoticons: emoticons,
-                fragments: mergedFragments,
+                fragments: fragments,
                 user_badges: badges || null,
                 user_color: message.tags?.color || "#FFFFFF",
                 is_action: message.isAction || false,
@@ -800,32 +897,246 @@ export class TwitchChat extends EventEmitter {
         }
     }
 
+    public getUser(user_id: string): TwitchUser | undefined {
+        return this.users[user_id];
+    }
+
+    public getBannedUsers(): TwitchUser[] {
+        return Object.values(this.users).filter((user) => user.isBanned);
+    }
+
+    public clearUsers() {
+        this.users = {};
+    }
+
+}
+
+export class TwitchMessage {
+    public date?: Date;
+    public source?: Source;
+    public command?: Command;
+    public parameters?: string;
+    public tags: Tags = {};
+    public isAction: boolean;
+    public user?: TwitchUser;
+
+    constructor(message: TwitchIRCMessage) {
+        this.date = message.date;
+        this.source = message.source;
+        this.command = message.command;
+        this.parameters = message.parameters;
+        this.tags = message.tags || {};
+        this.isAction = message.isAction || false;
+        // this.user = user;
+    }
+
+    public getTag<T>(tag: keyof Tags): T | undefined {
+        if (this.tags) {
+            const val = this.tags[tag];
+            if (typeof val === "string") {
+                return val.replace(/\\\\s/g, " ").replace(/\\s/g, " ") as unknown as T;
+            }
+
+            // parse as number
+            // if (typeof val === "string" && !isNaN(val) && !isNaN(parseFloat(val))) {
+            //     return parseInt(val) as unknown as T;
+            // }
+
+            return this.tags[tag] as T;
+        }
+        return undefined;
+    }
+
+    // public getEmotes(): Emote[] {
+    //     if (this.tags && this.tags.emotes || this.tags?.["emote-sets"]) {
+    //         return this.tags.emotes || this.tags["emote-sets"] || [];
+    //     }
+    //     return [];
+    // }
+
+    /*
+    public getBadges(): Record<string, string> {
+        if (this.tags && this.tags.badges) {
+            return this.tags.badges;
+        }
+        return {};
+    }
+    */
+
+    public getCommandName(): string | undefined {
+        return this.command ? this.command.command : undefined;
+    }
+
+    public getCommand(): Command | undefined {
+        return this.command;
+    }
+
+    public getUser(): TwitchUser | undefined {
+        return this.user;
+    }
+
+    public getDate(): Date | undefined {
+        return this.date;
+    }
+
+    public getTime(): string {
+        return this.date ? this.date.toLocaleTimeString() + "." + this.date.getMilliseconds().toString().padStart(3, "0") : "";
+    }
+
+    public getFormattedText() {
+        let text = this.isAction ? TwitchChat.chalk.italic(this.parameters) : this.parameters;
+        // if (message.tags?.emotes) {
+        //     console.debug(message.tags.emotes);
+        // }
+        text = text?.replaceAll(/\@(\w+)/g, TwitchChat.chalk.blueBright('@$1'));
+        // text = text?.replaceAll(/\#(\w+)/g, chalk.blueBright('#$1'));
+
+        // remove all hidden characters
+        text = text?.replaceAll(/[\u{E000}-\u{F8FF}]/gu, "");
+        return text;
+    }
+
+    public getFormattedUser(): string {
+        const user = this.getUser();
+        if (!user || user === undefined) return "";
+
+        // if (this.user?.isBanned) {
+        //     user = chalk.redBright(user);
+        // }
+        let text = "";
+        if (user.isMod) {
+            return TwitchChat.chalk.bold.underline.hex(user.color || "#FFFFFF")(user.displayName);
+        } else {
+            return TwitchChat.chalk.hex(user.color || "#FFFFFF")(user.displayName);
+        }
+    }
+
+    private static abuseCharacters = [56320];
+    get isAbuse(): boolean {
+        const text = this.parameters;
+        if (!text) return false;
+
+        if (this.user && this.user.isMod) return false; // even though mods can be abusive lol
+
+        // check for invisible characters
+        if (text.match(/[\u{E000}-\u{F8FF}]/gu) || text.match(/[\u{FFF0}-\u{FFFF}]/gu)) {
+            return true;
+        }
+
+        // check for abuse characters
+        if (text.split("").map((c) => c.charCodeAt(0)).some((c) => TwitchMessage.abuseCharacters.includes(c))) {
+            return true;
+        }
+
+        // check for links
+        if (text.match(/https?:\/\/\S+/gi)) {
+            return true;
+        }
+
+        return false;
+    }
+
+}
+
+export class TwitchUser {
+    public login: string;
+    public id: string;
+    public displayName: string;
+    public color: string;
+    public badges: Record<string, string>;
+    public tags: Tags = {};
+    public isMod = false;
+    public isSubscriber = false;
+    public isTurbo = false;
+    // isBroadcaster: boolean;
+    // isVip: boolean;
+    // isStaff: boolean;
+    // isGlobalMod: boolean;
+    // isBot: boolean;
+    public ban_date?: Date;
+    public ban_duration?: number;
+    public messageCount = 0;
+    public abuseMessageCount = 0;
+    public abuseWarning = false;
+
+    constructor(user: TwitchIRCUser) {
+        this.login = user.nick;
+        this.id = user.id;
+        this.displayName = user.displayName;
+        this.color = user.color;
+        this.badges = user.badges;
+    }
+
+    private static badgeEmojis: Record<string, string> = {
+        "broadcaster": "👑",
+        "moderator": "🛡️",
+        "global_mod": "🌎",
+        "admin": "👮",
+        "bits": "💎",
+        "subscriber": "🔴",
+        "turbo": "🚀",
+        "bot": "🤖",
+        "partner": "🔵",
+        "moments": /** coin/medal */ "🏅",
+        "no_video": "👁️‍🗨️",
+        "no_audio": "🔇",
+        "vip": /** pumpkin */ "🎃", // probably only for halloween
+        "glhf-pledge": /** keyboard key */ "⌨️",
+        "sub-gifter": /** gift */ "🎁",
+        "staff": "👨‍💼",
+        "glitchcon2020": /** dinosaur */ "🦖",
+        "game-developer": /** game controller */ "🎮",
+        "twitchconEU2022": /** rose */ "🌹",
+        "twitchconNA2022": /** palm tree */ "🌴",
+        "hype-train": /** train */ "🚂",
+    };
+    public displayBadges(): string {
+        const b = Object.keys(this.badges).map((badge) => {
+            if (badge in TwitchUser.badgeEmojis && this.badges[badge]) {
+                return TwitchUser.badgeEmojis[badge];
+            }
+            return `${badge}`; // badge.substring(0, 1).toUpperCase()
+        });
+        if (b && b.length > 0) {
+            return " " + b.join("") + " ";
+        } else {
+            return " ";
+        }
+    }
+
+    get isBanned(): boolean {
+        return this.ban_date !== undefined && this.ban_duration !== undefined && this.ban_date.getTime() + (this.ban_duration * 1000) > new Date().getTime();
+    }
 }
 
 export declare interface TwitchChat {
 
+    on(event: "raw", listener: (message: string) => void): this;
+
     /**
      * When a message is posted to the chat, including commands.
      */
-    on(event: "message", listener: (message: TwitchIRCMessage) => void): this;
+    on(event: "message", listener: (message: TwitchMessage) => void): this;
 
-    on(event: "chat", listener: (message: TwitchIRCMessage) => void): this;
-    on(event: "command", listener: (message: TwitchIRCMessage) => void): this;
+    on(event: "chat", listener: (message: TwitchMessage) => void): this;
+    on(event: "command", listener: (message: TwitchMessage) => void): this;
 
     /**
      * Live prediction event based on chat messages
      */
-    on(event: "live", listener: (message: TwitchIRCMessage) => void): this;
+    on(event: "live", listener: (message: TwitchMessage) => void): this;
 
     /**
      * When an user gets banned (timeout), actually when their messages get geleted
      */
-    on(event: "ban", listener: (nick: string, duration: number, message: TwitchIRCMessage) => void): this;
+    on(event: "ban", listener: (nick: string, duration: number, message: TwitchMessage) => void): this;
 
     /**
      * When an user subscribes to the channel or gifts subscriptions
      */
-    on(event: "sub", listener: (displayName: string, months: number, planName: string, subMessage: string, message: TwitchIRCMessage) => void): this;
+    on(event: "sub", listener: (displayName: string, months: number, planName: string, subMessage: string, message: TwitchMessage) => void): this;
 
     on(event: "connected", listener: () => void): this;
+
+    on(event: "pong", listener: () => void): this;
 }
