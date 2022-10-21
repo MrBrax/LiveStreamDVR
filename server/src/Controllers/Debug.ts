@@ -97,3 +97,24 @@ export async function JobProgress(req: express.Request, res: express.Response): 
 
     res.send("ok");
 }
+
+export async function rebuildSegmentList(req: express.Request, res: express.Response): Promise<void> {
+    const uuid = req.query.uuid as string;
+
+    const vod = LiveStreamDVR.getInstance().getVodByUUID(uuid);
+
+    if (!vod) {
+        res.status(500).send("VOD not found");
+        return;
+    }
+
+    let status;
+    try {
+        status = await vod.rebuildSegmentList();
+    } catch (error) {
+        res.status(500).send((error as Error).message);
+        return;
+    }
+
+    res.send(status);
+}

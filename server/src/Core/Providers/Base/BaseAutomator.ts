@@ -714,7 +714,7 @@ export class BaseAutomator {
             this.vod.addSegment(path.basename(this.converted_filename));
 
             if (this.vod.segments.length > 1) {
-                Log.logAdvanced(LOGLEVEL.WARNING, "automator.download", `More than one segment for ${basename}, this should not happen!`);
+                Log.logAdvanced(LOGLEVEL.WARNING, "automator.download", `More than one segment (${this.vod.segments.length}) for ${basename}, this should not happen!`);
                 ClientBroker.notify("Segment error", `More than one segment (${this.vod.segments.length}) for ${basename}, this should not happen!`, "", "system");
             }
 
