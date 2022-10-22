@@ -334,6 +334,7 @@ import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import axios, { AxiosError } from "axios";
 import { UserData } from "@common/User";
 import { VideoQuality } from "@common/Config";
+import { ApiResponse } from "@common/Api/Api";
 library.add(faUserPlus);
 
 export default defineComponent({
@@ -482,7 +483,7 @@ export default defineComponent({
         },
         */
         fetchLogin() {
-            this.$http.get(`/api/v0/twitchapi/user/${this.formData.login}`).then((response) => {
+            this.$http.get<ApiResponse>(`/api/v0/twitchapi/user/${this.formData.login}`).then((response) => {
                 const json = response.data;
                 const field = this.$refs.login as HTMLInputElement;
                 if (!field) {
@@ -499,11 +500,11 @@ export default defineComponent({
                     this.userExists = true;
                 } else {
                     this.channelData = undefined;
-                    field.setCustomValidity(json.message);
+                    field.setCustomValidity(json.message || "");
                     field.reportValidity();
                     this.userExists = false;
                 }
-            }).catch((err: AxiosError) => {
+            }).catch((err: AxiosError<ApiResponse>) => {
                 console.error("form error", err.response);
                 const field = this.$refs.login as HTMLInputElement;
                 if (field && err.response && err.response.data && err.response.data.message) {

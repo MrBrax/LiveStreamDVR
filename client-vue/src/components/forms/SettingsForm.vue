@@ -356,7 +356,7 @@ export default defineComponent({
             this.formStatus = "";
 
             this.$http
-                .put(`/api/v0/settings`, this.formData)
+                .put<ApiResponse>(`/api/v0/settings`, this.formData)
                 .then((response) => {
                     const json: ApiResponse = response.data;
                     this.formStatusText = json.message || "No message";
@@ -368,9 +368,9 @@ export default defineComponent({
                     }
                     console.debug("settings save response", response);
                 })
-                .catch((err: AxiosError) => {
+                .catch((err: AxiosError<ApiResponse>) => {
                     console.error("form error", err.response);
-                    this.formStatusText = err.response?.data ? err.response.data.message : "Fatal error";
+                    this.formStatusText = err.response?.data ? ( err.response.data.message || "Unknown error" ) : "Fatal error";
                     // this.formStatusText = err.response.message ? err.response.message : "Fatal error";
                     this.formStatus = "ERROR";
                 });
@@ -386,12 +386,12 @@ export default defineComponent({
         },
         doValidateExternalURL() {
             this.$http
-                .post(`/api/v0/settings/validate_url`)
+                .post<ApiResponse>(`/api/v0/settings/validate_url`)
                 .then((response) => {
                     const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);
                 })
-                .catch((err: AxiosError) => {
+                .catch((err: AxiosError<ApiResponse>) => {
                     console.error("form error", err.response);
                     if (err.response?.data) {
                         alert(err.response.data.message);
