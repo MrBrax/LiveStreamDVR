@@ -206,7 +206,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import VodItem from "@/components/VodItem.vue";
 import ModalBox from "@/components/ModalBox.vue";
 import StreamerItemClips from "./StreamerItemClips.vue";
@@ -219,6 +219,7 @@ import { ChannelTypes, useStore, VODTypes } from "@/store";
 import { ApiResponse } from "@common/Api/Api";
 import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
 import axios from "axios";
+import { useRoute } from "vue-router";
 library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen, faTrash);
 
 const props = defineProps<{
@@ -230,6 +231,7 @@ const emit = defineEmits<{
 }>();
 
 const store = useStore();
+const route = useRoute();
 
 // data
 const onlineVods = ref<ProxyVideo[]>([]);
@@ -289,6 +291,19 @@ const providerapi = computed(() => {
     return "twitchapi";
 });
 
+function checkHash(hash: string) {
+    const vod_uuid = hash.substring(5);
+    if (vod_uuid && toggleVodMinimizedStatus.value[vod_uuid] !== undefined) {
+        toggleVodMinimizedStatus.value[vod_uuid] = false;
+    }
+    if (
+        filteredVodsList.value.findIndex((vod) => vod.uuid === vod_uuid) === -1 &&
+        props.streamer.vods_list.findIndex((vod) => vod.uuid === vod_uuid) !== -1
+    ) {
+        limitVods.value = true;
+    }
+}
+
 onMounted(() => {
 
     toggleAllVodsExpanded.value = areMostVodsExpanded.value;
@@ -303,7 +318,12 @@ onMounted(() => {
         toggleVodMinimizedStatus.value[vod.uuid] = false;
 
     }
+
+    checkHash(route.hash);
 });
+
+// watch for hash change
+watch(() => route.hash, checkHash);
 
 function refresh() {
     emit("refresh");
