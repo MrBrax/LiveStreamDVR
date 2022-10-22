@@ -770,7 +770,11 @@ function doDelete(): void {
 
 function doFixIssues(): void {
     if (!props.vod) return;
-    const c = confirm(`Do you want to fix issues for "${props.vod?.basename}"?`);
+    const c = confirm(
+        `Do you want to fix issues for "${props.vod?.basename}"?\n` +
+        `Please only do this if you know what you are doing.\n` +
+        `Using this function can cause issues with the VOD, especially if it is currently capturing or converting.`
+    );
     if (!c) return;
     axios
         .post(`/api/v0/vod/${props.vod.uuid}/fix_issues`)
