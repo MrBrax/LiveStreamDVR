@@ -162,7 +162,7 @@
         <button
             v-if="showAdvanced"
             class="button is-confirm"
-            @click="emit('showModal', 'exportVod')"
+            @click="emit('showModal', 'export')"
         >
             <span class="icon">
                 <fa
