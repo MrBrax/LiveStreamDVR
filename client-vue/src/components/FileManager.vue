@@ -484,9 +484,9 @@ export default defineComponent({
     methods: {
         fetchFileList() {
             console.debug("Fetching file list...");
-            this.$http.get(`/api/v0/files?path=${this.path}`).then((response) => {
+            this.$http.get<ApiResponse>(`/api/v0/files?path=${this.path}`).then((response) => {
                 this.files = response.data.data.files;
-            }).catch((error: AxiosError | Error) => {
+            }).catch((error: AxiosError<ApiResponse> | Error) => {
                 if ("response" in error && error.response?.data.message) {
                     // alert(error.response.data.message);
                     this.error = error.response.data.message;
