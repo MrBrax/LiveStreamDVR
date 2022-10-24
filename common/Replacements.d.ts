@@ -29,6 +29,21 @@ export interface ExporterFilenameTemplate extends Record<string, string> {
     resolution: string;
 }
 
+export interface ClipBasenameTemplate extends Record<string, string> {
+    id: string;
+    quality: string;
+    clip_date: string;
+    title: string;
+    creator: string;
+    broadcaster: string;
+}
+
 export interface TemplateFields {
-    [key: string]: { display: string; description?: string; deprecated?: boolean; };
+    [key: string]: TemplateField;
+}
+
+export interface TemplateField {
+    display: string;
+    description?: string;
+    deprecated?: boolean;
 }

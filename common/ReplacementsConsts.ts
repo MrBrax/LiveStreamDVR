@@ -1,6 +1,6 @@
-import { TemplateFields } from "./Replacements";
+import { ClipBasenameTemplate, ExporterFilenameTemplate, TemplateField, TemplateFields, VodBasenameTemplate } from "./Replacements";
 
-export const VodBasenameFields: TemplateFields = {
+export const VodBasenameFields: Record<keyof VodBasenameTemplate, TemplateField> = {
     login: { display: "MooseStreamer", deprecated: true },
     internalName: { display: "moosestreamer" },
     displayName: { display: "MooseStreamer", },
@@ -18,7 +18,7 @@ export const VodBasenameFields: TemplateFields = {
     episode: { display: "3" },
 };
 
-export const ClipBasenameFields: TemplateFields = {
+export const ClipBasenameFields: Record<keyof ClipBasenameTemplate, TemplateField> = {
     id: { display: "MinimalMooseOtterCatcher1234" },
     quality: { display: "720p" },
     clip_date: { display: "2020-01-01" },
@@ -27,7 +27,7 @@ export const ClipBasenameFields: TemplateFields = {
     broadcaster: { display: "MooseStreamer" },
 };
 
-export const ExporterFilenameFields: TemplateFields = {
+export const ExporterFilenameFields: Record<keyof ExporterFilenameTemplate, TemplateField> = {
     login: { display: "username", deprecated: true },
     internalName: { display: "username" },
     displayName: { display: "DisplayName", },

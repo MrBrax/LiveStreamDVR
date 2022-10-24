@@ -132,6 +132,7 @@ router.post("/tools/chat_download", AuthAdmin, Tools.DownloadChat);
 router.post("/tools/chat_dump", AuthAdmin, Tools.ChatDump);
 router.post("/tools/clip_download", AuthAdmin, Tools.DownloadClip);
 router.post("/tools/shutdown", AuthAdmin, Tools.Shutdown);
+router.get("/tools/runscheduler/:name", AuthAdmin, Tools.RunScheduler);
 // router.post("/tools/buildclient", AuthAdmin, Tools.BuildClient);
 
 router.get("/files", AuthAdmin, Files.ListFiles);

@@ -8,6 +8,10 @@ import { Config } from "./Config";
 import { Log } from "./Log";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
+import { format, parseJSON } from "date-fns";
+import { ClipBasenameTemplate } from "../../../common/Replacements";
+import sanitize from "sanitize-filename";
+import { formatString } from "../../../common/Format";
 
 export class Scheduler {
 
@@ -79,7 +83,18 @@ export class Scheduler {
         this.defaultJobs();
     }
 
+    public static runJob(name: string) {
+        if (this.hasJob(name)) {
+            this.jobs[name].fireOnTick();
+            // this.jobs[name].start();
+        } else {
+            throw new Error("Job not found");
+        }
+    }
+
     public static async scheduleClipDownload() {
+
+        console.debug("Scheduler: scheduleClipDownload");
 
         if (!Config.getInstance().cfg<boolean>("scheduler.clipdownload.enabled")) return;
 
@@ -103,22 +118,35 @@ export class Scheduler {
                         fs.mkdirSync(basefolder, { recursive: true });
                     }
 
-                    const out = path.join(basefolder, clip.id);
+                    const clip_date = parseJSON(clip.created_at);
 
-                    if (fs.existsSync(out + ".mp4")) {
+                    const variables: ClipBasenameTemplate = {
+                        id: clip.id,
+                        quality: "best", // TODO: get quality somehow
+                        clip_date: format(clip_date, "yyyy-MM-dd"),
+                        title: clip.title,
+                        creator: clip.creator_name,
+                        broadcaster: clip.broadcaster_name,
+                    };
+
+                    const basename = sanitize(formatString(Config.getInstance().cfg("filename_clip", "{broadcaster} - {title} [{id}] [{quality}]"), variables));
+
+                    const outPath = path.join(basefolder, basename);
+
+                    if (fs.existsSync(`${outPath}.mp4`)) {
                         Log.logAdvanced(Log.Level.WARNING, "scheduler", `Clip ${clip.id} already exists`);
                         continue;
                     }
 
                     try {
-                        await TwitchVOD.downloadClip(clip.id, `${out}.mp4`, "best");
+                        await TwitchVOD.downloadClip(clip.id, `${outPath}.mp4`, "best");
                     } catch (error) {
                         Log.logAdvanced(Log.Level.ERROR, "scheduler", `Failed to download clip ${clip.id}: ${(error as Error).message}`);
                         return;
                     }
 
                     try {
-                        await TwitchVOD.downloadChatTD(clip.id, out + ".json");
+                        await TwitchVOD.downloadChatTD(clip.id, `${outPath}.json`);
                     } catch (error) {
                         Log.logAdvanced(Log.Level.ERROR, "scheduler", `Failed to download chat for clip ${clip.id}: ${(error as Error).message}`);
                         return;

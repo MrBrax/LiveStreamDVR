@@ -6,11 +6,14 @@ import sanitize from "sanitize-filename";
 import { ApiErrorResponse } from "../../../common/Api/Api";
 import { VideoQuality } from "../../../common/Config";
 import { formatString } from "../../../common/Format";
+import { ClipBasenameTemplate } from "../../../common/Replacements";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
+import { Scheduler } from "../Core/Scheduler";
+
 
 export async function ResetChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -248,7 +251,7 @@ export async function DownloadClip(req: express.Request, res: express.Response):
 
     const clip_date = parseJSON(metadata.created_at);
 
-    const variables = {
+    const variables: ClipBasenameTemplate = {
         id: metadata.id,
         quality: quality,
         clip_date: format(clip_date, "yyyy-MM-dd"),
@@ -324,6 +327,35 @@ export function Shutdown(req: express.Request, res: express.Response): void {
     });
 
     LiveStreamDVR.shutdown("tools");
+
+}
+
+export function RunScheduler(req: express.Request, res: express.Response): void {
+
+    const name = req.params.name as string | undefined;
+
+    if (!name) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "No name provided",
+        });
+        return;
+    }
+
+    if (!Scheduler.hasJob(name)) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "No job found",
+        });
+        return;
+    }
+
+    Scheduler.runJob(name);
+
+    res.send({
+        status: "OK",
+        message: `Running job ${name}`,
+    });
 
 }
 
