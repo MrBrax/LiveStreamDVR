@@ -1,7 +1,7 @@
 import { Job } from "../Core/Job";
 import { Log, LOGLEVEL } from "../Core/Log";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import sanitize from "sanitize-filename";
 import { BaseExporter } from "./Base";
 

@@ -1,14 +1,14 @@
-import path from "path";
-import fs from "fs";
+import path from "node:path";
+import fs from "node:fs";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "./BaseConfig";
 import { Config } from "./Config";
 import { Log, LOGLEVEL } from "./Log";
 import { ExecReturn, RemuxReturn } from "Providers/Twitch";
-import { spawn } from "child_process";
+import { spawn } from "node:child_process";
 import { Stream } from "../../../common/TwitchAPI/Streams";
 import chalk from "chalk";
 import { Job } from "./Job";
-import { createHash } from "crypto";
+import { createHash } from "node:crypto";
 import { FFProbe } from "../../../common/FFProbe";
 import { MediaInfoJSONOutput, VideoMetadata, AudioMetadata } from "../../../common/MediaInfo";
 import { MediaInfo } from "../../../common/mediainfofield";

@@ -1,8 +1,8 @@
 import { youtube_v3 } from "@googleapis/youtube";
 import axios from "axios";
-import { randomUUID } from "crypto";
-import fs from "fs";
-import path from "path";
+import { randomUUID } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 import { BaseVODChapterJSON } from "../../../Storage/JSON";
 import { ApiYouTubeChannel } from "../../../../../common/Api/Client";
 import { YouTubeChannelConfig } from "../../../../../common/Config";

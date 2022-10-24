@@ -1,0 +1,17 @@
+{
+  "name": "livestreamdvr",
+  "version": "1.0.0",
+  "repository": "https://github.com/MrBrax/LiveStreamDVR.git",
+  "author": "braxen et al",
+  "license": "MIT",
+  "private": true,
+  "workspaces": [
+    "client-vue",
+    "server",
+    "twitch-chat-dumper",
+    "twitch-vod-chat"
+  ],
+  "scripts": {
+    "build": "yarn workspace client-vue build"
+  }
+}

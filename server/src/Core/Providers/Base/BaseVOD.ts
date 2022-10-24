@@ -1,9 +1,9 @@
 import chalk from "chalk";
 import chokidar from "chokidar";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { format, parseJSON } from "date-fns";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import { BaseVODChapterJSON, VODJSON } from "Storage/JSON";
 import { ApiBaseVod } from "../../../../../common/Api/Client";
 import { VideoQuality } from "../../../../../common/Config";

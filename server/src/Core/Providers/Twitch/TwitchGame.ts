@@ -1,11 +1,11 @@
-import fs from "fs";
+import fs from "node:fs";
 import { TwitchHelper } from "../../../Providers/Twitch";
 import { BaseConfigCacheFolder, BaseConfigPath } from "../../BaseConfig";
 import { LOGLEVEL, Log } from "../../Log";
 import { ApiGame } from "../../../../../common/Api/Client";
 import { GamesResponse } from "../../../../../common/TwitchAPI/Games";
 import axios from "axios";
-import path from "path";
+import path from "node:path";
 import { Helper } from "../../../Core/Helper";
 import { Config } from "../../../Core/Config";
 

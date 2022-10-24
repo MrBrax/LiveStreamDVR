@@ -1,8 +1,8 @@
-import { spawn } from "child_process";
+import { spawn } from "node:child_process";
 import { format, formatDistanceToNow, isValid, parseJSON } from "date-fns";
-import fs from "fs";
-import { IncomingHttpHeaders } from "http";
-import path from "path";
+import fs from "node:fs";
+import { IncomingHttpHeaders } from "node:http";
+import path from "node:path";
 import { TwitchVODChapterJSON } from "Storage/JSON";
 import { VideoQuality } from "../../../../../common/Config";
 import { ChannelUpdateEvent } from "../../../../../common/TwitchAPI/EventSub/ChannelUpdate";

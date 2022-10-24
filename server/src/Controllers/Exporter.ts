@@ -1,5 +1,5 @@
 import express from "express";
-import path from "path";
+import path from "node:path";
 import sanitize from "sanitize-filename";
 import { ApiErrorResponse, ApiResponse } from "../../../common/Api/Api";
 import { ExporterOptions } from "../../../common/Exporter";

@@ -1,7 +1,7 @@
 import { format, parseJSON } from "date-fns";
 import express from "express";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import sanitize from "sanitize-filename";
 import { ApiErrorResponse } from "../../../common/Api/Api";
 import { VideoQuality } from "../../../common/Config";

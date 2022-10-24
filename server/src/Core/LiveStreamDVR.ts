@@ -1,11 +1,11 @@
 import chalk from "chalk";
 import { compareVersions } from "compare-versions";
-import { randomUUID } from "crypto";
-import fs from "fs";
-import { Server } from "http";
+import { randomUUID } from "node:crypto";
+import fs from "node:fs";
+import { Server } from "node:http";
 import minimist from "minimist";
-// import { version } from "os";
-import path from "path";
+// import { version } from "node:os";
+import path from "node:path";
 import { WebSocketServer } from "ws";
 import { ChannelConfig } from "../../../common/Config";
 import { SubStatus } from "../../../common/Defs";

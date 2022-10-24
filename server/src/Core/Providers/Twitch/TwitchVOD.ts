@@ -1,12 +1,12 @@
 import axios from "axios";
 import chalk from "chalk";
 import chokidar from "chokidar";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { format, parse, parseJSON } from "date-fns";
-import fs from "fs";
+import fs from "node:fs";
 import { isTwitchVOD } from "../../../Helpers/Types";
 import { encode as htmlentities } from "html-entities";
-import path from "path";
+import path from "node:path";
 import { trueCasePathSync } from "true-case-path";
 import { ApiTwitchVod } from "../../../../../common/Api/Client";
 import { TwitchVODBookmark } from "../../../../../common/Bookmark";

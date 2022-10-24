@@ -1,10 +1,10 @@
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { Config } from "../Core/Config";
 import express from "express";
-import crypto from "crypto";
-import path from "path";
+import crypto from "node:crypto";
+import path from "node:path";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
-import fs from "fs";
+import fs from "node:fs";
 import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
 import { ChallengeResponse } from "../../../common/TwitchAPI/Challenge";
 import { LOGLEVEL, Log } from "../Core/Log";

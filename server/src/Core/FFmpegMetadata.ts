@@ -1,5 +1,5 @@
 import { format } from "date-fns";
-import fs from "fs";
+import fs from "node:fs";
 
 interface FFmpegMetadataChapter {
     // id: number;

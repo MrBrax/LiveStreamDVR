@@ -1,12 +1,12 @@
 import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
 import chokidar from "chokidar";
-import { randomUUID } from "crypto";
+import { randomUUID } from "node:crypto";
 import { format, parseJSON } from "date-fns";
-import fs from "fs";
+import fs from "node:fs";
 import fsPromises from "fs/promises";
 import { encode as htmlentities } from "html-entities";
-import path from "path";
+import path from "node:path";
 import { Readable } from "stream";
 import type { ApiTwitchChannel } from "../../../../../common/Api/Client";
 import { TwitchChannelConfig, VideoQuality } from "../../../../../common/Config";

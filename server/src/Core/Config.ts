@@ -1,9 +1,9 @@
 import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
-import crypto from "crypto";
-import fs from "fs";
+import crypto from "node:crypto";
+import fs from "node:fs";
 import minimist from "minimist";
-import path from "path";
+import path from "node:path";
 import express from "express";
 import { SettingField } from "../../../common/Config";
 import { ClipBasenameFields, VodBasenameFields } from "../../../common/ReplacementsConsts";

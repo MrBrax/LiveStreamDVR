@@ -1,10 +1,10 @@
-import path from "path";
-import fs from "fs";
+import path from "node:path";
+import fs from "node:fs";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "./BaseConfig";
 import { LOGLEVEL, Log } from "./Log";
 import { parseJSON } from "date-fns";
-import { ChildProcessWithoutNullStreams } from "child_process";
-import { EventEmitter } from "events";
+import { ChildProcessWithoutNullStreams } from "node:child_process";
+import { EventEmitter } from "node:events";
 import { Webhook } from "./Webhook";
 import { ApiJob } from "../../../common/Api/Client";
 import { JobStatus } from "../../../common/Defs";

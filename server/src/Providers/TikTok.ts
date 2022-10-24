@@ -1,5 +1,5 @@
 import { BaseConfigCacheFolder } from "../Core/BaseConfig";
-import path from "path";
+import path from "node:path";
 import { Config } from "../Core/Config";
 import { Log, LOGLEVEL } from "../Core/Log";
 

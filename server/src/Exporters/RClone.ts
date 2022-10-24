@@ -1,6 +1,6 @@
 import { TwitchHelper } from "../Providers/Twitch";
-import path from "path";
-import fs from "fs";
+import path from "node:path";
+import fs from "node:fs";
 import sanitize from "sanitize-filename";
 import { BaseExporter } from "./Base";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";

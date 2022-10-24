@@ -2,11 +2,11 @@ import { BaseExporter } from "./Base";
 // import { google } from "googleapis"; // FIXME: don't import the whole module
 import { youtube_v3 } from "@googleapis/youtube";
 import { YouTubeHelper } from "../Providers/YouTube";
-import fs from "fs";
+import fs from "node:fs";
 import { Log, LOGLEVEL } from "../Core/Log";
 import { Job } from "../Core/Job";
 import { Config } from "../Core/Config";
-import path from "path";
+import path from "node:path";
 
 export class YouTubeExporter extends BaseExporter {
 

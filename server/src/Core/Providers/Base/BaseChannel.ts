@@ -1,8 +1,8 @@
 import chokidar from "chokidar";
 import { format } from "date-fns";
-import fs from "fs";
+import fs from "node:fs";
 import readdirSyncRecursive from "fs-readdir-recursive";
-import path from "path";
+import path from "node:path";
 import { ApiChannels } from "../../../../../common/Api/Client";
 import { ChannelConfig, VideoQuality } from "../../../../../common/Config";
 import { LocalClip } from "../../../../../common/LocalClip";

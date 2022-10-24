@@ -1,5 +1,5 @@
 import { DataRoot } from "../src/Core/BaseConfig";
-import path from "path";
+import path from "node:path";
 import { validatePath } from "../src/Controllers/Files";
 import { Config } from "../src/Core/Config";
 describe("files controller", () => {

@@ -1,10 +1,10 @@
 import { BaseConfigCacheFolder } from "../Core/BaseConfig";
 import { OAuth2Client } from "googleapis-common";
 import type { Credentials } from "google-auth-library";
-import path from "path";
+import path from "node:path";
 import { Config } from "../Core/Config";
 import { Log, LOGLEVEL } from "../Core/Log";
-import fs from "fs";
+import fs from "node:fs";
 import { youtube_v3 } from "@googleapis/youtube";
 
 export class YouTubeHelper {

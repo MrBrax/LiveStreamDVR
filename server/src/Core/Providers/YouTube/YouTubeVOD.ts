@@ -1,7 +1,7 @@
 import { youtube_v3 } from "@googleapis/youtube";
 import chalk from "chalk";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import { ApiYouTubeVod } from "../../../../../common/Api/Client";
 import { VideoQuality } from "../../../../../common/Config";
 import { Providers } from "../../../../../common/Defs";
