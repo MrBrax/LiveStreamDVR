@@ -53,5 +53,6 @@
     "vite-plugin-pwa": "^0.13.1",
     "vitest": "^0.23.4",
     "vue-tsc": "^1.0.7"
-  }
+  },
+  "packageManager": "yarn@3.2.4"
 }
