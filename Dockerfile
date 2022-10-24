@@ -40,6 +40,7 @@ RUN cd /usr/local/share/twitchautomator/server \
     && yarn install --immutable --immutable-cache --check-cache \
     && yarn lint:ts \
     && yarn build \
+    && yarn run generate-licenses \
     && rm -rf node_modules \
     && yarn cache clean --all
 
@@ -47,6 +48,7 @@ RUN cd /usr/local/share/twitchautomator/server \
 RUN cd /usr/local/share/twitchautomator/client-vue \
     && yarn install --immutable --immutable-cache --check-cache \
     && yarn build \
+    && yarn run generate-licenses \
     && rm -rf node_modules \
     && yarn cache clean --all
 

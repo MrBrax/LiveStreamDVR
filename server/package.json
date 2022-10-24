@@ -11,7 +11,7 @@
     "start": "node --enable-source-maps build/server.js",
     "build:ts": "tsc --project tsconfig.json",
     "build": "tsc -noEmit && esbuild ./src/index.ts --bundle --platform=node --target=node15 --sourcemap --outfile=./build/server.js",
-    "licenses": "yarn licenses generate-disclaimer > LICENSES.txt"
+    "generate-licenses": "yarn licenses generate-disclaimer > LICENSES.txt"
   },
   "author": "",
   "license": "ISC",
