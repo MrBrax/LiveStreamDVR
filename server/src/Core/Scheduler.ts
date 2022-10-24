@@ -5,7 +5,7 @@ import fs from "node:fs";
 import * as CronController from "../Controllers/Cron";
 import { BaseConfigDataFolder } from "./BaseConfig";
 import { Config } from "./Config";
-import { Log, LOGLEVEL } from "./Log";
+import { Log } from "./Log";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
 
@@ -83,7 +83,7 @@ export class Scheduler {
 
         if (!Config.getInstance().cfg<boolean>("scheduler.clipdownload.enabled")) return;
 
-        Log.logAdvanced(LOGLEVEL.INFO, "Scheduler", "Scheduler: scheduleClipDownload - start");
+        Log.logAdvanced(Log.Level.INFO, "Scheduler", "Scheduler: scheduleClipDownload - start");
 
         const amount = Config.getInstance().cfg<number>("scheduler.clipdownload.amount");
         const days = Config.getInstance().cfg<number>("scheduler.clipdownload.age");
@@ -106,25 +106,25 @@ export class Scheduler {
                     const out = path.join(basefolder, clip.id);
 
                     if (fs.existsSync(out + ".mp4")) {
-                        Log.logAdvanced(LOGLEVEL.WARNING, "scheduler", `Clip ${clip.id} already exists`);
+                        Log.logAdvanced(Log.Level.WARNING, "scheduler", `Clip ${clip.id} already exists`);
                         continue;
                     }
 
                     try {
                         await TwitchVOD.downloadClip(clip.id, `${out}.mp4`, "best");
                     } catch (error) {
-                        Log.logAdvanced(LOGLEVEL.ERROR, "scheduler", `Failed to download clip ${clip.id}: ${(error as Error).message}`);
+                        Log.logAdvanced(Log.Level.ERROR, "scheduler", `Failed to download clip ${clip.id}: ${(error as Error).message}`);
                         return;
                     }
 
                     try {
                         await TwitchVOD.downloadChatTD(clip.id, out + ".json");
                     } catch (error) {
-                        Log.logAdvanced(LOGLEVEL.ERROR, "scheduler", `Failed to download chat for clip ${clip.id}: ${(error as Error).message}`);
+                        Log.logAdvanced(Log.Level.ERROR, "scheduler", `Failed to download chat for clip ${clip.id}: ${(error as Error).message}`);
                         return;
                     }
 
-                    Log.logAdvanced(LOGLEVEL.INFO, "scheduler", `Downloaded clip ${clip.id}`);
+                    Log.logAdvanced(Log.Level.INFO, "scheduler", `Downloaded clip ${clip.id}`);
 
                     await Sleep(5000); // hehe
 
@@ -136,7 +136,7 @@ export class Scheduler {
 
         }
 
-        Log.logAdvanced(LOGLEVEL.INFO, "Scheduler", "Scheduler: scheduleClipDownload - end");
+        Log.logAdvanced(Log.Level.INFO, "Scheduler", "Scheduler: scheduleClipDownload - end");
 
     }
 

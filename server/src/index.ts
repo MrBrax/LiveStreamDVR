@@ -53,7 +53,7 @@ try {
 Config.init().then(() => {
 
     // if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "lock"))) {
-    //     Log.logAdvanced(LOGLEVEL.WARNING, "index", "Seems like the server was not shut down gracefully...");
+    //     Log.logAdvanced(Log.Level.WARNING, "index", "Seems like the server was not shut down gracefully...");
     // }
 
     const app = express();

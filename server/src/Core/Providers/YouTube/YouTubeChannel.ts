@@ -13,7 +13,7 @@ import { BaseConfigDataFolder, BaseConfigPath } from "../../BaseConfig";
 import { Config } from "../../Config";
 import { KeyValue } from "../../KeyValue";
 import { ChannelTypes, LiveStreamDVR } from "../../LiveStreamDVR";
-import { Log, LOGLEVEL } from "../../Log";
+import { Log } from "../../Log";
 import { BaseChannel } from "../Base/BaseChannel";
 import { YouTubeVOD } from "./YouTubeVOD";
 import { isYouTubeChannel } from "../../../Helpers/Types";
@@ -74,18 +74,18 @@ export class YouTubeChannel extends BaseChannel {
             try {
                 await YouTubeChannel.subscribe(channel.channel_id);
             } catch (error) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "yt.channel", `Failed to subscribe to channel ${channel.channel_id}: ${(error as Error).message}`);
+                Log.logAdvanced(Log.Level.ERROR, "yt.channel", `Failed to subscribe to channel ${channel.channel_id}: ${(error as Error).message}`);
                 LiveStreamDVR.getInstance().channels_config = LiveStreamDVR.getInstance().channels_config.filter(ch => ch.provider == "youtube" && ch.channel_id !== config.channel_id); // remove channel from config
                 LiveStreamDVR.getInstance().saveChannelsConfig();
                 // throw new Error(`Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`, { cause: error });
                 throw error; // rethrow error
             }
         } else if (Config.getInstance().cfg("app_url") == "debug") {
-            Log.logAdvanced(LOGLEVEL.WARNING, "yt.channel", `Not subscribing to ${channel.channel_id} due to debug app_url.`);
+            Log.logAdvanced(Log.Level.WARNING, "yt.channel", `Not subscribing to ${channel.channel_id} due to debug app_url.`);
         } else if (Config.getInstance().cfg("isolated_mode")) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "yt.channel", `Not subscribing to ${channel.channel_id} due to isolated mode.`);
+            Log.logAdvanced(Log.Level.WARNING, "yt.channel", `Not subscribing to ${channel.channel_id} due to isolated mode.`);
         } else {
-            Log.logAdvanced(LOGLEVEL.ERROR, "yt.channel", `Can't subscribe to ${channel.channel_id} due to either no app_url or isolated mode disabled.`);
+            Log.logAdvanced(Log.Level.ERROR, "yt.channel", `Can't subscribe to ${channel.channel_id} due to either no app_url or isolated mode disabled.`);
             LiveStreamDVR.getInstance().channels_config = LiveStreamDVR.getInstance().channels_config.filter(ch => ch.provider == "youtube" && ch.channel_id !== config.channel_id); // remove channel from config
             LiveStreamDVR.getInstance().saveChannelsConfig();
             throw new Error("Can't subscribe due to either no app_url or isolated mode disabled.");
@@ -109,7 +109,7 @@ export class YouTubeChannel extends BaseChannel {
     public static async loadFromId(channel_id: string): Promise<YouTubeChannel> {
         if (!channel_id) throw new Error("Streamer login is empty");
         if (typeof channel_id !== "string") throw new TypeError("Streamer id is not a string");
-        Log.logAdvanced(LOGLEVEL.DEBUG, "yt.channel", `Load from login ${channel_id}`);
+        Log.logAdvanced(Log.Level.DEBUG, "yt.channel", `Load from login ${channel_id}`);
         // const channel_id = await this.channelIdFromLogin(channel_id);
         // if (!channel_id) throw new Error(`Could not get channel id from login: ${channel_id}`);
         return await this.loadAbstract(channel_id); // $channel;
@@ -117,11 +117,11 @@ export class YouTubeChannel extends BaseChannel {
 
     public static async loadAbstract(channel_id: string): Promise<YouTubeChannel> {
 
-        Log.logAdvanced(LOGLEVEL.DEBUG, "yt.channel", `Load channel ${channel_id}`);
+        Log.logAdvanced(Log.Level.DEBUG, "yt.channel", `Load channel ${channel_id}`);
 
         const channel_memory = LiveStreamDVR.getInstance().getChannels().find<YouTubeChannel>((channel): channel is YouTubeChannel => isYouTubeChannel(channel) && channel.channel_id === channel_id);
         if (channel_memory) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "yt.channel", `Channel ${channel_id} already loaded`);
+            Log.logAdvanced(Log.Level.WARNING, "yt.channel", `Channel ${channel_id} already loaded`);
             return channel_memory;
         }
 
@@ -148,11 +148,11 @@ export class YouTubeChannel extends BaseChannel {
         channel.applyConfig(channel_config);
 
         if (KeyValue.getInstance().getBool(`yt.${channel.channel_id}.online`)) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "yt.channel", `Channel ${channel.channel_id} is online, stale?`);
+            Log.logAdvanced(Log.Level.WARNING, "yt.channel", `Channel ${channel.channel_id} is online, stale?`);
         }
 
         if (KeyValue.getInstance().get(`yt.${channel.channel_id}.channeldata`)) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "yt.channel", `Channel ${channel.channel_id} has stale chapter data.`);
+            Log.logAdvanced(Log.Level.WARNING, "yt.channel", `Channel ${channel.channel_id} has stale chapter data.`);
         }
 
         /*
@@ -195,7 +195,7 @@ export class YouTubeChannel extends BaseChannel {
         try {
             await channel.updateChapterData();
         } catch (error) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "yt.channel", `Failed to update chapter data for channel ${channel.login}: ${(error as Error).message}`);
+            Log.logAdvanced(Log.Level.ERROR, "yt.channel", `Failed to update chapter data for channel ${channel.login}: ${(error as Error).message}`);
         }
         */
 
@@ -217,25 +217,25 @@ export class YouTubeChannel extends BaseChannel {
             throw new Error("No identifier supplied");
         }
 
-        Log.logAdvanced(LOGLEVEL.DEBUG, "yt.channel", `Fetching user data for ${method} ${identifier}, force: ${force}`);
+        Log.logAdvanced(Log.Level.DEBUG, "yt.channel", `Fetching user data for ${method} ${identifier}, force: ${force}`);
 
         // check cache first
         if (!force) {
             const channelData = method == "id" ? this.channels_cache[identifier] : Object.values(this.channels_cache).find(channel => channel.customUrl == identifier);
             if (channelData) {
-                Log.logAdvanced(LOGLEVEL.DEBUG, "yt.channel", `User data found in memory cache for ${method} ${identifier}`);
+                Log.logAdvanced(Log.Level.DEBUG, "yt.channel", `User data found in memory cache for ${method} ${identifier}`);
                 if (Date.now() > channelData._updated + Config.streamerCacheTime) {
-                    Log.logAdvanced(LOGLEVEL.INFO, "helper", `Memory cache for ${identifier} is outdated, fetching new data`);
+                    Log.logAdvanced(Log.Level.INFO, "helper", `Memory cache for ${identifier} is outdated, fetching new data`);
                 } else {
-                    Log.logAdvanced(LOGLEVEL.DEBUG, "yt.channel", `Returning memory cache for ${method} ${identifier}`);
+                    Log.logAdvanced(Log.Level.DEBUG, "yt.channel", `Returning memory cache for ${method} ${identifier}`);
                     return channelData;
                 }
             } else {
-                Log.logAdvanced(LOGLEVEL.DEBUG, "yt.channel", `User data not found in memory cache for ${method} ${identifier}, continue fetching`);
+                Log.logAdvanced(Log.Level.DEBUG, "yt.channel", `User data not found in memory cache for ${method} ${identifier}, continue fetching`);
             }
 
             if (KeyValue.getInstance().get(`${identifier}.deleted`)) {
-                Log.logAdvanced(LOGLEVEL.WARNING, "helper", `Channel ${identifier} is deleted, ignore. Delete kv file to force update.`);
+                Log.logAdvanced(Log.Level.WARNING, "helper", `Channel ${identifier} is deleted, ignore. Delete kv file to force update.`);
                 return false;
             }
         }
@@ -251,7 +251,7 @@ export class YouTubeChannel extends BaseChannel {
                     part: ["snippet"],
                 });
             } catch (error) {
-                Log.logAdvanced(LOGLEVEL.WARNING, "helper", `Channel data for ${identifier} error: ${(error as Error).message}`);
+                Log.logAdvanced(Log.Level.WARNING, "helper", `Channel data for ${identifier} error: ${(error as Error).message}`);
                 return false;
             }
         } else {
@@ -261,7 +261,7 @@ export class YouTubeChannel extends BaseChannel {
                     part: ["snippet"],
                 });
             } catch (error) {
-                Log.logAdvanced(LOGLEVEL.WARNING, "helper", `Channel data for ${identifier} error: ${(error as Error).message}`);
+                Log.logAdvanced(Log.Level.WARNING, "helper", `Channel data for ${identifier} error: ${(error as Error).message}`);
                 return false;
             }
         }
@@ -293,7 +293,7 @@ export class YouTubeChannel extends BaseChannel {
 
         const data = fs.readFileSync(BaseConfigPath.streamerYouTubeCache, "utf8");
         this.channels_cache = JSON.parse(data);
-        Log.logAdvanced(LOGLEVEL.SUCCESS, "yt.channel", `Loaded ${Object.keys(this.channels_cache).length} YouTube channels from cache.`);
+        Log.logAdvanced(Log.Level.SUCCESS, "yt.channel", `Loaded ${Object.keys(this.channels_cache).length} YouTube channels from cache.`);
         return true;
     }
 
@@ -344,17 +344,17 @@ export class YouTubeChannel extends BaseChannel {
             });
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not subscribe to ${channel_id}: ${error.message} / ${error.response?.data.message}`);
+                Log.logAdvanced(Log.Level.ERROR, "helper", `Could not subscribe to ${channel_id}: ${error.message} / ${error.response?.data.message}`);
             }
             return false;
         }
 
         if (request.status == 204) {
-            Log.logAdvanced(LOGLEVEL.SUCCESS, "helper", `Subscribe for ${channel_id} sent.`);
+            Log.logAdvanced(Log.Level.SUCCESS, "helper", `Subscribe for ${channel_id} sent.`);
             return true;
         }
 
-        Log.logAdvanced(LOGLEVEL.ERROR, "helper", `Could not subscribe to ${channel_id}: ${request.data}`);
+        Log.logAdvanced(Log.Level.ERROR, "helper", `Could not subscribe to ${channel_id}: ${request.data}`);
 
         return false;
 
@@ -489,7 +489,7 @@ export class YouTubeChannel extends BaseChannel {
         // if (!this.login) throw new Error("Channel login is not set");
         if (!this.internalName) throw new Error("Channel display_name is not set");
 
-        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Create VOD JSON for ${this.channel_id}: ${path.basename(filename)} @ ${path.dirname(filename)}`);
+        Log.logAdvanced(Log.Level.INFO, "channel", `Create VOD JSON for ${this.channel_id}: ${path.basename(filename)} @ ${path.dirname(filename)}`);
 
         const vod = new YouTubeVOD();
 
@@ -506,7 +506,7 @@ export class YouTubeChannel extends BaseChannel {
 
         if (this.uuid) {
             vod.channel_uuid = this.uuid;
-            Log.logAdvanced(LOGLEVEL.INFO, "channel", `Set channel uuid to ${this.uuid} for ${vod.basename}`);
+            Log.logAdvanced(Log.Level.INFO, "channel", `Set channel uuid to ${this.uuid} for ${vod.basename}`);
         } else {
             throw new Error("Channel uuid is not set");
         }
@@ -533,7 +533,7 @@ export class YouTubeChannel extends BaseChannel {
         try {
             this.checkStaleVodsInMemory();   
         } catch (error) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Error while checking stale vods in memory: ${error}`);            
+            Log.logAdvanced(Log.Level.ERROR, "channel", `Error while checking stale vods in memory: ${error}`);            
         }
 
         return load_vod;
@@ -550,12 +550,12 @@ export class YouTubeChannel extends BaseChannel {
         if (i !== -1) {
             this.config = config;
             this.applyConfig(config);
-            Log.logAdvanced(LOGLEVEL.INFO, "channel", `Replacing channel config for ${this.internalName}`);
+            Log.logAdvanced(Log.Level.INFO, "channel", `Replacing channel config for ${this.internalName}`);
             LiveStreamDVR.getInstance().channels_config[i] = config;
             LiveStreamDVR.getInstance().saveChannelsConfig();
             return true;
         } else {
-            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Could not update channel ${this.internalName}`);
+            Log.logAdvanced(Log.Level.ERROR, "channel", `Could not update channel ${this.internalName}`);
         }
         return false;
     }
@@ -586,7 +586,7 @@ export class YouTubeChannel extends BaseChannel {
 
     public async refreshData(): Promise<boolean> {
         if (!this.channel_id) throw new Error("Channel id not set");
-        Log.logAdvanced(LOGLEVEL.INFO, "channel.refreshData", `Refreshing data for ${this.internalName}`);
+        Log.logAdvanced(Log.Level.INFO, "channel.refreshData", `Refreshing data for ${this.internalName}`);
 
         const channel_data = await YouTubeChannel.getUserDataById(this.channel_id, true);
 
@@ -647,15 +647,15 @@ export class YouTubeChannel extends BaseChannel {
 
         if (fs.existsSync(path.join(BaseConfigDataFolder.vods_db, `${this.internalName}.json`)) && !rescan) {
             let list: string[] = JSON.parse(fs.readFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.internalName}.json`), { encoding: "utf-8" }));
-            Log.logAdvanced(LOGLEVEL.DEBUG, "channel.yt", `Found ${list.length} stored VODs in database for ${this.internalName}`);
+            Log.logAdvanced(Log.Level.DEBUG, "channel.yt", `Found ${list.length} stored VODs in database for ${this.internalName}`);
             // console.log(list);
             list = list.filter(p => fs.existsSync(path.join(BaseConfigDataFolder.vod, p)));
             // console.log(list);
             this.vods_raw = list;
-            Log.logAdvanced(LOGLEVEL.DEBUG, "channel.yt", `Found ${this.vods_raw.length} existing VODs in database for ${this.internalName}`);
+            Log.logAdvanced(Log.Level.DEBUG, "channel.yt", `Found ${this.vods_raw.length} existing VODs in database for ${this.internalName}`);
         } else {
             this.vods_raw = this.rescanVods();
-            Log.logAdvanced(LOGLEVEL.INFO, "channel.yt", `No VODs in database found for ${this.internalName}, migrate ${this.vods_raw.length} from recursive file search`);
+            Log.logAdvanced(Log.Level.INFO, "channel.yt", `No VODs in database found for ${this.internalName}, migrate ${this.vods_raw.length} from recursive file search`);
             // fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.internalName}.json`), JSON.stringify(this.vods_raw));
             this.saveVodDatabase();
         }
@@ -664,7 +664,7 @@ export class YouTubeChannel extends BaseChannel {
 
         for (const vod of this.vods_raw) {
 
-            Log.logAdvanced(LOGLEVEL.DEBUG, "channel.yt", `Try to parse VOD ${vod}`);
+            Log.logAdvanced(Log.Level.DEBUG, "channel.yt", `Try to parse VOD ${vod}`);
 
             const vod_full_path = path.join(BaseConfigDataFolder.vod, vod);
 
@@ -673,7 +673,7 @@ export class YouTubeChannel extends BaseChannel {
             try {
                 vodclass = await YouTubeVOD.load(vod_full_path, true);
             } catch (e) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "channel.yt", `Could not load VOD ${vod}: ${(e as Error).message}`, e);
+                Log.logAdvanced(Log.Level.ERROR, "channel.yt", `Could not load VOD ${vod}: ${(e as Error).message}`, e);
                 console.error(e);
                 continue;
             }
@@ -683,7 +683,7 @@ export class YouTubeChannel extends BaseChannel {
             }
 
             if (!vodclass.channel_uuid) {
-                Log.logAdvanced(LOGLEVEL.INFO, "channel.yt", `VOD '${vod}' does not have a channel UUID, setting it to '${this.uuid}'`);
+                Log.logAdvanced(Log.Level.INFO, "channel.yt", `VOD '${vod}' does not have a channel UUID, setting it to '${this.uuid}'`);
                 vodclass.channel_uuid = this.uuid;
             }
 
@@ -692,7 +692,7 @@ export class YouTubeChannel extends BaseChannel {
                 noIssues = await vodclass.fixIssues("Channel parseVODs");
             } while (!noIssues);
 
-            Log.logAdvanced(LOGLEVEL.DEBUG, "channel.yt", `VOD ${vod} added to ${this.internalName}`);
+            Log.logAdvanced(Log.Level.DEBUG, "channel.yt", `VOD ${vod} added to ${this.internalName}`);
 
             this.addVod(vodclass);
         }
@@ -711,7 +711,7 @@ export class YouTubeChannel extends BaseChannel {
         try {
             response = await axios.get(url);
         } catch (error) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "channel.yt", "Could not get channel id from url", error);
+            Log.logAdvanced(Log.Level.ERROR, "channel.yt", "Could not get channel id from url", error);
             return false;
         } 
 

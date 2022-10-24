@@ -1,7 +1,7 @@
 import { LiveStreamDVR, VODTypes } from "../../../Core/LiveStreamDVR";
 import { BaseVODChapterJSON } from "Storage/JSON";
 import { ApiVodBaseChapter } from "../../../../../common/Api/Client";
-import { Log, LOGLEVEL } from "../../Log";
+import { Log } from "../../Log";
 import { Providers } from "../../../../../common/Defs";
 
 export class BaseVODChapter {
@@ -36,7 +36,7 @@ export class BaseVODChapter {
             } else if (vod_ended_at) {
                 this.duration = (vod_ended_at.getTime() - started_at.getTime()) / 1000;
             } else {
-                Log.logAdvanced(LOGLEVEL.WARNING, "chapter", `No next chapter or vod end time for chapter ${this.title} (${this.started_at.toISOString()}), duration will probably be 0.`);
+                Log.logAdvanced(Log.Level.WARNING, "chapter", `No next chapter or vod end time for chapter ${this.title} (${this.started_at.toISOString()}), duration will probably be 0.`);
             }
 
             this.offset = 0;
@@ -48,7 +48,7 @@ export class BaseVODChapter {
             } else if (vod_ended_at) {
                 this.duration = (vod_ended_at.getTime() - this.started_at.getTime()) / 1000;
             } else {
-                Log.logAdvanced(LOGLEVEL.WARNING, "chapter", `No next chapter or vod end time for chapter ${this.title} (${this.started_at.toISOString()}), duration will probably be 0.`);
+                Log.logAdvanced(Log.Level.WARNING, "chapter", `No next chapter or vod end time for chapter ${this.title} (${this.started_at.toISOString()}), duration will probably be 0.`);
             }
 
             this.offset = (this.started_at.getTime() - vod_started_at.getTime()) / 1000;

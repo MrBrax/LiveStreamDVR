@@ -2,7 +2,7 @@ import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 import express from "express";
 import { ApiErrorResponse } from "../../../common/Api/Api";
-import { LOGLEVEL, Log } from "../Core/Log";
+import {  Log } from "../Core/Log";
 
 export async function TwitchAPIVideos(req: express.Request, res: express.Response): Promise<void> {
 
@@ -78,7 +78,7 @@ export async function TwitchAPIUser(req: express.Request, res: express.Response)
     try {
         user = await TwitchChannel.getUserDataByLogin(login, true);
     } catch (error) {
-        Log.logAdvanced(LOGLEVEL.FATAL, "route.twitchapi.user", `Error getting channel data: ${(error as Error).message}`, error);
+        Log.logAdvanced(Log.Level.FATAL, "route.twitchapi.user", `Error getting channel data: ${(error as Error).message}`, error);
         res.status(400).send({
             status: "ERROR",
             message: `User not found: ${(error as Error).message}`,

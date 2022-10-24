@@ -9,7 +9,7 @@ import { ProxyVideo } from "../../../../../common/Proxies/Video";
 import { BaseConfigCacheFolder } from "../../../Core/BaseConfig";
 import { Helper } from "../../../Core/Helper";
 import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
-import { Log, LOGLEVEL } from "../../../Core/Log";
+import { Log } from "../../../Core/Log";
 import { isYouTubeVOD } from "../../../Helpers/Types";
 import { YouTubeHelper } from "../../../Providers/YouTube";
 import { VODJSON, YouTubeVODJSON } from "../../../Storage/JSON";
@@ -136,16 +136,16 @@ export class YouTubeVOD extends BaseVOD {
         }
 
         // if (!this.created && (this.is_capturing || this.is_converting || !this.is_finalized)) {
-        //     TwitchLog.logAdvanced(LOGLEVEL.WARNING, "vod", `Saving JSON of ${this.basename} while not finalized!`);
+        //     TwitchLog.logAdvanced(Log.Level.WARNING, "vod", `Saving JSON of ${this.basename} while not finalized!`);
         // }
 
         if (!this.not_started && (!this.chapters || this.chapters.length == 0)) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "vod", `Saving JSON of ${this.basename} with no chapters!!`);
+            Log.logAdvanced(Log.Level.WARNING, "vod", `Saving JSON of ${this.basename} with no chapters!!`);
         }
 
         /*
         if (!this.streamer_name && !this.created) {
-            Log.logAdvanced(LOGLEVEL.FATAL, "vod", `Found no streamer name in class of ${this.basename}, not saving!`);
+            Log.logAdvanced(Log.Level.FATAL, "vod", `Found no streamer name in class of ${this.basename}, not saving!`);
             return false;
         }
         */
@@ -204,7 +204,7 @@ export class YouTubeVOD extends BaseVOD {
 
         // generated.bookmarks = this.bookmarks;
 
-        Log.logAdvanced(LOGLEVEL.SUCCESS, "vod", `Saving JSON of ${this.basename} ${(reason ? " (" + reason + ")" : "")}`);
+        Log.logAdvanced(Log.Level.SUCCESS, "vod", `Saving JSON of ${this.basename} ${(reason ? " (" + reason + ")" : "")}`);
 
         //file_put_contents(this.filename, json_encode(generated));
         // this.setPermissions();
@@ -216,7 +216,7 @@ export class YouTubeVOD extends BaseVOD {
         try {
             fs.writeFileSync(this.filename, JSON.stringify(generated, null, 4));
         } catch (error) {
-            Log.logAdvanced(LOGLEVEL.FATAL, "vod", `Failed to save JSON of ${this.basename}: ${(error as Error).message}`);
+            Log.logAdvanced(Log.Level.FATAL, "vod", `Failed to save JSON of ${this.basename}: ${(error as Error).message}`);
             console.log(chalk.bgRedBright.whiteBright(`Failed to save JSON of ${this.basename}: ${(error as Error).message}`));
             return false;
         }
@@ -249,7 +249,7 @@ export class YouTubeVOD extends BaseVOD {
         if (this.json.channel_uuid) {
             this.channel_uuid = this.json.channel_uuid;
         } else {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vod", `No channel UUID for VOD ${this.basename}`);
+            Log.logAdvanced(Log.Level.ERROR, "vod", `No channel UUID for VOD ${this.basename}`);
         }
     }
 
@@ -310,7 +310,7 @@ export class YouTubeVOD extends BaseVOD {
         }
 
         if (!vod.not_started && !vod.is_finalized) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "vod", `Loaded VOD ${vod.basename} is not finalized!`);
+            Log.logAdvanced(Log.Level.WARNING, "vod", `Loaded VOD ${vod.basename} is not finalized!`);
         }
 
         // vod.compareDumpedChatAndDownloadedChat();
@@ -344,7 +344,7 @@ export class YouTubeVOD extends BaseVOD {
                 part: ["snippet"],
             });
         } catch (error) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "helper", `Channel video search for ${channel_id} error: ${(error as Error).message}`);
+            Log.logAdvanced(Log.Level.WARNING, "helper", `Channel video search for ${channel_id} error: ${(error as Error).message}`);
             return false;
         }
 
@@ -367,7 +367,7 @@ export class YouTubeVOD extends BaseVOD {
                 part: ["contentDetails"],
             });
         } catch (error) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "helper", `Channel video details for ${channel_id} error: ${(error as Error).message}`);
+            Log.logAdvanced(Log.Level.WARNING, "helper", `Channel video details for ${channel_id} error: ${(error as Error).message}`);
             return false;
         }
 
@@ -407,7 +407,7 @@ export class YouTubeVOD extends BaseVOD {
                 part: ["contentDetails", "snippet"],
             });
         } catch (error) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "helper", `Channel video details for ${video_id} error: ${(error as Error).message}`);
+            Log.logAdvanced(Log.Level.WARNING, "helper", `Channel video details for ${video_id} error: ${(error as Error).message}`);
             return false;
         }
 
@@ -439,12 +439,12 @@ export class YouTubeVOD extends BaseVOD {
 
     static async downloadVideo(video_id: string, quality: VideoQuality, filename: string): Promise<string> {
 
-        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Download VOD ${video_id}`);
+        Log.logAdvanced(Log.Level.INFO, "channel", `Download VOD ${video_id}`);
 
         const video = await this.getVideoProxy(video_id);
 
         if (!video) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to get video ${video_id}`);
+            Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to get video ${video_id}`);
             throw new Error(`Failed to get video ${video_id}`);
         }
 
@@ -460,7 +460,7 @@ export class YouTubeVOD extends BaseVOD {
             const ytdl_bin = Helper.path_youtubedl();
 
             if (!ytdl_bin) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "channel", "Failed to find ytdl binary!");
+                Log.logAdvanced(Log.Level.ERROR, "channel", "Failed to find ytdl binary!");
                 throw new Error("Failed to find ytdl binary!");
             }
 
@@ -472,7 +472,7 @@ export class YouTubeVOD extends BaseVOD {
 
             cmd.push("-o", converted_filename);
 
-            Log.logAdvanced(LOGLEVEL.INFO, "channel", `Downloading VOD ${video_id}...`);
+            Log.logAdvanced(Log.Level.INFO, "channel", `Downloading VOD ${video_id}...`);
 
             const ret = await Helper.execAdvanced(ytdl_bin, cmd, `download_vod_${video_id}`, (log_line: string) => {
                 const progressMatch = log_line.match(/([\d.]+)%/);
@@ -487,11 +487,11 @@ export class YouTubeVOD extends BaseVOD {
         const successful = fs.existsSync(converted_filename) && fs.statSync(converted_filename).size > 0;
 
         if (!successful) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to download VOD ${video_id}`);
+            Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to download VOD ${video_id}`);
             throw new Error(`Failed to download VOD ${video_id}`);
         }
 
-        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Downloaded VOD ${video_id}`);
+        Log.logAdvanced(Log.Level.INFO, "channel", `Downloaded VOD ${video_id}`);
 
         return converted_filename;
 
@@ -499,11 +499,11 @@ export class YouTubeVOD extends BaseVOD {
 
     public async finalize(): Promise<boolean> {
 
-        Log.logAdvanced(LOGLEVEL.INFO, "vod.finalize", `Finalize ${this.basename} @ ${this.directory}`);
+        Log.logAdvanced(Log.Level.INFO, "vod.finalize", `Finalize ${this.basename} @ ${this.directory}`);
         try {
             await this.getMediainfo();
         } catch (error) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "vod.finalize", `Failed to get mediainfo for ${this.basename}: ${error}`);
+            Log.logAdvanced(Log.Level.ERROR, "vod.finalize", `Failed to get mediainfo for ${this.basename}: ${error}`);
         }
 
         this.is_finalized = true;
