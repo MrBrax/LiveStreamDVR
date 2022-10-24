@@ -66,5 +66,6 @@
     "sanitize-filename": "^1.6.3",
     "true-case-path": "^2.2.1",
     "ws": "^8.5.0"
-  }
+  },
+  "packageManager": "yarn@3.2.4"
 }
