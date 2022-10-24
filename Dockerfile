@@ -37,7 +37,7 @@ COPY --chown=node:node --chmod=775 . /usr/local/share/twitchautomator/
 
 # server
 RUN cd /usr/local/share/twitchautomator/server \
-    && yarn install --frozen-lockfile \
+    && yarn install --immutable --immutable-cache --check-cache \
     && yarn lint:ts \
     && yarn build \
     && rm -rf node_modules \
@@ -45,7 +45,7 @@ RUN cd /usr/local/share/twitchautomator/server \
 
 # client
 RUN cd /usr/local/share/twitchautomator/client-vue \
-    && yarn install --frozen-lockfile \
+    && yarn install --immutable --immutable-cache --check-cache \
     && yarn build \
     && rm -rf node_modules \
     && yarn cache clean --all
