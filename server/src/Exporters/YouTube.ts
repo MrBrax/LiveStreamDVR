@@ -85,6 +85,11 @@ export class YouTubeExporter extends BaseExporter {
                     body: fs.createReadStream(this.filename),
                     // body: fs.createReadStream("C:\\temp\\test.mp4"),
                 },
+            },
+            {
+                onUploadProgress: (event) => {
+                    job.setProgress(event.bytesRead / event.totalSize);
+                },
             });
         } catch (error) {
             Log.logAdvanced(Log.Level.ERROR, "YouTube", `Could not upload video: ${(error as Error).message}`, error);
@@ -129,7 +134,7 @@ export class YouTubeExporter extends BaseExporter {
     }
 
     async verify(): Promise<boolean> {
-        
+
         if (!this.vod) throw new Error("No VOD loaded");
         if (!this.filename) throw new Error("No filename");
         if (!this.template_filename) throw new Error("No template filename");
@@ -150,17 +155,34 @@ export class YouTubeExporter extends BaseExporter {
         try {
             response = await service.videos.list({
                 // auth: YouTubeHelper.oAuth2Client,
-                part: ["snippet"],
+                part: ["snippet", "status"],
                 id: [this.video_id],
             });
         } catch (error) {
             Log.logAdvanced(Log.Level.ERROR, "YouTube", `Could not verify video: ${(error as Error).message}`, error);
             throw error;
         }
-        
-        Log.logAdvanced(Log.Level.SUCCESS, "YouTube", "Video verified", response.data.items);
-        
-        return true;            
+
+        if (response && response.data && response.data.items && response.data.items.length > 0) {
+            const item = response.data.items[0];
+            if (item.status?.uploadStatus === "processed") {
+                Log.logAdvanced(Log.Level.SUCCESS, "YouTube", `Video verified: ${this.video_id}`);
+                return true;
+            } else if (item.status?.uploadStatus === "rejected") {
+                Log.logAdvanced(Log.Level.ERROR, "YouTube", `Video rejected: ${this.video_id}`);
+                return false;
+            } else if (item.status?.uploadStatus === "failed") {
+                Log.logAdvanced(Log.Level.ERROR, "YouTube", `Video failed: ${this.video_id}`);
+                return false;
+            } else {
+                Log.logAdvanced(Log.Level.ERROR, "YouTube", `Video status unknown: ${this.video_id} - ${item.status?.uploadStatus}`);
+                return false;
+            }
+        }
+
+        Log.logAdvanced(Log.Level.ERROR, "YouTube", "Could not verify video, no response gotten.", response);
+
+        return false;
 
     }
 
