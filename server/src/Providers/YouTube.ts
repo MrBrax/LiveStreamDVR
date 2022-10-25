@@ -1,6 +1,6 @@
 import { BaseConfigCacheFolder } from "../Core/BaseConfig";
-import { OAuth2Client } from "googleapis-common";
-import type { Credentials } from "google-auth-library";
+// import { OAuth2Client } from "googleapis-common";
+import { Credentials, OAuth2Client } from "google-auth-library";
 import path from "node:path";
 import { Config } from "../Core/Config";
 import { Log } from "../Core/Log";
@@ -235,7 +235,9 @@ export class YouTubeHelper {
 
         return new Promise((resolve, reject) => {
 
-            const service = new youtube_v3.Youtube({ auth: YouTubeHelper.oAuth2Client });
+            const service = new youtube_v3.Youtube({
+                auth: YouTubeHelper.oAuth2Client,
+            });
 
             service.playlists.list({
                 part: ["snippet", "contentDetails"],
@@ -264,7 +266,9 @@ export class YouTubeHelper {
 
         return new Promise((resolve, reject) => {
 
-            const service = new youtube_v3.Youtube({ auth: YouTubeHelper.oAuth2Client });
+            const service = new youtube_v3.Youtube({
+                auth: YouTubeHelper.oAuth2Client,
+            });
 
             service.playlists.insert({
                 part: ["snippet", "contentDetails"],

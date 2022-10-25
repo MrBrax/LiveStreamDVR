@@ -240,7 +240,9 @@ export class YouTubeChannel extends BaseChannel {
             }
         }
 
-        const service = new youtube_v3.Youtube({ auth: YouTubeHelper.oAuth2Client });
+        const service = new youtube_v3.Youtube({
+            auth: YouTubeHelper.oAuth2Client,
+        });
 
         let res;
 
@@ -611,7 +613,9 @@ export class YouTubeChannel extends BaseChannel {
 
     public async getStreams(): Promise<false | youtube_v3.Schema$SearchResult> {
 
-        const service = new youtube_v3.Youtube({ auth: YouTubeHelper.oAuth2Client });
+        const service = new youtube_v3.Youtube({
+            auth: YouTubeHelper.oAuth2Client,
+        });
 
         // service.liveBroadcasts.list({
         //     id:

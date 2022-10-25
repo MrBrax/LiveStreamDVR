@@ -333,7 +333,9 @@ export class YouTubeVOD extends BaseVOD {
     static async getVideosProxy(channel_id: string): Promise<false | ProxyVideo[]> {
         if (!channel_id) throw new Error("No channel id");
 
-        const service = new youtube_v3.Youtube({ auth: YouTubeHelper.oAuth2Client });
+        const service = new youtube_v3.Youtube({
+            auth: YouTubeHelper.oAuth2Client,
+        });
 
         let searchResponse;
         try {
@@ -398,7 +400,9 @@ export class YouTubeVOD extends BaseVOD {
     }
 
     static async getVideo(video_id: string): Promise<false | youtube_v3.Schema$Video> {
-        const service = new youtube_v3.Youtube({ auth: YouTubeHelper.oAuth2Client });
+        const service = new youtube_v3.Youtube({
+            auth: YouTubeHelper.oAuth2Client,
+        });
 
         let searchResponse;
         try {
