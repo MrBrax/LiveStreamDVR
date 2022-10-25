@@ -146,11 +146,13 @@ export class Scheduler {
                     }
 
                     try {
-                        await TwitchVOD.downloadChatTD(clip.id, `${outPath}.json`);
+                        await TwitchVOD.downloadChatTD(clip.id, `${outPath}.chat.json`);
                     } catch (error) {
                         Log.logAdvanced(Log.Level.ERROR, "scheduler", `Failed to download chat for clip ${clip.id}: ${(error as Error).message}`);
                         return;
                     }
+
+                    fs.writeFileSync(`${outPath}.info.json`, JSON.stringify(clip, null, 4));
 
                     Log.logAdvanced(Log.Level.INFO, "scheduler", `Downloaded clip ${clip.id}`);
 
