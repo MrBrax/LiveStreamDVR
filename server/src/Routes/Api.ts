@@ -48,8 +48,9 @@ router.post("/channels/:uuid/refresh", AuthAdmin, Channels.RefreshChannel);
 router.post("/channels/:uuid/force_record", AuthAdmin, Channels.ForceRecord);
 router.post("/channels/:uuid/rename", AuthAdmin, Channels.RenameChannel);
 router.post("/channels/:uuid/deleteallvods", AuthAdmin, Channels.DeleteAllChannelVods);
-router.get("/channels/:uuid/history", AuthGuest, Channels.GetHistory);
-router.post("/channels/:uuid/scan", AuthGuest, Channels.ScanVods);
+router.get("/channels/:uuid/history", AuthAdmin, Channels.GetHistory);
+router.post("/channels/:uuid/scan", AuthAdmin, Channels.ScanVods);
+router.get("/channels/:uuid/clips", AuthAdmin, Channels.GetClips);
 
 router.get("/vod/:uuid", AuthGuest, Vod.GetVod);
 router.post("/vod/:uuid", AuthAdmin, Vod.EditVod);

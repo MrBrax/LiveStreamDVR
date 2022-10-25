@@ -3,7 +3,7 @@ import { Sleep } from "../Helpers/Sleep";
 import path from "node:path";
 import fs from "node:fs";
 import * as CronController from "../Controllers/Cron";
-import { BaseConfigDataFolder } from "./BaseConfig";
+import { BaseConfigCacheFolder, BaseConfigDataFolder } from "./BaseConfig";
 import { Config } from "./Config";
 import { Log } from "./Log";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
@@ -101,17 +101,30 @@ export class Scheduler {
         Log.logAdvanced(Log.Level.INFO, "Scheduler", "Scheduler: scheduleClipDownload - start");
 
         const amount = Config.getInstance().cfg<number>("scheduler.clipdownload.amount");
-        const days = Config.getInstance().cfg<number>("scheduler.clipdownload.age");
+        const age = Config.getInstance().cfg<number>("scheduler.clipdownload.age");
         const logins = Config.getInstance().cfg<string>("scheduler.clipdownload.channels").split(",").map(s => s.trim());
+        
+        const clips_database = path.join(BaseConfigCacheFolder.cache, "downloaded_clips.json");
+        const downloaded_clips: string[] =
+            fs.existsSync(clips_database) ?
+                JSON.parse(
+                    fs.readFileSync(clips_database, "utf-8")
+                ) : [];
 
         for (const login of logins) {
             const channel = TwitchChannel.getChannelByLogin(login);
-            const clips = await channel?.getClips(days);
-
+            const clips = await channel?.getClips(age, amount);
+            let skipped = 0;
             if (clips) {
 
-                for (let i = 0; i < Math.min(amount, clips.length); i++) {
+                for (let i = 0; i < Math.min(amount, clips.length) + skipped; i++) {
                     const clip = clips[i];
+
+                    if (downloaded_clips.includes(clip.id)) {
+                        Log.logAdvanced(Log.Level.INFO, "Scheduler", `Scheduler: scheduleClipDownload - clip ${clip.id} already downloaded`);
+                        skipped++;
+                        continue;
+                    }
 
                     const basefolder = path.join(BaseConfigDataFolder.saved_clips, "scheduler", login);
                     if (!fs.existsSync(basefolder)) {
@@ -135,6 +148,8 @@ export class Scheduler {
 
                     if (fs.existsSync(`${outPath}.mp4`)) {
                         Log.logAdvanced(Log.Level.WARNING, "scheduler", `Clip ${clip.id} already exists`);
+                        downloaded_clips.push(clip.id); // already passed the first check
+                        skipped++;
                         continue;
                     }
 
@@ -156,6 +171,8 @@ export class Scheduler {
 
                     Log.logAdvanced(Log.Level.INFO, "scheduler", `Downloaded clip ${clip.id}`);
 
+                    downloaded_clips.push(clip.id);
+
                     await Sleep(5000); // hehe
 
                 }
@@ -165,6 +182,8 @@ export class Scheduler {
             }
 
         }
+
+        fs.writeFileSync(clips_database, JSON.stringify(downloaded_clips, null, 4));
 
         Log.logAdvanced(Log.Level.INFO, "Scheduler", "Scheduler: scheduleClipDownload - end");
 

@@ -788,9 +788,9 @@ export class TwitchChannel extends BaseChannel {
     /**
      * Get clips (shortcut for TwitchVOD.getClips)
      */
-    public async getClips(max_age?: number) {
+    public async getClips(max_age?: number, limit?: number) {
         if (!this.userid) return false;
-        return await TwitchVOD.getClips({ broadcaster_id: this.userid }, max_age);
+        return await TwitchVOD.getClips({ broadcaster_id: this.userid }, max_age, limit);
     }
 
     fileWatcher?: chokidar.FSWatcher;

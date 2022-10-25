@@ -2080,7 +2080,7 @@ export class TwitchVOD extends BaseVOD {
     }
 
 
-    static async getClips({ broadcaster_id, game_id, id }: { broadcaster_id?: string; game_id?: string; id?: string[] | string; }, max_age?: number): Promise<false | Clip[]> {
+    static async getClips({ broadcaster_id, game_id, id }: { broadcaster_id?: string; game_id?: string; id?: string[] | string; }, max_age?: number, limit = 20): Promise<false | Clip[]> {
 
         if (!broadcaster_id && !game_id && !id) throw new Error("No broadcaster id, game id or id provided");
 
@@ -2104,25 +2104,53 @@ export class TwitchVOD extends BaseVOD {
             params.append("ended_at", new Date().toISOString());
         }
 
-        try {
-            response = await TwitchHelper.axios.get("/helix/clips", {
-                params: params,
-            });
-        } catch (e) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.getClips", `Tried to get clips but got error: ${(e as Error).message}`);
-            if (axios.isAxiosError(e) && e.response) {
-                console.debug("data", e.response.data);
+        let cursor = "";
+        let page = 0;
+
+        const clips: Clip[] = [];
+
+        do {
+            if (cursor) params.set("after", cursor);
+
+            try {
+                response = await TwitchHelper.axios.get("/helix/clips", {
+                    params: params,
+                });
+            } catch (e) {
+                Log.logAdvanced(Log.Level.ERROR, "vod.getClips", `Tried to get clips but got error: ${(e as Error).message}`);
+                if (axios.isAxiosError(e) && e.response) {
+                    console.debug("data", e.response.data);
+                }
+                // return false;
+                break;
             }
+
+            const json: ClipsResponse = response.data;
+
+            if (json.pagination && json.pagination.cursor) {
+                cursor = json.pagination.cursor;
+            } else {
+                cursor = "";
+            }
+
+            if (json.data.length === 0) {
+                Log.logAdvanced(Log.Level.ERROR, "vod.getClips", "Tried to get clips but got no data");
+                break;
+            }
+
+            Log.logAdvanced(Log.Level.DEBUG, "vod.getClips", `Got response for page ${page} with ${response.data.data.length} clips`);
+
+            clips.push(...json.data);
+
+            page++;
+
+        } while (clips.length < limit && cursor);
+
+        if (clips.length === 0) {
             return false;
         }
 
-        const json: ClipsResponse = response.data;
-
-        if (json.data.length === 0) {
-            return false;
-        }
-
-        return json.data;
+        return clips;
 
     }
 

@@ -1132,3 +1132,32 @@ export async function ScanVods(req: express.Request, res: express.Response): Pro
     });
 
 }
+
+export async function GetClips(req: express.Request, res: express.Response): Promise<void> {
+
+    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
+
+    if (!channel || !channel.internalName) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Channel not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (!isTwitchChannel(channel)) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Channel is not a Twitch channel",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const clips = await channel.getClips(undefined, 40);
+
+    res.send({
+        status: "OK",
+        data: clips,
+    });
+
+}
