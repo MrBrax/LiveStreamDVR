@@ -32,12 +32,30 @@ RUN pip install -r /tmp/requirements.txt \
 RUN mkdir -p /usr/local/share/twitchautomator \
     && chown -R node:node /usr/local/share/twitchautomator \
     && chmod -R 775 /usr/local/share/twitchautomator
-COPY --chown=node:node --chmod=775 . /usr/local/share/twitchautomator/
+# COPY --chown=node:node --chmod=775 . /usr/local/share/twitchautomator/
 # RUN git clone https://github.com/MrBrax/TwitchAutomator /var/www/twitchautomator/
 
+# common
+COPY --chown=node:node --chmod=775 ./common /usr/local/share/twitchautomator/common
+
+# chat dumper
+COPY --chown=node:node --chmod=775 ./twitch-chat-dumper /usr/local/share/twitchautomator/twitch-chat-dumper
+RUN cd /usr/local/share/twitchautomator/twitch-chat-dumper \
+    && yarn build \
+    && rm -rf node_modules \
+    && rm -rf .yarn/cache \
+    && yarn cache clean --all
+
+# vod player
+COPY --chown=node:node --chmod=775 ./twitch-vod-chat /usr/local/share/twitchautomator/twitch-vod-chat
+RUN cd /usr/local/share/twitchautomator/twitch-vod-chat \
+    && yarn install --frozen-lockfile \
+    && yarn build --base=/vodplayer \
+    && rm -rf node_modules && yarn cache clean --all
+
 # server
+COPY --chown=node:node --chmod=775 ./server /usr/local/share/twitchautomator/server
 RUN cd /usr/local/share/twitchautomator/server \
-    && yarn install --immutable --immutable-cache --check-cache \
     && yarn lint:ts \
     && yarn build \
     && yarn run generate-licenses \
@@ -46,6 +64,7 @@ RUN cd /usr/local/share/twitchautomator/server \
     && yarn cache clean --all
 
 # client
+COPY --chown=node:node --chmod=775 ./client-vue /usr/local/share/twitchautomator/client-vue
 RUN cd /usr/local/share/twitchautomator/client-vue \
     && yarn install --immutable --immutable-cache --check-cache \
     && yarn build \
@@ -54,19 +73,8 @@ RUN cd /usr/local/share/twitchautomator/client-vue \
     && rm -rf .yarn/cache \
     && yarn cache clean --all
 
-# chat dumper
-RUN cd /usr/local/share/twitchautomator/twitch-chat-dumper \
-    && yarn install --immutable --immutable-cache --check-cache \
-    && yarn build \
-    && rm -rf node_modules \
-    && rm -rf .yarn/cache \
-    && yarn cache clean --all
-
-# vod player
-RUN cd /usr/local/share/twitchautomator/twitch-vod-chat \
-    && yarn install --frozen-lockfile \
-    && yarn build --base=/vodplayer \
-    && rm -rf node_modules && yarn cache clean --all
+# copy rest
+COPY --chown=node:node --chmod=775 . /usr/local/share/twitchautomator/
 
 # install dotnet for twitchdownloader
 # ADD https://dot.net/v1/dotnet-install.sh /tmp/dotnet-install.sh
