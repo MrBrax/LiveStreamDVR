@@ -63,6 +63,7 @@ export class YouTubeExporter extends BaseExporter {
         const job = Job.create(`YouTubeExporter_${path.basename(this.filename)}`);
         job.dummy = true;
         job.save();
+        job.broadcastUpdate(); // manual send
 
         let response;
         try {
