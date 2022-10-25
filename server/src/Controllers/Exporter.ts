@@ -142,8 +142,13 @@ export function GetExporter(name: string, mode: string, options: ExporterOptions
         }
     }
 
-    if (options.title_template) exporter.setTemplate(options.title_template);
-    if (options.title) exporter.setOutputFilename(options.title);
+    if (options.vod) {
+        if (options.title_template) exporter.setTemplate(options.title_template);
+        if (options.title) exporter.setOutputFilename(options.title);
+    } else {
+        if (options.title_template) exporter.setTemplate(options.title_template);
+        if (options.title) exporter.setTemplate(options.title);
+    }
 
     return exporter;
 
@@ -214,14 +219,14 @@ export async function ExportFile(req: express.Request, res: express.Response): P
         return;
     }
 
-    if (exporter.vod && success) {
+    if (exporter.vod && verify) {
         exporter.vod.exportData.exported_at = new Date().toISOString();
         exporter.vod.saveJSON("export successful");
     }
 
     res.send({
         status: "OK",
-        message: typeof success == "string" ? `Export successful: ${success}` : "Export successful",
+        message: `Export successful: ${verify}`,
     } as ApiResponse);
 
     return;

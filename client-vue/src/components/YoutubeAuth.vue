@@ -15,6 +15,7 @@
             <button
                 class="button is-confirm"
                 :disabled="loading"
+                type="button"
                 @click="doCheckYouTubeStatus"
             >
                 <span class="icon"><fa icon="sync" /></span>
@@ -25,6 +26,7 @@
                 style="padding-top: 2px"
                 title="Authenticate with YouTube using method 1"
                 :disabled="loading"
+                type="button"
                 @click="doAuthenticateYouTubeMethod1"
             >
                 <img
@@ -37,6 +39,7 @@
                 style="padding-top: 2px"
                 title="Authenticate with YouTube using method 2"
                 :disabled="loading"
+                type="button"
                 @click="doAuthenticateYouTubeMethod2"
             >
                 <img
@@ -47,6 +50,7 @@
             <button
                 class="button is-danger"
                 :disabled="loading"
+                type="button"
                 @click="doDestroyYouTube"
             >
                 <span class="icon"><fa icon="right-from-bracket" /></span>

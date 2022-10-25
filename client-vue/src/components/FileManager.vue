@@ -153,7 +153,7 @@
                 <label class="label">{{ $t('vod.export.export-type') }}</label>
                 <div class="control">
                     <div class="select">
-                        <select v-model="exportVodSettings.exporter">
+                        <select v-model="exporter">
                             <option value="file">
                                 File
                             </option>
@@ -189,7 +189,7 @@
 
             <!-- Directory -->
             <div
-                v-if="exportVodSettings.exporter == 'file' || exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp' || exportVodSettings.exporter == 'rclone'"
+                v-if="exporter == 'file' || exporter == 'sftp' || exporter == 'ftp' || exporter == 'rclone'"
                 class="field"
             >
                 <label class="label">{{ $t('vod.export.directory') }}</label>
@@ -204,7 +204,7 @@
 
             <!-- Host -->
             <div
-                v-if="exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'"
+                v-if="exporter == 'sftp' || exporter == 'ftp'"
                 class="field"
             >
                 <label class="label">{{ $t('vod.export.host') }}</label>
@@ -219,7 +219,7 @@
 
             <!-- Remote -->
             <div
-                v-if="exportVodSettings.exporter == 'rclone'"
+                v-if="exporter == 'rclone'"
                 class="field"
             >
                 <label class="label">{{ $t('vod.export.remote') }}</label>
@@ -234,7 +234,7 @@
 
             <!-- Username -->
             <div
-                v-if="exportVodSettings.exporter == 'sftp' || exportVodSettings.exporter == 'ftp'"
+                v-if="exporter == 'sftp' || exporter == 'ftp'"
                 class="field"
             >
                 <label class="label">{{ $t('vod.export.username') }}</label>
@@ -249,7 +249,7 @@
 
             <!-- Password -->
             <div
-                v-if="exportVodSettings.exporter == 'ftp'"
+                v-if="exporter == 'ftp'"
                 class="field"
             >
                 <label class="label">{{ $t('vod.export.password') }}</label>
@@ -267,7 +267,7 @@
 
             <!-- YouTube Authentication -->
             <div
-                v-if="exportVodSettings.exporter == 'youtube'"
+                v-if="exporter == 'youtube'"
                 class="field"
             >
                 <youtube-auth />
@@ -275,7 +275,7 @@
 
             <!-- Description -->
             <div
-                v-if="exportVodSettings.exporter == 'youtube'"
+                v-if="exporter == 'youtube'"
                 class="field"
             >
                 <label class="label">{{ $t('vod.export.description') }}</label>
@@ -289,7 +289,7 @@
 
             <!-- Category -->
             <div
-                v-if="exportVodSettings.exporter == 'youtube'"
+                v-if="exporter == 'youtube'"
                 class="field"
             >
                 <label class="label">{{ $t('vod.export.category') }}</label>
@@ -310,7 +310,7 @@
 
             <!-- Tags -->
             <div
-                v-if="exportVodSettings.exporter == 'youtube'"
+                v-if="exporter == 'youtube'"
                 class="field"
             >
                 <label class="label">{{ $t('vod.export.tags') }}</label>
@@ -328,7 +328,7 @@
 
             <!-- Privacy -->
             <div
-                v-if="exportVodSettings.exporter == 'youtube'"
+                v-if="exporter == 'youtube'"
                 class="field"
             >
                 <label class="label">{{ $t('vod.export.privacy') }}</label>
@@ -372,6 +372,7 @@ import { YouTubeCategories } from "@/defs";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode, faFileLines, faDownload, faUpload } from "@fortawesome/free-solid-svg-icons";
 import { ApiResponse } from "@common/Api/Api";
+import { ExporterOptions } from "@common/Exporter";
 library.add(faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode, faFileLines, faDownload, faUpload);
 
 interface ApiFile {
@@ -416,21 +417,8 @@ export default defineComponent({
         error: string;
         sortBy: "name" | "size" | "date";
         sortOrder: "asc" | "desc";
-        exportVodSettings: {
-            exporter: "file" | "sftp" | "ftp" | "rclone" | "youtube";
-            title: string;
-            directory: string;
-            host: string;
-            username: string;
-            description: string;
-            category: string;
-            tags: string;
-            file_folder: string;
-            file_name: string;
-            privacy: "public" | "unlisted" | "private";
-            remote: string;
-            password: string;
-        };
+        exportVodSettings: ExporterOptions;
+        exporter: string;
         showExportFileDialogEl: boolean;
     } {
         return {
@@ -439,7 +427,7 @@ export default defineComponent({
             sortBy: this.defaultSortBy as "name" | "size" | "date",
             sortOrder: this.defaultSortOrder as "asc" | "desc",
             exportVodSettings: {
-                exporter: "file",
+                // exporter: "file",
                 title: "",
                 directory: "",
                 host: "",
@@ -453,6 +441,7 @@ export default defineComponent({
                 remote: "",
                 password: "",
             },
+            exporter: "file",
             showExportFileDialogEl: false,
         };
     },
@@ -544,7 +533,7 @@ export default defineComponent({
         },
         doExportFile() {
             // if (!this.vod) return;
-            this.$http.post(`/api/v0/exporter?mode=file`, this.exportVodSettings).then((response) => {
+            this.$http.post(`/api/v0/exporter?mode=file&exporter=${this.exporter}`, this.exportVodSettings).then((response) => {
                 const json: ApiResponse = response.data;
                 if (json.message) alert(json.message);
                 console.log(json);

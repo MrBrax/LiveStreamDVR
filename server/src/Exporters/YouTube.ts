@@ -42,13 +42,12 @@ export class YouTubeExporter extends BaseExporter {
     }
 
     async export(): Promise<boolean | string> {
-
-        if (!this.vod) throw new Error("No VOD loaded");
+        // if (!this.vod) throw new Error("No VOD loaded for export");
         if (!this.filename) throw new Error("No filename");
         if (!this.template_filename) throw new Error("No template filename");
         if (!this.extension) throw new Error("No extension");
-        if (!this.vod.started_at) throw new Error("No started_at");
-        if (!this.vod.video_metadata) throw new Error("No video_metadata");
+        // if (!this.vod.started_at) throw new Error("No started_at");
+        // if (!this.vod.video_metadata) throw new Error("No video_metadata");
         if (!YouTubeHelper.oAuth2Client) throw new Error("No YouTube client");
 
         const final_title = this.getFormattedTitle();
@@ -137,13 +136,12 @@ export class YouTubeExporter extends BaseExporter {
     }
 
     async verify(): Promise<boolean> {
-
-        if (!this.vod) throw new Error("No VOD loaded");
+        // if (!this.vod) throw new Error("No VOD loaded for verify");
         if (!this.filename) throw new Error("No filename");
         if (!this.template_filename) throw new Error("No template filename");
         if (!this.extension) throw new Error("No extension");
-        if (!this.vod.started_at) throw new Error("No started_at");
-        if (!this.vod.video_metadata) throw new Error("No video_metadata");
+        // if (!this.vod.started_at) throw new Error("No started_at");
+        // if (!this.vod.video_metadata) throw new Error("No video_metadata");
         if (!YouTubeHelper.oAuth2Client) throw new Error("No YouTube client");
 
         const service = new youtube_v3.Youtube({
@@ -168,7 +166,7 @@ export class YouTubeExporter extends BaseExporter {
 
         if (response && response.data && response.data.items && response.data.items.length > 0) {
             const item = response.data.items[0];
-            if (item.status?.uploadStatus === "processed") {
+            if (item.status?.uploadStatus === "processed" || item.status?.uploadStatus === "uploaded") {
                 Log.logAdvanced(Log.Level.SUCCESS, "YouTube", `Video verified: ${this.video_id}`);
                 return true;
             } else if (item.status?.uploadStatus === "rejected") {
