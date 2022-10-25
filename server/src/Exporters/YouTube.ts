@@ -65,6 +65,8 @@ export class YouTubeExporter extends BaseExporter {
         job.save();
         job.broadcastUpdate(); // manual send
 
+        const totalSize = fs.statSync(this.filename).size;
+
         let response;
         try {
             response = await service.videos.insert({
@@ -87,8 +89,9 @@ export class YouTubeExporter extends BaseExporter {
                 },
             },
             {
+                // this is apparently deprecated
                 onUploadProgress: (event) => {
-                    job.setProgress(event.bytesRead / event.totalSize);
+                    job.setProgress(event.bytesRead / totalSize);
                 },
             });
         } catch (error) {
