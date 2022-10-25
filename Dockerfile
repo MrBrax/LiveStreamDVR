@@ -78,7 +78,7 @@ RUN cd /usr/local/share/twitchautomator/client-vue \
     && yarn cache clean --all
 
 # copy rest
-COPY --chown=node:node --chmod=775 . /usr/local/share/twitchautomator/
+# COPY --chown=node:node --chmod=775 . /usr/local/share/twitchautomator/
 
 # install dotnet for twitchdownloader
 # ADD https://dot.net/v1/dotnet-install.sh /tmp/dotnet-install.sh
