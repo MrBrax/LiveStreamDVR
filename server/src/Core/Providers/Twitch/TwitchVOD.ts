@@ -2104,6 +2104,10 @@ export class TwitchVOD extends BaseVOD {
             params.append("ended_at", new Date().toISOString());
         }
 
+        if (limit) {
+            params.append("first", limit.toString());
+        }
+
         let cursor = "";
         let page = 0;
 
