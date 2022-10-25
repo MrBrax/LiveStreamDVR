@@ -41,6 +41,7 @@ COPY --chown=node:node --chmod=775 ./common /usr/local/share/twitchautomator/com
 # chat dumper
 COPY --chown=node:node --chmod=775 ./twitch-chat-dumper /usr/local/share/twitchautomator/twitch-chat-dumper
 RUN cd /usr/local/share/twitchautomator/twitch-chat-dumper \
+    && yarn install --immutable --immutable-cache --check-cache \
     && yarn build \
     && rm -rf node_modules \
     && rm -rf .yarn/cache \
@@ -56,6 +57,7 @@ RUN cd /usr/local/share/twitchautomator/twitch-vod-chat \
 # server
 COPY --chown=node:node --chmod=775 ./server /usr/local/share/twitchautomator/server
 RUN cd /usr/local/share/twitchautomator/server \
+    && yarn install --immutable --immutable-cache --check-cache \
     && yarn lint:ts \
     && yarn build \
     && yarn run generate-licenses \
