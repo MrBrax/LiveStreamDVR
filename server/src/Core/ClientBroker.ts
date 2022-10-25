@@ -211,10 +211,13 @@ export class ClientBroker {
 
     /**
      * Send a notification to all browsers/clients
-     * 
-     * @param title 
-     * @param body 
-     * @param icon 
+     *
+     * @param title
+     * @param body
+     * @param icon
+     * @param category
+     * @param url
+     * @param tts
      */
     static notify(
         title: string,

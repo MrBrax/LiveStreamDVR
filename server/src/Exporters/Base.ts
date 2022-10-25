@@ -1,7 +1,6 @@
 
 import path from "node:path";
 import fs from "node:fs";
-import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 import { format } from "date-fns";
 import { ExporterFilenameTemplate } from "../../../common/Replacements";
 import { formatString } from "../../../common/Format";

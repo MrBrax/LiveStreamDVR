@@ -1,4 +1,3 @@
-import { TwitchHelper } from "../Providers/Twitch";
 import path from "node:path";
 import sanitize from "sanitize-filename";
 import { BaseExporter } from "./Base";
@@ -101,8 +100,6 @@ export class SFTPExporter extends BaseExporter {
         if (job.code === 0) return true;
 
         throw new Error("Failed to verify file, probably doesn't exist");
-
-        return false;
 
     }
 

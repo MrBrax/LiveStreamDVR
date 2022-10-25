@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { EventSubTypes, Subscription } from "../../../common/TwitchAPI/Shared";
 import { Subscriptions } from "../../../common/TwitchAPI/Subscriptions";
-import { BaseConfigDataFolder } from "../Core/BaseConfig";
+import {BaseConfigCacheFolder, BaseConfigDataFolder} from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
 import {  Log } from "../Core/Log";
 import { TwitchCommentDumpTD } from "../../../common/Comments";
@@ -31,7 +31,7 @@ export class TwitchHelper {
 
     static accessToken = "";
 
-    static readonly accessTokenFile = path.join(BaseConfigDataFolder.cache, "oauth.bin");
+    static readonly accessTokenFile = path.join(BaseConfigCacheFolder.cache, "oauth.bin");
 
     static readonly accessTokenExpire = 60 * 60 * 24 * 60 * 1000; // 60 days
     static readonly accessTokenRefresh = 60 * 60 * 24 * 30 * 1000; // 30 days

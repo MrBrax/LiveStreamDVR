@@ -31,7 +31,7 @@ etc. I have only tested this with Nginx and letsencrypt.
 - [Video player](https://github.com/MrBrax/twitch-vod-chat) with chat playback.
 - Video cutter with chapter display for easy exporting, also cuts the downloaded chat for synced rendering.
 - Notifications with optional speech when the website is open, get stream live notifications far earlier than the mobile app does.
-- Writes a [losslesscut](https://github.com/mifi/lossless-cut/) compatible csv file for the full VOD so you don't have to find all the games.
+- Writes a [losslesscut](https://github.com/mifi/lossless-cut/) compatible csv file for the full VOD, so you don't have to find all the games.
 - Uses `ts` instead of `mp4` so if the stream or program crashes, the file won't be corrupted.
 - Audio only support.
 - Optionally either dumps chat while capturing or downloads the chat file after it's done.
@@ -43,11 +43,15 @@ etc. I have only tested this with Nginx and letsencrypt.
 
 *One high-profile streamer VOD of 10 hours at 1080p60 is about 30-50GB.*
 
-Post issues/help on the issues tab above. I already run an up to date version, so starting fresh might break stuff.
+Post issues/help on the issues tab above. I already run an up-to-date version, so starting fresh might break stuff.
 
 Thanks to the contributors that helped expand the project!
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/Y8Y4ES6VE)
+
+<a href="https://jb.gg/OpenSourceSupport">
+    <img src="https://resources.jetbrains.com/storage/products/company/brand/logos/WebStorm.png" alt="WebStorm" height="50">
+</a>
 
 ---
 
@@ -56,7 +60,7 @@ Move the folders `cache`,  `config`, `logs`, `payloads`, and `storage` to a new 
 
 ## Docker setup
 
-Reminder that i don't use docker myself on my capturing setup, so any specific errors to this are hard to test.
+Reminder that I don't use docker myself on my capturing setup, so any specific errors to this are hard to test.
 
 
 ### Docker hub

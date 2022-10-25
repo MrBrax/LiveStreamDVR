@@ -1,4 +1,3 @@
-import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import {  Log } from "../Core/Log";
 import { ChannelTypes, LiveStreamDVR } from "../Core/LiveStreamDVR";
 

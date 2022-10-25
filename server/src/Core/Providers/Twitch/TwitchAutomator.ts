@@ -1,8 +1,8 @@
-import { BaseConfigDataFolder } from "../../../Core/BaseConfig";
-import { ClientBroker } from "../../../Core/ClientBroker";
+import {BaseConfigCacheFolder, BaseConfigDataFolder} from "../../BaseConfig";
+import { ClientBroker } from "../../ClientBroker";
 import { TwitchHelper } from "../../../Providers/Twitch";
-import { KeyValue } from "../../../Core/KeyValue";
-import { Log } from "../../../Core/Log";
+import { KeyValue } from "../../KeyValue";
+import { Log } from "../../Log";
 import path from "node:path";
 import { EventSubResponse } from "../../../../../common/TwitchAPI/EventSub";
 import { BaseAutomator } from "../Base/BaseAutomator";
@@ -10,8 +10,8 @@ import { TwitchChannel } from "./TwitchChannel";
 import { TwitchVOD } from "./TwitchVOD";
 import express from "express";
 import fs from "node:fs";
-import { Config } from "../../../Core/Config";
-import { Webhook } from "../../../Core/Webhook";
+import { Config } from "../../Config";
+import { Webhook } from "../../Webhook";
 import { TwitchVODChapterJSON } from "Storage/JSON";
 import { ChannelUpdateEvent } from "../../../../../common/TwitchAPI/EventSub/ChannelUpdate";
 import { ChapterUpdateData } from "../../../../../common/Webhook";
@@ -128,7 +128,7 @@ export class TwitchAutomator extends BaseAutomator {
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.vod.started_at`, event.started_at);
             Log.logAdvanced(Log.Level.INFO, "automator.handle", `${this.broadcaster_user_login} stream has ID ${event.id}, started ${event.started_at}`);
 
-            fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify({ time: new Date(), action: "online" }) + "\n", { flag: "a" });
+            fs.writeFileSync(path.join(BaseConfigCacheFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify({ time: new Date(), action: "online" }) + "\n", { flag: "a" });
 
             // $this->payload = $data['data'][0];
 
@@ -262,7 +262,7 @@ export class TwitchAutomator extends BaseAutomator {
             } as ChapterUpdateData);
 
             // append chapter to history
-            fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.getLogin()}.jsonline`), JSON.stringify(chapter) + "\n", { flag: "a" });
+            fs.writeFileSync(path.join(BaseConfigCacheFolder.history, `${this.getLogin()}.jsonline`), JSON.stringify(chapter) + "\n", { flag: "a" });
 
             Log.logAdvanced(
                 Log.Level.SUCCESS,

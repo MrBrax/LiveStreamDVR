@@ -1,39 +1,39 @@
-import axios, { AxiosResponse } from "axios";
+import axios, {AxiosResponse} from "axios";
 import chalk from "chalk";
 import chokidar from "chokidar";
-import { randomUUID } from "node:crypto";
-import { format, parseJSON } from "date-fns";
+import {randomUUID} from "node:crypto";
+import {format, parseJSON} from "date-fns";
 import fs from "node:fs";
 import fsPromises from "fs/promises";
-import { encode as htmlentities } from "html-entities";
+import {encode as htmlentities} from "html-entities";
 import path from "node:path";
-import { Readable } from "stream";
-import type { ApiTwitchChannel } from "../../../../../common/Api/Client";
-import { TwitchChannelConfig, VideoQuality } from "../../../../../common/Config";
-import { MuteStatus, Providers, SubStatus } from "../../../../../common/Defs";
-import type { LocalVideo } from "../../../../../common/LocalVideo";
-import { AudioMetadata, VideoMetadata } from "../../../../../common/MediaInfo";
-import type { Channel, ChannelsResponse } from "../../../../../common/TwitchAPI/Channels";
-import type { ErrorResponse, EventSubTypes } from "../../../../../common/TwitchAPI/Shared";
-import type { Stream, StreamsResponse } from "../../../../../common/TwitchAPI/Streams";
-import type { SubscriptionRequest, SubscriptionResponse } from "../../../../../common/TwitchAPI/Subscriptions";
-import type { BroadcasterType, UsersResponse } from "../../../../../common/TwitchAPI/Users";
-import type { UserData } from "../../../../../common/User";
-import { Helper } from "../../../Core/Helper";
-import { isTwitchChannel } from "../../../Helpers/Types";
-import { TwitchHelper } from "../../../Providers/Twitch";
-import { TwitchVODChapterJSON } from "../../../Storage/JSON";
-import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath } from "../../BaseConfig";
-import { ClientBroker } from "../../ClientBroker";
-import { Config } from "../../Config";
-import { Job } from "../../Job";
-import { KeyValue } from "../../KeyValue";
-import { LiveStreamDVR } from "../../LiveStreamDVR";
-import { Log } from "../../Log";
-import { Webhook } from "../../Webhook";
-import { BaseChannel } from "../Base/BaseChannel";
-import { TwitchGame } from "./TwitchGame";
-import { TwitchVOD } from "./TwitchVOD";
+import {Readable} from "stream";
+import type {ApiTwitchChannel} from "../../../../../common/Api/Client";
+import {TwitchChannelConfig, VideoQuality} from "../../../../../common/Config";
+import {MuteStatus, Providers, SubStatus} from "../../../../../common/Defs";
+import type {LocalVideo} from "../../../../../common/LocalVideo";
+import {AudioMetadata, VideoMetadata} from "../../../../../common/MediaInfo";
+import type {Channel, ChannelsResponse} from "../../../../../common/TwitchAPI/Channels";
+import type {ErrorResponse, EventSubTypes} from "../../../../../common/TwitchAPI/Shared";
+import type {Stream, StreamsResponse} from "../../../../../common/TwitchAPI/Streams";
+import type {SubscriptionRequest, SubscriptionResponse} from "../../../../../common/TwitchAPI/Subscriptions";
+import type {BroadcasterType, UsersResponse} from "../../../../../common/TwitchAPI/Users";
+import type {UserData} from "../../../../../common/User";
+import {Helper} from "../../Helper";
+import {isTwitchChannel} from "../../../Helpers/Types";
+import {TwitchHelper} from "../../../Providers/Twitch";
+import {TwitchVODChapterJSON} from "../../../Storage/JSON";
+import {AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath} from "../../BaseConfig";
+import {ClientBroker} from "../../ClientBroker";
+import {Config} from "../../Config";
+import {Job} from "../../Job";
+import {KeyValue} from "../../KeyValue";
+import {LiveStreamDVR} from "../../LiveStreamDVR";
+import {Log} from "../../Log";
+import {Webhook} from "../../Webhook";
+import {BaseChannel} from "../Base/BaseChannel";
+import {TwitchGame} from "./TwitchGame";
+import {TwitchVOD} from "./TwitchVOD";
 
 export class TwitchChannel extends BaseChannel {
     public provider: Providers = "twitch";
@@ -629,10 +629,10 @@ export class TwitchChannel extends BaseChannel {
         await this.parseVODs();
         this.setupStreamNumber();
         if (!KeyValue.getInstance().has(`${this.internalName}.saves_vods`)) {
-            this.checkIfChannelSavesVods();
+            await this.checkIfChannelSavesVods();
         }
         this.addAllLocalVideos();
-        this.startWatching();
+        await this.startWatching();
     }
 
     /**
@@ -666,7 +666,7 @@ export class TwitchChannel extends BaseChannel {
 
         // rename vods
         for (const vod of this.getVods()) {
-            vod.changeBaseName(vod.basename.replace(old_login, new_login));
+            await vod.changeBaseName(vod.basename.replace(old_login, new_login));
         }
 
         // rename channel folder
@@ -683,7 +683,7 @@ export class TwitchChannel extends BaseChannel {
             throw new Error("Failed to get new channel.");
         }
 
-        newChannel.refreshData(); // refresh data for new login
+        await newChannel.refreshData(); // refresh data for new login
 
         return true;
 
@@ -764,7 +764,7 @@ export class TwitchChannel extends BaseChannel {
         vod.ended_at = new Date(vod.started_at.getTime() + (duration * 1000));
         await vod.saveJSON("manual creation");
 
-        vod.addSegment(path.basename(file_path));
+        await vod.addSegment(path.basename(file_path));
         await vod.finalize();
         await vod.saveJSON("manual finalize");
 
@@ -1230,11 +1230,10 @@ export class TwitchChannel extends BaseChannel {
 
     /**
      * Load channel class using login, don't call this. Used internally.
-     * 
+     *
      * @internal
-     * @param login 
-     * @param api 
-     * @returns 
+     * @param login
+     * @returns
      */
     public static async loadFromLogin(login: string): Promise<TwitchChannel> {
         if (!login) throw new Error("Streamer login is empty");
@@ -1456,13 +1455,11 @@ export class TwitchChannel extends BaseChannel {
     /**
      * Get channel data from api using either id or login, a helper
      * function for getChannelDataById and getChannelDataByLogin.
-     * 
+     *
      * @internal
-     * @param method Either "id" or "login"
-     * @param identifier Either channel id or channel login
-     * @param force 
      * @throws
-     * @returns 
+     * @returns
+     * @param broadcaster_id
      */
     static async getChannelDataById(broadcaster_id: string): Promise<Channel | false> {
 
@@ -1519,18 +1516,16 @@ export class TwitchChannel extends BaseChannel {
             throw new Error(`Could not get user data for ${broadcaster_id}, no data.`);
         }
 
-        const data = json.data[0];
-
         // use as ChannelData
         // const channelData = data as unknown as ChannelData;
 
-        return data;
+        return json.data[0];
 
     }
 
     public static channelDataToChapterData(channelData: Channel): TwitchVODChapterJSON {
         const game = channelData.game_id ? TwitchGame.getGameFromCache(channelData.game_id) : undefined;
-        const chapterData: TwitchVODChapterJSON = {
+        return {
             started_at: JSON.stringify(new Date()),
             title: channelData.title,
 
@@ -1540,9 +1535,8 @@ export class TwitchChannel extends BaseChannel {
 
             is_mature: false,
             online: false,
-            // viewer_count: 
+            // viewer_count:
         };
-        return chapterData;
     }
 
     public async subscribe(force = false): Promise<boolean> {
@@ -1732,9 +1726,7 @@ export class TwitchChannel extends BaseChannel {
 
         Log.logAdvanced(Log.Level.INFO, "channel", `Starting chat dump with filename ${path.basename(output)}`);
 
-        const chat_job = Helper.startJob(`chatdump_${name}`, chat_bin, chat_cmd);
-
-        return chat_job;
+        return Helper.startJob(`chatdump_${name}`, chat_bin, chat_cmd);
 
     }
 

@@ -795,7 +795,7 @@ export class Config {
 
         Config.getInstance().loadConfig(); // load config, calls after this will work if config is required
 
-        YouTubeHelper.setupClient();
+        await YouTubeHelper.setupClient();
 
         ClientBroker.loadNotificationSettings();
 

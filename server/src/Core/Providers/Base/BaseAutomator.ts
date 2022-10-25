@@ -14,7 +14,6 @@ import { Config } from "../../Config";
 import { RemuxReturn } from "../../../Providers/Twitch";
 import {  Log } from "../../Log";
 import { TwitchVOD } from "../Twitch/TwitchVOD";
-import { TwitchVODChapter } from "../Twitch/TwitchVODChapter";
 import { Webhook } from "../../Webhook";
 import { JobStatus, nonGameCategories, NotificationCategory } from "../../../../../common/Defs";
 import chalk from "chalk";
@@ -24,9 +23,10 @@ import sanitize from "sanitize-filename";
 import { formatString } from "../../../../../common/Format";
 import { Exporter, GetExporter } from "../../../Controllers/Exporter";
 import { VodBasenameTemplate } from "../../../../../common/Replacements";
-import { ChannelTypes, VODTypes } from "../../../Core/LiveStreamDVR";
-import { Helper } from "../../../Core/Helper";
+import { ChannelTypes, VODTypes } from "../../LiveStreamDVR";
+import { Helper } from "../../Helper";
 import { ExporterOptions } from "../../../../../common/Exporter";
+import {isTwitchVODChapter} from "../../../Helpers/Types";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 
@@ -198,14 +198,14 @@ export class BaseAutomator {
         const body = current_chapter.title;
         const icon = channel.profilePictureUrl;
 
-        if (current_chapter && !(current_chapter instanceof TwitchVODChapter)) return;
-        if (previous_chapter && !(previous_chapter instanceof TwitchVODChapter)) return;
+        if (current_chapter && !isTwitchVODChapter(current_chapter)) return;
+        if (previous_chapter && !isTwitchVODChapter(previous_chapter)) return;
 
+        let category: NotificationCategory = "streamStatusChange";
         if (
             (!previous_chapter?.game_id && current_chapter.game_id) || // game changed from null to something
             (previous_chapter?.game_id && current_chapter.game_id && previous_chapter.game_id !== current_chapter.game_id) // game changed
         ) {
-            let category: NotificationCategory = "streamStatusChange";
             if (nonGameCategories.includes(current_chapter.game_name)) {
                 if (current_chapter.game?.isFavourite()) {
                     title = `${channel.displayName} is online with one of your favourite categories: ${current_chapter.game_name}!`;
@@ -227,11 +227,11 @@ export class BaseAutomator {
 
             }
 
-            ClientBroker.notify(title, body, icon, category, this.channel?.livestreamUrl);
-
         } else if (previous_chapter?.title !== current_chapter.title) {
             title = `${channel.displayName} changed title, still playing/streaming ${current_chapter.game_name}!`;
         }
+
+        ClientBroker.notify(title, body, icon, category, this.channel?.livestreamUrl);
 
     }
 
@@ -254,7 +254,7 @@ export class BaseAutomator {
 
             if (streams && streams.length > 0) {
 
-                if (KeyValue.getInstance().getBool(`${this.broadcaster_user_login}.online`) === false) {
+                if (!KeyValue.getInstance().getBool(`${this.broadcaster_user_login}.online`)) {
                     Log.logAdvanced(Log.Level.INFO, "automator.getChapterData", `Get chapter data: Channel ${this.broadcaster_user_login} is offline but we managed to get stream data, so it's online? 🤔`);
                 }
 
@@ -582,7 +582,7 @@ export class BaseAutomator {
         // update the game + title if it wasn't updated already
         Log.logAdvanced(Log.Level.INFO, "automator.download", `Update game for ${basename}`);
         if (KeyValue.getInstance().has(`${this.getLogin()}.chapterdata`)) {
-            this.updateGame(true, true);
+            await this.updateGame(true, true);
             // KeyValue.delete(`${this.getLogin()}.channeldata`);
         }
 

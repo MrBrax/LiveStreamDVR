@@ -1,6 +1,6 @@
 import { BaseExporter } from "./Base";
 // import { google } from "googleapis"; // FIXME: don't import the whole module
-import { youtube, youtube_v3 } from "@googleapis/youtube";
+import { youtube_v3 } from "@googleapis/youtube";
 import { YouTubeHelper } from "../Providers/YouTube";
 import fs from "node:fs";
 import { Log } from "../Core/Log";

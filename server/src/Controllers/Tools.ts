@@ -298,7 +298,7 @@ export async function DownloadClip(req: express.Request, res: express.Response):
 
         const channel = TwitchChannel.getChannelByLogin(metadata.broadcaster_name);
         if (channel) {
-            channel.findClips();
+            await channel.findClips();
         }
     } else {
         res.status(400).send({

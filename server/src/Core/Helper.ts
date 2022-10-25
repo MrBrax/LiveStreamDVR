@@ -150,11 +150,12 @@ export class Helper {
 
     /**
      * Execute a command and return the output
-     * 
-     * @param bin 
-     * @param args 
+     *
+     * @param bin
+     * @param args
+     * @param what
      * @throws Exception
-     * @returns 
+     * @returns
      */
     static execSimple(bin: string, args: string[], what: string): Promise<ExecReturn> {
 
@@ -204,11 +205,12 @@ export class Helper {
 
     /**
      * Execute a command, make a job, and when it's done, return the output
-     * 
-     * @param bin 
-     * @param args 
-     * @param jobName 
-     * @returns 
+     *
+     * @param bin
+     * @param args
+     * @param jobName
+     * @param progressFunction
+     * @returns
      */
     static execAdvanced(bin: string, args: string[], jobName: string, progressFunction?: (log: string) => number | undefined): Promise<ExecReturn> {
         return new Promise((resolve, reject) => {
@@ -366,11 +368,12 @@ export class Helper {
 
     /**
      * Remux input to output
-     * 
-     * @param input 
-     * @param output 
-     * @param overwrite 
-     * @returns 
+     *
+     * @param input
+     * @param output
+     * @param overwrite
+     * @param metadata_file
+     * @returns
      */
     static remuxFile(input: string, output: string, overwrite = false, metadata_file?: string): Promise<RemuxReturn> {
 
