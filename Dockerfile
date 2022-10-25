@@ -54,7 +54,7 @@ RUN cd /usr/local/share/twitchautomator/client-vue \
 
 # chat dumper
 RUN cd /usr/local/share/twitchautomator/twitch-chat-dumper \
-    && yarn install --frozen-lockfile \
+    && yarn install --immutable --immutable-cache --check-cache \
     && yarn build \
     && rm -rf node_modules && yarn cache clean --all
 
