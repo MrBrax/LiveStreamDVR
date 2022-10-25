@@ -42,6 +42,7 @@ RUN cd /usr/local/share/twitchautomator/server \
     && yarn build \
     && yarn run generate-licenses \
     && rm -rf node_modules \
+    && rm -rf .yarn/cache \
     && yarn cache clean --all
 
 # client
@@ -50,13 +51,16 @@ RUN cd /usr/local/share/twitchautomator/client-vue \
     && yarn build \
     && yarn run generate-licenses \
     && rm -rf node_modules \
+    && rm -rf .yarn/cache \
     && yarn cache clean --all
 
 # chat dumper
 RUN cd /usr/local/share/twitchautomator/twitch-chat-dumper \
     && yarn install --immutable --immutable-cache --check-cache \
     && yarn build \
-    && rm -rf node_modules && yarn cache clean --all
+    && rm -rf node_modules \
+    && rm -rf .yarn/cache \
+    && yarn cache clean --all
 
 # vod player
 RUN cd /usr/local/share/twitchautomator/twitch-vod-chat \
