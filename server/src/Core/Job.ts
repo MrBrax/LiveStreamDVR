@@ -241,6 +241,12 @@ export class Job extends EventEmitter {
                 "job_name": this.name,
                 "job": this.toAPI(),
             });
+            if (!Job.hasJob(this.name)) {
+                Job.jobs.push(this);
+                Log.logAdvanced(Log.Level.DEBUG, "job", `New job ${this.name} (dummy) added to jobs list`, this.metadata);
+            } else {
+                Log.logAdvanced(Log.Level.DEBUG, "job", `Job ${this.name} (dummy) already in jobs list`, this.metadata);
+            }
             return false;
         }
 
@@ -268,7 +274,7 @@ export class Job extends EventEmitter {
 
         Log.logAdvanced(Log.Level.DEBUG, "job", `Job ${this.name} ${exists ? "saved" : "failed to save"}`, this.metadata);
 
-        if (exists && !Job.jobs.includes(this)) {
+        if (exists && !Job.hasJob(this.name)) {
             Job.jobs.push(this);
             Log.logAdvanced(Log.Level.DEBUG, "job", `New job ${this.name} added to jobs list`, this.metadata);
         }
@@ -288,6 +294,15 @@ export class Job extends EventEmitter {
         // 	this.process = null;
         // }
 
+        if (this.dummy) {
+            this.emit("pre_clear");
+            Log.logAdvanced(Log.Level.DEBUG, "job", `Clear job ${this.name} (dummy)`, this.metadata);
+            Job.jobs = Job.jobs.filter(job => job.name !== this.name);
+            this.emit("clear", this.code);
+            this.broadcastUpdate();
+            return false;
+        }
+
         if (!this.pidfile) {
             throw new Error("pidfile not set");
         }
@@ -298,7 +313,7 @@ export class Job extends EventEmitter {
             Log.logAdvanced(Log.Level.INFO, "job", `Clear job ${this.name} with PID ${this.pid}`, this.metadata);
 
             Webhook.dispatch("job_clear", {
-                "job_name": this.name || "",
+                "job_name": this.name,
                 "job": this.toAPI(),
             });
 
@@ -306,7 +321,7 @@ export class Job extends EventEmitter {
             // return !fs.existsSync(this.pidfile);
         }
 
-        if (Job.hasJob(this.name || "")) {
+        if (Job.hasJob(this.name)) {
             Job.jobs = Job.jobs.filter(job => job.name !== this.name);
             Log.logAdvanced(Log.Level.SUCCESS, "job", `Job ${this.name} removed from jobs list`, this.metadata);
         } else {
@@ -441,6 +456,7 @@ export class Job extends EventEmitter {
 
         if (this.dummy) {
             this.status = JobStatus.RUNNING;
+            Log.logAdvanced(Log.Level.DEBUG, "job", `Job ${this.name} is dummy, returning RUNNING`, this.metadata);
             return JobStatus.RUNNING;
         }
 
@@ -751,8 +767,8 @@ export class Job extends EventEmitter {
 
                 this.emit("update", this.toAPI());
                 this._updateTimer = undefined;
-                Webhook.dispatch(Job.hasJob(this.name || "") ? "job_update" : "job_clear", {
-                    "job_name": this.name || "",
+                Webhook.dispatch(Job.hasJob(this.name) ? "job_update" : "job_clear", {
+                    "job_name": this.name,
                     "job": this.toAPI(),
                 });
             }, 2000);
@@ -760,8 +776,8 @@ export class Job extends EventEmitter {
             // (async () => {
             // await this.getStatus();
             this.emit("update", this.toAPI());
-            Webhook.dispatch(Job.hasJob(this.name || "") ? "job_update" : "job_clear", {
-                "job_name": this.name || "",
+            Webhook.dispatch(Job.hasJob(this.name) ? "job_update" : "job_clear", {
+                "job_name": this.name,
                 "job": this.toAPI(),
             });
             // }
