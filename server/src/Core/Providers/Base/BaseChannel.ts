@@ -400,6 +400,15 @@ export class BaseChannel {
                 Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to generate thumbnail for ${clip_path}: ${error}`);
             }
 
+            let clip_metadata = undefined;
+            if (fs.existsSync(clip_path.replace(".mp4", ".info.json"))) {
+                try {
+                    clip_metadata = JSON.parse(fs.readFileSync(clip_path.replace(".mp4", ".info.json"), "utf8"));
+                } catch (error) {
+                    Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to read clip metadata for ${clip_path}: ${(error as Error).message}`);
+                }
+            }
+
             const clip: LocalClip = {
                 folder: path.relative(BaseConfigDataFolder.saved_clips, path.dirname(clip_path)),
                 basename: path.basename(clip_path),
@@ -409,6 +418,7 @@ export class BaseChannel {
                 size: video_metadata.size,
                 video_metadata: video_metadata,
                 thumbnail: thumbnail || "dummy",
+                clip_metadata: clip_metadata,
             };
 
             this.clips_list.push(clip);

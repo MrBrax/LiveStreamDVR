@@ -291,7 +291,7 @@ export async function DownloadClip(req: express.Request, res: express.Response):
         return;
     }
 
-    fs.writeFileSync(`${file_path}.json`, JSON.stringify(metadata, null, 4));
+    fs.writeFileSync(`${file_path}.info.json`, JSON.stringify(metadata, null, 4));
 
     if (success) {
         res.send({

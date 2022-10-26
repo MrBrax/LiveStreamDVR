@@ -231,13 +231,15 @@ export default defineComponent({
             p.showModal();
 
             // json metadata from full_path replacing the extension with .json
-            const json_path = full_path.replace(/\.[^/.]+$/, ".json");
+            /*
+            const json_path = full_path.replace(/\.[^/.]+$/, ".info.json");
             this.$http.get(json_path).then((res) => {
                 const json = res.data as any;
                 console.log("json ok", json);
             }).catch((err) => {
                 console.error("json error", err);
             });
+            */
         });
         document.addEventListener("keyup", this.keyEvent);
     },

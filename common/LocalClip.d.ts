@@ -1,4 +1,5 @@
 import { VideoMetadata } from "./MediaInfo";
+import { Clip } from "./TwitchAPI/Clips";
 
 export interface LocalClip {
     folder: string;
@@ -9,4 +10,5 @@ export interface LocalClip {
     size: number;
     video_metadata: VideoMetadata;
     thumbnail?: string;
+    clip_metadata?: Clip;
 }

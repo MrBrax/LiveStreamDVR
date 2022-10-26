@@ -9,7 +9,7 @@
         </div>
         <ul>
             <li
-                v-for="clip in streamer.clips_list"
+                v-for="clip in filteredClips"
                 :key="clip.basename"
             >
                 <a
@@ -23,10 +23,28 @@
                         alt="Clip thumbnail"
                     >
                     {{ clip.folder + "/" + clip.basename }}<br>
-                    <span class="streamer-clips-info">{{ formatBytes(clip.size) }}, {{ formatDuration(clip.duration) }}, {{ clip.video_metadata.height }}p</span>
+                    <span class="streamer-clips-info">
+                        {{ formatBytes(clip.size) }},
+                        {{ formatDuration(clip.duration) }},
+                        {{ clip.video_metadata.height }}p<template v-if="clip.clip_metadata?.created_at">,
+                            {{ formatDate(clip.clip_metadata.created_at) }}
+                        </template>
+                    </span>
                 </a>
             </li>
         </ul>
+        <div
+            v-if="streamer.clips_list.length > 5"
+            class="streamer-clips-expand"
+        >
+            <button
+                class="icon-button white"
+                title="Expand/collapse all clips"
+                @click="expandedClipsList = !expandedClipsList"
+            >
+                <span class="icon"><fa :icon="expandedClipsList ? 'chevron-up' : 'chevron-down'" /></span>
+            </button>
+        </div>
     </div>
 </template>
 
@@ -43,6 +61,16 @@ const props = defineProps<{
 
 const basePath = computed(() => {
     return store.cfg<string>("basepath", "");
+});
+
+const expandedClipsList = ref(false);
+
+const filteredClips = computed(() => {
+    const clips = expandedClipsList.value ? props.streamer.clips_list.slice() : props.streamer.clips_list.slice(0, 5);
+    clips.sort((a: LocalClip, b: LocalClip) => {
+        return new Date(b.clip_metadata?.created_at || "").getTime() - new Date(a.clip_metadata?.created_at || "").getTime();
+    });
+    return clips;
 });
 
 function clipLink(clip: LocalClip): string {
@@ -95,4 +123,19 @@ function clipLink(clip: LocalClip): string {
         color: var(--text-darker);
     }
 }
+
+.streamer-clips-expand {
+    text-align: center;
+    margin-bottom: 0.5em;
+    button {
+        background: #116d3c;
+        color: #fff;
+        width: 100%;
+        padding: 0.5em;
+        border: none;
+        outline: none;
+        cursor: pointer;
+    }
+}
+
 </style>
