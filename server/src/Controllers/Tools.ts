@@ -1,4 +1,3 @@
-import { Log } from "Core/Log";
 import { format, parseJSON } from "date-fns";
 import express from "express";
 import fs from "node:fs";
@@ -11,6 +10,7 @@ import { ClipBasenameTemplate } from "../../../common/Replacements";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
+import { Log } from "../Core/Log";
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 import { Scheduler } from "../Core/Scheduler";
