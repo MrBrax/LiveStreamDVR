@@ -338,8 +338,9 @@
             <button
                 class="button is-confirm"
                 @click="doExportVod"
+                :disabled="loading"
             >
-                <span class="icon"><fa icon="upload" /></span>
+                <span class="icon"><fa :icon="loading ? 'spinner' : 'upload'" :spin="loading" /></span>
                 <span>{{ $t("buttons.export") }}</span>
             </button>
         </div>
@@ -431,6 +432,8 @@ const LoadingPlaylists = ref(false);
 
 const exporter = ref("file");
 
+const loading = ref(false);
+
 function templatePreview(template: string): string {
     const replaced_string = formatString(template, Object.fromEntries(Object.entries(ExporterFilenameFields).map(([key, value]) => [key, value.display])));
     return replaced_string;
@@ -438,6 +441,7 @@ function templatePreview(template: string): string {
 
 function doExportVod() {
     if (!props.vod) return;
+    loading.value = true;
     axios.post(`/api/v0/exporter?mode=vod&exporter=${exporter.value}`, exportVodSettings.value).then((response) => {
         const json: ApiResponse = response.data;
         if (json.message) alert(json.message);
@@ -447,6 +451,8 @@ function doExportVod() {
     }).catch((err) => {
         console.error("form error", err.response);
         if (err.response.data && err.response.data.message) alert(err.response.data.message);
+    }).finally(() => {
+        loading.value = false;
     });
 }
 
