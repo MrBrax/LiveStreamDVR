@@ -82,7 +82,7 @@
                             @click.prevent="showModal.edit = true"
                         >
                             <fa icon="comment-dots" />
-                            {{ $t("vod.add_comment") }}
+                            {{ t("vod.add_comment") }}
                         </a>
                     </p>
                 </div>
@@ -156,7 +156,7 @@
                 class="video-error"
             >
                 <strong>
-                    <span class="icon"><fa icon="exclamation-triangle" /></span> {{ $t('vod.failed') }}
+                    <span class="icon"><fa icon="exclamation-triangle" /></span> {{ t('vod.failed') }}
                 </strong>&nbsp;
                 <div class="buttons">
                     <!-- Delete -->
@@ -171,7 +171,7 @@
                                 type="fa"
                             />
                         </span>
-                        <span>{{ $t('buttons.delete') }}</span>
+                        <span>{{ t('buttons.delete') }}</span>
                     </button>
 
                     <!-- Fix issues -->
@@ -185,7 +185,7 @@
                                 type="fa"
                             />
                         </span>
-                        <span>{{ $t('vod.controls.fix-issues') }}</span>
+                        <span>{{ t('vod.controls.fix-issues') }}</span>
                     </button>
                 </div>
             </div>
@@ -279,7 +279,7 @@
                 v-if="vod.is_capturing && vod.getDurationLive() > 86400"
                 class="video-error"
             >
-                {{ $t('vod.capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck') }}
+                {{ t('vod.capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck') }}
             </div>
 
             <!-- no chapters error -->
@@ -323,14 +323,14 @@
                     @click="doDownloadChat('tcd')"
                 >
                     <span class="icon"><fa icon="download" /></span>
-                    <span>{{ $t('vod.buttons.download-with', ['tcd']) }}</span>
+                    <span>{{ t('vod.buttons.download-with', ['tcd']) }}</span>
                 </button>
                 <button
                     class="button is-confirm"
                     @click="doDownloadChat('td')"
                 >
                     <span class="icon"><fa icon="download" /></span>
-                    <span>{{ $t('vod.buttons.download-with', ['TwitchDownloader']) }}</span>
+                    <span>{{ t('vod.buttons.download-with', ['TwitchDownloader']) }}</span>
                 </button>
             </div>
         </modal-box>
@@ -435,7 +435,7 @@
         </modal-box>
         <modal-box
             :show="showModal.edit"
-            :title="$t('vod.edit.edit-vod')"
+            :title="t('vod.edit.edit-vod')"
             max-width="1200px"
             @close="showModal.edit = false"
         >
@@ -453,14 +453,14 @@
         </modal-box>
         <modal-box
             :show="showModal.rename"
-            :title="$t('vod.edit.rename-vod')"
+            :title="t('vod.edit.rename-vod')"
             @close="showModal.rename = false"
         >
             <div class="field">
-                {{ $t('vod.rename.current-name-vod-basename', [vod?.basename]) }}
+                {{ t('vod.rename.current-name-vod-basename', [vod?.basename]) }}
             </div>
             <div class="field">
-                <label class="label">{{ $t('vod.edit.template') }}</label>
+                <label class="label">{{ t('vod.edit.template') }}</label>
                 <div class="control">
                     <input
                         v-model="renameVodSettings.template"
@@ -486,7 +486,7 @@
                     @click="doRenameVod"
                 >
                     <span class="icon"><fa icon="save" /></span>
-                    <span>{{ $t("buttons.rename") }}</span>
+                    <span>{{ t("buttons.rename") }}</span>
                 </button>
             </div>
         </modal-box>
@@ -497,6 +497,7 @@
 </template>
 
 <script lang="ts" setup>
+import { useI18n } from "vue-i18n";
 import type { VodBasenameTemplate } from "@common/Replacements";
 import { VodBasenameFields, ExporterFilenameFields } from "@common/ReplacementsConsts";
 import { computed, onMounted, ref } from "vue";
@@ -582,6 +583,8 @@ const emit = defineEmits(["forceFetchData", "refresh", "toggleMinimize"]);
 const store = useStore();
 
 const route = useRoute();
+
+const { t } = useI18n();
 
 const config = ref<ApiSettingsResponse>();
 /*

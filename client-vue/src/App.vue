@@ -100,6 +100,7 @@ import WebsocketStatus from "./components/WebsocketStatus.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
+import { useI18n } from "vue-i18n";
 library.add(faArrowUpRightFromSquare);
 
 const faviconCanvas = document.createElement("canvas");
@@ -129,7 +130,8 @@ export default defineComponent({
     },
     setup() {
         const store = useStore();
-        return { store };
+        const { t, locale } = useI18n({ useScope: "global" });
+        return { store, t, locale };
     },
     data(): {
         loading: boolean;
@@ -180,7 +182,7 @@ export default defineComponent({
     created() {
         console.debug("App created");
         this.store.fetchClientConfig();
-        this.$i18n.locale = this.store.clientConfig?.language ?? "en";
+        this.locale = this.store.clientConfig?.language ?? "en";
         // this.applyAuthentication();
         this.watchFaviconBadgeSub();
         this.checkLoginStatus().then((s) => {

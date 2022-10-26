@@ -37,7 +37,7 @@
                     <span
                         class="streamer-vods-amount"
                         title="Total vod amount"
-                    >{{ $tc("vods", streamer.vods_list.length) }}</span><!-- vods -->
+                    >{{ t("vods", streamer.vods_list.length) }}</span><!-- vods -->
                     &middot;
                     <span
                         class="streamer-vods-size"
@@ -45,13 +45,13 @@
                     >{{ formatBytes(streamer.vods_size) }}</span><!-- total size -->
                     &middot;
                     <span class="streamer-subbed-status">
-                        <template v-if="streamer.api_getSubscriptionStatus">{{ $t("messages.subscribed") }}</template>
+                        <template v-if="streamer.api_getSubscriptionStatus">{{ t("messages.subscribed") }}</template>
                         <span
                             v-else
                             class="text-is-error"
                             title="Could just be that subscriptions were made before this feature was implemented."
                         >
-                            {{ $t('streamer.one-or-more-subscriptions-missing') }}
+                            {{ t('streamer.one-or-more-subscriptions-missing') }}
                         </span></span><!-- sub status -->
                     &middot;
                     <span
@@ -65,7 +65,7 @@
                         v-if="!streamer.saves_vods"
                         class="streamer-saves-vods text-is-error"
                     >
-                        &middot; {{ $t("streamer.no-save-vods") }}
+                        &middot; {{ t("streamer.no-save-vods") }}
                     </span>
                     &middot;
                     <span
@@ -93,8 +93,8 @@
             v-if="streamer.vods_list.length == 0"
             class="notice"
         >
-            <span v-if="streamer.no_capture">{{ $t("streamer.no-vods-not-capturing") }}</span>
-            <span v-else>{{ $t("messages.no_vods") }}</span>
+            <span v-if="streamer.no_capture">{{ t("streamer.no-vods-not-capturing") }}</span>
+            <span v-else>{{ t("messages.no_vods") }}</span>
         </div>
         <div
             v-else
@@ -179,6 +179,7 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { ChannelTypes, useStore, VODTypes } from "@/store";
 import { useRoute } from "vue-router";
+import { useI18n } from "vue-i18n";
 library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen, faTrash);
 
 const props = defineProps<{
@@ -191,6 +192,7 @@ const emit = defineEmits<{
 
 const store = useStore();
 const route = useRoute();
+const { t } = useI18n();
 
 // data
 const toggleAllVodsExpanded = ref(false);

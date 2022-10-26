@@ -88,5 +88,19 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
-  }
+  },
+  optimizeDeps: {
+    include: [
+      'vue',
+      'vue-router',
+      'pinia',
+      'vue-axios',
+    ],
+    link: [
+      'vue',
+      'vue-router',
+      'pinia',
+      'vue-axios',
+    ],
+  },
 })
