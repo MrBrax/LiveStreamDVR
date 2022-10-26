@@ -114,7 +114,7 @@ export class YouTubeExporter extends BaseExporter {
                 if (this.vod) this.vod.exportData.youtube_id = response.data.id;
                 let success;
                 try {
-                    success = this.addToPlaylist(response.data.id, this.playlist_id);
+                    success = await this.addToPlaylist(response.data.id, this.playlist_id);
                 } catch (error) {
                     Log.logAdvanced(Log.Level.ERROR, "YouTube", `Could not add video to playlist: ${(error as Error).message}`, error);
                     job.clear();

@@ -40,6 +40,7 @@ export default class TwitchVOD extends BaseVOD {
         vod.uuid = apiResponse.uuid;
         vod.channel_uuid = apiResponse.channel_uuid;
         vod.basename = apiResponse.basename;
+        vod.capture_id = apiResponse.capture_id;
         vod.is_capturing = apiResponse.is_capturing;
         vod.is_converting = apiResponse.is_converting;
         vod.is_finalized = apiResponse.is_finalized;

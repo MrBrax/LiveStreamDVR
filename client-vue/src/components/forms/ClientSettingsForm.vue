@@ -12,7 +12,7 @@
                 class="label"
                 :for="'input_' + key"
             >
-                {{ $te('clientsetting.' + key) ? $te('clientsetting.' + key) : value.name }} <!--<span v-if="value.required" class="required">*</span>-->
+                {{ te('clientsetting.' + key) ? te('clientsetting.' + key) : value.name }} <!--<span v-if="value.required" class="required">*</span>-->
             </label>
             <div
                 v-if="value.type === 'boolean'"
@@ -22,7 +22,7 @@
                     <input
                         v-model="(updateConfig[key] as boolean)"
                         type="checkbox"
-                    > {{ $te('clientsetting.' + key) ? $t('clientsetting.' + key) : value.name }}
+                    > {{ te('clientsetting.' + key) ? $t('clientsetting.' + key) : value.name }}
                 </label>
             </div>
             <div
@@ -202,6 +202,7 @@ import { ClientSettings, SidemenuShow } from "@/twitchautomator";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faBell, faArrowRightFromBracket, faSave } from "@fortawesome/free-solid-svg-icons";
+import { useI18n } from "vue-i18n";
 library.add(faBell, faArrowRightFromBracket, faSave);
 
 export default defineComponent({
@@ -209,7 +210,8 @@ export default defineComponent({
     title: "Client settings",
     setup() {
         const store = useStore();
-        return { store, defaultConfigFields };
+        const { t, te } = useI18n();
+        return { store, defaultConfigFields, t, te };
     },
     data(): {
         currentConfig: ClientSettings;

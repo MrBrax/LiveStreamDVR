@@ -83,6 +83,15 @@
             <span class="icon"><fa icon="folder-open" /></span>
         </button>
 
+        <!-- export vods -->
+        <button
+            class="icon-button white"
+            title="Export VODs"
+            @click="doExportVods"
+        >
+            <span class="icon"><fa icon="upload" /></span>
+        </button>
+
         <!-- expand/collapse all vods -->
         <button
             class="icon-button white"
@@ -99,6 +108,10 @@ import { ChannelTypes, useStore } from '@/store';
 import { ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
 import { computed } from 'vue';
+
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faUpload } from "@fortawesome/free-solid-svg-icons";
+library.add(faUpload);
 
 const props = defineProps<{
     streamer: ChannelTypes;
@@ -264,7 +277,32 @@ async function doScanVods() {
         })
         .catch((error) => {
             if (axios.isAxiosError(error)) {
-                console.error("doChannelRefresh error", error.response);
+                console.error("doScanVods error", error.response);
+                if (error.response && error.response.data && error.response.data.message) {
+                    alert(error.response.data.message);
+                }
+            }
+        });
+}
+
+function doExportVods() {
+    if (!props.streamer) return;
+    if (!confirm("Do you want to export ALL the VODs? This is a lot of data.")) return;
+    if (!confirm("Are you sure?")) return;
+    if (!confirm("Are you really sure?")) return;
+    if (!confirm("Don't say I didn't warn you.")) return;
+    const force = prompt("Do you want to force export? (y/n)", "n");
+    axios
+        .post(`/api/v0/channels/${props.streamer.uuid}/exportallvods${force === "y" ? "?force=true" : ""}`)
+        .then((response) => {
+            const json: ApiResponse = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            store.fetchStreamerList();
+        })
+        .catch((error) => {
+            if (axios.isAxiosError(error)) {
+                console.error("doExportVods error", error.response);
                 if (error.response && error.response.data && error.response.data.message) {
                     alert(error.response.data.message);
                 }

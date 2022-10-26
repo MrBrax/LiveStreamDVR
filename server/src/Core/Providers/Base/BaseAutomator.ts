@@ -389,13 +389,15 @@ export class BaseAutomator {
             if (Config.getInstance().cfg("exporter.auto.enabled")) {
 
                 const options: ExporterOptions = {
-                    vod: this.vodBasenameTemplate(),
+                    vod: this.vod.uuid,
                     directory: Config.getInstance().cfg("exporter.default.directory"),
                     host: Config.getInstance().cfg("exporter.default.host"),
                     username: Config.getInstance().cfg("exporter.default.username"),
                     password: Config.getInstance().cfg("exporter.default.password"),
                     description: Config.getInstance().cfg("exporter.default.description"),
                     tags: Config.getInstance().cfg("exporter.default.tags"),
+                    remote: Config.getInstance().cfg("exporter.default.remote"),
+                    title_template: Config.getInstance().cfg("exporter.default.title_template"),
                 };
 
                 let exporter: Exporter | undefined;
@@ -416,6 +418,10 @@ export class BaseAutomator {
                         if (out_path) {
                             exporter.verify().then(status => {
                                 Log.logAdvanced(Log.Level.SUCCESS, "automator.onEndDownload", "Exporter finished for " + this.vodBasenameTemplate);
+                                if (exporter && exporter.vod && status) {
+                                    exporter.vod.exportData.exported_at = new Date().toISOString();
+                                    exporter.vod.saveJSON("export successful");
+                                }
                             }).catch(error => {
                                 Log.logAdvanced(Log.Level.ERROR, "automator.onEndDownload", (error as Error).message ? `Verify error: ${(error as Error).message}` : "Unknown error occurred while verifying export");
                             });

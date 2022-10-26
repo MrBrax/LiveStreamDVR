@@ -8,6 +8,10 @@
             <h4>{{ $t('vod.video-info.general') }}</h4>
             <ul class="video-info">
                 <li>
+                    <strong>{{ $t('vod.video-info.capture-id') }}:</strong>
+                    {{ vod.capture_id || "None" }}
+                </li>
+                <li>
                     <strong>{{ $t('vod.video-info.webhook-duration') }}:</strong>
                     {{ vod.getWebhookDuration() }}
                 </li>
@@ -293,15 +297,19 @@
         >
             <h4>{{ $t('vod.video-info.export-data.title') }}</h4>
             <ul class="video-info">
+                <li v-if="vod.exportData.exporter">
+                    <strong>{{ $t('vod.video-info.export-data.exporter') }}:</strong>
+                    {{ vod.exportData.exporter }}
+                </li>
                 <li v-if="vod.exportData.exported_at">
                     <strong>{{ $t('vod.video-info.export-data.exported-at') }}:</strong>
                     {{ formatDate(vod.exportData.exported_at) }}
                 </li>
-                <li>
+                <li v-if="vod.exportData.youtube_id">
                     <strong>{{ $t('vod.video-info.export-data.youtube-id') }}:</strong>
                     {{ vod.exportData.youtube_id }}
                 </li>
-                <li>
+                <li v-if="vod.exportData.youtube_playlist_id">
                     <strong>{{ $t('vod.video-info.export-data.youtube-playlist-id') }}:</strong>
                     {{ vod.exportData.youtube_playlist_id }}
                 </li>

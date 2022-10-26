@@ -51,6 +51,7 @@ router.post("/channels/:uuid/deleteallvods", AuthAdmin, Channels.DeleteAllChanne
 router.get("/channels/:uuid/history", AuthAdmin, Channels.GetHistory);
 router.post("/channels/:uuid/scan", AuthAdmin, Channels.ScanVods);
 router.get("/channels/:uuid/clips", AuthAdmin, Channels.GetClips);
+router.post("/channels/:uuid/exportallvods", AuthAdmin, Channels.ExportAllVods);
 
 router.get("/vod/:uuid", AuthGuest, Vod.GetVod);
 router.post("/vod/:uuid", AuthAdmin, Vod.EditVod);

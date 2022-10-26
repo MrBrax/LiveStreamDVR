@@ -23,7 +23,7 @@ export function GetExporter(name: string, mode: string, options: ExporterOptions
     if (options.directory) {
         const dircheck = validatePath(options.directory);
         if (dircheck !== true && name == "file") {
-            console.error(`Invalid path: ${options.directory}`);
+            console.error(`Invalid path, using file exporter: ${options.directory}`);
             throw new Error(dircheck.toString());
         }
         output_directory = options.directory;
@@ -221,6 +221,7 @@ export async function ExportFile(req: express.Request, res: express.Response): P
 
     if (exporter.vod && verify) {
         exporter.vod.exportData.exported_at = new Date().toISOString();
+        exporter.vod.exportData.exporter = input_exporter;
         exporter.vod.saveJSON("export successful");
     }
 

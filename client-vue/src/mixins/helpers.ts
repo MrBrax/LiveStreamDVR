@@ -3,7 +3,7 @@ import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
 import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
 import { ChannelTypes, VODTypes } from "@/store";
-import { format, formatDistance, formatDistanceToNow, parseISO, parseJSON } from "date-fns";
+import { format, formatDistance, formatDistanceToNow, parseISO, parseJSON, isDate } from "date-fns";
 // const dateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000
 
 export default {
@@ -16,6 +16,11 @@ export default {
             }
 
             const o = parseJSON(date);
+
+            if (!isDate(o) || !(o instanceof Date) || isNaN(o.getTime())) {
+                return `[Invalid Date: ${date}]`;
+            }
+
             return format(o, fmt);
         },
         formatLogicalDate(date: string | Date) {

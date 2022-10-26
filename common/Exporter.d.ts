@@ -1,4 +1,6 @@
 export interface ExporterOptions {
+
+    /** VOD UUID */
     vod?: string;
     directory?: string;
     host?: string;
@@ -18,6 +20,7 @@ export interface ExporterOptions {
 }
 
 export interface ExportData {
+    exporter?: string;
     exported_at?: string;
     youtube_id?: string;
     youtube_playlist_id?: string;

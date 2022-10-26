@@ -27,6 +27,7 @@ export interface ExporterFilenameTemplate extends Record<string, string> {
     month: string;
     day: string;
     resolution: string;
+    id: string;
 }
 
 export interface ClipBasenameTemplate extends Record<string, string> {

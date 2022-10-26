@@ -61,6 +61,8 @@ export interface ApiBaseVod {
     capture_started2?: string;
     conversion_started?: string;
 
+    capture_id?: string;
+
     is_capturing: boolean;
     is_converting: boolean;
     is_converted: boolean;

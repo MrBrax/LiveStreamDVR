@@ -20,7 +20,7 @@
             class="settings-details"
             :open="searchText !== ''"
         >
-            <summary>{{ $te('configgroup.' + groupData.name) ? $t('configgroup.' + groupData.name) : groupData.name }}</summary>
+            <summary>{{ te('configgroup.' + groupData.name) ? t('configgroup.' + groupData.name) : groupData.name }}</summary>
             <div
                 v-for="(data, index) in groupData.fields"
                 :key="index"
@@ -31,7 +31,7 @@
                     class="label"
                     :for="'input_' + data.key"
                 >
-                    {{ $te('config.' + data.key) ? $t('config.' + data.key) : data.text }} <span
+                    {{ te('config.' + data.key) ? $t('config.' + data.key) : data.text }} <span
                         v-if="data.required"
                         class="required"
                     >*</span>
@@ -231,6 +231,7 @@ import YoutubeAuth from "@/components/YoutubeAuth.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGlobe, faSave } from "@fortawesome/free-solid-svg-icons";
+import { useI18n } from "vue-i18n";
 library.add(faGlobe, faSave);
 
 interface SettingsGroup {
@@ -246,7 +247,8 @@ export default defineComponent({
     emits: ["formSuccess"],
     setup() {
         const store = useStore();
-        return { store };
+        const { t, te } = useI18n();
+        return { store, t, te };
     },
     data(): {
         formStatusText: string;

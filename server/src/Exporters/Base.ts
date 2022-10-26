@@ -6,6 +6,7 @@ import { ExporterFilenameTemplate } from "../../../common/Replacements";
 import { formatString } from "../../../common/Format";
 import { VODTypes } from "../Core/LiveStreamDVR";
 import { isTwitchVOD } from "../Helpers/Types";
+import { Log } from "Core/Log";
 
 export class BaseExporter {
 
@@ -97,7 +98,14 @@ export class BaseExporter {
             comment: this.vod.comment || "",
             stream_number: this.vod.stream_number?.toString() || "",
             resolution: "",
+            id: this.vod.capture_id,
         };
+
+        for (const literal in replacements) {
+            if (replacements[literal] === undefined || replacements[literal] === null || replacements[literal] === "") {
+                Log.logAdvanced(Log.Level.WARNING, "BaseExporter", `No value for replacement literal '${literal}', using template '${this.template_filename}'`);
+            }
+        }
 
         if (this.vod.video_metadata.type == "video") {
             replacements.resolution = `${this.vod.video_metadata.height}p`;

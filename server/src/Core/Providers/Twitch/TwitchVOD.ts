@@ -730,6 +730,8 @@ export class TwitchVOD extends BaseVOD {
             capture_started2: this.capture_started2 ? this.capture_started2.toISOString() : undefined,
             conversion_started: this.conversion_started ? this.conversion_started.toISOString() : undefined,
 
+            capture_id: this.capture_id,
+
             is_converted: this.is_converted,
             is_capturing: this.is_capturing,
             is_converting: this.is_converting,
