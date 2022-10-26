@@ -71,7 +71,7 @@ export class Config {
             "help": "Enable this if your server is not exposed to the internet, aka no EventSub support.",
         },
 
-        { "key": "motd", "group": "Interface", "text": "MOTD", "type": "text", "help": "Shown at the top of the dashboard", guest: true },
+        { "key": "motd", "group": "Interface", "text": "MOTD", "type": "string", "help": "Shown at the top of the dashboard", guest: true, multiline: true },
         { "key": "password", "group": "Interface", "text": "Password", "type": "string", "help": "Keep blank for none. Username is admin" },
         { "key": "guest_mode", "group": "Interface", "text": "Guest mode", "type": "boolean", "default": false, "help": "Allow guests to access the interface.", guest: true },
         // { "key": "password_secure", "group": "Interface", "text": "Force HTTPS for password", "type": "boolean", "default": true },
@@ -223,7 +223,7 @@ export class Config {
             "help": "Default title for exporter.",
             "replacements": VodBasenameFields,
         },
-        { "key": "exporter.default.description",    "group": "Exporter", "text": "Default description", "type": "string", "help": "YouTube description." },
+        { "key": "exporter.default.description",    "group": "Exporter", "text": "Default description", "type": "string", "help": "YouTube description.", multiline: true },
         { "key": "exporter.default.tags",           "group": "Exporter", "text": "Default tags", "type": "string", "help": "YouTube tags." },
         { "key": "exporter.default.remote",         "group": "Exporter", "text": "Default remote", "type": "string", "help": "For RClone." },
         { "key": "exporter.auto.enabled",           "group": "Exporter", "text": "Enable auto exporter", "type": "boolean", "default": false, "help": "Enable auto exporter. Not fully tested yet." },

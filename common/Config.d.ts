@@ -9,7 +9,7 @@ export interface SettingField<T> {
     /**
      * Value type
      */
-    type: "string" | "number" | "boolean" | "array" | "template" | "text";
+    type: "string" | "number" | "boolean" | "array" | "template";
     // type: T;
 
     /** Default value */
@@ -40,6 +40,8 @@ export interface SettingField<T> {
     context?: string;
 
     guest?: boolean;
+
+    multiline?: boolean;
 
 }
 

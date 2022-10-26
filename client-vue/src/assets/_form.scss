@@ -82,6 +82,10 @@
             flex-shrink: 1;
         }
     }
+    .input {
+        // don't allow resizing horizontally
+        resize: vertical;
+    }
 }
 
 .input-help {

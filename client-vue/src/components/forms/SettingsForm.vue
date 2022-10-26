@@ -62,15 +62,16 @@
                     v-if="data.type == 'string'"
                     class="control"
                 >
-                    <input
+                    <component
+                        :is="data.multiline ? 'textarea' : 'input'"
                         :id="'input_' + data.key"
-                        v-model="(formData[data.key] as string)"
+                        v-model="formData[data.key]"
                         class="input"
                         type="text"
                         :name="data.key"
                         :title="data.help"
                         :pattern="data.pattern"
-                    >
+                    />
                 </div>
 
                 <!-- text -->
@@ -94,7 +95,7 @@
                 >
                     <input
                         :id="'input_' + data.key"
-                        v-model.number="(formData[data.key] as number)"
+                        v-model.number="formData[data.key]"
                         class="input"
                         type="number"
                         :name="data.key"
@@ -135,13 +136,14 @@
                     v-if="data.type == 'template'"
                     class="control"
                 >
-                    <input
+                    <component
+                        :is="data.multiline ? 'textarea' : 'input'"
                         :id="'input_' + data.key"
                         v-model="formData[data.key]"
                         class="input"
                         type="text"
                         :name="data.key"
-                    >
+                    />
                     <ul class="template-replacements">
                         <li
                             v-for="(item, ix) in data.replacements"
