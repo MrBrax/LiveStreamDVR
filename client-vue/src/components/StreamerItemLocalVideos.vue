@@ -19,6 +19,7 @@
                 <a
                     target="_blank"
                     :href="webPath + '/' + video.basename"
+                    @click.prevent="store.playMedia(webPath + '/' + video.basename)"
                 >
                     <img
                         :src="basePath + '/cache/thumbs/' + video.thumbnail"
