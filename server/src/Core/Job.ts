@@ -661,25 +661,39 @@ export class Job extends EventEmitter {
                 // console.debug(`Job ${this.name} did not change progress by more than 2%`);
             }
             */
+
+            if (progress > this.progressAccumulator + 0.1) {
+                Log.logAdvanced(Log.Level.INFO, "job", `Job ${this.name} progress: ${Math.round(progress * 100)}%`, this.metadata);
+                this.progressAccumulator = progress;
+            }
+
             if (this._progressTimer) {
                 // console.debug(`Job ${this.name} cancel update`);
                 clearTimeout(this._progressTimer);
                 this.progressUpdatesCleared++;
             } 
-            this._progressTimer = setTimeout(() => {
-                if (!this || (!this.dummy && this.status !== JobStatus.RUNNING)) return; 
-                this.progress = progress;
-                Webhook.dispatch("job_progress", {
-                    "job_name": this.name || "",
-                    "progress": progress,
-                });
+            if (this.progressUpdatesCleared > 3) {
+                this.updateProgress(progress);
                 this.progressUpdatesCleared = 0;
-            }, this.progressUpdatesCleared > 3 ? 0 : 2000);
+            } else {
+                this._progressTimer = setTimeout(() => {
+                    if (!this || (!this.dummy && this.status !== JobStatus.RUNNING)) return; 
+                    this.updateProgress(progress);
+                    this.progressUpdatesCleared = 0;
+                }, 2000);
+            }
         } else {
             // console.debug(`Job ${this.name} less progress: ${progress} / ${this.progress}`);
         }
     }
 
+    public updateProgress(progress: number): void {
+        this.progress = progress;
+        Webhook.dispatch("job_progress", {
+            "job_name": this.name || "",
+            "progress": progress,
+        });
+    }
     /**
      * Stop logging to file from the attached process
      */
