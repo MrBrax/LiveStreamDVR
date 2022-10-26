@@ -233,3 +233,25 @@ export async function ExportFile(req: express.Request, res: express.Response): P
     return;
 
 }
+
+export async function GetRcloneRemotes(req: express.Request, res: express.Response): Promise<void> {
+
+    let remotes;
+    try {
+        remotes = await RCloneExporter.getRemotes();
+    } catch (error) {
+        res.status(400).send({
+            status: "ERROR",
+            message: (error as Error).message ? `Rclone error: ${(error as Error).message}` : "Unknown error occurred while getting remotes",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    res.send({
+        status: "OK",
+        data: remotes,
+    } as ApiResponse);
+
+    return;
+
+}

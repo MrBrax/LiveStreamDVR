@@ -120,7 +120,8 @@
       "playlist": "Playlist",
       "playlist-help": "Raw playlist ID, not the URL",
       "get-playlists": "Get playlists",
-      "create-playlist": "Create playlist"
+      "create-playlist": "Create playlist",
+      "get-remotes": "Get remotes"
     },
     "bookmarks": "Bookmarks",
     "buttons": {

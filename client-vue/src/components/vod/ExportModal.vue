@@ -150,12 +150,30 @@
         class="field"
     >
         <label class="label">{{ $t('vod.export.remote') }}</label>
-        <div class="control">
-            <input
-                v-model="exportVodSettings.remote"
-                class="input"
-                type="text"
+        <div class="control has-addon">
+            <div class="select">
+                <select v-model="exportVodSettings.remote">
+                    <option
+                        v-for="remote in rcloneRemotes"
+                        :key="remote"
+                        :value="remote"
+                    >
+                        {{ remote }}
+                    </option>
+                </select>
+            </div>
+            <button
+                class="button is-confirm"
+                :title="$t('vod.export.get-remotes')"
+                @click="getRemotes"
             >
+                <span class="icon">
+                    <fa
+                        icon="sync"
+                        :spin="LoadingRemotes"
+                    />
+                </span>
+            </button>
         </div>
     </div>
 
@@ -428,7 +446,10 @@ const YouTubePlaylists = ref<{
     };
 }[]>([]);
 
+const rcloneRemotes = ref<string[]>([]);
+
 const LoadingPlaylists = ref(false);
+const LoadingRemotes = ref(false);
 
 const exporter = ref("file");
 
@@ -503,6 +524,28 @@ function createYouTubePlaylist() {
     }).catch((err) => {
         console.error("form error", err.response);
         if (err.response.data && err.response.data.message) alert(err.response.data.message);
+    });
+}
+
+function getRemotes() {
+    LoadingRemotes.value = true;
+    axios.get(`/api/v0/exporter/rclone/remotes`).then((response) => {
+        const json: ApiResponse = response.data;
+        if (json.message) alert(json.message);
+        console.log(json);
+        if (json.data) {
+            rcloneRemotes.value = json.data;
+            if (!exportVodSettings.value.remote && rcloneRemotes.value.length > 0) {
+                exportVodSettings.value.remote = rcloneRemotes.value[0];
+                console.log("set remote", exportVodSettings.value.remote);
+            }
+        }
+        // if (this.editVodMenu) this.editVodMenu.show = false;
+    }).catch((err) => {
+        console.error("form error", err.response);
+        if (err.response.data && err.response.data.message) alert(err.response.data.message);
+    }).finally(() => {
+        LoadingRemotes.value = false;
     });
 }
 

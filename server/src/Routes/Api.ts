@@ -77,6 +77,7 @@ router.get("/games", AuthGuest, Games.ListGames);
 router.get("/games/:id/refresh", AuthAdmin, Games.RefreshGame);
 
 router.post("/exporter", AuthAdmin, Exporter.ExportFile);
+router.get("/exporter/rclone/remotes", AuthAdmin, Exporter.GetRcloneRemotes);
 
 router.get("/favourites", AuthGuest, Favourites.ListFavourites);
 // router.post("/favourites", AuthAdmin, Favourites.AddFavourite);
