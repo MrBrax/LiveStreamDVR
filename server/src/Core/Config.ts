@@ -217,9 +217,9 @@ export class Config {
         { "key": "exporter.default.description",    "group": "Exporter", "text": "Default description", "type": "string", "help": "YouTube description." },
         { "key": "exporter.default.tags",           "group": "Exporter", "text": "Default tags", "type": "string", "help": "YouTube tags." },
         { "key": "exporter.default.remote",         "group": "Exporter", "text": "Default remote", "type": "string", "help": "For RClone." },
-        { "key": "exporter.auto.enabled",           "group": "Exporter", "text": "Enable auto exporter", "type": "boolean", "default": false, "help": "Enable auto exporter. Not implemented yet." },
+        { "key": "exporter.auto.enabled",           "group": "Exporter", "text": "Enable auto exporter", "type": "boolean", "default": false, "help": "Enable auto exporter. Not fully tested yet." },
 
-        { "key": "exporter.youtube.playlists",      "group": "Exporter", "text": "YouTube playlists", "type": "string", "help": "Use this format: channelname=ABC123;secondchannel=DEF456" },
+        { "key": "exporter.youtube.playlists",      "group": "Exporter", "text": "YouTube playlists", "type": "string", "help": "Use this format with playlist ID's: channelname=ABC123;secondchannel=DEF456" },
 
         { "key": "scheduler.clipdownload.enabled",  "group": "Scheduler (Clip Download)", "text": "Enable clip download scheduler", "type": "boolean", "default": false },
         { "key": "scheduler.clipdownload.channels", "group": "Scheduler (Clip Download)", "text": "Channels to download clips from", "type": "string", "help": "Separate by commas." },

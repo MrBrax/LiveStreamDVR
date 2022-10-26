@@ -9,3 +9,6 @@ services:
       - ./data:/usr/local/share/twitchautomator/data
     environment:
       - NODE_ENV=production
+      - TCD_ENABLE_FILES_API=0
+      - TCD_EXPOSE_LOGS_TO_PUBLIC=0
+      - TCD_MIGRATE_OLD_VOD_JSON=0
