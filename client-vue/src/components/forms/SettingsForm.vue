@@ -230,8 +230,8 @@ import { formatString } from "@common/Format";
 import YoutubeAuth from "@/components/YoutubeAuth.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faGlobe } from "@fortawesome/free-solid-svg-icons";
-library.add(faGlobe);
+import { faGlobe, faSave } from "@fortawesome/free-solid-svg-icons";
+library.add(faGlobe, faSave);
 
 interface SettingsGroup {
     name: string;

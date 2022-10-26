@@ -1,16 +1,20 @@
+import { Log } from "Core/Log";
 import { format, parseJSON } from "date-fns";
 import express from "express";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import sanitize from "sanitize-filename";
 import { ApiErrorResponse } from "../../../common/Api/Api";
 import { VideoQuality } from "../../../common/Config";
 import { formatString } from "../../../common/Format";
+import { ClipBasenameTemplate } from "../../../common/Replacements";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
+import { Scheduler } from "../Core/Scheduler";
+
 
 export async function ResetChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -248,7 +252,7 @@ export async function DownloadClip(req: express.Request, res: express.Response):
 
     const clip_date = parseJSON(metadata.created_at);
 
-    const variables = {
+    const variables: ClipBasenameTemplate = {
         id: metadata.id,
         quality: quality,
         clip_date: format(clip_date, "yyyy-MM-dd"),
@@ -257,7 +261,7 @@ export async function DownloadClip(req: express.Request, res: express.Response):
         broadcaster: metadata.broadcaster_name,
     };
 
-    const basename = sanitize(formatString(Config.getInstance().cfg("filename_clip", "{broadcaster} - {title} [{id}] [{quality}]"), variables) + ".mp4");
+    const basename = sanitize(formatString(Config.getInstance().cfg("filename_clip", "{broadcaster} - {title} [{id}] [{quality}]"), variables));
     // const basename = sanitize(`[${format(clip_date, "yyyy-MM-dd")}] ${metadata.broadcaster_name} - ${metadata.title} [${metadata.id}] [${quality}].mp4`); // new filename? sanitize(`${metadata.broadcaster_name}.${metadata.title}.${metadata.id}.${quality}.mp4`);
 
     const user = await TwitchChannel.getUserDataById(metadata.broadcaster_id);
@@ -278,7 +282,7 @@ export async function DownloadClip(req: express.Request, res: express.Response):
     let success;
 
     try {
-        success = await TwitchVOD.downloadClip(id, file_path, quality);
+        success = await TwitchVOD.downloadClip(id, `${file_path}.mp4`, quality);
     } catch (e) {
         res.status(400).send({
             status: "ERROR",
@@ -287,15 +291,20 @@ export async function DownloadClip(req: express.Request, res: express.Response):
         return;
     }
 
+    fs.writeFileSync(`${file_path}.json`, JSON.stringify(metadata, null, 4));
+
     if (success) {
         res.send({
             status: "OK",
             message: `Downloaded to ${file_path}`,
         });
 
-        const channel = TwitchChannel.getChannelByLogin(metadata.broadcaster_name);
+        const channel = TwitchChannel.getChannelById(metadata.broadcaster_id);
         if (channel) {
-            channel.findClips();
+            Log.logAdvanced(Log.Level.INFO, "route.tools.DownloadClip", `Downloaded clip ${metadata.id}, scan channel ${metadata.broadcaster_name} for new clips`);
+            await channel.findClips();
+        } else {
+            Log.logAdvanced(Log.Level.INFO, "route.tools.DownloadClip", `Downloaded clip ${metadata.id}, channel ${metadata.broadcaster_name} not found`);
         }
     } else {
         res.status(400).send({
@@ -324,6 +333,35 @@ export function Shutdown(req: express.Request, res: express.Response): void {
     });
 
     LiveStreamDVR.shutdown("tools");
+
+}
+
+export function RunScheduler(req: express.Request, res: express.Response): void {
+
+    const name = req.params.name as string | undefined;
+
+    if (!name) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "No name provided",
+        });
+        return;
+    }
+
+    if (!Scheduler.hasJob(name)) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "No job found",
+        });
+        return;
+    }
+
+    Scheduler.runJob(name);
+
+    res.send({
+        status: "OK",
+        message: `Running job ${name}`,
+    });
 
 }
 

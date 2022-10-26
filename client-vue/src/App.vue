@@ -224,10 +224,20 @@ export default defineComponent({
         }
         this.actionSub = this.store.$onAction(({ name, args }) => {
             if (name !== "playMedia") return;
+            const full_path = args[0];
             console.log("onaction", name, args);
-            this.mediaPlayerSource = args[0];
+            this.mediaPlayerSource = full_path
             const p = this.$refs.mediaplayer as HTMLDialogElement;
             p.showModal();
+
+            // json metadata from full_path replacing the extension with .json
+            const json_path = full_path.replace(/\.[^/.]+$/, ".json");
+            this.$http.get(json_path).then((res) => {
+                const json = res.data as any;
+                console.log("json ok", json);
+            }).catch((err) => {
+                console.error("json error", err);
+            });
         });
         document.addEventListener("keyup", this.keyEvent);
     },

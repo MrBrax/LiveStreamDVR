@@ -1,10 +1,10 @@
 import { BaseConfigCacheFolder } from "../Core/BaseConfig";
-import { OAuth2Client } from "googleapis-common";
-import type { Credentials } from "google-auth-library";
-import path from "path";
+// import { OAuth2Client } from "googleapis-common";
+import { Credentials, OAuth2Client } from "google-auth-library";
+import path from "node:path";
 import { Config } from "../Core/Config";
-import { Log, LOGLEVEL } from "../Core/Log";
-import fs from "fs";
+import { Log } from "../Core/Log";
+import fs from "node:fs";
 import { youtube_v3 } from "@googleapis/youtube";
 
 export class YouTubeHelper {
@@ -39,7 +39,7 @@ export class YouTubeHelper {
         let app_url = Config.getInstance().cfg<string>("app_url");
 
         if (app_url == "debug") {
-            app_url = "http://localhost:8081";
+            app_url = `http://${Config.debugLocalUrl()}`;
         }
 
         const full_app_url = `${app_url}/api/v0/youtube/callback`;
@@ -48,7 +48,7 @@ export class YouTubeHelper {
         this.oAuth2Client = undefined;
 
         if (!client_id || !client_secret) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "YouTubeHelper", "No client_id or client_secret set up. YouTube uploads will not work.");
+            Log.logAdvanced(Log.Level.WARNING, "YouTubeHelper", "No client_id or client_secret set up. YouTube uploads will not work.");
             return;
         }
 
@@ -63,7 +63,7 @@ export class YouTubeHelper {
             full_app_url
         );
 
-        Log.logAdvanced(LOGLEVEL.INFO, "YouTubeHelper", `Created OAuth2Client with redirect ${full_app_url}`);
+        Log.logAdvanced(Log.Level.INFO, "YouTubeHelper", `Created OAuth2Client with redirect ${full_app_url}`);
 
         this.oAuth2Client.on("tokens", (tokens) => {
             if (tokens.refresh_token) {
@@ -81,27 +81,27 @@ export class YouTubeHelper {
 
         const token = this.loadToken();
         if (token) {
-            Log.logAdvanced(LOGLEVEL.INFO, "YouTubeHelper", "Found stored token, setting credentials...");
+            Log.logAdvanced(Log.Level.INFO, "YouTubeHelper", "Found stored token, setting credentials...");
             this.oAuth2Client.setCredentials(token);
             this.authenticated = true;
             try {
                 await this.fetchUsername();
             } catch (error) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeHelper", `Failed to fetch username: ${(error as Error).message}`);
+                Log.logAdvanced(Log.Level.ERROR, "YouTubeHelper", `Failed to fetch username: ${(error as Error).message}`);
             }
         }
 
         this.loadRefreshToken();
         if (this.accessTokenRefresh) {
-            Log.logAdvanced(LOGLEVEL.INFO, "YouTubeHelper", "Found refresh token, setting credentials...");
+            Log.logAdvanced(Log.Level.INFO, "YouTubeHelper", "Found refresh token, setting credentials...");
             this.oAuth2Client.setCredentials({
                 refresh_token: fs.readFileSync(this.accessTokenRefreshFile, { encoding: "utf-8" }),
             });
         } else {
-            Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeHelper", "No refresh token found");
+            Log.logAdvanced(Log.Level.ERROR, "YouTubeHelper", "No refresh token found");
         }
 
-        Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTubeHelper", `YouTubeHelper setup complete, authenticated: ${this.authenticated}`);
+        Log.logAdvanced(Log.Level.SUCCESS, "YouTubeHelper", `YouTubeHelper setup complete, authenticated: ${this.authenticated}`);
 
         /*
         this.oAuth2Client.setCredentials({
@@ -113,14 +113,14 @@ export class YouTubeHelper {
 
     static storeToken(token: Credentials) {
         const json = JSON.stringify(token);
-        Log.logAdvanced(LOGLEVEL.DEBUG, "YouTubeHelper", `Storing token in ${this.accessTokenFile}`);
+        Log.logAdvanced(Log.Level.DEBUG, "YouTubeHelper", `Storing token in ${this.accessTokenFile}`);
         fs.writeFileSync(this.accessTokenFile, json);
     }
 
     static loadToken(): Credentials | undefined {
 
         if (!fs.existsSync(this.accessTokenFile)) {
-            Log.logAdvanced(LOGLEVEL.DEBUG, "YouTubeHelper", `No token found in ${this.accessTokenFile}`);
+            Log.logAdvanced(Log.Level.DEBUG, "YouTubeHelper", `No token found in ${this.accessTokenFile}`);
             return undefined;
         }
 
@@ -129,7 +129,7 @@ export class YouTubeHelper {
         const creds: Credentials = JSON.parse(json);
 
         if (creds.expiry_date && new Date().getTime() > creds.expiry_date) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "YouTubeHelper", `Token expired at ${creds.expiry_date}`);
+            Log.logAdvanced(Log.Level.WARNING, "YouTubeHelper", `Token expired at ${creds.expiry_date}`);
             fs.unlinkSync(this.accessTokenFile);
             this.accessToken = undefined;
             return undefined;
@@ -138,13 +138,13 @@ export class YouTubeHelper {
         this.accessTokenTime = creds.expiry_date || 0;
         this.accessToken = creds;
 
-        Log.logAdvanced(LOGLEVEL.DEBUG, "YouTubeHelper", `Loaded token from ${this.accessTokenFile}`);
+        Log.logAdvanced(Log.Level.DEBUG, "YouTubeHelper", `Loaded token from ${this.accessTokenFile}`);
         return creds;
     }
 
     static loadRefreshToken(): boolean {
         if (!fs.existsSync(this.accessTokenRefreshFile)) {
-            Log.logAdvanced(LOGLEVEL.DEBUG, "YouTubeHelper", `No refresh token found in ${this.accessTokenRefreshFile}`);
+            Log.logAdvanced(Log.Level.DEBUG, "YouTubeHelper", `No refresh token found in ${this.accessTokenRefreshFile}`);
             return false;
         }
         this.accessTokenRefresh = fs.readFileSync(this.accessTokenRefreshFile, { encoding: "utf-8" });
@@ -179,7 +179,7 @@ export class YouTubeHelper {
                 url: "https://www.googleapis.com/oauth2/v3/userinfo",
             });
         } catch (error) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeHelper", `Failed to fetch username: ${(error as Error).message}`);
+            Log.logAdvanced(Log.Level.ERROR, "YouTubeHelper", `Failed to fetch username: ${(error as Error).message}`);
             throw error; // not pretty
         }
 
@@ -189,7 +189,7 @@ export class YouTubeHelper {
             fs.writeFileSync(this.username_file, this.username);
             return this.username;
         } else {
-            Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeHelper", `Failed to fetch username: ${response.statusText}`);
+            Log.logAdvanced(Log.Level.ERROR, "YouTubeHelper", `Failed to fetch username: ${response.statusText}`);
             throw new Error(`Failed to fetch username: ${response.statusText}`);
         }
 
@@ -235,7 +235,9 @@ export class YouTubeHelper {
 
         return new Promise((resolve, reject) => {
 
-            const service = new youtube_v3.Youtube({ auth: YouTubeHelper.oAuth2Client });
+            const service = new youtube_v3.Youtube({
+                auth: YouTubeHelper.oAuth2Client,
+            });
 
             service.playlists.list({
                 part: ["snippet", "contentDetails"],
@@ -244,7 +246,7 @@ export class YouTubeHelper {
             }).then((response) => {
 
                 if (!response || !response.data || !response.data.items) {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeHelper", "No response from API");
+                    Log.logAdvanced(Log.Level.ERROR, "YouTubeHelper", "No response from API");
                     reject(new Error("No response from API"));
                     return;
                 }
@@ -252,7 +254,7 @@ export class YouTubeHelper {
                 resolve(response.data.items);
 
             }).catch((error) => {
-                Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeHelper", `Failed to fetch playlists: ${(error as Error).message}`);
+                Log.logAdvanced(Log.Level.ERROR, "YouTubeHelper", `Failed to fetch playlists: ${(error as Error).message}`);
                 reject(error);
             });
 
@@ -264,7 +266,9 @@ export class YouTubeHelper {
 
         return new Promise((resolve, reject) => {
 
-            const service = new youtube_v3.Youtube({ auth: YouTubeHelper.oAuth2Client });
+            const service = new youtube_v3.Youtube({
+                auth: YouTubeHelper.oAuth2Client,
+            });
 
             service.playlists.insert({
                 part: ["snippet", "contentDetails"],
@@ -277,7 +281,7 @@ export class YouTubeHelper {
             }).then((response) => {
 
                 if (!response || !response.data) {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeHelper", "No response from API");
+                    Log.logAdvanced(Log.Level.ERROR, "YouTubeHelper", "No response from API");
                     reject(new Error("No response from API"));
                     return;
                 }
@@ -285,7 +289,7 @@ export class YouTubeHelper {
                 resolve(response.data);
 
             }).catch((error) => {
-                Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeHelper", `Failed to create playlist: ${(error as Error).message}`);
+                Log.logAdvanced(Log.Level.ERROR, "YouTubeHelper", `Failed to create playlist: ${(error as Error).message}`);
                 reject(error);
             });
 

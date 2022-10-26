@@ -1,17 +1,17 @@
-import { BaseConfigDataFolder } from "../../../Core/BaseConfig";
-import { ClientBroker } from "../../../Core/ClientBroker";
+import {BaseConfigCacheFolder, BaseConfigDataFolder} from "../../BaseConfig";
+import { ClientBroker } from "../../ClientBroker";
 import { TwitchHelper } from "../../../Providers/Twitch";
-import { KeyValue } from "../../../Core/KeyValue";
-import { Log, LOGLEVEL } from "../../../Core/Log";
-import path from "path";
+import { KeyValue } from "../../KeyValue";
+import { Log } from "../../Log";
+import path from "node:path";
 import { EventSubResponse } from "../../../../../common/TwitchAPI/EventSub";
 import { BaseAutomator } from "../Base/BaseAutomator";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchVOD } from "./TwitchVOD";
 import express from "express";
-import fs from "fs";
-import { Config } from "../../../Core/Config";
-import { Webhook } from "../../../Core/Webhook";
+import fs from "node:fs";
+import { Config } from "../../Config";
+import { Webhook } from "../../Webhook";
 import { TwitchVODChapterJSON } from "Storage/JSON";
 import { ChannelUpdateEvent } from "../../../../../common/TwitchAPI/EventSub/ChannelUpdate";
 import { ChapterUpdateData } from "../../../../../common/Webhook";
@@ -29,10 +29,10 @@ export class TwitchAutomator extends BaseAutomator {
      * Entrypoint for stream capture, this is where all Twitch EventSub (webhooks) end up.
      */
     public async handle(data: EventSubResponse, request: express.Request): Promise<boolean> {
-        Log.logAdvanced(LOGLEVEL.DEBUG, "automator.handle", "Handle called, proceed to parsing.");
+        Log.logAdvanced(Log.Level.DEBUG, "automator.handle", "Handle called, proceed to parsing.");
 
         if (!request.header("Twitch-Eventsub-Message-Id")) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "automator.handle", "No twitch message id supplied to handle");
+            Log.logAdvanced(Log.Level.ERROR, "automator.handle", "No twitch message id supplied to handle");
             return false;
         }
 
@@ -45,11 +45,11 @@ export class TwitchAutomator extends BaseAutomator {
         const subscriptionVersion   = request.header("Twitch-Eventsub-Subscription-Version");
 
         if (messageRetry !== undefined && parseInt(messageRetry) > 0) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "automator.handle", `Message ${messageId} is a retry (${messageRetry})`);
+            Log.logAdvanced(Log.Level.WARNING, "automator.handle", `Message ${messageId} is a retry (${messageRetry})`);
             if (Config.getInstance().cfg("capture.retry_on_error", true)) {
-                Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `Retrying message ${messageId}`);
+                Log.logAdvanced(Log.Level.INFO, "automator.handle", `Retrying message ${messageId}`);
             } else {
-                Log.logAdvanced(LOGLEVEL.WARNING, "automator.handle", `Not retrying message ${messageId}`);
+                Log.logAdvanced(Log.Level.WARNING, "automator.handle", `Not retrying message ${messageId}`);
                 return false;
             }
         }
@@ -59,7 +59,7 @@ export class TwitchAutomator extends BaseAutomator {
             KeyValue.getInstance().setDate(`tw.eventsub.${messageId}.time`, new Date());
             KeyValue.getInstance().cleanWildcard("tw.eventsub.", 60 * 60 * 24);
         } catch (error) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "automator.handle", `Failed to set eventsub message ${messageId} KeyValues: ${(error as Error).message}`);
+            Log.logAdvanced(Log.Level.WARNING, "automator.handle", `Failed to set eventsub message ${messageId} KeyValues: ${(error as Error).message}`);
         }
         
         // const message_retry = request.header("Twitch-Eventsub-Message-Retry") || null;
@@ -84,7 +84,7 @@ export class TwitchAutomator extends BaseAutomator {
 
             // check if channel is in config, copypaste
             if (!TwitchChannel.getChannelByLogin(this.broadcaster_user_login)) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator.handle", `Handle (update) triggered with sub id ${subscription_id}, but username '${this.broadcaster_user_login}' is not in config.`);
+                Log.logAdvanced(Log.Level.ERROR, "automator.handle", `Handle (update) triggered with sub id ${subscription_id}, but username '${this.broadcaster_user_login}' is not in config.`);
 
                 // 5head solution
                 // TwitchHelper.channelUnsubscribe($this->broadcaster_user_id);
@@ -94,24 +94,24 @@ export class TwitchAutomator extends BaseAutomator {
 
             // KeyValue.getInstance().set("${this.broadcaster_user_login}.last.update", (new DateTime())->format(DateTime::ATOM));
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.last.update`, new Date().toISOString());
-            Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `Automator channel.update event for ${this.broadcaster_user_login}`);
+            Log.logAdvanced(Log.Level.INFO, "automator.handle", `Automator channel.update event for ${this.broadcaster_user_login}`);
 
             return await this.updateGame();
         } else if (subscription_type == "stream.online") {
 
             if (!("id" in event)) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator.handle", `No stream id supplied in event for channel '${this.broadcaster_user_login}', aborting.`, event);
+                Log.logAdvanced(Log.Level.ERROR, "automator.handle", `No stream id supplied in event for channel '${this.broadcaster_user_login}', aborting.`, event);
                 return false;
             }
 
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.last.online`, new Date().toISOString());
-            Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `Automator stream.online event for ${this.broadcaster_user_login} (retry ${messageRetry})`);
+            Log.logAdvanced(Log.Level.INFO, "automator.handle", `Automator stream.online event for ${this.broadcaster_user_login} (retry ${messageRetry})`);
 
             // const channel_obj = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
 
             // check if channel is in config, hmm
             if (!this.channel) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator.handle", `Handle (online) triggered with sub id ${subscription_id}, but username '${this.broadcaster_user_login}' is not in config.`);
+                Log.logAdvanced(Log.Level.ERROR, "automator.handle", `Handle (online) triggered with sub id ${subscription_id}, but username '${this.broadcaster_user_login}' is not in config.`);
 
                 // 5head solution
                 // TwitchHelper.channelUnsubscribe($this->broadcaster_user_id);
@@ -120,15 +120,15 @@ export class TwitchAutomator extends BaseAutomator {
             }
 
             if (this.channel.is_live) {
-                Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `${this.broadcaster_user_login} is already live, yet another stream online event received.`);
+                Log.logAdvanced(Log.Level.INFO, "automator.handle", `${this.broadcaster_user_login} is already live, yet another stream online event received.`);
             }
 
             KeyValue.getInstance().setBool(`${this.broadcaster_user_login}.online`, true);
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.vod.id`, event.id);
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.vod.started_at`, event.started_at);
-            Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `${this.broadcaster_user_login} stream has ID ${event.id}, started ${event.started_at}`);
+            Log.logAdvanced(Log.Level.INFO, "automator.handle", `${this.broadcaster_user_login} stream has ID ${event.id}, started ${event.started_at}`);
 
-            fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify({ time: new Date(), action: "online" }) + "\n", { flag: "a" });
+            fs.writeFileSync(path.join(BaseConfigCacheFolder.history, `${this.broadcaster_user_login}.jsonline`), JSON.stringify({ time: new Date(), action: "online" }) + "\n", { flag: "a" });
 
             // $this->payload = $data['data'][0];
 
@@ -137,7 +137,7 @@ export class TwitchAutomator extends BaseAutomator {
             // const folder_base = TwitchHelper.vodFolder(this.broadcaster_user_login);
 
             if (TwitchVOD.hasVod(basename)) {
-                Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `Channel ${this.broadcaster_user_login} online, but vod ${basename} already exists, skipping`);
+                Log.logAdvanced(Log.Level.INFO, "automator.handle", `Channel ${this.broadcaster_user_login} online, but vod ${basename} already exists, skipping`);
                 return false;
             }
 
@@ -158,7 +158,7 @@ export class TwitchAutomator extends BaseAutomator {
             }
 
             if (this.channel.no_capture) {
-                Log.logAdvanced(LOGLEVEL.INFO, "automator.handle", `Skip capture for ${this.broadcaster_user_login} because no-capture is set`);
+                Log.logAdvanced(Log.Level.INFO, "automator.handle", `Skip capture for ${this.broadcaster_user_login} because no-capture is set`);
                 if (this.channel) this.channel.broadcastUpdate();
                 return false;
             }
@@ -166,7 +166,7 @@ export class TwitchAutomator extends BaseAutomator {
             try {
                 await this.download();
             } catch (error) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator.handle", `Download of stream '${this.broadcaster_user_login}' failed: ${(error as Error).message}`);
+                Log.logAdvanced(Log.Level.ERROR, "automator.handle", `Download of stream '${this.broadcaster_user_login}' failed: ${(error as Error).message}`);
             }
 
         } else if (subscription_type == "stream.offline") {
@@ -175,12 +175,12 @@ export class TwitchAutomator extends BaseAutomator {
 
         } else {
 
-            Log.logAdvanced(LOGLEVEL.ERROR, "automator.handle", `No supported subscription type (${subscription_type}).`);
+            Log.logAdvanced(Log.Level.ERROR, "automator.handle", `No supported subscription type (${subscription_type}).`);
             return false;
 
         }
 
-        Log.logAdvanced(LOGLEVEL.ERROR, "automator.handle", "how did you get here");
+        Log.logAdvanced(Log.Level.ERROR, "automator.handle", "how did you get here");
         return false;
 
     }
@@ -198,21 +198,21 @@ export class TwitchAutomator extends BaseAutomator {
             const capture_id = KeyValue.getInstance().get(`${this.getLogin()}.vod.id`);
 
             if (!capture_id) {
-                Log.logAdvanced(LOGLEVEL.FATAL, "automator.updateGame", `No capture ID for channel ${this.getLogin()} stream, can't update chapter on capture.`);
+                Log.logAdvanced(Log.Level.FATAL, "automator.updateGame", `No capture ID for channel ${this.getLogin()} stream, can't update chapter on capture.`);
                 return false;
             }
 
             const vod = TwitchVOD.getVodByCaptureId(capture_id);
 
             if (!vod) {
-                Log.logAdvanced(LOGLEVEL.FATAL, "automator.updateGame", `Tried to load VOD ${capture_id} for chapter update but errored.`);
-                Log.logAdvanced(LOGLEVEL.INFO, "automator.updateGame", `Resetting online status on ${this.getLogin()}.`);
+                Log.logAdvanced(Log.Level.FATAL, "automator.updateGame", `Tried to load VOD ${capture_id} for chapter update but errored.`);
+                Log.logAdvanced(Log.Level.INFO, "automator.updateGame", `Resetting online status on ${this.getLogin()}.`);
                 KeyValue.getInstance().delete(`${this.getLogin()}.online`);
                 return false;
             }
 
             if (!no_run_check && !await vod.getCapturingStatus(true)) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator.updateGame", `VOD ${vod.basename} is not capturing, skipping chapter update. Removing online status.`);
+                Log.logAdvanced(Log.Level.ERROR, "automator.updateGame", `VOD ${vod.basename} is not capturing, skipping chapter update. Removing online status.`);
                 KeyValue.getInstance().delete(`${this.getLogin()}.online`);
                 return false;
             }
@@ -227,27 +227,27 @@ export class TwitchAutomator extends BaseAutomator {
                 } else if (KeyValue.getInstance().has(`${this.getLogin()}.chapterdata`)) {
                     chapter_data = KeyValue.getInstance().getObject<TwitchVODChapterJSON>(`${this.getLogin()}.chapterdata`) as TwitchVODChapterJSON; // type guard not working
                 } else {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "automator.updateGame", `No chapter data for ${this.getLogin()} found in cache.`);
+                    Log.logAdvanced(Log.Level.ERROR, "automator.updateGame", `No chapter data for ${this.getLogin()} found in cache.`);
                     return false;
                 }
             } else if (this.payload_eventsub && "title" in this.payload_eventsub.event) {
                 if (!this.payload_eventsub || !this.payload_eventsub.event) {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "automator.updateGame", `Tried to get event for ${this.getLogin()} but it was not available.`);
+                    Log.logAdvanced(Log.Level.ERROR, "automator.updateGame", `Tried to get event for ${this.getLogin()} but it was not available.`);
                     return false;
                 }
                 event = this.payload_eventsub.event as ChannelUpdateEvent;
                 chapter_data = await this.getChapterData(event);
             } else {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator.updateGame", `No last resort event for ${this.getLogin()} not available.`);
+                Log.logAdvanced(Log.Level.ERROR, "automator.updateGame", `No last resort event for ${this.getLogin()} not available.`);
                 return false;
             }
 
             if (!chapter_data) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator.updateGame", `No chapter data for ${this.getLogin()} found.`);
+                Log.logAdvanced(Log.Level.ERROR, "automator.updateGame", `No chapter data for ${this.getLogin()} found.`);
                 return false;
             }
 
-            Log.logAdvanced(LOGLEVEL.SUCCESS, "automator.updateGame", `Channel data for ${this.getLogin()} fetched from ${from_cache ? "cache" : "notification"}.`);
+            Log.logAdvanced(Log.Level.SUCCESS, "automator.updateGame", `Channel data for ${this.getLogin()} fetched from ${from_cache ? "cache" : "notification"}.`);
 
             const chapter = await TwitchVODChapter.fromJSON(chapter_data);
 
@@ -262,10 +262,10 @@ export class TwitchAutomator extends BaseAutomator {
             } as ChapterUpdateData);
 
             // append chapter to history
-            fs.writeFileSync(path.join(BaseConfigDataFolder.history, `${this.getLogin()}.jsonline`), JSON.stringify(chapter) + "\n", { flag: "a" });
+            fs.writeFileSync(path.join(BaseConfigCacheFolder.history, `${this.getLogin()}.jsonline`), JSON.stringify(chapter) + "\n", { flag: "a" });
 
             Log.logAdvanced(
-                LOGLEVEL.SUCCESS,
+                Log.Level.SUCCESS,
                 "automator.updateGame",
                 `Stream updated on '${this.getLogin()}' to '${chapter_data.game_name}' (${chapter_data.title}) using ${from_cache ? "cache" : "eventsub"}.`
             );
@@ -279,12 +279,12 @@ export class TwitchAutomator extends BaseAutomator {
         } else {
 
             if (!this.payload_eventsub || !this.payload_eventsub.event) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator.updateGame", `Tried to get event for ${this.getLogin()} but it was not available.`);
+                Log.logAdvanced(Log.Level.ERROR, "automator.updateGame", `Tried to get event for ${this.getLogin()} but it was not available.`);
                 return false;
             }
 
             if (!("title" in this.payload_eventsub.event)) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "automator.updateGame", `Event type was wrong for ${this.getLogin()}`);
+                Log.logAdvanced(Log.Level.ERROR, "automator.updateGame", `Event type was wrong for ${this.getLogin()}`);
                 return false;
             }
 
@@ -304,14 +304,14 @@ export class TwitchAutomator extends BaseAutomator {
             const chapter_data = await this.getChapterData(event);
             chapter_data.online = false;
 
-            Log.logAdvanced(LOGLEVEL.INFO, "automator.updateGame", `Channel ${this.getLogin()} not capturing, saving channel data to cache: ${event.category_name} (${event.title})`);
+            Log.logAdvanced(Log.Level.INFO, "automator.updateGame", `Channel ${this.getLogin()} not capturing, saving channel data to cache: ${event.category_name} (${event.title})`);
             KeyValue.getInstance().setObject(`${this.getLogin()}.chapterdata`, chapter_data);
             if (this.channel) {
                 this.channel.broadcastUpdate();
             }
 
             // if (chapter_data.viewer_count) {
-            //     Log.logAdvanced(LOGLEVEL.INFO, "automator.updateGame", `Channel ${this.getLogin()} not online, but managed to get viewer count, so it's online? 🤔`);
+            //     Log.logAdvanced(Log.Level.INFO, "automator.updateGame", `Channel ${this.getLogin()} not online, but managed to get viewer count, so it's online? 🤔`);
             // }
 
             // $fp = fopen(TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "history" . DIRECTORY_SEPARATOR . this.getLogin() . ".jsonline", 'a');
@@ -322,18 +322,18 @@ export class TwitchAutomator extends BaseAutomator {
                 setTimeout(async () => {
                     const isLive = await this.channel?.isLiveApi();
                     if (isLive) {
-                        Log.logAdvanced(LOGLEVEL.INFO, "automator.updateGame", `Channel ${this.getLogin()} is now online, timeout check.`);
+                        Log.logAdvanced(Log.Level.INFO, "automator.updateGame", `Channel ${this.getLogin()} is now online, timeout check.`);
                     } else {
-                        Log.logAdvanced(LOGLEVEL.INFO, "automator.updateGame", `Channel ${this.getLogin()} is still offline, timeout check.`);
+                        Log.logAdvanced(Log.Level.INFO, "automator.updateGame", `Channel ${this.getLogin()} is still offline, timeout check.`);
                     }
                 }, 30 * 1000); // remove in future, just for testing
             }
 
             if (!this.channel?.no_capture && is_live && !this.channel?.is_capturing) {
                 if (!this.getVodID()) {
-                    Log.logAdvanced(LOGLEVEL.WARNING, "automator.updateGame", `Channel ${this.getLogin()} does not have a stream id, cannot start downloading from chapter update.`);
+                    Log.logAdvanced(Log.Level.WARNING, "automator.updateGame", `Channel ${this.getLogin()} does not have a stream id, cannot start downloading from chapter update.`);
                 } else {
-                    Log.logAdvanced(LOGLEVEL.INFO, "automator.updateGame", `Channel ${this.getLogin()} status is online but not capturing, starting capture from chapter update.`);
+                    Log.logAdvanced(Log.Level.INFO, "automator.updateGame", `Channel ${this.getLogin()} status is online but not capturing, starting capture from chapter update.`);
                     this.download();
                 }
             }

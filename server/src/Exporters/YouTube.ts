@@ -2,11 +2,11 @@ import { BaseExporter } from "./Base";
 // import { google } from "googleapis"; // FIXME: don't import the whole module
 import { youtube_v3 } from "@googleapis/youtube";
 import { YouTubeHelper } from "../Providers/YouTube";
-import fs from "fs";
-import { Log, LOGLEVEL } from "../Core/Log";
+import fs from "node:fs";
+import { Log } from "../Core/Log";
 import { Job } from "../Core/Job";
 import { Config } from "../Core/Config";
-import path from "path";
+import path from "node:path";
 
 export class YouTubeExporter extends BaseExporter {
 
@@ -41,29 +41,42 @@ export class YouTubeExporter extends BaseExporter {
         this.playlist_id = playlist_id;
     }
 
-    export(): Promise<boolean | string> {
-        return new Promise<boolean | string>((resolve, reject) => {
-            if (!this.vod) throw new Error("No VOD loaded");
-            if (!this.filename) throw new Error("No filename");
-            if (!this.template_filename) throw new Error("No template filename");
-            if (!this.extension) throw new Error("No extension");
-            if (!this.vod.started_at) throw new Error("No started_at");
-            if (!this.vod.video_metadata) throw new Error("No video_metadata");
-            if (!YouTubeHelper.oAuth2Client) throw new Error("No YouTube client");
+    async export(): Promise<boolean | string> {
+        // if (!this.vod) throw new Error("No VOD loaded for export");
+        if (!this.filename) throw new Error("No filename");
+        if (!this.template_filename) throw new Error("No template filename");
+        if (!this.extension) throw new Error("No extension");
+        // if (!this.vod.started_at) throw new Error("No started_at");
+        // if (!this.vod.video_metadata) throw new Error("No video_metadata");
+        if (!YouTubeHelper.oAuth2Client) throw new Error("No YouTube client");
 
-            const final_title = this.getFormattedTitle();
+        const final_title = this.getFormattedTitle();
 
-            // const service = google.youtube("v3");
-            const service = new youtube_v3.Youtube({ auth: YouTubeHelper.oAuth2Client });
+        // const service = google.youtube("v3");
+        const service = new youtube_v3.Youtube({
+            auth: YouTubeHelper.oAuth2Client,
+        });
 
-            Log.logAdvanced(LOGLEVEL.INFO, "YouTubeExporter", `Uploading ${this.filename} to YouTube...`);
+        Log.logAdvanced(Log.Level.INFO, "YouTubeExporter", `Uploading ${this.filename} to YouTube...`);
 
-            const job = Job.create(`YouTubeExporter_${path.basename(this.filename)}`);
-            job.dummy = true;
-            job.save();
+        const job = Job.create(`YouTubeExporter_${path.basename(this.filename)}`);
+        job.dummy = true;
+        job.save();
+        job.broadcastUpdate(); // manual send
 
-            service.videos.insert({
-                auth: YouTubeHelper.oAuth2Client,
+        const totalSize = fs.statSync(this.filename).size;
+        let uploadSupportCheck = false;
+
+        setTimeout(() => {
+            if (!uploadSupportCheck) {
+                Log.logAdvanced(Log.Level.WARNING, "YouTubeExporter", "Upload support check timed out, progress will not be shown.");
+            }
+        }, 5000);
+
+        let response;
+        try {
+            response = await service.videos.insert({
+                // auth: YouTubeHelper.oAuth2Client,
                 part: ["snippet", "status"],
                 requestBody: {
                     snippet: {
@@ -80,119 +93,149 @@ export class YouTubeExporter extends BaseExporter {
                     body: fs.createReadStream(this.filename),
                     // body: fs.createReadStream("C:\\temp\\test.mp4"),
                 },
-            }, (err, response): void => {
-                if (err) {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "YouTube", `Could not upload video: ${err}`);
+            },
+            {
+                // this is apparently deprecated
+                onUploadProgress: (event) => {
+                    job.setProgress(event.bytesRead / totalSize);
+                    uploadSupportCheck = true;
+                },
+            });
+        } catch (error) {
+            Log.logAdvanced(Log.Level.ERROR, "YouTube", `Could not upload video: ${(error as Error).message}`, error);
+            job.clear();
+            throw error;
+        }
+
+        if (response) {
+            Log.logAdvanced(Log.Level.SUCCESS, "YouTube", `Video uploaded: ${response.data.id}`);
+            this.video_id = response.data.id || "";
+            if (response.data.id && this.playlist_id) {
+                if (this.vod) this.vod.exportData.youtube_id = response.data.id;
+                let success;
+                try {
+                    success = this.addToPlaylist(response.data.id, this.playlist_id);
+                } catch (error) {
+                    Log.logAdvanced(Log.Level.ERROR, "YouTube", `Could not add video to playlist: ${(error as Error).message}`, error);
                     job.clear();
-                    reject(err);
-                    return;
-                } else if (response) {
-                    Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", `Video uploaded: ${response.data.id}`);
-                    this.video_id = response.data.id || "";
-                    if (response.data.id && this.playlist_id) {
-                        if (this.vod) this.vod.exportData.youtube_id = response.data.id;
-                        this.addToPlaylist(response.data.id, this.playlist_id).then((success) => {
-                            if (this.vod) this.vod.exportData.youtube_playlist_id = this.playlist_id;
-                            Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", `Video added to playlist: ${success}`);
-                            resolve(this.video_id);
-                        }).catch((err) => {
-                            Log.logAdvanced(LOGLEVEL.ERROR, "YouTube", `Could not add video to playlist: ${err}`, err);
-                            reject(err);
-                        }).finally(() => {
-                            job.clear();
-                        });
-                    } else if (response.data.id) {
-                        job.clear();
-                        if (this.vod) this.vod.exportData.youtube_id = response.data.id;
-                        Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", `Video uploaded, no playlist: ${response.data.id}`);
-                        resolve(this.video_id);
-                    } else {
-                        job.clear();
-                        Log.logAdvanced(LOGLEVEL.ERROR, "YouTube", "Could not upload video, no ID gotten.", response);
-                        reject("Could not upload video");
-                    }
+                    throw error;
                 }
-            });
 
-        });
-
-    }
-
-    verify(): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
-            if (!this.vod) throw new Error("No VOD loaded");
-            if (!this.filename) throw new Error("No filename");
-            if (!this.template_filename) throw new Error("No template filename");
-            if (!this.extension) throw new Error("No extension");
-            if (!this.vod.started_at) throw new Error("No started_at");
-            if (!this.vod.video_metadata) throw new Error("No video_metadata");
-            if (!YouTubeHelper.oAuth2Client) throw new Error("No YouTube client");
-
-            const service = new youtube_v3.Youtube({ auth: YouTubeHelper.oAuth2Client });
-
-            // const service = google.youtube("v3");
-
-            Log.logAdvanced(LOGLEVEL.INFO, "YouTubeExporter", `Verifying ${this.filename} on YouTube...`);
-
-            service.videos.list({
-                auth: YouTubeHelper.oAuth2Client,
-                part: ["snippet"],
-                id: [this.video_id],
-            }, (err, response): void => {
-                if (err) {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "YouTube", `Could not verify video: ${err}`);
-                    reject(err);
-                    return;
-                } else if (response) {
-                    Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", "Video verified", response.data.items);
-                    resolve(true);
-                }
-            });
-
-        });
-    }
-
-    addToPlaylist(video_id: string, playlist_id: string): Promise<boolean> {
-
-        return new Promise<boolean>((resolve, reject) => {
-
-            if (!YouTubeHelper.oAuth2Client) throw new Error("No YouTube client");
-
-            const service = new youtube_v3.Youtube({ auth: YouTubeHelper.oAuth2Client });
-
-            Log.logAdvanced(LOGLEVEL.INFO, "YouTubeExporter", `Adding ${video_id} to playlist...`);
-
-            if (this.playlist_id == "") {
-                const raw_playlist_config = Config.getInstance().cfg<string>("exporter.youtube.playlists");
-                if (raw_playlist_config) {
-                    const raw_playlist_entries = raw_playlist_config.split(";");
-                    const playlist_entries = raw_playlist_entries.map((entry) => {
-                        const parts = entry.split("=");
-                        return {
-                            channel: parts[0],
-                            playlist: parts[1],
-                        };
-                    });
-
-                    const playlist_entry = playlist_entries.find((entry) => entry.channel == this.vod?.getChannel().internalName);
-
-                    if (playlist_entry) {
-                        this.playlist_id = playlist_entry.playlist;
-                        Log.logAdvanced(LOGLEVEL.INFO, "YouTubeExporter", `Found playlist ${this.playlist_id} for channel ${this.vod?.getChannel().internalName}`);
-                    } else {
-                        Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeExporter", `No playlist configured for channel ${this.vod?.getChannel().internalName}`);
-                        resolve(false);
-                        return;
-                    }
-                } else {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "YouTubeExporter", "No playlists configured");
-                    resolve(false);
-                    return;
-                }
+                if (this.vod) this.vod.exportData.youtube_playlist_id = this.playlist_id;
+                Log.logAdvanced(Log.Level.SUCCESS, "YouTube", `Video added to playlist: ${success}`);
+                job.clear();
+                return this.video_id;
+            } else if (response.data.id) {
+                job.clear();
+                if (this.vod) this.vod.exportData.youtube_id = response.data.id;
+                Log.logAdvanced(Log.Level.SUCCESS, "YouTube", `Video uploaded, no playlist: ${response.data.id}`);
+                return this.video_id;
+            } else {
+                job.clear();
+                Log.logAdvanced(Log.Level.ERROR, "YouTube", "Could not upload video, no ID gotten.", response);
+                throw new Error("Could not upload video");
             }
+        }
 
-            service.playlistItems.insert({
-                auth: YouTubeHelper.oAuth2Client,
+        Log.logAdvanced(Log.Level.ERROR, "YouTube", "Could not upload video, no response gotten.");
+
+        return false;
+
+    }
+
+    async verify(): Promise<boolean> {
+        // if (!this.vod) throw new Error("No VOD loaded for verify");
+        if (!this.filename) throw new Error("No filename");
+        if (!this.template_filename) throw new Error("No template filename");
+        if (!this.extension) throw new Error("No extension");
+        // if (!this.vod.started_at) throw new Error("No started_at");
+        // if (!this.vod.video_metadata) throw new Error("No video_metadata");
+        if (!YouTubeHelper.oAuth2Client) throw new Error("No YouTube client");
+
+        const service = new youtube_v3.Youtube({
+            auth: YouTubeHelper.oAuth2Client,
+        });
+
+        // const service = google.youtube("v3");
+
+        Log.logAdvanced(Log.Level.INFO, "YouTubeExporter", `Verifying ${this.filename} on YouTube...`);
+
+        let response;
+        try {
+            response = await service.videos.list({
+                // auth: YouTubeHelper.oAuth2Client,
+                part: ["snippet", "status"],
+                id: [this.video_id],
+            });
+        } catch (error) {
+            Log.logAdvanced(Log.Level.ERROR, "YouTube", `Could not verify video: ${(error as Error).message}`, error);
+            throw error;
+        }
+
+        if (response && response.data && response.data.items && response.data.items.length > 0) {
+            const item = response.data.items[0];
+            if (item.status?.uploadStatus === "processed" || item.status?.uploadStatus === "uploaded") {
+                Log.logAdvanced(Log.Level.SUCCESS, "YouTube", `Video verified: ${this.video_id}`);
+                return true;
+            } else if (item.status?.uploadStatus === "rejected") {
+                Log.logAdvanced(Log.Level.ERROR, "YouTube", `Video rejected: ${this.video_id}`);
+                return false;
+            } else if (item.status?.uploadStatus === "failed") {
+                Log.logAdvanced(Log.Level.ERROR, "YouTube", `Video failed: ${this.video_id}`);
+                return false;
+            } else {
+                Log.logAdvanced(Log.Level.ERROR, "YouTube", `Video status unknown: ${this.video_id} - ${item.status?.uploadStatus}`);
+                return false;
+            }
+        }
+
+        Log.logAdvanced(Log.Level.ERROR, "YouTube", "Could not verify video, no response gotten.", response);
+
+        return false;
+
+    }
+
+    async addToPlaylist(video_id: string, playlist_id: string): Promise<boolean> {
+
+        if (!YouTubeHelper.oAuth2Client) throw new Error("No YouTube client");
+
+        const service = new youtube_v3.Youtube({
+            auth: YouTubeHelper.oAuth2Client,
+        });
+
+        Log.logAdvanced(Log.Level.INFO, "YouTubeExporter", `Adding ${video_id} to playlist...`);
+
+        if (this.playlist_id == "") {
+            const raw_playlist_config = Config.getInstance().cfg<string>("exporter.youtube.playlists");
+            if (raw_playlist_config) {
+                const raw_playlist_entries = raw_playlist_config.split(";");
+                const playlist_entries = raw_playlist_entries.map((entry) => {
+                    const parts = entry.split("=");
+                    return {
+                        channel: parts[0],
+                        playlist: parts[1],
+                    };
+                });
+
+                const playlist_entry = playlist_entries.find((entry) => entry.channel == this.vod?.getChannel().internalName);
+
+                if (playlist_entry) {
+                    this.playlist_id = playlist_entry.playlist;
+                    Log.logAdvanced(Log.Level.INFO, "YouTubeExporter", `Found playlist ${this.playlist_id} for channel ${this.vod?.getChannel().internalName}`);
+                } else {
+                    Log.logAdvanced(Log.Level.ERROR, "YouTubeExporter", `No playlist configured for channel ${this.vod?.getChannel().internalName}`);
+                    return false;
+                }
+            } else {
+                Log.logAdvanced(Log.Level.ERROR, "YouTubeExporter", "No playlists configured");
+                return false;
+            }
+        }
+
+        let response;
+        try {
+            response = await service.playlistItems.insert({
+                // auth: YouTubeHelper.oAuth2Client,
                 part: ["snippet"],
                 requestBody: {
                     snippet: {
@@ -203,18 +246,19 @@ export class YouTubeExporter extends BaseExporter {
                         },
                     },
                 },
-            }, (err, response): void => {
-                if (err) {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "YouTube", `Could not add video to playlist: ${err}`);
-                    reject(err);
-                    return;
-                } else if (response) {
-                    Log.logAdvanced(LOGLEVEL.SUCCESS, "YouTube", "Video added to playlist", response.data);
-                    resolve(true);
-                }
             });
+        } catch (error) {
+            Log.logAdvanced(Log.Level.ERROR, "YouTube", `Could not add video to playlist: ${(error as Error).message}`, error);
+            throw error;
+        }
 
-        });
+        if (response) {
+            Log.logAdvanced(Log.Level.SUCCESS, "YouTube", "Video added to playlist", response.data);
+            return true;
+        } else {
+            Log.logAdvanced(Log.Level.ERROR, "YouTube", "Could not add video to playlist, no response gotten.");
+            return false;
+        }
 
     }
 }

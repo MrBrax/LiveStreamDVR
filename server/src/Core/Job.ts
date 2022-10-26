@@ -1,10 +1,10 @@
-import path from "path";
-import fs from "fs";
+import path from "node:path";
+import fs from "node:fs";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "./BaseConfig";
-import { LOGLEVEL, Log } from "./Log";
+import {  Log } from "./Log";
 import { parseJSON } from "date-fns";
-import { ChildProcessWithoutNullStreams } from "child_process";
-import { EventEmitter } from "events";
+import { ChildProcessWithoutNullStreams } from "node:child_process";
+import { EventEmitter } from "node:events";
 import { Webhook } from "./Webhook";
 import { ApiJob } from "../../../common/Api/Client";
 import { JobStatus } from "../../../common/Defs";
@@ -77,7 +77,7 @@ export class Job extends EventEmitter {
         for (const job_data of jobs) {
             Job.load(job_data.replace(".json", ""));
         }
-        Log.logAdvanced(LOGLEVEL.INFO, "job", `Loaded ${jobs.length} jobs from cache`);
+        Log.logAdvanced(Log.Level.INFO, "job", `Loaded ${jobs.length} jobs from cache`);
 
         this.checkStaleJobs();
     }
@@ -94,16 +94,16 @@ export class Job extends EventEmitter {
             try {
                 status = await job.getStatus(true);
             } catch (error) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Job ${job.name} stale status error: ${(error as Error).message}`);
+                Log.logAdvanced(Log.Level.ERROR, "job", `Job ${job.name} stale status error: ${(error as Error).message}`);
                 job.clear();
                 continue;
             } 
 
             if (status == JobStatus.STOPPED || status == JobStatus.ERROR) {
-                Log.logAdvanced(LOGLEVEL.WARNING, "job", `Job ${job.name} is stale, no process found. Clearing.`);
+                Log.logAdvanced(Log.Level.WARNING, "job", `Job ${job.name} is stale, no process found. Clearing.`);
                 job.clear();
             } else {
-                Log.logAdvanced(LOGLEVEL.INFO, "job", `Job ${job.name} is still running from previous session.`);
+                Log.logAdvanced(Log.Level.INFO, "job", `Job ${job.name} is still running from previous session.`);
             }
             // if (job.dt_started_at && job.dt_started_at.getTime() + (60 * 1000) < now.getTime()) {
             // 	job.clear();
@@ -116,11 +116,11 @@ export class Job extends EventEmitter {
         const basepath = BaseConfigCacheFolder.pids;
 
         // if(file_exists(TwitchHelper::$pids_folder . DIRECTORY_SEPARATOR . $name . ".json")){
-        // 	TwitchLog.logAdvanced(LOGLEVEL.WARNING, "job", "Creating job {$name} overwrites existing!");
+        // 	TwitchLog.logAdvanced(Log.Level.WARNING, "job", "Creating job {$name} overwrites existing!");
         // }
 
         if (fs.existsSync(path.join(basepath, name + ".json"))) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "job", `Creating job ${name} overwrites existing!`);
+            Log.logAdvanced(Log.Level.WARNING, "job", `Creating job ${name} overwrites existing!`);
         }
 
         const job = new this();
@@ -134,11 +134,11 @@ export class Job extends EventEmitter {
 
     public static load(name: string): Job | false {
 
-        Log.logAdvanced(LOGLEVEL.DEBUG, "job", `Loading job ${name}`);
+        Log.logAdvanced(Log.Level.DEBUG, "job", `Loading job ${name}`);
 
         const memJob = this.jobs.find(job => job.name === name);
         if (memJob) {
-            Log.logAdvanced(LOGLEVEL.DEBUG, "job", `Job ${name} found in memory`);
+            Log.logAdvanced(Log.Level.DEBUG, "job", `Job ${name} found in memory`);
             return memJob;
         }
 
@@ -152,7 +152,7 @@ export class Job extends EventEmitter {
 
         // if no pid file
         if (!fs.existsSync(job.pidfile)) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "job", `Loading job ${job.name} failed, no json file`, job.metadata);
+            Log.logAdvanced(Log.Level.ERROR, "job", `Loading job ${job.name} failed, no json file`, job.metadata);
             // return job.loadSimple();
             job.error = this.NO_FILE;
             return false;
@@ -161,7 +161,7 @@ export class Job extends EventEmitter {
         // read pid file
         const raw = fs.readFileSync(job.pidfile, "utf8");
         if (!raw) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "job", `Loading job ${job.name} failed, no data in json file`, job.metadata);
+            Log.logAdvanced(Log.Level.ERROR, "job", `Loading job ${job.name} failed, no data in json file`, job.metadata);
             job.error = this.NO_DATA;
             return false;
         }
@@ -174,11 +174,11 @@ export class Job extends EventEmitter {
         job.bin = data.bin;
         job.args = data.args;
 
-        // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", "Job {$this->name} loaded, proceed to get status.", $this->metadata);
+        // TwitchLog.logAdvanced(Log.Level.DEBUG, "job", "Job {$this->name} loaded, proceed to get status.", $this->metadata);
 
         if (!Job.jobs.includes(job)) {
             Job.jobs.push(job);
-            Log.logAdvanced(LOGLEVEL.DEBUG, "job", `Loaded job ${job.name} added to jobs list`, job.metadata);
+            Log.logAdvanced(Log.Level.DEBUG, "job", `Loaded job ${job.name} added to jobs list`, job.metadata);
         }
 
         // $this->getStatus();
@@ -237,10 +237,20 @@ export class Job extends EventEmitter {
         }
 
         if (this.dummy) {
+            Webhook.dispatch("job_save", {
+                "job_name": this.name,
+                "job": this.toAPI(),
+            });
+            if (!Job.hasJob(this.name)) {
+                Job.jobs.push(this);
+                Log.logAdvanced(Log.Level.DEBUG, "job", `New job ${this.name} (dummy) added to jobs list`, this.metadata);
+            } else {
+                Log.logAdvanced(Log.Level.DEBUG, "job", `Job ${this.name} (dummy) already in jobs list`, this.metadata);
+            }
             return false;
         }
 
-        Log.logAdvanced(LOGLEVEL.INFO, "job", `Save job ${this.name} with PID ${this.pid} to ${this.pidfile}`, this.metadata);
+        Log.logAdvanced(Log.Level.INFO, "job", `Save job ${this.name} with PID ${this.pid} to ${this.pidfile}`, this.metadata);
 
         Webhook.dispatch("job_save", {
             "job_name": this.name,
@@ -254,7 +264,7 @@ export class Job extends EventEmitter {
         try {
             json_data = JSON.stringify(this);
         } catch (e) {
-            Log.logAdvanced(LOGLEVEL.FATAL, "job", `Failed to stringify job ${this.name}`, this.metadata);
+            Log.logAdvanced(Log.Level.FATAL, "job", `Failed to stringify job ${this.name}`, this.metadata);
             return false;
         }
 
@@ -262,11 +272,11 @@ export class Job extends EventEmitter {
 
         const exists = fs.existsSync(this.pidfile);
 
-        Log.logAdvanced(LOGLEVEL.DEBUG, "job", `Job ${this.name} ${exists ? "saved" : "failed to save"}`, this.metadata);
+        Log.logAdvanced(Log.Level.DEBUG, "job", `Job ${this.name} ${exists ? "saved" : "failed to save"}`, this.metadata);
 
-        if (exists && !Job.jobs.includes(this)) {
+        if (exists && !Job.hasJob(this.name)) {
             Job.jobs.push(this);
-            Log.logAdvanced(LOGLEVEL.DEBUG, "job", `New job ${this.name} added to jobs list`, this.metadata);
+            Log.logAdvanced(Log.Level.DEBUG, "job", `New job ${this.name} added to jobs list`, this.metadata);
         }
 
         this.emit("save");
@@ -284,6 +294,15 @@ export class Job extends EventEmitter {
         // 	this.process = null;
         // }
 
+        if (this.dummy) {
+            this.emit("pre_clear");
+            Log.logAdvanced(Log.Level.DEBUG, "job", `Clear job ${this.name} (dummy)`, this.metadata);
+            Job.jobs = Job.jobs.filter(job => job.name !== this.name);
+            this.emit("clear", this.code);
+            this.broadcastUpdate();
+            return false;
+        }
+
         if (!this.pidfile) {
             throw new Error("pidfile not set");
         }
@@ -291,10 +310,10 @@ export class Job extends EventEmitter {
         this.emit("pre_clear");
 
         if (fs.existsSync(this.pidfile)) {
-            Log.logAdvanced(LOGLEVEL.INFO, "job", `Clear job ${this.name} with PID ${this.pid}`, this.metadata);
+            Log.logAdvanced(Log.Level.INFO, "job", `Clear job ${this.name} with PID ${this.pid}`, this.metadata);
 
             Webhook.dispatch("job_clear", {
-                "job_name": this.name || "",
+                "job_name": this.name,
                 "job": this.toAPI(),
             });
 
@@ -302,11 +321,11 @@ export class Job extends EventEmitter {
             // return !fs.existsSync(this.pidfile);
         }
 
-        if (Job.hasJob(this.name || "")) {
+        if (Job.hasJob(this.name)) {
             Job.jobs = Job.jobs.filter(job => job.name !== this.name);
-            Log.logAdvanced(LOGLEVEL.SUCCESS, "job", `Job ${this.name} removed from jobs list`, this.metadata);
+            Log.logAdvanced(Log.Level.SUCCESS, "job", `Job ${this.name} removed from jobs list`, this.metadata);
         } else {
-            Log.logAdvanced(LOGLEVEL.WARNING, "job", `Job ${this.name} not found in jobs list`, this.metadata);
+            Log.logAdvanced(Log.Level.WARNING, "job", `Job ${this.name} not found in jobs list`, this.metadata);
         }
 
         this.emit("clear", this.code);
@@ -325,7 +344,7 @@ export class Job extends EventEmitter {
     public setPid(pid: number): void {
         this.emit("pid_set", this.pid, pid);
         this.pid = pid;
-        Log.logAdvanced(LOGLEVEL.DEBUG, "job", `Set PID ${pid} for job ${this.name}`, this.metadata);
+        Log.logAdvanced(Log.Level.DEBUG, "job", `Set PID ${pid} for job ${this.name}`, this.metadata);
         this.broadcastUpdate();
     }
 
@@ -353,12 +372,12 @@ export class Job extends EventEmitter {
     public setProcess(process: ChildProcessWithoutNullStreams): void {
         this.emit("process_set", this.process, process);
         this.process = process;
-        Log.logAdvanced(LOGLEVEL.DEBUG, "job", `Set process for job ${this.name}`, this.metadata);
+        Log.logAdvanced(Log.Level.DEBUG, "job", `Set process for job ${this.name}`, this.metadata);
 
         this.process_running = process.pid !== undefined;
 
         this.process.on("spawn", () => {
-            Log.logAdvanced(LOGLEVEL.DEBUG, "job", `Spawned process for job ${this.name}`, this.metadata);
+            Log.logAdvanced(Log.Level.DEBUG, "job", `Spawned process for job ${this.name}`, this.metadata);
             this.status = JobStatus.RUNNING;
             this.emit("process_start");
             this.process_running = true;
@@ -400,7 +419,7 @@ export class Job extends EventEmitter {
 
         /*
         this.process.on("close", (code, signal) => {
-            TwitchLog.logAdvanced(LOGLEVEL.INFO, "job", `Process for job ${this.name} exited with code ${code} and signal ${signal}`, this.metadata);
+            TwitchLog.logAdvanced(Log.Level.INFO, "job", `Process for job ${this.name} exited with code ${code} and signal ${signal}`, this.metadata);
             this.emit("close", code, signal);
         }
         */
@@ -433,10 +452,11 @@ export class Job extends EventEmitter {
      */
     public async getStatus(use_command = false): Promise<JobStatus> {
 
-        Log.logAdvanced(LOGLEVEL.DEBUG, "job", `Check status for job ${this.name}`, this.metadata);
+        Log.logAdvanced(Log.Level.DEBUG, "job", `Check status for job ${this.name}`, this.metadata);
 
         if (this.dummy) {
             this.status = JobStatus.RUNNING;
+            Log.logAdvanced(Log.Level.DEBUG, "job", `Job ${this.name} is dummy, returning RUNNING`, this.metadata);
             return JobStatus.RUNNING;
         }
 
@@ -462,7 +482,7 @@ export class Job extends EventEmitter {
             try {
                 proc = await Helper.execSimple("tasklist", ["/FI", `"PID eq ${this.pid}"`], `windows process status (${this.name})`);
             } catch (e) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Error checking status for windows job ${this.name} (${this.process_running})`, this.metadata);
+                Log.logAdvanced(Log.Level.ERROR, "job", `Error checking status for windows job ${this.name} (${this.process_running})`, this.metadata);
                 // console.debug(`Error checking status for job ${this.name} (${this.process_running})`);
                 this.status = JobStatus.STOPPED;
                 if (currentStatus !== this.status) this.broadcastUpdate();
@@ -478,7 +498,7 @@ export class Job extends EventEmitter {
             try {
                 proc = await Helper.execSimple("ps", ["-p", this.pid.toString()], `linux process status (${this.name})`);
             } catch (e) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Error checking status for linux job ${this.name} (${this.process_running})`, this.metadata);
+                Log.logAdvanced(Log.Level.ERROR, "job", `Error checking status for linux job ${this.name} (${this.process_running})`, this.metadata);
                 // console.debug(`Error checking status for job ${this.name} (${this.process_running})`);
                 this.status = JobStatus.STOPPED;
                 if (currentStatus !== this.status) this.broadcastUpdate();
@@ -491,17 +511,17 @@ export class Job extends EventEmitter {
         }
 
         if (output.includes(this.pid.toString())) {
-            Log.logAdvanced(LOGLEVEL.DEBUG, "job", `PID file check for '${this.name}', process is running (${this.process_running})`);
+            Log.logAdvanced(Log.Level.DEBUG, "job", `PID file check for '${this.name}', process is running (${this.process_running})`);
             this.status = JobStatus.RUNNING;
             if (currentStatus !== this.status) this.broadcastUpdate();
 
             if (this.bin && !output.includes(path.basename(this.bin))) {
-                Log.logAdvanced(LOGLEVEL.WARNING, "job", `PID file check for '${this.name}', process is running but binary does not match (${this.bin})`);
+                Log.logAdvanced(Log.Level.WARNING, "job", `PID file check for '${this.name}', process is running but binary does not match (${this.bin})`);
             }
 
             return JobStatus.RUNNING;
         } else {
-            Log.logAdvanced(LOGLEVEL.DEBUG, "job", `PID file check for '${this.name}', process does not exist (${this.process_running})`);
+            Log.logAdvanced(Log.Level.DEBUG, "job", `PID file check for '${this.name}', process does not exist (${this.process_running})`);
             this.status = JobStatus.STOPPED;
             if (currentStatus !== this.status) this.broadcastUpdate();
             return JobStatus.STOPPED;
@@ -521,29 +541,29 @@ export class Job extends EventEmitter {
             try {
                 success = this.process.kill(method);
             } catch (error) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Exception killing process for job ${this.name} with internal process (${method})`, this.metadata);
+                Log.logAdvanced(Log.Level.ERROR, "job", `Exception killing process for job ${this.name} with internal process (${method})`, this.metadata);
                 return false;
             }
 
             if (success) {
                 this.status = JobStatus.STOPPED;
                 this.broadcastUpdate();
-                Log.logAdvanced(LOGLEVEL.INFO, "job", `Killed job ${this.name} with internal process (${method})`, this.metadata);
+                Log.logAdvanced(Log.Level.INFO, "job", `Killed job ${this.name} with internal process (${method})`, this.metadata);
                 return true;
             } else {
-                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Error killing internal process for job ${this.name}, continuing to other methods.`, this.metadata);
+                Log.logAdvanced(Log.Level.ERROR, "job", `Error killing internal process for job ${this.name}, continuing to other methods.`, this.metadata);
             }
 
         }
 
         const pid = this.getPid();
 
-        Log.logAdvanced(LOGLEVEL.INFO, "job", `Killing job ${this.name} (${pid})`, this.metadata);
+        Log.logAdvanced(Log.Level.INFO, "job", `Killing job ${this.name} (${pid})`, this.metadata);
 
         this.emit("pre_kill", method);
 
         if (!pid) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "job", `Kill process for job ${this.name}, PID not found`, this.metadata);
+            Log.logAdvanced(Log.Level.WARNING, "job", `Kill process for job ${this.name}, PID not found`, this.metadata);
             this.clear();
             this.broadcastUpdate();
             return false;
@@ -559,7 +579,7 @@ export class Job extends EventEmitter {
             try {
                 exec = await Helper.execSimple("taskkill", args, "windows process kill");
             } catch (error) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Exception killing process for job ${this.name}: ${(error as Error).message}`, this.metadata);
+                Log.logAdvanced(Log.Level.ERROR, "job", `Exception killing process for job ${this.name}: ${(error as Error).message}`, this.metadata);
                 this.broadcastUpdate();
                 return false;
             }
@@ -567,10 +587,10 @@ export class Job extends EventEmitter {
             this.clear();
             this.broadcastUpdate();
             if (status === JobStatus.STOPPED) {
-                Log.logAdvanced(LOGLEVEL.INFO, "job", `Killed job ${this.name} (${pid}) (windows)`, this.metadata);
+                Log.logAdvanced(Log.Level.INFO, "job", `Killed job ${this.name} (${pid}) (windows)`, this.metadata);
                 return true;
             } else {
-                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Failed to kill job ${this.name} (${pid}) (windows) (${status})`, this.metadata);
+                Log.logAdvanced(Log.Level.ERROR, "job", `Failed to kill job ${this.name} (${pid}) (windows) (${status})`, this.metadata);
                 return false;
             }
         } else {
@@ -581,7 +601,7 @@ export class Job extends EventEmitter {
             try {
                 exec = await Helper.execSimple("kill", [signalFlag, pid.toString()], "linux process kill");
             } catch (error) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Exception killing process for job ${this.name}: ${(error as Error).message}`, this.metadata);
+                Log.logAdvanced(Log.Level.ERROR, "job", `Exception killing process for job ${this.name}: ${(error as Error).message}`, this.metadata);
                 this.broadcastUpdate();
                 return false;
             }
@@ -589,10 +609,10 @@ export class Job extends EventEmitter {
             this.clear();
             this.broadcastUpdate();
             if (status === JobStatus.STOPPED) {
-                Log.logAdvanced(LOGLEVEL.INFO, "job", `Killed job ${this.name} (${pid}) (linux)`, this.metadata);
+                Log.logAdvanced(Log.Level.INFO, "job", `Killed job ${this.name} (${pid}) (linux)`, this.metadata);
                 return true;
             } else {
-                Log.logAdvanced(LOGLEVEL.ERROR, "job", `Failed to kill job ${this.name} (${pid}) (linux) (${status})`, this.metadata);
+                Log.logAdvanced(Log.Level.ERROR, "job", `Failed to kill job ${this.name} (${pid}) (linux) (${status})`, this.metadata);
                 return false;
             }
         }
@@ -611,15 +631,15 @@ export class Job extends EventEmitter {
 
         const logfile = path.join(logs_path, filename);
 
-        Log.logAdvanced(LOGLEVEL.DEBUG, "job", `Start log for job ${this.name} on path ${logfile}`, this.metadata);
+        Log.logAdvanced(Log.Level.DEBUG, "job", `Start log for job ${this.name} on path ${logfile}`, this.metadata);
 
         fs.writeFileSync(`${logfile}_stdout.log`, start_text, "utf8");
         fs.writeFileSync(`${logfile}_stderr.log`, start_text, "utf8");
 
         if (this.process) {
-            Log.logAdvanced(LOGLEVEL.DEBUG, "job", `Attach log for job ${this.name} to process`, this.metadata);
+            Log.logAdvanced(Log.Level.DEBUG, "job", `Attach log for job ${this.name} to process`, this.metadata);
             this.process.stdout.on("data", (data: Buffer) => {
-                // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Job ${this.name} STDOUT: ${data}`, this.metadata);
+                // TwitchLog.logAdvanced(Log.Level.DEBUG, "job", `Job ${this.name} STDOUT: ${data}`, this.metadata);
                 this.emit("stdout", data.toString());
                 this.emit("log", "stdout", data.toString());
                 this.stdout.push(data.toString());
@@ -627,14 +647,14 @@ export class Job extends EventEmitter {
             });
 
             this.process.stderr.on("data", (data: Buffer) => {
-                // TwitchLog.logAdvanced(LOGLEVEL.DEBUG, "job", `Job ${this.name} STDERR: ${data}`, this.metadata);
+                // TwitchLog.logAdvanced(Log.Level.DEBUG, "job", `Job ${this.name} STDERR: ${data}`, this.metadata);
                 this.emit("stderr", data.toString());
                 this.emit("log", "stderr", data.toString());
                 this.stderr.push(data.toString());
                 fs.appendFileSync(`${logfile}_stderr.log`, data, "utf8");
             });
         } else {
-            Log.logAdvanced(LOGLEVEL.DEBUG, "job", `No process attached for job ${this.name}`, this.metadata);
+            Log.logAdvanced(Log.Level.DEBUG, "job", `No process attached for job ${this.name}`, this.metadata);
         }
     }
 
@@ -661,31 +681,45 @@ export class Job extends EventEmitter {
                 // console.debug(`Job ${this.name} did not change progress by more than 2%`);
             }
             */
+
+            if (progress > this.progressAccumulator + 0.1) {
+                Log.logAdvanced(Log.Level.INFO, "job", `Job ${this.name} progress: ${Math.round(progress * 100)}%`, this.metadata);
+                this.progressAccumulator = progress;
+            }
+
             if (this._progressTimer) {
                 // console.debug(`Job ${this.name} cancel update`);
                 clearTimeout(this._progressTimer);
                 this.progressUpdatesCleared++;
             } 
-            this._progressTimer = setTimeout(() => {
-                if (!this || (!this.dummy && this.status !== JobStatus.RUNNING)) return; 
-                this.progress = progress;
-                Webhook.dispatch("job_progress", {
-                    "job_name": this.name || "",
-                    "progress": progress,
-                });
+            if (this.progressUpdatesCleared > 5) {
+                this.updateProgress(progress);
                 this.progressUpdatesCleared = 0;
-            }, this.progressUpdatesCleared > 3 ? 0 : 2000);
+            } else {
+                this._progressTimer = setTimeout(() => {
+                    if (!this || (!this.dummy && this.status !== JobStatus.RUNNING)) return; 
+                    this.updateProgress(progress);
+                    this.progressUpdatesCleared = 0;
+                }, 2000);
+            }
         } else {
             // console.debug(`Job ${this.name} less progress: ${progress} / ${this.progress}`);
         }
     }
 
+    public updateProgress(progress: number): void {
+        this.progress = progress;
+        Webhook.dispatch("job_progress", {
+            "job_name": this.name || "",
+            "progress": progress,
+        });
+    }
     /**
      * Stop logging to file from the attached process
      */
     public stopLog() {
         if (this.process) {
-            Log.logAdvanced(LOGLEVEL.DEBUG, "job", `Detach log for job ${this.name} from process`, this.metadata);
+            Log.logAdvanced(Log.Level.DEBUG, "job", `Detach log for job ${this.name} from process`, this.metadata);
             this.process.stdout.removeAllListeners();
             this.process.stderr.removeAllListeners();
         }
@@ -728,13 +762,13 @@ export class Job extends EventEmitter {
                 try {
                     await this.getStatus();
                 } catch (error) {
-                    Log.logAdvanced(LOGLEVEL.ERROR, "job", `Broadcast job ${this.name} status error: ${(error as Error).message}`);
+                    Log.logAdvanced(Log.Level.ERROR, "job", `Broadcast job ${this.name} status error: ${(error as Error).message}`);
                 }
 
                 this.emit("update", this.toAPI());
                 this._updateTimer = undefined;
-                Webhook.dispatch(Job.hasJob(this.name || "") ? "job_update" : "job_clear", {
-                    "job_name": this.name || "",
+                Webhook.dispatch(Job.hasJob(this.name) ? "job_update" : "job_clear", {
+                    "job_name": this.name,
                     "job": this.toAPI(),
                 });
             }, 2000);
@@ -742,8 +776,8 @@ export class Job extends EventEmitter {
             // (async () => {
             // await this.getStatus();
             this.emit("update", this.toAPI());
-            Webhook.dispatch(Job.hasJob(this.name || "") ? "job_update" : "job_clear", {
-                "job_name": this.name || "",
+            Webhook.dispatch(Job.hasJob(this.name) ? "job_update" : "job_clear", {
+                "job_name": this.name,
                 "job": this.toAPI(),
             });
             // }

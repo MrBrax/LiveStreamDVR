@@ -1,0 +1,8 @@
+{
+  "name": "livestreamdvr",
+  "version": "1.0.0",
+  "repository": "https://github.com/MrBrax/LiveStreamDVR.git",
+  "author": "braxen et al",
+  "license": "MIT",
+  "private": true
+}

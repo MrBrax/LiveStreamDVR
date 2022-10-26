@@ -1,7 +1,7 @@
 import { AppRoot, BaseConfigDataFolder } from "../Core/BaseConfig";
 import express from "express";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import { ExecReturn } from "../Providers/Twitch";
 import { KeyValue } from "../Core/KeyValue";
 import { Helper } from "../Core/Helper";

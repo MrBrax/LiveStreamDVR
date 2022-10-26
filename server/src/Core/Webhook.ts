@@ -2,7 +2,7 @@ import { Config } from "./Config";
 import chalk from "chalk";
 import { ClientBroker } from "./ClientBroker";
 import axios from "axios";
-import { LOGLEVEL, Log } from "./Log";
+import {  Log } from "./Log";
 import { WebhookData, WebhookAction } from "../../../common/Webhook";
 import { LiveStreamDVR } from "./LiveStreamDVR";
 
@@ -37,7 +37,7 @@ export class Webhook {
         // send webhook
         if (Config.getInstance().cfg("webhook_url")) {
             axios.post(Config.getInstance().cfg("webhook_url"), payload).catch(error => {
-                Log.logAdvanced(LOGLEVEL.ERROR, "webhook", `Webhook error: ${error}`);
+                Log.logAdvanced(Log.Level.ERROR, "webhook", `Webhook error: ${error}`);
             });
         }
 

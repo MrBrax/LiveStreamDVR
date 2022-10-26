@@ -8,7 +8,9 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 process.env.VITE_APP_VERSION = process.env.npm_package_version
 process.env.VITE_APP_BUILDDATE = new Date().toISOString()
-process.env.VITE_APP_GIT_HASH = gitDescribeSync().hash
+process.env.VITE_APP_GIT_HASH = gitDescribeSync(__dirname, {
+  customArguments: ['--abbrev=40'],
+}).hash
 
 // https://vitejs.dev/config/
 export default defineConfig({

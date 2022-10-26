@@ -1,3 +1,5 @@
+import { Pagination } from "./Shared";
+
 export interface Clip {
     id: string;
     url: string;
@@ -20,5 +22,5 @@ export interface Clip {
 
 export interface ClipsResponse {
     data: Clip[];
-    // pagination: Pagination;
+    pagination: Pagination;
 }

@@ -1,7 +1,7 @@
 import chalk from "chalk";
 import { format } from "date-fns";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import { BaseConfigDataFolder } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
@@ -54,6 +54,12 @@ export class Log {
         [LOGLEVEL.EXEC]: "EXEC",
     };
 
+    static readonly Level = LOGLEVEL;
+    // static readonly INFO = "INFO";
+    // static readonly SUCCESS = "SUCCESS";
+    // static readonly DEBUG = "DEBUG";
+    // static readonly WARNING = "WARNING";
+
     static readTodaysLog(): void {
         console.log(chalk.blue("Read today's log..."));
         const today = format(new Date(), "yyyy-MM-dd");
@@ -82,7 +88,7 @@ export class Log {
      * @returns 
      */
     static logAdvanced(level: LOGLEVEL, module: string, text: string, metadata?: any): void {
-        if (!Config.debug && level == LOGLEVEL.DEBUG) return;
+        if (!Config.debug && level == Log.Level.DEBUG) return;
 
         // if testing, don't log
         if (process.env.NODE_ENV == "test") {
@@ -205,7 +211,7 @@ export class Log {
             console.log(chalk.yellow(`Clearing log memory from ${Log.currentDate} to ${today}`));
             Log.currentDate = today;
             Log.lines = [];
-            Log.logAdvanced(LOGLEVEL.INFO, "log", `Starting new log file for ${today}, git hash ${Config.getInstance().gitHash}`);
+            Log.logAdvanced(Log.Level.INFO, "log", `Starting new log file for ${today}, git hash ${Config.getInstance().gitHash}`);
         }
     }
 

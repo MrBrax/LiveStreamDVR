@@ -1,5 +1,4 @@
 .vscode
-**/node_modules
 cache
 build
 config/config.json
@@ -30,3 +29,10 @@ data
 **/*.chatdump
 **/*.chatdump.line
 release/
+.yarn/*
+!.yarn/cache
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions

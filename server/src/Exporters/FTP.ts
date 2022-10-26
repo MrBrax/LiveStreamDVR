@@ -1,5 +1,5 @@
 import { Helper } from "../Core/Helper";
-import path from "path";
+import path from "node:path";
 import sanitize from "sanitize-filename";
 import { BaseExporter } from "./Base";
 

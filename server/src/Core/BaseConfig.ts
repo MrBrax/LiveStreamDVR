@@ -1,6 +1,6 @@
-import path from "path";
+import path from "node:path";
 import minimist from "minimist";
-import os from "os";
+import os from "node:os";
 
 const argv = minimist(process.argv.slice(2));
 

@@ -1,10 +1,10 @@
 # LiveStreamDVR Client
 
 - [x] Reimplement notifications
-- [ ] Reimplement that fancy scroll location thing
+- [x] Reimplement that fancy scroll location thing
 - [x] Reimplement vod controls
 - [x] Categories for settings
-- [ ] Reimplement missing function on vods
+- [x] Reimplement missing function on vods
 - [x] Fix editor functions
 - [x] Fix 'single page'
 - [x] Websockets?

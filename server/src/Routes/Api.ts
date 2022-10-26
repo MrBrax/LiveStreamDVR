@@ -48,8 +48,9 @@ router.post("/channels/:uuid/refresh", AuthAdmin, Channels.RefreshChannel);
 router.post("/channels/:uuid/force_record", AuthAdmin, Channels.ForceRecord);
 router.post("/channels/:uuid/rename", AuthAdmin, Channels.RenameChannel);
 router.post("/channels/:uuid/deleteallvods", AuthAdmin, Channels.DeleteAllChannelVods);
-router.get("/channels/:uuid/history", AuthGuest, Channels.GetHistory);
-router.post("/channels/:uuid/scan", AuthGuest, Channels.ScanVods);
+router.get("/channels/:uuid/history", AuthAdmin, Channels.GetHistory);
+router.post("/channels/:uuid/scan", AuthAdmin, Channels.ScanVods);
+router.get("/channels/:uuid/clips", AuthAdmin, Channels.GetClips);
 
 router.get("/vod/:uuid", AuthGuest, Vod.GetVod);
 router.post("/vod/:uuid", AuthAdmin, Vod.EditVod);
@@ -120,7 +121,7 @@ router.delete("/keyvalue/:key", AuthAdmin, KeyValue.DeleteKeyValue);
 // router.get("/debug/reencode/:basename", AuthAdmin, Debug.ReencodeVod);
 // router.get("/debug/youtube", AuthAdmin, Debug.GetYouTubeChannel);
 // router.get("/debug/jobprogress", AuthAdmin, Debug.JobProgress);
-router.get("/debug/rebuild", AuthAdmin, Debug.rebuildSegmentList);
+// router.get("/debug/rebuild", AuthAdmin, Debug.rebuildSegmentList);
 
 router.get("/notifications", AuthAdmin, Notifications.GetNotificationSettings);
 router.put("/notifications", AuthAdmin, Notifications.SaveNotificationSettings);
@@ -132,6 +133,7 @@ router.post("/tools/chat_download", AuthAdmin, Tools.DownloadChat);
 router.post("/tools/chat_dump", AuthAdmin, Tools.ChatDump);
 router.post("/tools/clip_download", AuthAdmin, Tools.DownloadClip);
 router.post("/tools/shutdown", AuthAdmin, Tools.Shutdown);
+router.get("/tools/runscheduler/:name", AuthAdmin, Tools.RunScheduler);
 // router.post("/tools/buildclient", AuthAdmin, Tools.BuildClient);
 
 router.get("/files", AuthAdmin, Files.ListFiles);

@@ -1,6 +1,5 @@
-import { TwitchHelper } from "../Providers/Twitch";
-import path from "path";
-import fs from "fs";
+import path from "node:path";
+import fs from "node:fs";
 import sanitize from "sanitize-filename";
 import { BaseExporter } from "./Base";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
@@ -126,8 +125,6 @@ export class RCloneExporter extends BaseExporter {
         }
 
         throw new Error("Failed to verify file, probably doesn't exist");
-
-        return false;
 
     }
 

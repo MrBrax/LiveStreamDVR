@@ -31,6 +31,7 @@ export function GetSettings(req: express.Request, res: express.Response): void {
             websocket_url: Config.getInstance().getWebsocketClientUrl(),
             errors: LiveStreamDVR.getErrors(),
             server_git_hash: Config.getInstance().gitHash,
+            server_git_branch: Config.getInstance().gitBranch,
             quotas: {
                 twitch: {
                     max_total_cost: KeyValue.getInstance().getInt("twitch.max_total_cost"),

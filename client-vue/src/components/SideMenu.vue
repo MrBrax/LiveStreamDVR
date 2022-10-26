@@ -21,7 +21,12 @@
                         class="title"
                         :title="verboseVersion"
                     >
-                        <span>{{ store.app_name }}</span> <span>S{{ store.version }}</span>/<span :class="{ dev: isDev }">C{{ clientVersion }}</span>
+                        <span>{{ store.app_name }}</span> <template v-if="store.serverGitBranch == 'develop-ts'">
+                            <span class="githash" @click="copyDebugStuff">{{ store.serverGitHash?.substring(0, 6) }}/{{ clientHash.substring(0, 6) }}</span>
+                        </template>
+                        <template v-else>
+                            <span>S{{ store.version }}</span>/<span :class="{ dev: isDev }">C{{ clientVersion }}</span>
+                        </template>
                         <span
                             v-if="store.cfg('debug')"
                             class="debug-mode"
@@ -193,17 +198,23 @@ export default defineComponent({
             const streamers = [...this.store.streamerList];
             return streamers.sort((a, b) => a.displayName.localeCompare(b.displayName));
         },
-        clientVersion() {
+        clientVersion(): string {
             return import.meta.env.VITE_APP_VERSION; // injected
         },
-        verboseVersion() {
-            return `Server ${this.store.version} (${this.store.serverGitHash})\n` +
-            `Client ${import.meta.env.VITE_APP_VERSION} (${import.meta.env.VITE_APP_BUILDDATE} / ${import.meta.env.VITE_APP_GIT_HASH})`; // injected
+        clientHash(): string {
+            return (import.meta.env.VITE_APP_GIT_HASH).substring(1); // injected
         },
-        homepageLink() {
+        clientBuildDate(): string {
+            return import.meta.env.VITE_APP_BUILDDATE; // injected
+        },
+        verboseVersion(): string {
+            return `Server ${this.store.version} (${this.store.serverGitHash} / ${this.store.serverGitBranch})\n` +
+            `Client ${this.clientVersion} (${this.clientBuildDate} / ${this.clientHash})`;
+        },
+        homepageLink(): string {
             return pack.homepage;
         },
-        isDev() {
+        isDev(): boolean {
             return import.meta.env.DEV; // injected
         }
     },
@@ -257,6 +268,14 @@ export default defineComponent({
             });
             this.password = "";
         },
+        copyDebugStuff(e: Event) {
+            let text = "";
+            text += `Server ${this.store.version} (${this.store.serverGitHash} / ${this.store.serverGitBranch})\n`;
+            text += `Client ${this.clientVersion} (${import.meta.env.VITE_APP_BUILDDATE} / ${this.clientHash})`;
+            navigator.clipboard.writeText(text);
+            alert("Copied to clipboard");
+            e.preventDefault();
+        }
     },
 });
 </script>
@@ -450,6 +469,14 @@ export default defineComponent({
         .field:not(:last-child) {
             margin: 0;
         }
+    }
+}
+
+.githash {
+    font-weight: 100;
+    font-size: 0.8rem;
+    &:hover {
+        color: #ff0;
     }
 }
 

@@ -1,7 +1,6 @@
 
-import path from "path";
-import fs from "fs";
-import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
+import path from "node:path";
+import fs from "node:fs";
 import { format } from "date-fns";
 import { ExporterFilenameTemplate } from "../../../common/Replacements";
 import { formatString } from "../../../common/Format";
@@ -57,7 +56,7 @@ export class BaseExporter {
     }
 
     setSource(source: "segment" | "downloaded" | "burned"): void {
-        if (!this.vod) throw new Error("No vod loaded");
+        if (!this.vod) throw new Error("No vod loaded for setSource");
         if (source == "segment") {
             if (!this.vod.segments || this.vod.segments.length == 0 || !this.vod.segments[0].filename) throw new Error("No segments loaded");
             this.filename = this.vod.segments[0].filename;

@@ -1,9 +1,9 @@
 import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
-import crypto from "crypto";
-import fs from "fs";
+import crypto from "node:crypto";
+import fs from "node:fs";
 import minimist from "minimist";
-import path from "path";
+import path from "node:path";
 import express from "express";
 import { SettingField } from "../../../common/Config";
 import { ClipBasenameFields, VodBasenameFields } from "../../../common/ReplacementsConsts";
@@ -11,7 +11,7 @@ import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigFolder,
 import { ClientBroker } from "./ClientBroker";
 import { TwitchHelper } from "../Providers/Twitch";
 import { KeyValue } from "./KeyValue";
-import { Log, LOGLEVEL } from "./Log";
+import { Log } from "./Log";
 import { Scheduler } from "./Scheduler";
 import { Job } from "./Job";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
@@ -33,6 +33,7 @@ export class Config {
     forceDebug = false;
 
     gitHash?: string;
+    gitBranch?: string;
 
     sessionParser?: express.RequestHandler;
 
@@ -216,9 +217,9 @@ export class Config {
         { "key": "exporter.default.description",    "group": "Exporter", "text": "Default description", "type": "string", "help": "YouTube description." },
         { "key": "exporter.default.tags",           "group": "Exporter", "text": "Default tags", "type": "string", "help": "YouTube tags." },
         { "key": "exporter.default.remote",         "group": "Exporter", "text": "Default remote", "type": "string", "help": "For RClone." },
-        { "key": "exporter.auto.enabled",           "group": "Exporter", "text": "Enable auto exporter", "type": "boolean", "default": false, "help": "Enable auto exporter. Not implemented yet." },
+        { "key": "exporter.auto.enabled",           "group": "Exporter", "text": "Enable auto exporter", "type": "boolean", "default": false, "help": "Enable auto exporter. Not fully tested yet." },
 
-        { "key": "exporter.youtube.playlists",      "group": "Exporter", "text": "YouTube playlists", "type": "string", "help": "Use this format: channelname=ABC123;secondchannel=DEF456" },
+        { "key": "exporter.youtube.playlists",      "group": "Exporter", "text": "YouTube playlists", "type": "string", "help": "Use this format with playlist ID's: channelname=ABC123;secondchannel=DEF456" },
 
         { "key": "scheduler.clipdownload.enabled",  "group": "Scheduler (Clip Download)", "text": "Enable clip download scheduler", "type": "boolean", "default": false },
         { "key": "scheduler.clipdownload.channels", "group": "Scheduler (Clip Download)", "text": "Channels to download clips from", "type": "string", "help": "Separate by commas." },
@@ -364,7 +365,7 @@ export class Config {
         }
 
         if (!Config.settingExists(key)) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "config", `Setting '${key}' does not exist.`);
+            Log.logAdvanced(Log.Level.WARNING, "config", `Setting '${key}' does not exist.`);
             console.warn(chalk.red(`Setting '${key}' does not exist.`));
         }
 
@@ -426,7 +427,7 @@ export class Config {
                 if (config[field.from] !== undefined) {
                     config[field.to] = config[field.from];
                     // delete this.config[field.from];
-                    Log.logAdvanced(LOGLEVEL.INFO, "config", `Migrated setting '${field.from}' to '${field.from}'.`);
+                    Log.logAdvanced(Log.Level.INFO, "config", `Migrated setting '${field.from}' to '${field.from}'.`);
                 }
             }
         }
@@ -560,9 +561,9 @@ export class Config {
         const success = fs.existsSync(BaseConfigPath.config) && fs.statSync(BaseConfigPath.config).size > 0;
 
         if (success) {
-            Log.logAdvanced(LOGLEVEL.SUCCESS, "config", `Saved config from ${source}`);
+            Log.logAdvanced(Log.Level.SUCCESS, "config", `Saved config from ${source}`);
         } else {
-            Log.logAdvanced(LOGLEVEL.ERROR, "config", `Failed to save config from ${source}`);
+            Log.logAdvanced(Log.Level.ERROR, "config", `Failed to save config from ${source}`);
         }
 
         this.startWatchingConfig();
@@ -603,7 +604,7 @@ export class Config {
         }
 
         if (!token) {
-            Log.logAdvanced(LOGLEVEL.FATAL, "config", "Could not get access token!");
+            Log.logAdvanced(Log.Level.FATAL, "config", "Could not get access token!");
             throw new Error("Could not get access token!");
         }
 
@@ -666,7 +667,7 @@ export class Config {
         }
 
         if (Config.debug) {
-            return "ws://localhost:8080/socket/";
+            return `ws://${Config.debugLocalUrl()}/socket/`;
         }
 
         if (!this.cfg<string>("app_url")) {
@@ -675,7 +676,7 @@ export class Config {
         }
 
         if (this.cfg<string>("app_url") === "debug") {
-            Log.logAdvanced(LOGLEVEL.WARNING, "config", "App url set to 'debug', can't get websocket client url");
+            Log.logAdvanced(Log.Level.WARNING, "config", "App url set to 'debug', can't get websocket client url");
             return undefined;
         }
 
@@ -700,7 +701,7 @@ export class Config {
             if (this._writeConfig) return;
             console.log(`Config file changed: ${eventType} ${filename}`);
             console.log("writeconfig check", Date.now());
-            Log.logAdvanced(LOGLEVEL.WARNING, "config", "Config file changed externally");
+            Log.logAdvanced(Log.Level.WARNING, "config", "Config file changed externally");
             // TwitchConfig.loadConfig();
         });
 
@@ -795,7 +796,7 @@ export class Config {
 
         Config.getInstance().loadConfig(); // load config, calls after this will work if config is required
 
-        YouTubeHelper.setupClient();
+        await YouTubeHelper.setupClient();
 
         ClientBroker.loadNotificationSettings();
 
@@ -806,7 +807,7 @@ export class Config {
         Log.readTodaysLog();
 
         Log.logAdvanced(
-            LOGLEVEL.SUCCESS,
+            Log.Level.SUCCESS,
             "config",
             `The time is ${new Date().toISOString()}.` +
             " Current topside temperature is 93 degrees, with an estimated high of one hundred and five." +
@@ -814,6 +815,7 @@ export class Config {
         );
 
         await Config.getInstance().getGitHash();
+        await Config.getInstance().getGitBranch();
 
         TwitchGame.populateGameDatabase();
         TwitchGame.populateFavouriteGames();
@@ -831,14 +833,14 @@ export class Config {
         // let saidGoobye = false;
         // const goodbye = () => {
         //     if (saidGoobye) return;
-        //     TwitchLog.logAdvanced(LOGLEVEL.INFO, "config", "See you next time!");
+        //     TwitchLog.logAdvanced(Log.Level.INFO, "config", "See you next time!");
         //     saidGoobye = true;
         // };
         // process.on("exit", goodbye);
         // process.on("SIGINT", goodbye);
         // process.on("SIGTERM", goodbye);
 
-        Log.logAdvanced(LOGLEVEL.SUCCESS, "config", "Loading config stuff done.");
+        Log.logAdvanced(Log.Level.SUCCESS, "config", "Loading config stuff done.");
 
         Config.getInstance().initialised = true;
 
@@ -956,17 +958,42 @@ export class Config {
         try {
             ret = await Helper.execSimple("git", ["rev-parse", "HEAD"], "git hash check");
         } catch (error) {
-            Log.logAdvanced(LOGLEVEL.WARNING, "config.getGitHash", "Could not fetch git hash");
+            Log.logAdvanced(Log.Level.WARNING, "config.getGitHash", "Could not fetch git hash");
             return false;            
         } 
         if (ret && ret.stdout) {
             this.gitHash = ret.stdout.join("").trim();
-            Log.logAdvanced(LOGLEVEL.SUCCESS, "config.getGitHash", `Running on Git hash: ${this.gitHash}`);
+            Log.logAdvanced(Log.Level.SUCCESS, "config.getGitHash", `Running on Git hash: ${this.gitHash}`);
             return true;
         } else {
-            Log.logAdvanced(LOGLEVEL.WARNING, "config.getGitHash", "Could not fetch git hash");
+            Log.logAdvanced(Log.Level.WARNING, "config.getGitHash", "Could not fetch git hash");
             return false;
         }
+    }
+
+    async getGitBranch() {
+        let ret;
+        try {
+            ret = await Helper.execSimple("git", ["rev-parse", "--abbrev-ref", "HEAD"], "git branch check");
+        } catch (error) {
+            Log.logAdvanced(Log.Level.WARNING, "config.getGitBranch", "Could not fetch git branch");
+            return false;            
+        } 
+        if (ret && ret.stdout) {
+            this.gitBranch = ret.stdout.join("").trim();
+            Log.logAdvanced(Log.Level.SUCCESS, "config.getGitBranch", `Running on Git branch: ${this.gitBranch}`);
+            return true;
+        } else {
+            Log.logAdvanced(Log.Level.WARNING, "config.getGitBranch", "Could not fetch git branch");
+            return false;
+        }
+    }
+
+    static debugLocalUrl() {
+        if (Helper.is_docker()) {
+            return "localhost:8082";
+        }
+        return "localhost:8080";
     }
 
 }

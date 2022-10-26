@@ -37,6 +37,7 @@ interface StoreType {
     authenticated: boolean;
     guest_mode: boolean;
     serverGitHash?: string;
+    serverGitBranch?: string;
     visibleVod: string;
 }
 
@@ -63,6 +64,7 @@ export const useStore = defineStore("twitchAutomator", {
             authenticated: false,
             guest_mode: false,
             serverGitHash: "",
+            serverGitBranch: "",
             visibleVod: "",
         };
     },
@@ -115,6 +117,7 @@ export const useStore = defineStore("twitchAutomator", {
             this.websocketUrl = data.data.websocket_url;
             this.app_name = data.data.app_name;
             this.serverGitHash = data.data.server_git_hash;
+            this.serverGitBranch = data.data.server_git_branch;
 
             await this.fetchAndUpdateStreamerList();
             await this.fetchAndUpdateJobs();
@@ -385,11 +388,12 @@ export const useStore = defineStore("twitchAutomator", {
             this.jobList = data;
         },
         updateJob(job: ApiJob) {
-            console.debug(`Update job '${job.name}', status: ${job.status}`);
             const index = this.jobList.findIndex((j) => j.name === job.name);
             if (index === -1) {
+                console.debug(`Create job '${job.name}', status: ${job.status}`);
                 this.jobList.push(job);
             } else {
+                console.debug(`Update job '${job.name}', status: ${job.status}`);
                 this.jobList[index] = job;
             }
         },
@@ -422,7 +426,7 @@ export const useStore = defineStore("twitchAutomator", {
             const start = parseJSON(job.dt_started_at).getTime();
             const elapsedSeconds = (now - start);
             const calc = elapsedSeconds * (1 / (job.progress) - 1);
-            console.debug(job_name, job.dt_started_at, elapsedSeconds, job.progress, calc);
+            // console.debug(job_name, job.dt_started_at, elapsedSeconds, job.progress, calc);
             return calc;
         },
         updateConfig(data: Record<string, any> | null) {

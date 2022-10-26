@@ -16,6 +16,7 @@
                     class="text-overflow"
                     :href="clipLink(clip)"
                     target="_blank"
+                    @click.prevent="store.playMedia(clipLink(clip))"
                 >
                     <img
                         :src="basePath + '/cache/thumbs/' + clip.thumbnail"

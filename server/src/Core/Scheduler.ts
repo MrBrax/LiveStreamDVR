@@ -1,13 +1,17 @@
 import cron from "cron";
 import { Sleep } from "../Helpers/Sleep";
-import path from "path";
-import fs from "fs";
+import path from "node:path";
+import fs from "node:fs";
 import * as CronController from "../Controllers/Cron";
-import { BaseConfigDataFolder } from "./BaseConfig";
+import { BaseConfigCacheFolder, BaseConfigDataFolder } from "./BaseConfig";
 import { Config } from "./Config";
-import { Log, LOGLEVEL } from "./Log";
+import { Log } from "./Log";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
+import { format, parseJSON } from "date-fns";
+import { ClipBasenameTemplate } from "../../../common/Replacements";
+import sanitize from "sanitize-filename";
+import { formatString } from "../../../common/Format";
 
 export class Scheduler {
 
@@ -79,52 +83,95 @@ export class Scheduler {
         this.defaultJobs();
     }
 
+    public static runJob(name: string) {
+        if (this.hasJob(name)) {
+            this.jobs[name].fireOnTick();
+            // this.jobs[name].start();
+        } else {
+            throw new Error("Job not found");
+        }
+    }
+
     public static async scheduleClipDownload() {
+
+        console.debug("Scheduler: scheduleClipDownload");
 
         if (!Config.getInstance().cfg<boolean>("scheduler.clipdownload.enabled")) return;
 
-        Log.logAdvanced(LOGLEVEL.INFO, "Scheduler", "Scheduler: scheduleClipDownload - start");
+        Log.logAdvanced(Log.Level.INFO, "Scheduler", "Scheduler: scheduleClipDownload - start");
 
         const amount = Config.getInstance().cfg<number>("scheduler.clipdownload.amount");
-        const days = Config.getInstance().cfg<number>("scheduler.clipdownload.age");
+        const age = Config.getInstance().cfg<number>("scheduler.clipdownload.age");
         const logins = Config.getInstance().cfg<string>("scheduler.clipdownload.channels").split(",").map(s => s.trim());
+        
+        const clips_database = path.join(BaseConfigCacheFolder.cache, "downloaded_clips.json");
+        const downloaded_clips: string[] =
+            fs.existsSync(clips_database) ?
+                JSON.parse(
+                    fs.readFileSync(clips_database, "utf-8")
+                ) : [];
 
         for (const login of logins) {
             const channel = TwitchChannel.getChannelByLogin(login);
-            const clips = await channel?.getClips(days);
-
+            const clips = await channel?.getClips(age, amount);
+            let skipped = 0;
             if (clips) {
 
-                for (let i = 0; i < Math.min(amount, clips.length); i++) {
+                for (let i = 0; i < Math.min(amount, clips.length) + skipped; i++) {
                     const clip = clips[i];
+
+                    if (downloaded_clips.includes(clip.id)) {
+                        Log.logAdvanced(Log.Level.INFO, "Scheduler", `Scheduler: scheduleClipDownload - clip ${clip.id} already downloaded`);
+                        skipped++;
+                        continue;
+                    }
 
                     const basefolder = path.join(BaseConfigDataFolder.saved_clips, "scheduler", login);
                     if (!fs.existsSync(basefolder)) {
                         fs.mkdirSync(basefolder, { recursive: true });
                     }
 
-                    const out = path.join(basefolder, clip.id);
+                    const clip_date = parseJSON(clip.created_at);
 
-                    if (fs.existsSync(out + ".mp4")) {
-                        Log.logAdvanced(LOGLEVEL.WARNING, "scheduler", `Clip ${clip.id} already exists`);
+                    const variables: ClipBasenameTemplate = {
+                        id: clip.id,
+                        quality: "best", // TODO: get quality somehow
+                        clip_date: format(clip_date, "yyyy-MM-dd"),
+                        title: clip.title,
+                        creator: clip.creator_name,
+                        broadcaster: clip.broadcaster_name,
+                    };
+
+                    const basename = sanitize(formatString(Config.getInstance().cfg("filename_clip", "{broadcaster} - {title} [{id}] [{quality}]"), variables));
+
+                    const outPath = path.join(basefolder, basename);
+
+                    if (fs.existsSync(`${outPath}.mp4`)) {
+                        Log.logAdvanced(Log.Level.WARNING, "scheduler", `Clip ${clip.id} already exists`);
+                        downloaded_clips.push(clip.id); // already passed the first check
+                        skipped++;
                         continue;
                     }
 
                     try {
-                        await TwitchVOD.downloadClip(clip.id, `${out}.mp4`, "best");
+                        await TwitchVOD.downloadClip(clip.id, `${outPath}.mp4`, "best");
                     } catch (error) {
-                        Log.logAdvanced(LOGLEVEL.ERROR, "scheduler", `Failed to download clip ${clip.id}: ${(error as Error).message}`);
+                        Log.logAdvanced(Log.Level.ERROR, "scheduler", `Failed to download clip ${clip.id}: ${(error as Error).message}`);
                         return;
                     }
 
                     try {
-                        await TwitchVOD.downloadChatTD(clip.id, out + ".json");
+                        await TwitchVOD.downloadChatTD(clip.id, `${outPath}.chat.json`);
                     } catch (error) {
-                        Log.logAdvanced(LOGLEVEL.ERROR, "scheduler", `Failed to download chat for clip ${clip.id}: ${(error as Error).message}`);
+                        Log.logAdvanced(Log.Level.ERROR, "scheduler", `Failed to download chat for clip ${clip.id}: ${(error as Error).message}`);
                         return;
                     }
 
-                    Log.logAdvanced(LOGLEVEL.INFO, "scheduler", `Downloaded clip ${clip.id}`);
+                    fs.writeFileSync(`${outPath}.info.json`, JSON.stringify(clip, null, 4));
+
+                    Log.logAdvanced(Log.Level.INFO, "scheduler", `Downloaded clip ${clip.id}`);
+
+                    downloaded_clips.push(clip.id);
 
                     await Sleep(5000); // hehe
 
@@ -136,7 +183,9 @@ export class Scheduler {
 
         }
 
-        Log.logAdvanced(LOGLEVEL.INFO, "Scheduler", "Scheduler: scheduleClipDownload - end");
+        fs.writeFileSync(clips_database, JSON.stringify(downloaded_clips, null, 4));
+
+        Log.logAdvanced(Log.Level.INFO, "Scheduler", "Scheduler: scheduleClipDownload - end");
 
     }
 

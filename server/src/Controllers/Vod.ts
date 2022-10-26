@@ -1,8 +1,8 @@
 import { Config } from "../Core/Config";
 import { format } from "date-fns";
 import express from "express";
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 import sanitize from "sanitize-filename";
 import { ApiErrorResponse, ApiResponse, ApiVodResponse } from "../../../common/Api/Api";
 import { TwitchVODBookmark } from "../../../common/Bookmark";
@@ -12,7 +12,7 @@ import { formatString } from "../../../common/Format";
 import type { VodBasenameTemplate } from "../../../common/Replacements";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import { TwitchHelper } from "../Providers/Twitch";
-import { Log, LOGLEVEL } from "../Core/Log";
+import { Log } from "../Core/Log";
 import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { Helper } from "../Core/Helper";
@@ -337,13 +337,13 @@ export async function RenderWizard(req: express.Request, res: express.Response):
     let status_renderchat = false;
     let status_burnchat = false;
 
-    Log.logAdvanced(LOGLEVEL.INFO, "route.vod.RenderWizard", `Start render wizard for vod ${vod}`);
-    Log.logAdvanced(LOGLEVEL.INFO, "route.vod.RenderWizard", `chat_width: ${chat_width}`);
-    Log.logAdvanced(LOGLEVEL.INFO, "route.vod.RenderWizard", `chat_height: ${chat_height}`);
-    Log.logAdvanced(LOGLEVEL.INFO, "route.vod.RenderWizard", `render_chat: ${render_chat}`);
-    Log.logAdvanced(LOGLEVEL.INFO, "route.vod.RenderWizard", `burn_chat: ${burn_chat}`);
-    Log.logAdvanced(LOGLEVEL.INFO, "route.vod.RenderWizard", `vod_source: ${vod_source}`);
-    Log.logAdvanced(LOGLEVEL.INFO, "route.vod.RenderWizard", `chat_source: ${chat_source}`);
+    Log.logAdvanced(Log.Level.INFO, "route.vod.RenderWizard", `Start render wizard for vod ${vod}`);
+    Log.logAdvanced(Log.Level.INFO, "route.vod.RenderWizard", `chat_width: ${chat_width}`);
+    Log.logAdvanced(Log.Level.INFO, "route.vod.RenderWizard", `chat_height: ${chat_height}`);
+    Log.logAdvanced(Log.Level.INFO, "route.vod.RenderWizard", `render_chat: ${render_chat}`);
+    Log.logAdvanced(Log.Level.INFO, "route.vod.RenderWizard", `burn_chat: ${burn_chat}`);
+    Log.logAdvanced(Log.Level.INFO, "route.vod.RenderWizard", `vod_source: ${vod_source}`);
+    Log.logAdvanced(Log.Level.INFO, "route.vod.RenderWizard", `chat_source: ${chat_source}`);
 
     if (render_chat) {
         try {
@@ -591,11 +591,11 @@ export async function CutVod(req: express.Request, res: express.Response): Promi
         try {
             success = await TwitchHelper.cutChat(chat_file_in, chat_file_out, seconds_in, seconds_out);
         } catch (error) {
-            Log.logAdvanced(LOGLEVEL.ERROR, "route.vod.cutVod", `Cut chat failed: ${(error as Error).message}`);
+            Log.logAdvanced(Log.Level.ERROR, "route.vod.cutVod", `Cut chat failed: ${(error as Error).message}`);
         }
 
         if (success) {
-            Log.logAdvanced(LOGLEVEL.INFO, "route.vod.cutVod", `Cut chat ${chat_file_in} to ${chat_file_out} success`);
+            Log.logAdvanced(Log.Level.INFO, "route.vod.cutVod", `Cut chat ${chat_file_in} to ${chat_file_out} success`);
         }
 
     }

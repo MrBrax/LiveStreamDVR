@@ -1,8 +1,8 @@
 import chokidar from "chokidar";
 import { format } from "date-fns";
-import fs from "fs";
+import fs from "node:fs";
 import readdirSyncRecursive from "fs-readdir-recursive";
-import path from "path";
+import path from "node:path";
 import { ApiChannels } from "../../../../../common/Api/Client";
 import { ChannelConfig, VideoQuality } from "../../../../../common/Config";
 import { LocalClip } from "../../../../../common/LocalClip";
@@ -14,7 +14,7 @@ import { Config } from "../../../Core/Config";
 import { Helper } from "../../../Core/Helper";
 import { KeyValue } from "../../../Core/KeyValue";
 import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
-import { Log, LOGLEVEL } from "../../../Core/Log";
+import { Log } from "../../../Core/Log";
 import { BaseVODChapterJSON } from "../../../Storage/JSON";
 import { Webhook } from "../../Webhook";
 import { BaseVOD } from "./BaseVOD";
@@ -205,7 +205,7 @@ export class BaseChannel {
             KeyValue.getInstance().setInt(`${this.internalName}.stream_number`, 1);
             KeyValue.getInstance().set(`${this.internalName}.season_identifier`, format(new Date(), Config.SeasonFormat));
             this.current_season = format(new Date(), Config.SeasonFormat);
-            Log.logAdvanced(LOGLEVEL.INFO, "channel.incrementStreamNumber", `Season changed for ${this.internalName} to ${this.current_season}`);
+            Log.logAdvanced(Log.Level.INFO, "channel.incrementStreamNumber", `Season changed for ${this.internalName} to ${this.current_season}`);
         } else {
             this.current_stream_number += 1;
             KeyValue.getInstance().setInt(`${this.internalName}.stream_number`, this.current_stream_number);
@@ -261,7 +261,7 @@ export class BaseChannel {
         const total_vods = this.getVods().length;
 
         if (total_vods === 0) {
-            Log.logAdvanced(LOGLEVEL.INFO, "channel.deleteAllVods", `No vods to delete for ${this.internalName}`);
+            Log.logAdvanced(Log.Level.INFO, "channel.deleteAllVods", `No vods to delete for ${this.internalName}`);
             throw new Error(`No vods to delete for ${this.internalName}`);
         }
 
@@ -270,7 +270,7 @@ export class BaseChannel {
             try {
                 await vod.delete();
             } catch (error) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "channel.deleteAllVods", `Failed to delete vod ${vod.basename}: ${(error as Error).message}`);
+                Log.logAdvanced(Log.Level.ERROR, "channel.deleteAllVods", `Failed to delete vod ${vod.basename}: ${(error as Error).message}`);
                 continue;
             }
             deleted_vods++;
@@ -294,7 +294,7 @@ export class BaseChannel {
         const vod = this.getVods().find(v => v.uuid === uuid);
         if (!vod) return false;
 
-        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Remove VOD JSON for ${this.internalName}: ${uuid}`);
+        Log.logAdvanced(Log.Level.INFO, "channel", `Remove VOD JSON for ${this.internalName}: ${uuid}`);
         
         vod.stopWatching();
 
@@ -346,7 +346,7 @@ export class BaseChannel {
 
         // const userid = this.userid;
 
-        Log.logAdvanced(LOGLEVEL.INFO, "channel", `Deleting channel ${this.internalName}`);
+        Log.logAdvanced(Log.Level.INFO, "channel", `Deleting channel ${this.internalName}`);
         const index_config = LiveStreamDVR.getInstance().channels_config.findIndex(ch => ch.provider == "twitch" && ch.uuid === uuid);
         if (index_config !== -1) {
             LiveStreamDVR.getInstance().channels_config.splice(index_config, 1);
@@ -387,7 +387,7 @@ export class BaseChannel {
             try {
                 video_metadata = await Helper.videometadata(clip_path);
             } catch (error) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to get video metadata for clip ${clip_path}: ${(error as Error).message}`);
+                Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to get video metadata for clip ${clip_path}: ${(error as Error).message}`);
                 continue;
             }
 
@@ -397,7 +397,7 @@ export class BaseChannel {
             try {
                 thumbnail = await Helper.videoThumbnail(clip_path, 240);
             } catch (error) {
-                Log.logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to generate thumbnail for ${clip_path}: ${error}`);
+                Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to generate thumbnail for ${clip_path}: ${error}`);
             }
 
             const clip: LocalClip = {
@@ -416,7 +416,7 @@ export class BaseChannel {
         }
 
         // this.clips_list = all_clips.map(f => path.relative(BaseConfigDataFolder.saved_clips, f));
-        Log.logAdvanced(LOGLEVEL.DEBUG, "channel.findClips", `Found ${this.clips_list.length} clips for ${this.internalName}`);
+        Log.logAdvanced(Log.Level.DEBUG, "channel.findClips", `Found ${this.clips_list.length} clips for ${this.internalName}`);
         this.broadcastUpdate();
     }
 

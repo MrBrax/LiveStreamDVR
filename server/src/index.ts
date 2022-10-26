@@ -3,10 +3,10 @@ import { LiveStreamDVR } from "Core/LiveStreamDVR";
 import dotenv from "dotenv";
 import express from "express";
 import session from "express-session";
-import fs from "fs";
+import fs from "node:fs";
 import minimist from "minimist";
 import morgan from "morgan";
-import path from "path";
+import path from "node:path";
 import { WebSocketServer } from "ws";
 import { version } from "../package.json";
 import { AppName, BaseConfigDataFolder, BaseConfigFolder } from "./Core/BaseConfig";
@@ -53,7 +53,7 @@ try {
 Config.init().then(() => {
 
     // if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "lock"))) {
-    //     Log.logAdvanced(LOGLEVEL.WARNING, "index", "Seems like the server was not shut down gracefully...");
+    //     Log.logAdvanced(Log.Level.WARNING, "index", "Seems like the server was not shut down gracefully...");
     // }
 
     const app = express();
