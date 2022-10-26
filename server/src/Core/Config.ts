@@ -667,7 +667,7 @@ export class Config {
         }
 
         if (Config.debug) {
-            return "ws://localhost:8080/socket/";
+            return `ws://${Config.debugLocalUrl()}/socket/`;
         }
 
         if (!this.cfg<string>("app_url")) {
@@ -987,6 +987,13 @@ export class Config {
             Log.logAdvanced(Log.Level.WARNING, "config.getGitBranch", "Could not fetch git branch");
             return false;
         }
+    }
+
+    static debugLocalUrl() {
+        if (Helper.is_docker()) {
+            return "localhost:8082";
+        }
+        return "localhost:8080";
     }
 
 }

@@ -39,7 +39,7 @@ export class YouTubeHelper {
         let app_url = Config.getInstance().cfg<string>("app_url");
 
         if (app_url == "debug") {
-            app_url = "http://localhost:8081";
+            app_url = `http://${Config.debugLocalUrl()}`;
         }
 
         const full_app_url = `${app_url}/api/v0/youtube/callback`;

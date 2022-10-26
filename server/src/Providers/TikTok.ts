@@ -13,7 +13,7 @@ export class TikTokHelper {
         let app_url = Config.getInstance().cfg<string>("app_url");
 
         if (app_url == "debug") {
-            app_url = "http://localhost:8081";
+            app_url = `http://${Config.debugLocalUrl()}`;
         }
 
         this.authenticated = false;

@@ -65,6 +65,13 @@ export class YouTubeExporter extends BaseExporter {
         job.broadcastUpdate(); // manual send
 
         const totalSize = fs.statSync(this.filename).size;
+        let uploadSupportCheck = false;
+
+        setTimeout(() => {
+            if (!uploadSupportCheck) {
+                Log.logAdvanced(Log.Level.WARNING, "YouTubeExporter", "Upload support check timed out, progress will not be shown.");
+            }
+        }, 5000);
 
         let response;
         try {
@@ -91,6 +98,7 @@ export class YouTubeExporter extends BaseExporter {
                 // this is apparently deprecated
                 onUploadProgress: (event) => {
                     job.setProgress(event.bytesRead / totalSize);
+                    uploadSupportCheck = true;
                 },
             });
         } catch (error) {
