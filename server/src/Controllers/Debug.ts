@@ -86,14 +86,15 @@ export async function JobProgress(req: express.Request, res: express.Response): 
 
     let progress = 0;
     const i = setInterval(() => {
-        progress += 0.02;
+        progress += 0.01;
         job.setProgress(progress);
-        console.log(progress);
+        console.debug(progress);
         if (progress >= 1) {
             clearInterval(i);
             job.clear();
+            console.debug("Job cleared");
         }
-    }, 1000);
+    }, 100);
 
     res.send("ok");
 }

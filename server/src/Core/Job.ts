@@ -237,6 +237,10 @@ export class Job extends EventEmitter {
         }
 
         if (this.dummy) {
+            Webhook.dispatch("job_save", {
+                "job_name": this.name,
+                "job": this.toAPI(),
+            });
             return false;
         }
 
@@ -672,7 +676,7 @@ export class Job extends EventEmitter {
                 clearTimeout(this._progressTimer);
                 this.progressUpdatesCleared++;
             } 
-            if (this.progressUpdatesCleared > 3) {
+            if (this.progressUpdatesCleared > 5) {
                 this.updateProgress(progress);
                 this.progressUpdatesCleared = 0;
             } else {
