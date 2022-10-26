@@ -28,7 +28,7 @@ jobs:
       - name: yarn install, lint and build
         run: | 
           cd ./server
-          yarn 
+          yarn install --immutable --immutable-cache
           yarn lint:ts
           yarn test
           yarn build

@@ -28,7 +28,7 @@ jobs:
       - name: yarn install, lint and build
         run: | 
           cd ./client-vue
-          yarn 
+          yarn install --immutable --immutable-cache
           yarn lint
           yarn test
           yarn build

@@ -1,6 +1,6 @@
 {
   "name": "livestreamdvr-client",
-  "version": "2.1.7",
+  "version": "2.1.7.1",
   "private": true,
   "homepage": "https://github.com/MrBrax/LiveStreamDVR",
   "scripts": {

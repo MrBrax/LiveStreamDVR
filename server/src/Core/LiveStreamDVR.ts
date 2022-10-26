@@ -203,10 +203,10 @@ export class LiveStreamDVR {
 
     public getChannelByUUID<T extends ChannelTypes>(uuid: string): T | false {
         const search = this.channels.find(c => c.uuid == uuid);
-        if (!search) {
-            console.error(`Channel with UUID ${uuid} not found in list: ${this.channels.map(c => c.uuid).join(", ")}`);
-            return false;
-        }
+        // if (!search) {
+        //     console.error(`Channel with UUID ${uuid} not found in list: ${this.channels.map(c => c.uuid).join(", ")}`);
+        //     return false;
+        // }
         return search as T;
     }
 

@@ -2,7 +2,7 @@ import { Config } from "../src/Core/Config";
 import { Log } from "../src/Core/Log";
 
 jest.mock("../src/Core/Log");
-const mockLog = jest.mocked(Log, true);
+const mockLog = jest.mocked(Log);
 
 describe("Config", () => {
 
