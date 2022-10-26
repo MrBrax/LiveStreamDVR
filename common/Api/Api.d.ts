@@ -35,6 +35,7 @@ export interface ApiSettingsResponse extends ApiResponse {
         errors?: string[];
         guest: boolean;
         server_git_hash?: string;
+        server_git_branch?: string;
         quotas: ApiQuotas;
     };
 }

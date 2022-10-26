@@ -33,6 +33,7 @@ export class Config {
     forceDebug = false;
 
     gitHash?: string;
+    gitBranch?: string;
 
     sessionParser?: express.RequestHandler;
 
@@ -814,6 +815,7 @@ export class Config {
         );
 
         await Config.getInstance().getGitHash();
+        await Config.getInstance().getGitBranch();
 
         TwitchGame.populateGameDatabase();
         TwitchGame.populateFavouriteGames();
@@ -965,6 +967,24 @@ export class Config {
             return true;
         } else {
             Log.logAdvanced(Log.Level.WARNING, "config.getGitHash", "Could not fetch git hash");
+            return false;
+        }
+    }
+
+    async getGitBranch() {
+        let ret;
+        try {
+            ret = await Helper.execSimple("git", ["rev-parse", "--abbrev-ref", "HEAD"], "git branch check");
+        } catch (error) {
+            Log.logAdvanced(Log.Level.WARNING, "config.getGitBranch", "Could not fetch git branch");
+            return false;            
+        } 
+        if (ret && ret.stdout) {
+            this.gitBranch = ret.stdout.join("").trim();
+            Log.logAdvanced(Log.Level.SUCCESS, "config.getGitBranch", `Running on Git branch: ${this.gitBranch}`);
+            return true;
+        } else {
+            Log.logAdvanced(Log.Level.WARNING, "config.getGitBranch", "Could not fetch git branch");
             return false;
         }
     }

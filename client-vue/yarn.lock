@@ -4014,9 +4014,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"git-describe@npm:^4.1.0":
-  version: 4.1.0
-  resolution: "git-describe@npm:4.1.0"
+"git-describe@npm:^4.1.1":
+  version: 4.1.1
+  resolution: "git-describe@npm:4.1.1"
   dependencies:
     "@types/semver": ^7.3.8
     lodash: ^4.17.21
@@ -4024,7 +4024,7 @@ __metadata:
   dependenciesMeta:
     semver:
       optional: true
-  checksum: 8563a4c8586c3de9e01b21d66b384f19c6b2fa21cb8837032829f9da0d45f2d2d58edde22327b137224bc9a552ff3e3f67f3724cd2395ca7f7d58eed92cabf73
+  checksum: 6da8fc43c0de89f328e29194473e5ef19e557dd44405e8ec7685a3464dd06263cb752dc5c60542a4c8531230f46f9d714f675dceb17e1077d9a33b91329f06bb
   languageName: node
   linkType: hard
 
@@ -4791,7 +4791,7 @@ __metadata:
     eslint-plugin-deprecation: ^1.3.2
     eslint-plugin-prettier: ^4.0.0
     eslint-plugin-vue: ^9.5.0
-    git-describe: ^4.1.0
+    git-describe: ^4.1.1
     jsdom: ^19.0.0
     normalize.css: ^8.0.1
     pinia: ^2.0.23
