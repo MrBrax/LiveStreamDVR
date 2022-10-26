@@ -260,7 +260,7 @@ export async function DownloadClip(req: express.Request, res: express.Response):
         broadcaster: metadata.broadcaster_name,
     };
 
-    const basename = sanitize(formatString(Config.getInstance().cfg("filename_clip", "{broadcaster} - {title} [{id}] [{quality}]"), variables) + ".mp4");
+    const basename = sanitize(formatString(Config.getInstance().cfg("filename_clip", "{broadcaster} - {title} [{id}] [{quality}]"), variables));
     // const basename = sanitize(`[${format(clip_date, "yyyy-MM-dd")}] ${metadata.broadcaster_name} - ${metadata.title} [${metadata.id}] [${quality}].mp4`); // new filename? sanitize(`${metadata.broadcaster_name}.${metadata.title}.${metadata.id}.${quality}.mp4`);
 
     const user = await TwitchChannel.getUserDataById(metadata.broadcaster_id);
@@ -281,7 +281,7 @@ export async function DownloadClip(req: express.Request, res: express.Response):
     let success;
 
     try {
-        success = await TwitchVOD.downloadClip(id, file_path, quality);
+        success = await TwitchVOD.downloadClip(id, `${file_path}.mp4`, quality);
     } catch (e) {
         res.status(400).send({
             status: "ERROR",
@@ -289,6 +289,8 @@ export async function DownloadClip(req: express.Request, res: express.Response):
         });
         return;
     }
+
+    fs.writeFileSync(`${file_path}.json`, JSON.stringify(metadata, null, 4));
 
     if (success) {
         res.send({
