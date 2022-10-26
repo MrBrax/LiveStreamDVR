@@ -78,6 +78,7 @@
                         :streamer="streamer"
                         :toggle-all-vods-expanded="toggleAllVodsExpanded"
                         @show-video-download-menu="showVideoDownloadMenu = true"
+                        @show-clip-download-menu="showClipDownloadMenu = true"
                         @toggle-expand-vods="doToggleExpandVods"
                     />
                 </span>
@@ -199,6 +200,51 @@
                 </div>
             </div>
         </modal-box>
+        <modal-box
+            :show="showClipDownloadMenu"
+            title="Clip download"
+            @close="showClipDownloadMenu = false"
+        >
+            <div class="video-download-menu">
+                <button
+                    v-if="isTwitch(streamer)"
+                    class="button is-confirm"
+                    @click="fetchTwitchClips"
+                >
+                    <span class="icon"><fa icon="download" /></span>
+                    <span>{{ $t('vod.fetch-clip-list') }}</span>
+                </button>
+                <hr>
+                <div
+                    v-for="clip in onlineClips"
+                    :key="clip.id"
+                    class="video-download-menu-item"
+                >
+                    <h2>
+                        <a
+                            :href="clip.url"
+                            rel="nofollow"
+                            target="_blank"
+                        >{{ clip.created_at }}</a>
+                    </h2>
+                    <img :src="imageUrl(clip.thumbnail_url, 320, 240)"><br>
+                    <p>{{ clip.title }}</p>
+                    <ul>
+                        <li>{{ formatDuration(clip.duration) }}</li>
+                        <li>{{ formatNumber(clip.view_count, 0) }} views</li>
+                        <!--<li>Estimated size: {{ formatBytes(((averageVodBitrate || 6000000) / 10) * parseTwitchDuration(vod.duration)) }}</li>-->
+                    </ul>
+                    <br>
+                    <button
+                        class="button is-small is-confirm"
+                        @click="downloadClip(clip)"
+                    >
+                        <span class="icon"><fa icon="download" /></span>
+                        <span>{{ $t("buttons.download") }}</span>
+                    </button>
+                </div>
+            </div>
+        </modal-box>
     </div>
     <div v-else>
         Invalid streamer
@@ -217,6 +263,7 @@ import { faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFo
 import { ProxyVideo } from "@common/Proxies/Video";
 import { ChannelTypes, useStore, VODTypes } from "@/store";
 import { ApiResponse } from "@common/Api/Api";
+import { Clip } from "@common/TwitchAPI/Clips";
 import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
 import axios from "axios";
 import { useRoute } from "vue-router";
@@ -235,6 +282,7 @@ const route = useRoute();
 
 // data
 const onlineVods = ref<ProxyVideo[]>([]);
+const onlineClips = ref<Clip[]>([]);
 const toggleAllVodsExpanded = ref(false);
 const limitVods = ref(false);
 
@@ -243,6 +291,7 @@ const toggleVodMinimizedStatus = ref<Record<string, boolean>>({});
 // setup
 // const videoDownloadMenu = ref<InstanceType<typeof ModalBox>>();
 const showVideoDownloadMenu = ref(false);
+const showClipDownloadMenu = ref(false);
 // const vodItem = ref<InstanceType<typeof VodItem>>();
 
 const quality = computed(() => {
@@ -329,6 +378,7 @@ function refresh() {
     emit("refresh");
 }
 
+// videos
 async function fetchTwitchVods() {
     if (!props.streamer) return;
     let response;
@@ -405,6 +455,62 @@ async function downloadVideo(id: string) {
     }
 
     console.log("Downloaded", data);
+}
+
+// clips
+async function fetchTwitchClips() {
+    if (!props.streamer) return;
+    let response;
+
+    try {
+        response = await axios.get(`/api/v0/channels/${props.streamer.uuid}/clips`);
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error("fetchTwitchClips error", error.response);
+            if (error.response && error.response.data && error.response.data.message) {
+                alert(error.response.data.message);
+            }
+        }
+        return;
+    }
+
+    const data = response.data;
+
+    if (data.message) {
+        alert(data.message);
+    }
+
+    console.log("Fetched", data);
+    onlineClips.value = data.data;
+}
+
+async function downloadClip(clip: Clip) {
+    if (!props.streamer) return;
+
+    let response;
+
+    try {
+        response = await axios.post(`/api/v0/tools/clip_download`, {
+            url: clip.url,
+        });
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            console.error("downloadClip error", error.response);
+            if (error.response && error.response.data && error.response.data.message) {
+                alert(error.response.data.message);
+            }
+        }
+        return;
+    }
+
+    const data = response.data;
+
+    if (data.message) {
+        alert(data.message);
+    }
+
+    console.log("Downloaded", data);
+
 }
 
 function imageUrl(url: string, width: number, height: number) {

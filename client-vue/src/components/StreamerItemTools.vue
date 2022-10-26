@@ -38,11 +38,20 @@
             <span class="icon"><fa icon="play-circle" /></span>
         </button>
 
-        <!-- download stuff -->
+        <!-- download videos -->
         <button
             class="icon-button white"
             title="Video download"
             @click="emit('showVideoDownloadMenu')"
+        >
+            <span class="icon"><fa icon="download" /></span>
+        </button>
+
+        <!-- download clips -->
+        <button
+            class="icon-button white"
+            title="Clip download"
+            @click="emit('showClipDownloadMenu')"
         >
             <span class="icon"><fa icon="download" /></span>
         </button>
@@ -98,6 +107,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
     (event: 'showVideoDownloadMenu'): void;
+    (event: 'showClipDownloadMenu'): void;
     (event: 'toggleExpandVods'): void;
 }>();
 

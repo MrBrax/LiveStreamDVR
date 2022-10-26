@@ -1,3 +1,4 @@
+import { Log } from "Core/Log";
 import { format, parseJSON } from "date-fns";
 import express from "express";
 import fs from "node:fs";
@@ -298,9 +299,12 @@ export async function DownloadClip(req: express.Request, res: express.Response):
             message: `Downloaded to ${file_path}`,
         });
 
-        const channel = TwitchChannel.getChannelByLogin(metadata.broadcaster_name);
+        const channel = TwitchChannel.getChannelById(metadata.broadcaster_id);
         if (channel) {
+            Log.logAdvanced(Log.Level.INFO, "route.tools.DownloadClip", `Downloaded clip ${metadata.id}, scan channel ${metadata.broadcaster_name} for new clips`);
             await channel.findClips();
+        } else {
+            Log.logAdvanced(Log.Level.INFO, "route.tools.DownloadClip", `Downloaded clip ${metadata.id}, channel ${metadata.broadcaster_name} not found`);
         }
     } else {
         res.status(400).send({

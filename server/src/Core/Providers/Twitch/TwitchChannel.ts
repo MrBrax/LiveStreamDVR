@@ -1202,6 +1202,13 @@ export class TwitchChannel extends BaseChannel {
             .find<TwitchChannel>((ch): ch is TwitchChannel => ch instanceof TwitchChannel && ch.login === login);
     }
 
+    public static getChannelById(id: string): TwitchChannel | undefined {
+        return LiveStreamDVR
+            .getInstance()
+            .getChannels()
+            .find<TwitchChannel>((ch): ch is TwitchChannel => ch instanceof TwitchChannel && ch.internalId === id);
+    }
+
     public static async getStreams(streamer_id: string): Promise<Stream[] | false> {
         let response;
 
