@@ -53,6 +53,7 @@ import { ChannelTypes, useStore } from "@/store";
 import { LocalClip } from "@common/LocalClip";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { formatBytes, formatDuration, formatDate } from "@/mixins/newhelpers";
 
 const store = useStore();
 const { t } = useI18n();

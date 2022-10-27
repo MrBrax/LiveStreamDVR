@@ -236,12 +236,13 @@ import { defineComponent } from "vue";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import { useStore, VODTypes } from "@/store";
 import { ApiResponse } from "@common/Api/Api";
-
+import { formatDuration, humanDuration, formatBytes } from "@/mixins/newhelpers";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPause, faBookmark, faFastBackward, faFastForward } from "@fortawesome/free-solid-svg-icons";
 import { BaseVODChapter } from "@/core/Providers/Base/BaseVODChapter";
 import { useI18n } from "vue-i18n";
 import axios from "axios";
+import { useRoute } from "vue-router";
 library.add(faPause, faBookmark, faFastBackward, faFastForward);
 
 export default defineComponent({
@@ -253,7 +254,8 @@ export default defineComponent({
     setup() {
         const store = useStore();
         const { t } = useI18n();
-        return { store, t };
+        const route = useRoute();
+        return { store, t, route, formatDuration, humanDuration, formatBytes };
     },
     data() {
         return {
@@ -335,10 +337,10 @@ export default defineComponent({
                 });
         },
         setupPlayer() {
-            if (this.$route.query.start !== undefined) {
-                (this.$refs.player as HTMLVideoElement).currentTime = parseInt(this.$route.query.start as string);
-                if (this.$route.query.start !== undefined) this.secondsIn = parseInt(this.$route.query.start as string);
-                if (this.$route.query.end !== undefined) this.secondsOut = parseInt(this.$route.query.end as string);
+            if (this.route.query.start !== undefined) {
+                (this.$refs.player as HTMLVideoElement).currentTime = parseInt(this.route.query.start as string);
+                if (this.route.query.start !== undefined) this.secondsIn = parseInt(this.route.query.start as string);
+                if (this.route.query.end !== undefined) this.secondsOut = parseInt(this.route.query.end as string);
             }
         },
         play() {

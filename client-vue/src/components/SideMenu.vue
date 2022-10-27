@@ -87,7 +87,7 @@
 
         <div class="menu-bottom">
             <div
-                :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Dashboard' }"
+                :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': route.name == 'Dashboard' }"
                 data-menuitem="dashboard"
             >
                 <router-link
@@ -100,7 +100,7 @@
             </div>
             <div
                 v-if="store.authElement"
-                :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Files' }"
+                :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': route.name == 'Files' }"
                 data-menuitem="files"
             >
                 <router-link
@@ -113,7 +113,7 @@
             </div>
             <div
                 v-if="store.authElement"
-                :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Tools' }"
+                :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': route.name == 'Tools' }"
                 data-menuitem="tools"
             >
                 <router-link
@@ -125,7 +125,7 @@
                 </router-link>
             </div>
             <div
-                :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'Settings' }"
+                :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': route.name == 'Settings' }"
                 data-menuitem="settings"
             >
                 <router-link
@@ -138,7 +138,7 @@
             </div>
             <div
                 v-if="store.authElement"
-                :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': $route.name == 'About' }"
+                :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': route.name == 'About' }"
                 data-menuitem="github"
             >
                 <router-link
@@ -179,10 +179,12 @@ import SideMenuStreamer from "./SideMenuStreamer.vue";
 
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
+import { useRoute } from "vue-router";
 
 library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faArchive, faSignInAlt);
 
 const store = useStore();
+const route = useRoute();
 const { t } = useI18n();
 
 const password = ref("");

@@ -543,6 +543,7 @@ import { useRoute } from "vue-router";
 import { isTwitchVOD } from "@/mixins/newhelpers";
 import VodItemVideoInfo from "./VodItemVideoInfo.vue";
 import VodItemControls from "./VodItemControls.vue";
+import { formatDate, humanDate, humanDuration, formatBytes } from "@/mixins/newhelpers";
 library.add(
     faFileVideo,
     faCut,

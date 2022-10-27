@@ -101,7 +101,8 @@ export const useStore = defineStore("twitchAutomator", {
             }
 
             if (!response.data || !response.data.data) {
-                alert("No data received for settings");
+                alert(`No data received for settings, status ${response.status} ${response.statusText}`);
+                console.error("No data received for settings", response);
                 return;
             }
 

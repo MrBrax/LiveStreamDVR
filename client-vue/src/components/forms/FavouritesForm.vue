@@ -90,6 +90,7 @@ import { ApiGame } from "@common/Api/Client";
 import axios from "axios";
 import { defineComponent } from "vue";
 import { useI18n } from "vue-i18n";
+import { formatDate } from "@/mixins/newhelpers";
 
 export default defineComponent({
     name: "FavouritesForm",
@@ -97,7 +98,7 @@ export default defineComponent({
     setup() {
         const store = useStore();
         const { t } = useI18n();
-        return { store, t };
+        return { store, t, formatDate };
     },
     data(): {
         loading: boolean;

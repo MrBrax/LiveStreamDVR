@@ -102,6 +102,8 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from "vue-i18n";
 import axios from "axios";
+import { useRoute } from "vue-router";
+import { prefersReducedMotion } from "./mixins/newhelpers";
 library.add(faArrowUpRightFromSquare);
 
 const faviconCanvas = document.createElement("canvas");
@@ -131,8 +133,9 @@ export default defineComponent({
     },
     setup() {
         const store = useStore();
+        const route = useRoute();
         const { t, locale } = useI18n({ useScope: "global" });
-        return { store, t, locale };
+        return { store, t, locale, route, prefersReducedMotion };
     },
     data(): {
         loading: boolean;
@@ -587,7 +590,7 @@ export default defineComponent({
         },
         updateTitle() {
             const channelsOnline = this.store.channelsOnline;
-            const title = this.$route.meta.title || this.$route.name;
+            const title = this.route.meta.title || this.route.name;
             const app_name = this.store.app_name;
             if (channelsOnline > 0) {
                 document.title = `[${channelsOnline}] ${title} - ${app_name}`;

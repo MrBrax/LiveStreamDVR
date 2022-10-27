@@ -6,7 +6,7 @@
             'is-live': streamer.is_live,
             'is-capturing': streamer.is_capturing,
             'is-animated': store.clientCfg('animationsEnabled'),
-            'is-active': $route.query.channel == streamer.login,
+            'is-active': route.query.channel == streamer.login,
             'is-converting': streamer.is_converting,
             'no-capture': streamer.no_capture,
             streamer: true,
@@ -137,10 +137,13 @@ import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import { ChannelTypes, useStore, VODTypes } from "@/store";
 import { nonGameCategories } from "../../../common/Defs";
 import { isTwitch } from "@/mixins/newhelpers";
+import { useRoute } from "vue-router";
+import { formatLogicalDate, humanDate } from "@/mixins/newhelpers";
 library.add(faGithub, faFilm, faHeadphones, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faTrashArrowUp, faChevronDown, faChevronUp, faLock, faGamepad, faBed, faComment);
 
 
 const store = useStore();
+const route = useRoute();
 const props = defineProps<{
     streamer: ChannelTypes;
 }>();

@@ -65,12 +65,13 @@ import { ApiLogLine } from "@common/Api/Client";
 import axios from "axios";
 import { format } from "date-fns";
 import { defineComponent } from "vue";
+import { formatDate, formatTimestamp } from "@/mixins/newhelpers";
 
 export default defineComponent({
     name: "LogViewer",
     setup() {
         const store = useStore();
-        return { store };
+        return { store, formatDate, formatTimestamp };
     },
     data(): {
         logFilename: string;

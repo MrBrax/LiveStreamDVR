@@ -219,6 +219,7 @@ import axios from 'axios';
 import { computed } from 'vue';
 import DurationDisplay from "@/components/DurationDisplay.vue";
 import { useI18n } from 'vue-i18n';
+import { formatDate, formatNumber, humanDuration, twitchDuration } from "@/mixins/newhelpers";
 
 function isTwitchChapter(chapter: ChapterTypes): chapter is TwitchVODChapter {
     return chapter instanceof TwitchVODChapter;

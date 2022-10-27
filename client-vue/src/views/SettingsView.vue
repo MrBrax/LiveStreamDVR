@@ -46,42 +46,23 @@
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
-
+<script lang="ts" setup>
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUser, faUserPlus, faCalendarCheck, faStar, faBell, faUserCog, faDatabase } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
-
 library.add(faUser, faUserPlus, faCalendarCheck, faStar, faBell, faUserCog, faDatabase);
 
-export default defineComponent({
-    name: "SettingsView",
-    setup() {
-        const store = useStore();
-        const { t } = useI18n();
-        return { store, t };
-    },
-    title() {
-        if (this.$route.params.tab) {
-            return `Settings (${this.$route.params.tab})`;
-        }
-        return `Settings`;
-    },
-    data(): {
-        loading: boolean;
-    } {
-        return {
-            loading: false,
-        };
-    },
-    computed: {
-        /*
-        sortedGames() {
-            return Object.entries((this as any).games).sort(([, a], [, b]) => (a as any).name.localeCompare((b as any).name));
-        },
-        */
-    },
-});
+const store = useStore();
+const { t } = useI18n();
+
+// title() {
+//     if (this.$route.params.tab) {
+//         return `Settings (${this.$route.params.tab})`;
+//     }
+//     return `Settings`;
+// },
+
+// const loading = ref(false);
+
 </script>

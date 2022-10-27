@@ -3,6 +3,7 @@ import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
 import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
 import { ChannelTypes, VODTypes } from "@/store";
+import { format, formatDistance, formatDistanceToNow, parseISO, parseJSON, isDate } from "date-fns";
 
 export function niceDuration(durationInSeconds: number): string {
     if (durationInSeconds < 0) {
@@ -29,6 +30,20 @@ export function niceDuration(durationInSeconds: number): string {
         duration += " " + Math.round(seconds) + "s";
     }
     return duration.trim();
+}
+
+export function humanDuration(duration: number): string {
+    if (duration < 0) {
+        return `(NEGATIVE DURATION: ${duration})`;
+    }
+    const hours = Math.floor(duration / 3600);
+    const minutes = Math.floor((duration / 60) % 60);
+    const seconds = Math.floor(duration % 60);
+    return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+}
+
+export function prefersReducedMotion(): boolean {
+    return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 }
 
 export function shortDuration(durationInSeconds: number): string {
@@ -59,6 +74,71 @@ export function formatBytes(bytes: number, precision = 2): string {
     // const finalAmount = Math.round(bytes)
     const finalAmount = bytes.toFixed(precision);
     return `${finalAmount} ${units[pow]}`;
+}
+
+export function formatDate(date: string | Date, fmt = "yyyy-MM-dd HH:mm:ss"): string {
+    if (!date) return "";
+
+    if (date instanceof Date) {
+        return format(date, fmt);
+    }
+
+    const o = parseJSON(date);
+
+    if (!isDate(o) || !(o instanceof Date) || isNaN(o.getTime())) {
+        return `[Invalid Date: ${date}]`;
+    }
+
+    return format(o, fmt);
+}
+
+export function formatLogicalDate(date: string | Date) {
+    if (!date) return "";
+    const absDate = parseJSON(date);
+    const now = new Date();
+
+    if (now.getTime() - absDate.getTime() < 22 * 60 * 60 * 1000) {
+        return formatDate(date, "HH:mm:ss");
+    } else if (now.getFullYear() == absDate.getFullYear()) {
+        return formatDate(date, "dd/MM HH:mm:ss");
+    } else {
+        return formatDate(date, "yyyy-MM-dd HH:mm:ss");
+    }
+    // if older than 24 hours, show date with time
+    /*
+    if (new Date().getTime() - new Date(date).getTime() > 22 * 60 * 60 * 1000) {
+        return this.formatDate(date, "yyyy-MM-dd HH:mm:ss");
+    // if newer than current year, show date with time
+    } else if (new Date().getFullYear() == new Date(date).getFullYear()) {
+        return this.formatDate(date, "dd/MM HH:mm:ss");
+    } else {
+        return this.formatDate(date, "HH:mm:ss");
+    }*/
+}
+
+export function formatNumber(num: number, decimals = 0): string {
+    return num.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+}
+
+export function formatTimestamp(timestamp: number, fmt = "yyyy-MM-dd HH:mm:ss"): string {
+    const o = new Date(timestamp * 1000);
+    return format(o, fmt);
+}
+
+export function humanDate(date: string | Date, suffix = false): string {
+    if (!date) return "";
+    let d;
+    if (date instanceof Date) {
+        d = date;
+    } else {
+        d = parseJSON(date);
+    }
+    return formatDistance(d, new Date(), { addSuffix: suffix });
+}
+
+export function twitchDuration(seconds: number): string {
+    return niceDuration(seconds).replaceAll(" ", "").trim();
+    // return trim(str_replace(" ", "", self::getNiceDuration($seconds)));
 }
 
 export function isTwitch(vod: ChannelTypes): vod is TwitchChannel {

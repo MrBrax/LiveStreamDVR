@@ -257,6 +257,7 @@ import { useStore } from "@/store";
 import { JobStatus } from "@common/Defs";
 import { useI18n } from "vue-i18n";
 import axios from "axios";
+import { formatDate } from "@/mixins/newhelpers";
 
 library.add(faHeart, faStop, faSkull, faTrash, faPowerOff);
 
@@ -281,7 +282,7 @@ export default defineComponent({
     setup() {
         const store = useStore();
         const { t } = useI18n();
-        return { store, JobStatus, t };
+        return { store, JobStatus, t, formatDate };
     },
     computed: {
         allJobsDuration(): number {

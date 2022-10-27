@@ -156,9 +156,6 @@ export default {
             const o = parseISO(date);
             return formatDistanceToNow(o, { addSuffix: true });
         },
-        prefersReducedMotion(): boolean {
-            return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        },
         formatDuration(duration_seconds: number) {
             const hours = Math.floor(duration_seconds / (60 * 60));
             const minutes = Math.floor((duration_seconds - (hours * 60 * 60)) / 60);
@@ -180,6 +177,8 @@ export default {
     },
 };
 
+// deprecated with yarn pnp?
+/*
 declare module "@vue/runtime-core" {
     export interface ComponentCustomProperties {
         formatDate: (date: string | Date, fmt?: string) => string;
@@ -203,3 +202,4 @@ declare module "@vue/runtime-core" {
         shortDuration: (durationInSeconds: number) => string;
     }
 }
+*/

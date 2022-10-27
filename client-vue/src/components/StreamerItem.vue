@@ -180,6 +180,7 @@ import { faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFo
 import { ChannelTypes, useStore, VODTypes } from "@/store";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
+import { formatBytes } from "@/mixins/newhelpers";
 library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen, faTrash);
 
 const props = defineProps<{

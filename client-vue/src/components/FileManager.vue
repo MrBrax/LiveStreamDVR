@@ -364,7 +364,7 @@
 <script lang="ts">
 import { useStore } from "@/store";
 import axios, { AxiosError } from "axios";
-import { defineComponent, ref } from "vue";
+import { defineComponent } from "vue";
 import ModalBox from "./ModalBox.vue";
 import YoutubeAuth from "./YoutubeAuth.vue";
 import { YouTubeCategories } from "@common/YouTube";
@@ -374,6 +374,7 @@ import { faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode, faFil
 import { ApiResponse } from "@common/Api/Api";
 import { ExporterOptions } from "@common/Exporter";
 import { useI18n } from "vue-i18n";
+import { formatBytes } from "@/mixins/newhelpers";
 library.add(faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode, faFileLines, faDownload, faUpload);
 
 interface ApiFile {
@@ -412,7 +413,7 @@ export default defineComponent({
     setup() {
         const store = useStore();
         const { t } = useI18n();
-        return { store, YouTubeCategories, t };
+        return { store, YouTubeCategories, t, formatBytes };
     },
     data(): {
         files: ApiFile[];

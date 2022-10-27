@@ -324,6 +324,7 @@ import { ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
 import { useI18n } from 'vue-i18n';
 import { MuteStatus } from "../../../common/Defs";
+import { formatDate, humanDuration, formatBytes } from '@/mixins/newhelpers';
 
 const props = defineProps({
     vod: {

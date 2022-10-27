@@ -363,6 +363,7 @@ import { ApiJob } from '@common/Api/Client';
 import axios from 'axios';
 import { defineComponent } from 'vue';
 import { useI18n } from 'vue-i18n';
+import { formatBytes } from "@/mixins/newhelpers";
 
 export default defineComponent({
     name: 'BurnWizard',
@@ -379,6 +380,7 @@ export default defineComponent({
         return {
             store,
             t,
+            formatBytes,
         };
     },
     data() {

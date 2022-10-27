@@ -37,6 +37,7 @@
 import { ChannelTypes, useStore } from "@/store";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
+import { formatBytes, formatDuration } from "@/mixins/newhelpers";
 
 const store = useStore();
 const { t } = useI18n();

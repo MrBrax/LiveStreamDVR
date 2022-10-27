@@ -350,6 +350,7 @@ import { ApiChannelConfig } from "@common/Api/Client";
 import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
+import { formatDate } from "@/mixins/newhelpers";
 library.add(faSave, faList);
 
 export default defineComponent({
@@ -364,7 +365,7 @@ export default defineComponent({
     setup() {
         const store = useStore();
         const { t } = useI18n();
-        return { VideoQualityArray, store, t };
+        return { VideoQualityArray, store, t, formatDate };
     },
     data() {
         return {

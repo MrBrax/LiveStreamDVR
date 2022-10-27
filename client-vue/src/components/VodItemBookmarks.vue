@@ -64,7 +64,7 @@
 import { useStore, VODTypes } from '@/store';
 import { ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
-import { formatDuration } from 'date-fns';
+import { formatDuration } from "@/mixins/newhelpers";
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 

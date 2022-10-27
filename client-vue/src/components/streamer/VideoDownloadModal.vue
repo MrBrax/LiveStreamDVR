@@ -65,7 +65,7 @@
 
 <script lang="ts" setup>
 import YouTubeChannel from '@/core/Providers/YouTube/YouTubeChannel';
-import { isTwitch, isYouTube, formatDuration } from '@/mixins/newhelpers';
+import { isTwitch, isYouTube, formatDuration, formatNumber } from '@/mixins/newhelpers';
 import { ChannelTypes } from '@/store';
 import { ProxyVideo } from '@common/Proxies/Video';
 import axios from 'axios';

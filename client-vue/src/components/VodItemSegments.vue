@@ -83,6 +83,7 @@ import { useStore, VODTypes } from '@/store';
 import { ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
 import { useI18n } from 'vue-i18n';
+import { formatBytes } from '@/mixins/newhelpers';
 
 const props = defineProps({
     vod: {

@@ -49,7 +49,7 @@
 </template>
 
 <script lang="ts" setup>
-import { formatDuration, isTwitch } from '@/mixins/newhelpers';
+import { formatDuration, isTwitch, formatNumber } from '@/mixins/newhelpers';
 import { ChannelTypes } from '@/store';
 import { Clip } from '@common/TwitchAPI/Clips';
 import axios from 'axios';

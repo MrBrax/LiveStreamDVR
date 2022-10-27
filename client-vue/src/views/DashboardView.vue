@@ -109,99 +109,54 @@
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref } from "vue";
+<script lang="ts" setup>
 import Streamer from "@/components/StreamerItem.vue";
-import type { ApiTwitchChannel } from "@common/Api/Client";
 import { ChannelTypes, useStore } from "@/store";
 import LogViewer from "@/components/LogViewer.vue";
 import { useI18n } from "vue-i18n";
+import { computed, onMounted, ref } from "vue";
+import { useRoute } from "vue-router";
+import { formatBytes } from "@/mixins/newhelpers";
 
-interface DashboardData {
-    loading: boolean;
-    // vodUpdateInterval: number;
-    oldData: Record<string, ApiTwitchChannel>;
-    // notificationSub: () => void;
-    logVisible: boolean;
+const store = useStore();
+const logviewer = ref<InstanceType<typeof LogViewer>>();
+const { t } = useI18n();
+const route = useRoute();
+
+// title(): string {
+//     // if (store.channelsOnline > 0) return `[${store.channelsOnline}] Dashboard`;
+//     return "Dashboard";
+// },
+    
+// const loading = ref(false);
+// const oldData = ref<Record<string, ApiTwitchChannel>>({});
+const logVisible = ref(false);
+    
+const sortedStreamers = computed((): ChannelTypes[] => {
+    const streamers: ChannelTypes[] = [...store.streamerList];
+    return streamers.sort((a, b) => a.displayName.localeCompare(b.displayName));
+});
+
+const singleStreamer = computed((): ChannelTypes | undefined => {
+    if (!store.streamerList) return undefined;
+
+    const current = route.query.channel as string;
+    if (current !== undefined) {
+        return store.streamerList.find((u) => u.uuid === current);
+    } else {
+        // this.$route.query.channel = store.streamerList[0].display_name;
+        return store.streamerList[0];
+    }
+});
+    
+onMounted(() => {
+    console.debug("Dashboard created");
+    // this.logviewer?.fetchLog();
+});
+    
+function logToggle() {
+    logVisible.value = !logVisible.value;
+    logviewer.value?.scrollLog(); // TODO: don't use refs
 }
 
-export default defineComponent({
-    name: "DashboardView",
-    components: {
-        Streamer,
-        LogViewer,
-    },
-    setup() {
-        const store = useStore();
-        const logviewer = ref<InstanceType<typeof LogViewer>>();
-        const { t } = useI18n();
-        return { store, logviewer, t };
-    },
-    title(): string {
-        // if (this.store.channelsOnline > 0) return `[${this.store.channelsOnline}] Dashboard`;
-        return "Dashboard";
-    },
-    data(): DashboardData {
-        return {
-            loading: false,
-            oldData: {},
-            logVisible: false,
-        };
-    },
-    computed: {
-        sortedStreamers(): ChannelTypes[] {
-            const streamers: ChannelTypes[] = [...this.store.streamerList];
-            return streamers.sort((a, b) => a.displayName.localeCompare(b.displayName));
-        },
-        singleStreamer(): ChannelTypes | undefined {
-            if (!this.store.streamerList) return undefined;
-
-            const current = this.$route.query.channel as string;
-            if (current !== undefined) {
-                return this.store.streamerList.find((u) => u.uuid === current);
-            } else {
-                // this.$route.query.channel = this.store.streamerList[0].display_name;
-                return this.store.streamerList[0];
-            }
-        },
-    },
-    created() {
-        console.debug("Dashboard created");
-        // this.logviewer?.fetchLog();
-    },
-    mounted() {
-
-        /*
-        let options = {
-            // root: document.body,
-            // rootMargin: "0px",
-            threshold: 0.5,
-        };
-
-        let observer = new IntersectionObserver((entries, observer) => {
-            console.debug("IntersectionObserver", entries[0].target, entries[0].isIntersecting, entries[0].intersectionRatio);
-        }, options);
-
-        for (let streamer of this.store.streamerList) {
-            let streamerItem = this.$refs[`streamer-${streamer.name}`] as HTMLElement;
-            if (streamerItem) {
-                for (let vod of streamer.vods) {
-                    let vodItem = this.$refs[`vod-${vod.id}`] as HTMLElement;
-                    if (vodItem) {
-                        observer.observe(vodItem);
-                    }
-                }
-            }
-        }
-        */
-
-        //observer.observe(this.$refs.vod as HTMLDivElement);
-    },
-    methods: {
-        logToggle() {
-            this.logVisible = !this.logVisible;
-            this.logviewer?.scrollLog();
-        },
-    },
-});
 </script>

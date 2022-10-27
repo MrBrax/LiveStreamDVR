@@ -5,7 +5,7 @@
             Page not found
         </p>
         <p class="info">
-            This was generated clientside. Endpoint <code>{{ $route.fullPath }}</code> does not exist.<br>
+            This was generated clientside. Endpoint <code>{{ route.fullPath }}</code> does not exist.<br>
             If you think this is a bug (did you not type the URL manually?), please report it to the developers.
         </p>
         <p
@@ -30,9 +30,11 @@
 import { useStore } from "@/store";
 import { faHome } from "@fortawesome/free-solid-svg-icons";
 import { library } from "@fortawesome/fontawesome-svg-core";
+import { useRoute } from "vue-router";
 library.add(faHome);
 
 const store = useStore();
+const route = useRoute();
 
 const version = import.meta.env.VITE_APP_VERSION;
 const hash = import.meta.env.VITE_APP_GIT_HASH;
