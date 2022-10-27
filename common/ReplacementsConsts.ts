@@ -1,4 +1,4 @@
-import { ClipBasenameTemplate, ExporterFilenameTemplate, ExporterTitleTemplate, TemplateField, TemplateFields, VodBasenameTemplate } from "./Replacements";
+import { ClipBasenameTemplate, ExporterFilenameTemplate, TemplateField, VodBasenameTemplate } from "./Replacements";
 
 export const VodBasenameFields: Record<keyof VodBasenameTemplate, TemplateField> = {
     login: { display: "MooseStreamer", deprecated: true },

@@ -9,9 +9,9 @@ import { Log } from "./Log";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
 import { format, parseJSON } from "date-fns";
-import { ClipBasenameTemplate } from "../../../common/Replacements";
+import { ClipBasenameTemplate } from "@common/Replacements";
 import sanitize from "sanitize-filename";
-import { formatString } from "../../../common/Format";
+import { formatString } from "@common/Format";
 
 export class Scheduler {
 

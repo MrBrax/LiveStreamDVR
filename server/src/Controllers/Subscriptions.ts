@@ -1,12 +1,12 @@
 import express from "express";
-import { ApiErrorResponse } from "../../../common/Api/Api";
-import { SubStatus } from "../../../common/Defs";
+import { ApiErrorResponse } from "@common/Api/Api";
+import { SubStatus } from "@common/Defs";
 import { KeyValue } from "../Core/KeyValue";
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { Config } from "../Core/Config";
 import { TwitchHelper } from "../Providers/Twitch";
 import {  Log } from "../Core/Log";
-import { EventSubTypes } from "../../../common/TwitchAPI/Shared";
+import { EventSubTypes } from "@common/TwitchAPI/Shared";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 
 interface ChannelSub {

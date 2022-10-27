@@ -1,6 +1,6 @@
 import { Job } from "../Core/Job";
 import express from "express";
-import { ApiErrorResponse, ApiJobsResponse } from "../../../common/Api/Api";
+import { ApiErrorResponse, ApiJobsResponse } from "@common/Api/Api";
 import { Log } from "../Core/Log";
 
 export async function ListJobs(req: express.Request, res: express.Response): Promise<void> {

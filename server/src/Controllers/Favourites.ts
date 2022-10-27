@@ -1,5 +1,5 @@
 import express from "express";
-import { ApiFavouriteGamesResponse } from "../../../common/Api/Api";
+import { ApiFavouriteGamesResponse } from "@common/Api/Api";
 import { TwitchGame } from "../Core/Providers/Twitch/TwitchGame";
 import {  Log } from "../Core/Log";
 

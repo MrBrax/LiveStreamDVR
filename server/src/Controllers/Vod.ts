@@ -4,19 +4,19 @@ import express from "express";
 import fs from "node:fs";
 import path from "node:path";
 import sanitize from "sanitize-filename";
-import { ApiErrorResponse, ApiResponse, ApiVodResponse } from "../../../common/Api/Api";
-import { TwitchVODBookmark } from "../../../common/Bookmark";
-import { VideoQuality } from "../../../common/Config";
-import { VideoQualityArray } from "../../../common/Defs";
-import { formatString } from "../../../common/Format";
-import type { VodBasenameTemplate } from "../../../common/Replacements";
+import { ApiErrorResponse, ApiResponse, ApiVodResponse } from "@common/Api/Api";
+import { TwitchVODBookmark } from "@common/Bookmark";
+import { VideoQuality } from "@common/Config";
+import { VideoQualityArray } from "@common/Defs";
+import { formatString } from "@common/Format";
+import type { VodBasenameTemplate } from "@common/Replacements";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import { TwitchHelper } from "../Providers/Twitch";
 import { Log } from "../Core/Log";
 import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { Helper } from "../Core/Helper";
-import { EditableChapter } from "../../../common/Api/Client";
+import { EditableChapter } from "@common/Api/Client";
 import { TwitchVODChapter } from "../Core/Providers/Twitch/TwitchVODChapter";
 
 export async function GetVod(req: express.Request, res: express.Response): Promise<void> {

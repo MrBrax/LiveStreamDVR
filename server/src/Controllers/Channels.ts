@@ -4,13 +4,13 @@ import express from "express";
 import fs from "node:fs";
 import path from "node:path";
 import sanitize from "sanitize-filename";
-import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiResponse } from "../../../common/Api/Api";
-import { TwitchChannelConfig, VideoQuality, YouTubeChannelConfig } from "../../../common/Config";
-import { Providers, VideoQualityArray } from "../../../common/Defs";
-import { formatString } from "../../../common/Format";
-import { ProxyVideo } from "../../../common/Proxies/Video";
-import { VodBasenameTemplate } from "../../../common/Replacements";
-import { EventSubStreamOnline } from "../../../common/TwitchAPI/EventSub/StreamOnline";
+import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiResponse } from "@common/Api/Api";
+import { TwitchChannelConfig, VideoQuality, YouTubeChannelConfig } from "@common/Config";
+import { Providers, VideoQualityArray } from "@common/Defs";
+import { formatString } from "@common/Format";
+import { ProxyVideo } from "@common/Proxies/Video";
+import { VodBasenameTemplate } from "@common/Replacements";
+import { EventSubStreamOnline } from "@common/TwitchAPI/EventSub/StreamOnline";
 import { BaseConfigCacheFolder } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
 import { KeyValue } from "../Core/KeyValue";
@@ -29,7 +29,7 @@ import { TwitchHelper } from "../Providers/Twitch";
 import { TwitchVODChapterJSON } from "../Storage/JSON";
 import { Job } from "../Core/Job";
 import { Exporter, GetExporter } from "./Exporter";
-import { ExporterOptions } from "../../../common/Exporter";
+import { ExporterOptions } from "@common/Exporter";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 

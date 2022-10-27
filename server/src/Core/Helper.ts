@@ -5,13 +5,13 @@ import { Config } from "./Config";
 import { Log } from "./Log";
 import { ExecReturn, RemuxReturn } from "Providers/Twitch";
 import { spawn } from "node:child_process";
-import { Stream } from "../../../common/TwitchAPI/Streams";
+import { Stream } from "@common/TwitchAPI/Streams";
 import chalk from "chalk";
 import { Job } from "./Job";
 import { createHash } from "node:crypto";
-import { FFProbe } from "../../../common/FFProbe";
-import { MediaInfoJSONOutput, VideoMetadata, AudioMetadata } from "../../../common/MediaInfo";
-import { MediaInfo } from "../../../common/mediainfofield";
+import { FFProbe } from "@common/FFProbe";
+import { MediaInfoJSONOutput, VideoMetadata, AudioMetadata } from "@common/MediaInfo";
+import { MediaInfo } from "@common/mediainfofield";
 
 export class Helper {
     public static vodFolder(username = "") {

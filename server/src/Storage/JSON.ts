@@ -1,9 +1,9 @@
-import { VideoQuality } from "../../../common/Config";
-import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
-import { MuteStatus, Providers } from "../../../common/Defs";
-import { AudioMetadata, VideoMetadata } from "../../../common/MediaInfo";
-import { TwitchVODBookmark } from "../../../common/Bookmark";
-import { ExportData } from "../../../common/Exporter";
+import { VideoQuality } from "@common/Config";
+import { EventSubResponse } from "@common/TwitchAPI/EventSub";
+import { MuteStatus, Providers } from "@common/Defs";
+import { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
+import { TwitchVODBookmark } from "@common/Bookmark";
+import { ExportData } from "@common/Exporter";
 
 export interface VODJSON {
 

@@ -5,11 +5,11 @@ import crypto from "node:crypto";
 import path from "node:path";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import fs from "node:fs";
-import { EventSubResponse } from "../../../common/TwitchAPI/EventSub";
-import { ChallengeResponse } from "../../../common/TwitchAPI/Challenge";
+import { EventSubResponse } from "@common/TwitchAPI/EventSub";
+import { ChallengeResponse } from "@common/TwitchAPI/Challenge";
 import {  Log } from "../Core/Log";
 import { KeyValue } from "../Core/KeyValue";
-import { SubStatus } from "../../../common/Defs";
+import { SubStatus } from "@common/Defs";
 import { TwitchAutomator } from "../Core/Providers/Twitch/TwitchAutomator";
 import { XMLParser } from "fast-xml-parser";
 
