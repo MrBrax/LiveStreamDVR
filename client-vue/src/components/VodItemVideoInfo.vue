@@ -307,11 +307,11 @@
                 </li>
                 <li v-if="vod.exportData.youtube_id">
                     <strong>{{ t('vod.video-info.export-data.youtube-id') }}:</strong>
-                    {{ vod.exportData.youtube_id }}
+                    <a :href="youtubeVideoLink(vod.exportData.youtube_id)" target="_blank">{{ vod.exportData.youtube_id }}</a>
                 </li>
                 <li v-if="vod.exportData.youtube_playlist_id">
                     <strong>{{ t('vod.video-info.export-data.youtube-playlist-id') }}:</strong>
-                    {{ vod.exportData.youtube_playlist_id }}
+                    <a :href="youtubePlaylistLink(vod.exportData.youtube_playlist_id)" target="_blank">{{ vod.exportData.youtube_playlist_id }}</a>
                 </li>
             </ul>
         </div>
@@ -359,6 +359,14 @@ function matchVod() {
             console.error("form error", err.response);
             if (err.response.data && err.response.data.message) alert(err.response.data.message);
         });
+}
+
+function youtubeVideoLink(video_id: string): string {
+    return `https://www.youtube.com/watch?v=${video_id}`;
+}
+
+function youtubePlaylistLink(playlist_id: string): string {
+    return `https://www.youtube.com/playlist?list=${playlist_id}`;
 }
 
 </script>
