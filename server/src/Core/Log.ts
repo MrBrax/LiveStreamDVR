@@ -85,16 +85,17 @@ export class Log {
      * @param module 
      * @param text 
      * @param metadata 
+     * @test disable
      * @returns 
      */
     static logAdvanced(level: LOGLEVEL, module: string, text: string, metadata?: any): void {
         if (!Config.debug && level == Log.Level.DEBUG) return;
 
         // if testing, don't log
-        if (process.env.NODE_ENV == "test") {
-            console.log(chalk.yellow("[TEST]"), level, module, text);
-            return;
-        }
+        // if (process.env.NODE_ENV == "test") {
+        //     console.log(chalk.yellow("[TEST]"), level, module, text);
+        //     return;
+        // }
 
         // check if folder exists
         if (!fs.existsSync(BaseConfigDataFolder.logs)) {

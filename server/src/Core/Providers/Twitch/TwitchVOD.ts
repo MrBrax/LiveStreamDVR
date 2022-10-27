@@ -1172,11 +1172,15 @@ export class TwitchVOD extends BaseVOD {
         return this.twitch_vod_duration - this.duration;
     }
 
+    /**
+     * @test disable
+     * @returns 
+     */
     public async startWatching(): Promise<boolean> {
         if (this.fileWatcher) await this.stopWatching();
 
         // no blocks in testing
-        if (process.env.NODE_ENV === "test") return false;
+        // if (process.env.NODE_ENV === "test") return false;
 
         const files = this.associatedFiles.map((f) => path.join(this.directory, f));
 

@@ -59,6 +59,10 @@ export class LiveStreamDVR {
         this.instance = undefined;
     }
 
+    /**
+     * @test disable
+     * @returns 
+     */
     public loadChannelsConfig(): boolean {
 
         if (!fs.existsSync(BaseConfigPath.channel)) {
@@ -179,6 +183,10 @@ export class LiveStreamDVR {
         return this.channels.length;
     }
 
+    /**
+     * @test disable
+     * @returns 
+     */
     public saveChannelsConfig(): boolean {
         Log.logAdvanced(Log.Level.INFO, "dvr", "Saving channel config");
         fs.writeFileSync(BaseConfigPath.channel, JSON.stringify(this.channels_config, null, 4));
@@ -339,6 +347,10 @@ export class LiveStreamDVR {
         });
     }
 
+    /**
+     * @test disable
+     * @returns 
+     */
     public static checkVersion(): void {
         if (fs.existsSync(path.join(BaseConfigCacheFolder.cache))) {
             if (fs.existsSync(path.join(BaseConfigCacheFolder.cache, "currentversion.dat"))) {

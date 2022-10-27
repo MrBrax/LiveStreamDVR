@@ -413,6 +413,10 @@ export class Config {
 
     }
 
+    /**
+     * @test disable
+     * @returns 
+     */
     loadConfig() {
 
         console.log(chalk.blue("Loading config..."));
@@ -557,6 +561,11 @@ export class Config {
         }
     }
 
+    /**
+     * @test disable
+     * @param source 
+     * @returns 
+     */
     saveConfig(source = "unknown"): boolean {
 
         this._writeConfig = true;
@@ -701,12 +710,15 @@ export class Config {
 
     }
 
+    /**
+     * @test disable
+     */
     startWatchingConfig() {
 
         if (this.watcher) this.stopWatchingConfig();
 
         // no blocks in testing
-        if (process.env.NODE_ENV === "test") return;
+        // if (process.env.NODE_ENV === "test") return;
 
         // monitor config for external changes
         this.watcher = fs.watch(BaseConfigPath.config, (eventType, filename) => {
@@ -733,6 +745,43 @@ export class Config {
             console.error(chalk.bgRedBright.whiteBright.bold(`Permissions error: ${err}`));
             process.exit(1);
         }
+    }
+
+    /**
+     * @test disable
+     */
+    static checkBuiltDependencies() {
+
+        // check if the client is built before starting the server
+        if (!fs.existsSync(path.join(BaseConfigFolder.client, "index.html"))) {
+            console.error(chalk.red("Client is not built. Please run yarn build inside the client-vue folder."));
+            console.error(chalk.red(`Expected path: ${path.join(BaseConfigFolder.client, "index.html")}`));
+            // process.exit(1);
+            throw new Error("Client is not built. Please run yarn build inside the client-vue folder.");
+        } else {
+            console.log(chalk.green("Client is built: " + path.join(BaseConfigFolder.client, "index.html")));
+        }
+
+        // check if the vodplayer is built before starting the server
+        if (!fs.existsSync(path.join(BaseConfigFolder.vodplayer, "index.html"))) {
+            console.error(chalk.red("VOD player is not built. Please run yarn build inside the twitch-vod-chat folder."));
+            console.error(chalk.red(`Expected path: ${path.join(BaseConfigFolder.vodplayer, "index.html")}`));
+            // process.exit(1);
+            throw new Error("VOD player is not built. Please run yarn build inside the twitch-vod-chat folder.");
+        } else {
+            console.log(chalk.green("VOD player is built: " + path.join(BaseConfigFolder.vodplayer, "index.html")));
+        }
+
+        // check if the chat dumper is built before starting the server
+        if (!fs.existsSync(path.join(AppRoot, "twitch-chat-dumper", "build", "index.js"))) {
+            console.error(chalk.red("Chat dumper is not built. Please run yarn build inside the twitch-chat-dumper folder."));
+            console.error(chalk.red(`Expected path: ${path.join(AppRoot, "twitch-chat-dumper", "build", "index.js")}`));
+            // process.exit(1);
+            throw new Error("Chat dumper is not built. Please run yarn build inside the twitch-chat-dumper folder.");
+        } else {
+            console.log(chalk.green("Chat dumper is built: " + path.join(AppRoot, "twitch-chat-dumper", "build", "index.js")));
+        }
+
     }
 
 
@@ -763,35 +812,7 @@ export class Config {
             throw new Error(`Could not find tsconfig.json in ${AppRoot}`);
         }
 
-        // check if the client is built before starting the server
-        if (!fs.existsSync(path.join(BaseConfigFolder.client, "index.html")) && process.env.NODE_ENV !== "test") {
-            console.error(chalk.red("Client is not built. Please run yarn build inside the client-vue folder."));
-            console.error(chalk.red(`Expected path: ${path.join(BaseConfigFolder.client, "index.html")}`));
-            // process.exit(1);
-            throw new Error("Client is not built. Please run yarn build inside the client-vue folder.");
-        } else {
-            console.log(chalk.green("Client is built: " + path.join(BaseConfigFolder.client, "index.html")));
-        }
-
-        // check if the vodplayer is built before starting the server
-        if (!fs.existsSync(path.join(BaseConfigFolder.vodplayer, "index.html")) && process.env.NODE_ENV !== "test") {
-            console.error(chalk.red("VOD player is not built. Please run yarn build inside the twitch-vod-chat folder."));
-            console.error(chalk.red(`Expected path: ${path.join(BaseConfigFolder.vodplayer, "index.html")}`));
-            // process.exit(1);
-            throw new Error("VOD player is not built. Please run yarn build inside the twitch-vod-chat folder.");
-        } else {
-            console.log(chalk.green("VOD player is built: " + path.join(BaseConfigFolder.vodplayer, "index.html")));
-        }
-
-        // check if the chat dumper is built before starting the server
-        if (!fs.existsSync(path.join(AppRoot, "twitch-chat-dumper", "build", "index.js")) && process.env.NODE_ENV !== "test") {
-            console.error(chalk.red("Chat dumper is not built. Please run yarn build inside the twitch-chat-dumper folder."));
-            console.error(chalk.red(`Expected path: ${path.join(AppRoot, "twitch-chat-dumper", "build", "index.js")}`));
-            // process.exit(1);
-            throw new Error("Chat dumper is not built. Please run yarn build inside the twitch-chat-dumper folder.");
-        } else {
-            console.log(chalk.green("Chat dumper is built: " + path.join(AppRoot, "twitch-chat-dumper", "build", "index.js")));
-        }
+        this.checkBuiltDependencies();
 
         const config = Config.getInstance().config;
         if (config && Object.keys(config).length > 0) {

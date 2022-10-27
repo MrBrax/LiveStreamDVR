@@ -107,10 +107,11 @@ export class BaseChannel {
      * Send the channel.toAPI call to all connected clients over websockets.
      * A debounce is used to prevent spamming the clients.
      * 
+     * @test disable
      * @returns 
      */
     public broadcastUpdate(): void {
-        if (process.env.NODE_ENV === "test") return;
+        // if (process.env.NODE_ENV === "test") return;
         if (this._updateTimer) {
             clearTimeout(this._updateTimer);
             this._updateTimer = undefined;
@@ -334,6 +335,9 @@ export class BaseChannel {
         return this.vods_list[index];
     }
 
+    /**
+     * @test disable
+     */
     public saveVodDatabase() {
         fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.internalName}.json`), JSON.stringify(this.vods_raw));
     }

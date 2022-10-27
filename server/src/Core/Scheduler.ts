@@ -27,13 +27,16 @@ export class Scheduler {
         return job;
     }
 
+    /**
+     * @test disable
+     */
     public static defaultJobs() {
         // # 0 5 * * 1 curl http://localhost:8080/api/v0/cron/sub
         // 0 */12 * * * curl http://localhost:8080/api/v0/cron/check_muted_vods
         // 10 */12 * * * curl http://localhost:8080/api/v0/cron/check_deleted_vods
 
         // no blocks in testing
-        if (process.env.NODE_ENV === "test") return;
+        // if (process.env.NODE_ENV === "test") return;
 
         console.log("Scheduler: default jobs");
 

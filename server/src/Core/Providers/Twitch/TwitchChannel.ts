@@ -794,11 +794,15 @@ export class TwitchChannel extends BaseChannel {
     }
 
     fileWatcher?: chokidar.FSWatcher;
+    /**
+     * @test disable
+     * @returns 
+     */
     public async startWatching() {
         if (this.fileWatcher) await this.stopWatching();
 
         // no blocks in testing
-        if (process.env.NODE_ENV === "test") return;
+        // if (process.env.NODE_ENV === "test") return;
 
         if (!Config.getInstance().cfg("channel_folders")) {
             Log.logAdvanced(Log.Level.WARNING, "channel", `Channel folders are disabled, not watching channel ${this.login}`);
@@ -1125,6 +1129,7 @@ export class TwitchChannel extends BaseChannel {
 
     /**
      * Load channel cache into memory, like usernames and id's.
+     * @test disable
      */
     public static loadChannelsCache(): boolean {
         if (!fs.existsSync(BaseConfigPath.streamerCache)) return false;
@@ -1297,6 +1302,7 @@ export class TwitchChannel extends BaseChannel {
      * @param identifier Either channel id or channel login
      * @param force 
      * @throws
+     * @test disable
      * @returns 
      */
     static async getUserDataProxy(method: "id" | "login", identifier: string, force: boolean): Promise<UserData | false> {

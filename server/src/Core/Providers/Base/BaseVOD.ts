@@ -147,11 +147,15 @@ export class BaseVOD {
 
     }
 
+    /**
+     * @test disable
+     * @returns 
+     */
     public async startWatching(): Promise<boolean> {
         if (this.fileWatcher) await this.stopWatching();
 
         // no blocks in testing
-        if (process.env.NODE_ENV === "test") return false;
+        // if (process.env.NODE_ENV === "test") return false;
 
         const files = this.associatedFiles.map((f) => path.join(this.directory, f));
 
@@ -615,8 +619,12 @@ export class BaseVOD {
 
     }
 
+    /**
+     * @test disable
+     * @returns 
+     */
     public broadcastUpdate(): void {
-        if (process.env.NODE_ENV === "test") return;
+        // if (process.env.NODE_ENV === "test") return;
         if (this._updateTimer) {
             clearTimeout(this._updateTimer);
             this._updateTimer = undefined;
