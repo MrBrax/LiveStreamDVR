@@ -1,3 +1,6 @@
+import { SettingField } from "@common/Config";
+import { ClipBasenameFields, ExporterFilenameFields, VodBasenameFields } from "@common/ReplacementsConsts";
+import { YouTubeCategories } from "@common/YouTube";
 import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
 import express from "express";
@@ -5,9 +8,6 @@ import minimist from "minimist";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { SettingField } from "../../../common/Config";
-import { ClipBasenameFields, VodBasenameFields } from "../../../common/ReplacementsConsts";
-import { YouTubeCategories } from "../../../common/YouTube";
 import { TwitchHelper } from "../Providers/Twitch";
 import { YouTubeHelper } from "../Providers/YouTube";
 import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot, HomeRoot } from "./BaseConfig";
@@ -222,7 +222,7 @@ export class Config {
             "type": "template",
             "default": "{internalName}_{date}_{id}",
             "help": "Default title for exporter.",
-            "replacements": VodBasenameFields,
+            "replacements": ExporterFilenameFields,
         },
         { "key": "exporter.default.description",    "group": "Exporter", "text": "Default description", "type": "string", "help": "YouTube description.", multiline: true },
         { "key": "exporter.default.category",       "group": "Exporter", "text": "Default category", "type": "array", "help": "YouTube category.", choices: YouTubeCategories },
