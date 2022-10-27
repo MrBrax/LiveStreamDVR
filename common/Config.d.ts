@@ -16,7 +16,7 @@ export interface SettingField<T> {
     default?: T;
 
     /** Array of choices */
-    choices?: T[];
+    choices?: string[] | Record<string, string>;
 
     /** Help text to appear next to field in settings */
     help?: string;

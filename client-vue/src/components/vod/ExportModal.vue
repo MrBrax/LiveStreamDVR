@@ -370,11 +370,11 @@ import { onMounted, ref } from 'vue';
 import { useStore, VODTypes } from '@/store';
 import { ExporterFilenameFields } from "@common/ReplacementsConsts";
 import { formatString } from '@common/Format';
-import { YouTubeCategories } from "@/defs";
+import { YouTubeCategories } from "@common/YouTube";
 import axios from 'axios';
 import { ApiResponse } from '@common/Api/Api';
 import YoutubeAuth from "@/components/YoutubeAuth.vue";
-import { ExporterOptions } from "../../../../common/Exporter";
+import { ExporterOptions } from "@common/Exporter";
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
@@ -558,6 +558,7 @@ function applyDefaultExportSettings() {
     if (store.cfg("exporter.default.username")) exportVodSettings.value.username = store.cfg("exporter.default.username");
     if (store.cfg("exporter.default.password")) exportVodSettings.value.password = store.cfg("exporter.default.password");
     if (store.cfg("exporter.default.description")) exportVodSettings.value.description = store.cfg("exporter.default.description");
+    if (store.cfg("exporter.default.category")) exportVodSettings.value.category = store.cfg("exporter.default.category");
     if (store.cfg("exporter.default.tags")) exportVodSettings.value.tags = store.cfg("exporter.default.tags");
     if (store.cfg("exporter.default.remote")) exportVodSettings.value.remote = store.cfg("exporter.default.remote");
 }

@@ -345,10 +345,6 @@ export class BaseAutomator {
             }
         }
 
-        if (Config.getInstance().cfg("exporter.auto.enabled")) {
-            // TODO: export automatically
-        }
-
         KeyValue.getInstance().delete(`${this.broadcaster_user_login}.online`);
         KeyValue.getInstance().delete(`${this.broadcaster_user_login}.vod.id`);
         KeyValue.getInstance().delete(`${this.broadcaster_user_login}.vod.started_at`);
@@ -396,6 +392,7 @@ export class BaseAutomator {
                     password: Config.getInstance().cfg("exporter.default.password"),
                     description: Config.getInstance().cfg("exporter.default.description"),
                     tags: Config.getInstance().cfg("exporter.default.tags"),
+                    category: Config.getInstance().cfg("exporter.default.category"),
                     remote: Config.getInstance().cfg("exporter.default.remote"),
                     title_template: Config.getInstance().cfg("exporter.default.title_template"),
                 };

@@ -101,19 +101,35 @@
                             v-model="formData[data.key]"
                             class="input"
                             :name="data.key"
+                            :data-is-array="data.choices && Array.isArray(data.choices)"
                         >
-                            <option
-                                v-for="(item, ix) in data.choices"
-                                :id="data.key"
-                                :key="ix"
-                                :selected="
-                                    (formData[data.key] !== undefined && formData[data.key] === item) ||
-                                        (formData[data.key] === undefined && item === data.default)
-                                "
-                            >
-                                {{ item }}
-                            </option>
+                            <template v-if="data.choices && Array.isArray(data.choices)">
+                                <option
+                                    v-for="(item, ix) in data.choices"
+                                    :key="ix"
+                                    :selected="
+                                        (formData[data.key] !== undefined && formData[data.key] === item) ||
+                                            (formData[data.key] === undefined && item === data.default)
+                                    "
+                                >
+                                    {{ item }}
+                                </option>
+                            </template>
+                            <template v-else>
+                                <option
+                                    v-for="(item, ix) in data.choices"
+                                    :key="ix"
+                                    :value="ix"
+                                    :selected="
+                                        (formData[data.key] !== undefined && formData[data.key] === item) ||
+                                            (formData[data.key] === undefined && ix === data.default)
+                                    "
+                                >
+                                    {{ item }}
+                                </option>
+                            </template>
                         </select>
+                        <span v-else class="is-error">No choices defined</span>
                     </div>
                 </div>
 
