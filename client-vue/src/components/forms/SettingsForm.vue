@@ -138,14 +138,22 @@
                     v-if="data.type == 'template'"
                     class="control"
                 >
-                    <component
-                        :is="data.multiline ? 'textarea' : 'input'"
+                    <textarea
+                        v-if="data.multiline"
+                        :id="'input_' + data.key"
+                        v-model="(formData[data.key] as string)"
+                        class="input"
+                        type="text"
+                        :name="data.key"
+                    />
+                    <input
+                        v-else
                         :id="'input_' + data.key"
                         v-model="formData[data.key]"
                         class="input"
                         type="text"
                         :name="data.key"
-                    />
+                    >
                     <ul class="template-replacements">
                         <li
                             v-for="(item, ix) in data.replacements"
@@ -424,13 +432,21 @@ export default defineComponent({
                 if (caret !== null) {
                     const rep = `{${value}}`;
                     // input.value = input.value.substring(0, caret) + rep + input.value.substring(caret);
-                    this.formData[key] = input.value.substring(0, caret) + rep + input.value.substring(caret);
+                    const newValue = input.value.substring(0, caret) + rep + input.value.substring(caret);
+                    this.formData[key] = newValue;
+                    // console.debug("insertReplacement", newValue, this.formData[key]);
                     input.selectionStart = caret + rep.length;
                     input.selectionEnd = caret + rep.length;
                     input.focus();
+                    // console.debug("insertReplacement", "caret", caret, key, value, input.value);
+                } else {
+                    this.formData[key] = this.formData[key] + `{${value}}`;
+                    // console.debug("insertReplacement", "no caret", key, value, input.value);
                 }
                 // const text = input.value;
                 // input.value = text.substring(0, caret) + value + text.substring(caret);
+            } else {
+                console.error("input not found", key);
             }
         },
     },
