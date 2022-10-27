@@ -7,6 +7,7 @@ import { Config } from "../src/Core/Config";
 import { TwitchChannel } from "../src/Core/Providers/Twitch/TwitchChannel";
 import { Auth } from "../src/Helpers/Auth";
 import ApiRouter from "../src/Routes/Api";
+import { TwitchHelper } from "../src/Providers/Twitch";
 
 // jest.mock("../src/Core/TwitchChannel");
 
@@ -14,6 +15,20 @@ let app: Express | undefined;
 let spy1: jest.SpyInstance | undefined;
 let spy2: jest.SpyInstance | undefined;
 let spy3: jest.SpyInstance | undefined;
+
+// jest.mock("../src/Providers/Twitch");
+// jest.mock("../src/Core/Config");
+
+jest.spyOn(TwitchHelper, "getAccessToken").mockImplementation(() => {
+    return new Promise((resolve) => {
+        resolve("test");
+    });
+});
+
+jest.spyOn(Config.prototype, "saveConfig").mockImplementation((source?: string): boolean => {
+    console.debug(`Config.saveConfig(${source})`);
+    return true;
+});
 
 beforeAll(async () => {
     await Config.init();
@@ -88,6 +103,7 @@ afterAll(() => {
 describe("settings", () => {
     it("should return settings", async () => {
         const res = await request(app).get("/api/v0/settings");
+        console.log(res.status, res.body);
         expect(res.status).toBe(200);
         expect(res.body).toHaveProperty("data.app_name");
         expect(res.body).toHaveProperty("data.version");
@@ -101,6 +117,23 @@ describe("settings", () => {
 
         expect(res.body.data.app_name).toBe(AppName);
 
+    });
+
+    it("should update settings", async () => {
+        const res = await request(app).put("/api/v0/settings").send({
+            "password": "test",
+            "bin_dir": "test",
+            "ffmpeg_path": "test",
+            "mediainfo_path": "test",
+            "api_client_id": "test",
+            "api_secret": "test",
+            "eventsub_secret": "test",
+            "app_url": "debug",
+            // TODO: automatic required fields
+        });
+        expect(res.body.message).toBe("Settings saved");
+        expect(res.status).toBe(200);
+        expect(Config.getInstance().cfg("password")).toBe("test");
     });
 });
 
