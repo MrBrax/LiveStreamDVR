@@ -5,18 +5,18 @@
         class="info-columns"
     >
         <div class="info-column">
-            <h4>{{ $t('vod.video-info.general') }}</h4>
+            <h4>{{ t('vod.video-info.general') }}</h4>
             <ul class="video-info">
                 <li>
-                    <strong>{{ $t('vod.video-info.capture-id') }}:</strong>
+                    <strong>{{ t('vod.video-info.capture-id') }}:</strong>
                     {{ vod.capture_id || "None" }}
                 </li>
                 <li>
-                    <strong>{{ $t('vod.video-info.webhook-duration') }}:</strong>
+                    <strong>{{ t('vod.video-info.webhook-duration') }}:</strong>
                     {{ vod.getWebhookDuration() }}
                 </li>
                 <li>
-                    <strong>{{ $t('vod.video-info.created') }}:</strong> 
+                    <strong>{{ t('vod.video-info.created') }}:</strong> 
                     <template v-if="vod.created_at">
                         {{ formatDate(vod.created_at, "yyyy-MM-dd HH:mm:ss") }}
                     </template>
@@ -26,7 +26,7 @@
                     >No created_at</span>
                 </li>
                 <li v-if="showAdvanced">
-                    <strong>{{ $t('vod.video-info.went-live') }}:</strong> 
+                    <strong>{{ t('vod.video-info.went-live') }}:</strong> 
                     <template v-if="vod.started_at">
                         {{ formatDate(vod.started_at, "yyyy-MM-dd HH:mm:ss") }}
                     </template>
@@ -36,7 +36,7 @@
                     >No started_at</span>
                 </li>
                 <li v-if="showAdvanced">
-                    <strong>{{ $t('vod.video-info.capture-launched') }}:</strong> 
+                    <strong>{{ t('vod.video-info.capture-launched') }}:</strong> 
                     <template v-if="vod.capture_started">
                         {{ formatDate(vod.capture_started, "yyyy-MM-dd HH:mm:ss") }}
                     </template>
@@ -46,7 +46,7 @@
                     >No capture_started</span>
                 </li>
                 <li v-if="showAdvanced">
-                    <strong>{{ $t('vod.video-info.wrote-file') }}:</strong> 
+                    <strong>{{ t('vod.video-info.wrote-file') }}:</strong> 
                     <template v-if="vod.capture_started2">
                         {{ formatDate(vod.capture_started2, "yyyy-MM-dd HH:mm:ss") }}
                     </template>
@@ -56,7 +56,7 @@
                     >No capture_started2</span>
                 </li>
                 <li>
-                    <strong>{{ $t('vod.video-info.stream-end') }}:</strong> 
+                    <strong>{{ t('vod.video-info.stream-end') }}:</strong> 
                     <template v-if="vod.ended_at">
                         {{ formatDate(vod.ended_at, "yyyy-MM-dd HH:mm:ss") }}
                     </template>
@@ -67,16 +67,16 @@
                 </li>
                 <template v-if="vod.capture_started && vod.conversion_started">
                     <li>
-                        <strong>{{ $t('vod.video-info.capture-start') }}:</strong>
+                        <strong>{{ t('vod.video-info.capture-start') }}:</strong>
                         {{ formatDate(vod.capture_started, "yyyy-MM-dd HH:mm:ss") }}
                     </li>
                     <li>
-                        <strong>{{ $t('vod.video-info.conversion-start') }}:</strong>
+                        <strong>{{ t('vod.video-info.conversion-start') }}:</strong>
                         {{ formatDate(vod.conversion_started, "yyyy-MM-dd HH:mm:ss") }}
                     </li>
                 </template>
                 <li v-if="vod.getDuration() && showAdvanced">
-                    <strong>{{ $t('vod.video-info.missing-from-captured-file') }}:</strong>
+                    <strong>{{ t('vod.video-info.missing-from-captured-file') }}:</strong>
                     <span
                         v-if="vod.provider == 'twitch' && vod.twitch_vod_duration"
                         class="px-1"
@@ -95,29 +95,29 @@
                     </span>
                 </li>
                 <li>
-                    <strong>{{ $t('vod.video-info.chat-downloaded') }}:</strong>
-                    {{ vod.is_chat_downloaded ? $t('boolean.yes') : $t('boolean.no') }}
+                    <strong>{{ t('vod.video-info.chat-downloaded') }}:</strong>
+                    {{ vod.is_chat_downloaded ? t('boolean.yes') : t('boolean.no') }}
                 </li>
                 <li>
-                    <strong>{{ $t('vod.video-info.chat-dumped') }}:</strong>
-                    {{ vod.is_chatdump_captured ? $t('boolean.yes') : $t('boolean.no') }}
+                    <strong>{{ t('vod.video-info.chat-dumped') }}:</strong>
+                    {{ vod.is_chatdump_captured ? t('boolean.yes') : t('boolean.no') }}
                 </li>
                 <li>
-                    <strong>{{ $t('vod.video-info.chat-rendered') }}:</strong>
-                    {{ vod.is_chat_rendered ? $t('boolean.yes') : $t('boolean.no') }}
+                    <strong>{{ t('vod.video-info.chat-rendered') }}:</strong>
+                    {{ vod.is_chat_rendered ? t('boolean.yes') : t('boolean.no') }}
                 </li>
                 <li>
-                    <strong>{{ $t('vod.video-info.chat-burned') }}:</strong>
-                    {{ vod.is_chat_burned ? $t('boolean.yes') : $t('boolean.no') }}
+                    <strong>{{ t('vod.video-info.chat-burned') }}:</strong>
+                    {{ vod.is_chat_burned ? t('boolean.yes') : t('boolean.no') }}
                 </li>
             </ul>
         </div>
 
         <div class="info-column">
-            <h4>{{ $t('vod.video-info.capture') }}</h4>
+            <h4>{{ t('vod.video-info.capture') }}</h4>
             <ul class="video-info">
                 <li v-if="vod.getDuration()">
-                    <strong>{{ $t('metadata.file-duration') }}:</strong>
+                    <strong>{{ t('metadata.file-duration') }}:</strong>
                     {{ humanDuration(vod.getDuration()) }}
                 </li>
                 <li v-if="vod.segments && vod.segments.length > 0 && vod.segments[0].filesize">
@@ -138,26 +138,26 @@
                 </template>
                 <template v-else-if="vod.video_metadata">
                     <li>
-                        <strong>{{ $t('metadata.dimensions') }}:</strong>
+                        <strong>{{ t('metadata.dimensions') }}:</strong>
                         {{ vod.video_metadata.width }}x{{ vod.video_metadata.height }}
                     </li>
                     <li>
-                        <strong>{{ $t('metadata.framerate') }}:</strong>
+                        <strong>{{ t('metadata.framerate') }}:</strong>
                         {{ vod.video_metadata.fps_mode }}
                         {{ vod.video_metadata.fps }}
                     </li>
                     <li>
-                        <strong>{{ $t('metadata.total') }}:</strong>
+                        <strong>{{ t('metadata.total') }}:</strong>
                         {{ Math.round(vod.video_metadata.bitrate / 1000) }}kbps
                     </li>
                     <li>
-                        <strong>{{ $t('metadata.video') }}:</strong>
+                        <strong>{{ t('metadata.video') }}:</strong>
                         {{ vod.video_metadata.video_codec }}
                         {{ vod.video_metadata.video_bitrate_mode }}
                         {{ Math.round(vod.video_metadata.video_bitrate / 1000) }}kbps
                     </li>
                     <li>
-                        <strong>{{ $t('metadata.audio') }}:</strong>
+                        <strong>{{ t('metadata.audio') }}:</strong>
                         {{ vod.video_metadata.audio_codec }}
                         {{ vod.video_metadata.audio_bitrate_mode }}
                         {{ Math.round(vod.video_metadata.audio_bitrate / 1000) }}kbps
@@ -175,7 +175,7 @@
             <ul class="video-info">
                 <template v-if="vod.twitch_vod_exists === true">
                     <li>
-                        <strong>{{ $t('vod.video-info.duration') }}:</strong>
+                        <strong>{{ t('vod.video-info.duration') }}:</strong>
                         <span
                             v-if="vod.twitch_vod_duration"
                             class="px-1"
@@ -188,7 +188,7 @@
                         </span>
                     </li>
                     <li>
-                        <strong>{{ $t('vod.video-info.id') }}:</strong>
+                        <strong>{{ t('vod.video-info.id') }}:</strong>
                         <span
                             v-if="vod.twitch_vod_id"
                             class="px-1"
@@ -213,7 +213,7 @@
                         </span>
                     </li>
                     <li>
-                        <strong>{{ $t('vod.video-info.date') }}:</strong>&#32;
+                        <strong>{{ t('vod.video-info.date') }}:</strong>&#32;
                         <span
                             v-if="vod.twitch_vod_date"
                             class="px-1"
@@ -226,7 +226,7 @@
                         </span>
                     </li>
                     <li>
-                        <strong>{{ $t('vod.video-info.title') }}:</strong>
+                        <strong>{{ t('vod.video-info.title') }}:</strong>
                         <span
                             v-if="vod.twitch_vod_title"
                             class="px-1 text-overflow"
@@ -241,24 +241,24 @@
                         </span>
                     </li>
                     <li>
-                        <strong>{{ $t('vod.video-info.is-muted') }}:</strong>
+                        <strong>{{ t('vod.video-info.is-muted') }}:</strong>
                         <span
                             v-if="vod.twitch_vod_muted === MuteStatus.MUTED"
                             class="px-1"
-                        ><strong class="text-is-error">{{ $t('boolean.yes') }}</strong></span>
+                        ><strong class="text-is-error">{{ t('boolean.yes') }}</strong></span>
                         <span
                             v-else-if="vod.twitch_vod_muted === MuteStatus.UNMUTED"
                             class="px-1"
-                        >{{ $t('boolean.no') }}</span>
+                        >{{ t('boolean.no') }}</span>
                         <span
                             v-else
                             class="px-1"
-                        ><em>{{ $t('boolean.no-data') }}</em></span>
+                        ><em>{{ t('boolean.no-data') }}</em></span>
                     </li>
                 </template>
                 <template v-else-if="vod.twitch_vod_exists === false">
                     <li>
-                        <strong class="text-is-error">{{ $t('vod.video-info.vod-is-deleted') }}</strong>
+                        <strong class="text-is-error">{{ t('vod.video-info.vod-is-deleted') }}</strong>
                         &nbsp;<a
                         href="javascript:void(0)"
                         title="Retry VOD match"
@@ -274,18 +274,18 @@
                             >{{ vod.twitch_vod_id }}</a>.
                         </template>
                         <template v-else>
-                            {{ $t('vod.video-info.the-vod-probably-never-got-saved') }}
+                            {{ t('vod.video-info.the-vod-probably-never-got-saved') }}
                         </template>
                     </li>
                 </template>
                 <template v-else>
                     <li>
-                        <em>{{ $t('vod.video-info.vod-has-not-been-checked') }}</em>
+                        <em>{{ t('vod.video-info.vod-has-not-been-checked') }}</em>
                     </li>
                 </template>
                 <li>
-                    <strong>{{ $t('vod.video-info.downloaded') }}:</strong>
-                    {{ vod.is_vod_downloaded ? $t('boolean.yes') : $t('boolean.no') }}
+                    <strong>{{ t('vod.video-info.downloaded') }}:</strong>
+                    {{ vod.is_vod_downloaded ? t('boolean.yes') : t('boolean.no') }}
                 </li>
             </ul>
         </div>
@@ -295,22 +295,22 @@
             v-if="vod.exportData && Object.keys(vod.exportData).length > 0"
             class="info-column"
         >
-            <h4>{{ $t('vod.video-info.export-data.title') }}</h4>
+            <h4>{{ t('vod.video-info.export-data.title') }}</h4>
             <ul class="video-info">
                 <li v-if="vod.exportData.exporter">
-                    <strong>{{ $t('vod.video-info.export-data.exporter') }}:</strong>
+                    <strong>{{ t('vod.video-info.export-data.exporter') }}:</strong>
                     {{ vod.exportData.exporter }}
                 </li>
                 <li v-if="vod.exportData.exported_at">
-                    <strong>{{ $t('vod.video-info.export-data.exported-at') }}:</strong>
+                    <strong>{{ t('vod.video-info.export-data.exported-at') }}:</strong>
                     {{ formatDate(vod.exportData.exported_at) }}
                 </li>
                 <li v-if="vod.exportData.youtube_id">
-                    <strong>{{ $t('vod.video-info.export-data.youtube-id') }}:</strong>
+                    <strong>{{ t('vod.video-info.export-data.youtube-id') }}:</strong>
                     {{ vod.exportData.youtube_id }}
                 </li>
                 <li v-if="vod.exportData.youtube_playlist_id">
-                    <strong>{{ $t('vod.video-info.export-data.youtube-playlist-id') }}:</strong>
+                    <strong>{{ t('vod.video-info.export-data.youtube-playlist-id') }}:</strong>
                     {{ vod.exportData.youtube_playlist_id }}
                 </li>
             </ul>
@@ -322,6 +322,7 @@
 import { useStore, VODTypes } from '@/store';
 import { ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
+import { useI18n } from 'vue-i18n';
 import { MuteStatus } from "../../../common/Defs";
 
 const props = defineProps({
@@ -337,6 +338,7 @@ const props = defineProps({
 });
 
 const store = useStore();
+const { t } = useI18n();
 
 function twitchVideoLink(video_id: string): string {
     return `https://www.twitch.tv/videos/${video_id}`;

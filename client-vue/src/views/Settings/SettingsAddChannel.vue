@@ -1,7 +1,7 @@
 <template>
     <section class="section">
         <div class="section-title">
-            <h1>{{ $t('pages.new-channel') }}</h1>
+            <h1>{{ t('pages.new-channel') }}</h1>
         </div>
         <div class="section-content">
             <channel-add-form @form-success="updateUsers" />
@@ -13,6 +13,7 @@
 import { useStore } from "@/store";
 import { defineComponent } from "vue";
 import ChannelAddForm from "@/components/forms/ChannelAddForm.vue";
+import { useI18n } from "vue-i18n";
 
 export default defineComponent({
     // name: "SettingsChannelsView",
@@ -21,7 +22,8 @@ export default defineComponent({
     },
     setup() {
         const store = useStore();
-        return { store };
+        const { t } = useI18n();
+        return { store, t };
     },
     methods: {
         updateUsers() {

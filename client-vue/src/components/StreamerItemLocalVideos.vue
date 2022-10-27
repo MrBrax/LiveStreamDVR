@@ -5,7 +5,7 @@
         class="local-videos"
     >
         <div class="local-videos-title">
-            <h3>{{ $t("messages.local-videos") }}</h3>
+            <h3>{{ t("messages.local-videos") }}</h3>
         </div>
         <transition-group
             tag="div"
@@ -35,10 +35,11 @@
 
 <script lang="ts" setup>
 import { ChannelTypes, useStore } from "@/store";
-
-import { computed, ref } from "vue";
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
 
 const store = useStore();
+const { t } = useI18n();
 
 const props = defineProps<{
     streamer: ChannelTypes;

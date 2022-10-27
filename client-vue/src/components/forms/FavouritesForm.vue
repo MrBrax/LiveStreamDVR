@@ -54,7 +54,7 @@
                 </label>
             </div>
             <div v-if="!gamesData || Object.keys(gamesData).length == 0">
-                <p>{{ $t('forms.favourites.no-games-in-cache-when-streamers-change-games-they-will-be-added-to-the-cache') }}</p>
+                <p>{{ t('forms.favourites.no-games-in-cache-when-streamers-change-games-they-will-be-added-to-the-cache') }}</p>
             </div>
         </div>
         <div class="field">
@@ -63,7 +63,7 @@
                     v-model="isGrid"
                     type="checkbox"
                 >
-                {{ $t('forms.favourites.display-as-grid') }}
+                {{ t('forms.favourites.display-as-grid') }}
             </label>
         </div>
         <div class="field form-submit">
@@ -73,7 +73,7 @@
                     type="submit"
                 >
                     <span class="icon"><fa icon="save" /></span>
-                    <span>{{ $t('buttons.save-favourites') }}</span>
+                    <span>{{ t('buttons.save-favourites') }}</span>
                 </button>
             </div>
             <div :class="formStatusClass">
@@ -88,13 +88,15 @@ import { useStore } from "@/store";
 import { ApiGamesResponse, ApiSettingsResponse } from "@common/Api/Api";
 import { ApiGame } from "@common/Api/Client";
 import { defineComponent } from "vue";
+import { useI18n } from "vue-i18n";
 
 export default defineComponent({
     name: "FavouritesForm",
     emits: ["formSuccess"],
     setup() {
         const store = useStore();
-        return { store };
+        const { t } = useI18n();
+        return { store, t };
     },
     data(): {
         loading: boolean;
@@ -140,7 +142,7 @@ export default defineComponent({
     },
     methods: {
         submitForm(event: Event) {
-            this.formStatusText = this.$t("messages.loading");
+            this.formStatusText = this.t("messages.loading");
             this.formStatus = "";
 
             this.$http

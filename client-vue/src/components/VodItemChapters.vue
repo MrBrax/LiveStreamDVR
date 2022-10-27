@@ -7,18 +7,18 @@
         >
             <thead>
                 <tr>
-                    <th>{{ $t('vod.chapters.offset') }}</th>
+                    <th>{{ t('vod.chapters.offset') }}</th>
                     <th v-if="showAdvanced">
-                        {{ $t('vod.chapters.started') }}
+                        {{ t('vod.chapters.started') }}
                     </th>
                     <th v-if="showAdvanced">
-                        {{ $t('vod.chapters.ended') }}
+                        {{ t('vod.chapters.ended') }}
                     </th>
-                    <th>{{ $t('vod.chapters.duration') }}</th>
-                    <th>{{ $t('vod.chapters.category') }}</th>
-                    <th>{{ $t('vod.chapters.title') }}</th>
+                    <th>{{ t('vod.chapters.duration') }}</th>
+                    <th>{{ t('vod.chapters.category') }}</th>
+                    <th>{{ t('vod.chapters.title') }}</th>
                     <th v-if="hasViewerCount">
-                        {{ $t('vod.chapters.viewers') }}
+                        {{ t('vod.chapters.viewers') }}
                     </th>
                     <th />
                 </tr>
@@ -183,7 +183,7 @@
                         colspan="10"
                         class="has-text-italic"
                     >
-                        {{ $t('vod.chapters.end') }}
+                        {{ t('vod.chapters.end') }}
                     </td>
                 </tr>
 
@@ -196,7 +196,7 @@
                         colspan="10"
                         class="has-text-italic has-text-bold"
                     >
-                        {{ $t('vod.chapters.ongoing') }}
+                        {{ t('vod.chapters.ongoing') }}
                     </td>
                 </tr>
             </tbody>
@@ -218,6 +218,7 @@ import { ApiResponse, ApiSettingsResponse } from '@common/Api/Api';
 import axios from 'axios';
 import { computed } from 'vue';
 import DurationDisplay from "@/components/DurationDisplay.vue";
+import { useI18n } from 'vue-i18n';
 
 function isTwitchChapter(chapter: ChapterTypes): chapter is TwitchVODChapter {
     return chapter instanceof TwitchVODChapter;
@@ -236,6 +237,7 @@ const props = defineProps({
 });
 
 const store = useStore();
+const { t } = useI18n();
 
 const hasViewerCount = computed(() => {
     if (!props.vod) return false;

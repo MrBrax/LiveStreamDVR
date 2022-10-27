@@ -7,27 +7,27 @@
                 class="list"
             >
                 <li>
-                    <strong>{{ $t('metadata.format') }}</strong>
+                    <strong>{{ t('metadata.format') }}</strong>
                     {{ vod.video_metadata.width }}x{{ vod.video_metadata.height }}@
                     {{ vod.video_metadata.fps }}
                 </li>
 
                 <li>
-                    <strong>{{ $t('metadata.video') }}</strong>
+                    <strong>{{ t('metadata.video') }}</strong>
                     {{ vod.video_metadata.video_codec }}
                     {{ vod.video_metadata.video_bitrate_mode }}
                     {{ Math.round(vod.video_metadata.video_bitrate / 1000) }}kbps
                 </li>
 
                 <li>
-                    <strong>{{ $t('metadata.audio') }}</strong>
+                    <strong>{{ t('metadata.audio') }}</strong>
                     {{ vod.video_metadata.audio_codec }}
                     {{ vod.video_metadata.audio_bitrate_mode }}
                     {{ Math.round(vod.video_metadata.audio_bitrate / 1000) }}kbps
                 </li>
 
                 <li>
-                    <strong>{{ $t('metadata.general') }}</strong>
+                    <strong>{{ t('metadata.general') }}</strong>
                     {{ formatBytes(vod.video_metadata.size) }} / {{ vod.video_metadata.duration }}
                 </li>
             </ul>
@@ -85,7 +85,7 @@
                 <label><input
                     v-model="burnSettings.renderChat"
                     type="checkbox"
-                > {{ $t('render-menu.render-chat') }} <strong
+                > {{ t('render-menu.render-chat') }} <strong
                     v-if="vod.is_chat_rendered"
                 >(Exists)</strong></label>
             </div>
@@ -94,7 +94,7 @@
                         <label><input type="checkbox" v-model="burnSettings.renderTest" /> Test duration</label>
                     </div>-->
                 <div class="field">
-                    <label class="label">{{ $t('render-menu.chat-width') }}</label>
+                    <label class="label">{{ t('render-menu.chat-width') }}</label>
                     <div class="control">
                         <input
                             v-model="burnSettings.chatWidth"
@@ -109,13 +109,13 @@
                             type="number"
                         >
                         <span :class="{ 'input-help': true, error: burnSettings.chatWidth % 2 }">
-                            {{ $t('render-menu.chat-width-must-be-an-even-number') }}
+                            {{ t('render-menu.chat-width-must-be-an-even-number') }}
                         </span>
                     </div>
                 </div>
 
                 <div class="field">
-                    <label class="label">{{ $t('render-menu.chat-height') }}</label>
+                    <label class="label">{{ t('render-menu.chat-height') }}</label>
                     <div class="control">
                         <input
                             v-model="burnSettings.chatHeight"
@@ -130,51 +130,51 @@
                             type="number"
                         >
                         <span :class="{ 'input-help': true, error: burnSettings.chatHeight % 2 }">
-                            {{ $t('render-menu.chat-height-must-be-an-even-number') }}
+                            {{ t('render-menu.chat-height-must-be-an-even-number') }}
                         </span>
                     </div>
                 </div>
 
                 <div class="field">
-                    <label class="label">{{ $t('render-menu.video-source') }}</label>
+                    <label class="label">{{ t('render-menu.video-source') }}</label>
                     <div class="select">
                         <select
                             v-model="burnSettings.vodSource"
                         >
                             <option value="captured">
-                                {{ $t('render-menu.source-captured') }}
+                                {{ t('render-menu.source-captured') }}
                             </option>
                             <option
                                 value="downloaded"
                                 :disabled="!vod.is_vod_downloaded"
                             >
-                                {{ $t('render-menu.source-downloaded') }}
+                                {{ t('render-menu.source-downloaded') }}
                             </option>
                         </select>
                     </div>
                 </div>
 
                 <div class="field">
-                    <label class="label">{{ $t('render-menu.chat-source') }}</label>
+                    <label class="label">{{ t('render-menu.chat-source') }}</label>
                     <div class="select">
                         <select
                             v-model="burnSettings.chatSource"
                         >
                             <option value="captured">
-                                {{ $t('render-menu.source-captured') }}
+                                {{ t('render-menu.source-captured') }}
                             </option>
                             <option
                                 value="downloaded"
                                 :disabled="!vod.is_chat_downloaded"
                             >
-                                {{ $t('render-menu.source-downloaded') }}
+                                {{ t('render-menu.source-downloaded') }}
                             </option>
                         </select>
                     </div>
                 </div>
 
                 <div class="field">
-                    <label class="label">{{ $t('render-menu.font') }}</label>
+                    <label class="label">{{ t('render-menu.font') }}</label>
                     <div class="control">
                         <input
                             v-model="burnSettings.chatFont"
@@ -188,7 +188,7 @@
                     </div>
                 </div>
                 <div class="field">
-                    <label class="label">{{ $t('render-menu.font-size') }}</label>
+                    <label class="label">{{ t('render-menu.font-size') }}</label>
                     <div class="control">
                         <input
                             v-model="burnSettings.chatFontSize"
@@ -222,7 +222,7 @@
                         <label><input type="checkbox" v-model="burnSettings.burnTest" /> Test duration</label>
                     </div>-->
                 <div class="field">
-                    <label class="label">{{ $t('render-menu.offset-seconds') }}</label>
+                    <label class="label">{{ t('render-menu.offset-seconds') }}</label>
                     <div class="control">
                         <input
                             v-model="burnSettings.burnOffset"
@@ -237,11 +237,11 @@
                             v-model="burnSettings.testDuration"
                             type="checkbox"
                         >
-                        {{ $t('render-menu.test-duration-dont-burn-entire-video') }}
+                        {{ t('render-menu.test-duration-dont-burn-entire-video') }}
                     </div>
                 </div>
                 <div class="field">
-                    <label class="label">{{ $t('render-menu.chat-horizontal') }}</label>
+                    <label class="label">{{ t('render-menu.chat-horizontal') }}</label>
                     <div class="select">
                         <select
                             v-model="burnSettings.burnHorizontal"
@@ -256,7 +256,7 @@
                     </div>
                 </div>
                 <div class="field">
-                    <label class="label">{{ $t('render-menu.chat-vertical') }}</label>
+                    <label class="label">{{ t('render-menu.chat-vertical') }}</label>
                     <div class="select">
                         <select
                             v-model="burnSettings.burnVertical"
@@ -361,6 +361,7 @@ import { useStore } from '@/store';
 import { ApiResponse } from '@common/Api/Api';
 import { ApiJob } from '@common/Api/Client';
 import { defineComponent } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 export default defineComponent({
     name: 'BurnWizard',
@@ -373,8 +374,10 @@ export default defineComponent({
     emits: ['refresh'],
     setup() {
         const store = useStore();
+        const { t } = useI18n();
         return {
             store,
+            t,
         };
     },
     data() {

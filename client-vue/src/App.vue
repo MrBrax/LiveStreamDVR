@@ -33,7 +33,7 @@
                             <span class="icon"><fa
                                 icon="sync"
                                 spin
-                            /></span> {{ $t("messages.loading") }}
+                            /></span> {{ t("messages.loading") }}
                         </div>
                     </section>
                 </div>

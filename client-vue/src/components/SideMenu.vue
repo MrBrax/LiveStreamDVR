@@ -89,7 +89,7 @@
             >
                 <router-link
                     to="/dashboard"
-                    :title="$t('pages.dashboard')"
+                    :title="t('pages.dashboard')"
                     class="link"
                 >
                     <span class="icon"><fa icon="tachometer-alt" /></span>
@@ -102,7 +102,7 @@
             >
                 <router-link
                     to="/files"
-                    :title="$t('pages.files')"
+                    :title="t('pages.files')"
                     class="link"
                 >
                     <span class="icon"><fa icon="archive" /></span>
@@ -115,7 +115,7 @@
             >
                 <router-link
                     to="/tools"
-                    :title="$t('pages.tools')"
+                    :title="t('pages.tools')"
                     class="link"
                 >
                     <span class="icon"><fa icon="wrench" /></span>
@@ -127,7 +127,7 @@
             >
                 <router-link
                     to="/settings"
-                    :title="$t('pages.settings')"
+                    :title="t('pages.settings')"
                     class="link"
                 >
                     <span class="icon"><fa icon="cog" /></span>
@@ -140,7 +140,7 @@
             >
                 <router-link
                     to="/about"
-                    :title="$t('pages.about')"
+                    :title="t('pages.about')"
                     class="link"
                 >
                     <span class="icon"><fa icon="info-circle" /></span>
@@ -175,6 +175,7 @@ import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import SideMenuStreamer from "./SideMenuStreamer.vue";
 
 import { ChannelTypes, useStore } from "@/store";
+import { useI18n } from "vue-i18n";
 
 library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faArchive, faSignInAlt);
 
@@ -183,7 +184,8 @@ export default defineComponent({
     components: { SideMenuStreamer },
     setup() {
         const store = useStore();
-        return { store };
+        const { t } = useI18n();
+        return { store, t };
     },
     data() {
         return {

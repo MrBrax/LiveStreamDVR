@@ -19,7 +19,7 @@
                 @click="doCheckYouTubeStatus"
             >
                 <span class="icon"><fa icon="sync" /></span>
-                <span>{{ $t("buttons.checkstatus") }}</span>
+                <span>{{ t("buttons.checkstatus") }}</span>
             </button>
             <button
                 class="icon-button"
@@ -54,7 +54,7 @@
                 @click="doDestroyYouTube"
             >
                 <span class="icon"><fa icon="right-from-bracket" /></span>
-                <span>{{ $t("buttons.destroy-session") }}</span>
+                <span>{{ t("buttons.destroy-session") }}</span>
             </button>
         </div>
         <div
@@ -100,10 +100,11 @@ import {
     faYoutube
 } from "@fortawesome/free-brands-svg-icons";
 import axios from "axios";
+import { useI18n } from "vue-i18n";
 library.add(faRightFromBracket, faYoutube, faSpinner);
 
 const store = useStore();
-        
+const { t } = useI18n();
 
 const status = ref("");
 const loading = ref(false);

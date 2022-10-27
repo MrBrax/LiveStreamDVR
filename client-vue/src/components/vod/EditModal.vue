@@ -3,7 +3,7 @@
         <label
             class="label"
             for="absolute-season"
-        >{{ $t('vod.edit.absolute-season') }}</label>
+        >{{ t('vod.edit.absolute-season') }}</label>
         <div class="control">
             <input
                 id="absolute-season"
@@ -18,7 +18,7 @@
         <label
             class="label"
             for="stream-number"
-        >{{ $t('vod.edit.stream-number') }}</label>
+        >{{ t('vod.edit.stream-number') }}</label>
         <div class="control">
             <input
                 id="stream-number"
@@ -33,7 +33,7 @@
         <label
             class="label"
             for="comment"
-        >{{ $t('vod.edit.comment') }}</label>
+        >{{ t('vod.edit.comment') }}</label>
         <div class="control">
             <textarea
                 id="comment"
@@ -47,7 +47,7 @@
         <label
             class="label"
             for="segments"
-        >{{ $t('vod.edit.segments') }}</label>
+        >{{ t('vod.edit.segments') }}</label>
         <div class="control">
             <textarea
                 id="segments"
@@ -60,19 +60,19 @@
     <div class="field">
         <label
             class="label"
-        >{{ $t('vod.edit.chapters') }}</label>
+        >{{ t('vod.edit.chapters') }}</label>
         <div class="control">
             <label class="checkbox">
                 <input
                     v-model="editVodSettings.editChapters"
                     type="checkbox"
                 >
-                {{ $t('vod.edit.edit-chapters') }}
+                {{ t('vod.edit.edit-chapters') }}
             </label>
         </div>
         <div v-if="editVodSettings.editChapters">
             <div class="notice is-error">
-                {{ $t('vod.edit.edit-chapters-warning') }}
+                {{ t('vod.edit.edit-chapters-warning') }}
             </div>
             <table class="table is-fullwidth">
                 <tr
@@ -256,7 +256,7 @@
                 @click="resetChapters"
             >
                 <span class="icon"><fa icon="undo" /></span>
-                <span>{{ $t('vod.edit.reset-chapters') }}</span>
+                <span>{{ t('vod.edit.reset-chapters') }}</span>
             </button>
             <p>
                 Total duration: {{ vod.duration }}
@@ -271,7 +271,7 @@
                     v-model="editVodSettings.prevent_deletion"
                     type="checkbox"
                 >
-                {{ $t('vod.edit.prevent-deletion') }}
+                {{ t('vod.edit.prevent-deletion') }}
             </label>
         </div>
     </div>
@@ -283,7 +283,7 @@
                     v-model="editVodSettings.cloud_storage"
                     type="checkbox"
                 >
-                {{ $t('vod.edit.cloud-storage') }}
+                {{ t('vod.edit.cloud-storage') }}
             </label>
         </div>
     </div>
@@ -294,7 +294,7 @@
             @click="doEditVod"
         >
             <span class="icon"><fa icon="save" /></span>
-            <span>{{ $t("buttons.save") }}</span>
+            <span>{{ t("buttons.save") }}</span>
         </button>
     </div>
 </template>
@@ -310,9 +310,11 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { ApiGame, EditableChapter } from '@common/Api/Client';
 import { TwitchVODChapter } from '@/core/Providers/Twitch/TwitchVODChapter';
 import { formatDuration } from '@/mixins/newhelpers';
+import { useI18n } from 'vue-i18n';
 library.add(faUndo);
 
 const store = useStore();
+const { t } = useI18n();
 
 const props = defineProps<{
     vod: VODTypes;

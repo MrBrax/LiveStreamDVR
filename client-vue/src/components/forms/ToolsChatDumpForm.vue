@@ -30,7 +30,7 @@
                     type="submit"
                 >
                     <span class="icon"><fa icon="download" /></span>
-                    <span>{{ $t('buttons.execute') }}</span>
+                    <span>{{ t('buttons.execute') }}</span>
                 </button>
             </div>
             <div :class="formStatusClass">
@@ -42,10 +42,15 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { useI18n } from "vue-i18n";
 
 export default defineComponent({
     name: "ToolsChatDumpForm",
     emits: ["formSuccess"],
+    setup() {
+        const { t } = useI18n();
+        return { t };
+    },
     data() {
         return {
             formStatusText: "Ready",
@@ -66,7 +71,7 @@ export default defineComponent({
     },
     methods: {
         submitForm(event: Event) {
-            this.formStatusText = this.$t("messages.loading");
+            this.formStatusText = this.t("messages.loading");
             this.formStatus = "";
 
             this.$http

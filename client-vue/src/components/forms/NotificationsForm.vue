@@ -44,7 +44,7 @@
                     type="submit"
                 >
                     <span class="icon"><fa icon="save" /></span>
-                    <span>{{ $t('buttons.save') }}</span>
+                    <span>{{ t('buttons.save') }}</span>
                 </button>
             </div>
             <div :class="formStatusClass">
@@ -92,6 +92,7 @@
 import { useStore } from "@/store";
 import { ApiResponse } from "@common/Api/Api";
 import { defineComponent } from "vue";
+import { useI18n } from "vue-i18n";
 import { NotificationProvider, NotificationProvidersList, NotificationCategories } from "../../../../common/Defs";
 
 export default defineComponent({
@@ -100,7 +101,8 @@ export default defineComponent({
     // props: {},
     setup() {
         const store = useStore();
-        return { store, NotificationProvider, NotificationProvidersList, NotificationCategories };
+        const { t } = useI18n();
+        return { store, NotificationProvider, NotificationProvidersList, NotificationCategories, t };
     },
     data(): {
         formStatusText: string;

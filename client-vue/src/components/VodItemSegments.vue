@@ -4,7 +4,7 @@
         v-if="vod.is_finalized"
         class="video-segments"
     >
-        <strong>{{ $t('vod.segments') }}</strong>
+        <strong>{{ t('vod.segments') }}</strong>
         <ul class="list-segments">
             <li
                 v-for="(segment, i) of vod.segments"
@@ -82,6 +82,7 @@ import { isTwitchVOD } from '@/mixins/newhelpers';
 import { useStore, VODTypes } from '@/store';
 import { ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
     vod: {
@@ -92,6 +93,7 @@ const props = defineProps({
 });
 
 const store = useStore();
+const { t } = useI18n();
 
 function doDeleteSegment(index = 0) {
     if (!props.vod) return;

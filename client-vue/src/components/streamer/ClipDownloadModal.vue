@@ -6,7 +6,7 @@
             @click="fetchTwitchClips"
         >
             <span class="icon"><fa icon="download" /></span>
-            <span>{{ $t('vod.fetch-clip-list') }}</span>
+            <span>{{ t('vod.fetch-clip-list') }}</span>
         </button>
         <hr>
         <template v-if="!loading">
@@ -35,7 +35,7 @@
                     @click="downloadClip(clip)"
                 >
                     <span class="icon"><fa icon="download" /></span>
-                    <span>{{ $t("buttons.download") }}</span>
+                    <span>{{ t("buttons.download") }}</span>
                 </button>
             </div>
         </template>
@@ -43,7 +43,7 @@
             <span class="icon"><fa
                 icon="spinner"
                 spin
-            /></span> {{ $t('messages.loading') }}
+            /></span> {{ t('messages.loading') }}
         </template>
     </div>
 </template>
@@ -56,11 +56,14 @@ import axios from 'axios';
 import { ref } from 'vue';
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { useI18n } from 'vue-i18n';
 library.add(faSpinner);
 
 const props = defineProps<{
     streamer: ChannelTypes;
 }>();
+
+const { t } = useI18n();
 
 const onlineClips = ref<Clip[]>([]);
 const loading = ref(false);

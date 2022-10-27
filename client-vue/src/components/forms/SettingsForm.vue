@@ -11,7 +11,7 @@
                 v-model="searchText"
                 class="input"
                 type="text"
-                :placeholder="$t('input.search')"
+                :placeholder="t('input.search')"
             >
         </div>
         <details
@@ -31,7 +31,7 @@
                     class="label"
                     :for="'input_' + data.key"
                 >
-                    {{ te('config.' + data.key) ? $t('config.' + data.key) : data.text }} <span
+                    {{ te('config.' + data.key) ? t('config.' + data.key) : data.text }} <span
                         v-if="data.required"
                         class="required"
                     >*</span>
@@ -181,7 +181,7 @@
                 type="submit"
             >
                 <span class="icon"><fa icon="save" /></span>
-                <span>{{ $t('buttons.save') }}</span>
+                <span>{{ t('buttons.save') }}</span>
             </button>
             <span :class="formStatusClass">{{ formStatusText }}</span>
         </div>
@@ -194,7 +194,7 @@
                 @click="doValidateExternalURL"
             >
                 <span class="icon"><fa icon="globe" /></span>
-                <span>{{ $t('forms.config.validate-external-url') }}</span>
+                <span>{{ t('forms.config.validate-external-url') }}</span>
             </button>
         </div>
     </form>
@@ -202,7 +202,7 @@
         <span class="icon"><fa
             icon="sync"
             spin
-        /></span> {{ $t("messages.loading") }}
+        /></span> {{ t("messages.loading") }}
     </div>
     <hr>
     <youtube-auth />
@@ -342,7 +342,7 @@ export default defineComponent({
         },
         submitForm(event: Event) {
 
-            this.formStatusText = this.$t("messages.loading");
+            this.formStatusText = this.t("messages.loading");
             this.formStatus = "";
 
             this.$http

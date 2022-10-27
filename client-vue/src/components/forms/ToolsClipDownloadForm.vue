@@ -41,7 +41,7 @@
                     type="submit"
                 >
                     <span class="icon"><fa icon="download" /></span>
-                    <span>{{ $t('buttons.execute') }}</span>
+                    <span>{{ t('buttons.execute') }}</span>
                 </button>
             </div>
             <div :class="formStatusClass">
@@ -64,13 +64,15 @@ import { VideoQualityArray } from "../../../../common/Defs";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faDownload } from "@fortawesome/free-solid-svg-icons";
+import { useI18n } from "vue-i18n";
 library.add(faDownload);
 
 export default defineComponent({
     name: "ToolsClipDownloadForm",
     emits: ["formSuccess"],
     setup() {
-        return { VideoQualityArray };
+        const { t } = useI18n();
+        return { VideoQualityArray, t };
     },
     data() {
         return {
@@ -94,7 +96,7 @@ export default defineComponent({
     },
     methods: {
         submitForm(event: Event) {
-            this.formStatusText = this.$t("messages.loading");
+            this.formStatusText = this.t("messages.loading");
             this.formStatus = "";
 
             this.$http

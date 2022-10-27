@@ -1,7 +1,7 @@
 <template>
     <section class="section">
         <div class="section-title">
-            <h1>{{ $t('pages.channels') }}</h1>
+            <h1>{{ t('pages.channels') }}</h1>
         </div>
         <div class="section-content">
             <h1>Channels</h1>
@@ -34,7 +34,7 @@
             >
                 <span class="icon">
                     <fa icon="sign-in-alt" />
-                </span> {{ $t("messages.login") }}
+                </span> {{ t("messages.login") }}
             </div>
         </div>
     </section>
@@ -49,6 +49,7 @@ import { faUser, faCalendarCheck, faStar, faBell, faUserCog, faDatabase } from "
 import { faTwitch, faYoutube } from "@fortawesome/free-brands-svg-icons";
 import { useStore } from "@/store";
 import { ApiChannelConfig } from "@common/Api/Client";
+import { useI18n } from "vue-i18n";
 library.add(faUser, faCalendarCheck, faStar, faBell, faUserCog, faDatabase, faTwitch, faYoutube);
 
 export default defineComponent({
@@ -58,7 +59,8 @@ export default defineComponent({
     },
     setup() {
         const store = useStore();
-        return { store };
+        const { t } = useI18n();
+        return { store, t };
     },
     title() {
         return "Settings - Channels";

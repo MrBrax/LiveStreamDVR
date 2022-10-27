@@ -55,13 +55,13 @@
                     </td>
                 </tr>
             </table>
-            <em v-if="store.jobList.length == 0">{{ $t('jobs.no-jobs-running') }}</em>
+            <em v-if="store.jobList.length == 0">{{ t('jobs.no-jobs-running') }}</em>
             <em v-if="store.jobList.length > 1 && !expanded">
                 <span class="icon"><fa
                     icon="sync"
                     spin
                 /></span>
-                {{ $t('jobs.jobs-running', { count: store.jobList.length }) }}
+                {{ t('jobs.jobs-running', { count: store.jobList.length }) }}
             </em>
         </div>
         <div class="statustab-jobs-toggle">
@@ -86,6 +86,7 @@ import { JobStatus } from "@common/Defs";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCircle, faClock, faExclamationTriangle, faSync, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { defineComponent } from "vue";
+import { useI18n } from "vue-i18n";
 library.add(faSync, faTimes, faExclamationTriangle, faClock, faCircle);
 
 export default defineComponent({
@@ -95,7 +96,8 @@ export default defineComponent({
     },
     setup() {
         const store = useStore();
-        return { store, JobStatus };
+        const { t } = useI18n();
+        return { store, JobStatus, t };
     },
     data() {
         return {

@@ -22,7 +22,7 @@
                     <input
                         v-model="(updateConfig[key] as boolean)"
                         type="checkbox"
-                    > {{ te('clientsetting.' + key) ? $t('clientsetting.' + key) : value.name }}
+                    > {{ te('clientsetting.' + key) ? t('clientsetting.' + key) : value.name }}
                 </label>
             </div>
             <div
@@ -168,7 +168,7 @@
                 @click="saveClientConfig"
             >
                 <span class="icon"><fa icon="save" /></span>
-                <span>{{ $t('buttons.save') }}</span>
+                <span>{{ t('buttons.save') }}</span>
             </button>
         </div>
         <br>
@@ -188,7 +188,7 @@
                 @click="logout"
             >
                 <span class="icon"><fa icon="arrow-right-from-bracket" /></span>
-                <span>{{ $t('buttons.logout') }}</span>
+                <span>{{ t('buttons.logout') }}</span>
             </button>
         </div>
     </div>

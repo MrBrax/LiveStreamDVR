@@ -3,12 +3,12 @@
         v-if="!vod?.segments || vod.segments.length == 0"
         class="notification is-error"
     >
-        {{ $t('vod.export.no-segments') }}
+        {{ t('vod.export.no-segments') }}
     </div>
 
     <!-- Exporter -->
     <div class="field">
-        <label class="label">{{ $t('vod.export.export-type') }}</label>
+        <label class="label">{{ t('vod.export.export-type') }}</label>
         <div class="control">
             <div class="select">
                 <select v-model="exporter">
@@ -55,7 +55,7 @@
 
     <!-- File -->
     <div class="field">
-        <label class="label">{{ $t('vod.export.file-source') }}</label>
+        <label class="label">{{ t('vod.export.file-source') }}</label>
         <div class="control">
             <div class="select">
                 <select v-model="exportVodSettings.file_source">
@@ -81,7 +81,7 @@
 
     <!-- Title / Filename -->
     <div class="field">
-        <label class="label">{{ $t('vod.export.title-template') }}</label>
+        <label class="label">{{ t('vod.export.title-template') }}</label>
         <div class="control">
             <input
                 v-model="exportVodSettings.title_template"
@@ -116,7 +116,7 @@
         v-if="exporter == 'file' || exporter == 'sftp' || exporter == 'ftp' || exporter == 'rclone'"
         class="field"
     >
-        <label class="label">{{ $t('vod.export.directory') }}</label>
+        <label class="label">{{ t('vod.export.directory') }}</label>
         <div class="control">
             <input
                 v-model="exportVodSettings.directory"
@@ -134,7 +134,7 @@
         v-if="exporter == 'sftp' || exporter == 'ftp'"
         class="field"
     >
-        <label class="label">{{ $t('vod.export.host') }}</label>
+        <label class="label">{{ t('vod.export.host') }}</label>
         <div class="control">
             <input
                 v-model="exportVodSettings.host"
@@ -149,7 +149,7 @@
         v-if="exporter == 'rclone'"
         class="field"
     >
-        <label class="label">{{ $t('vod.export.remote') }}</label>
+        <label class="label">{{ t('vod.export.remote') }}</label>
         <div class="control has-addon">
             <div class="select">
                 <select v-model="exportVodSettings.remote">
@@ -164,7 +164,7 @@
             </div>
             <button
                 class="button is-confirm"
-                :title="$t('vod.export.get-remotes')"
+                :title="t('vod.export.get-remotes')"
                 @click="getRemotes"
             >
                 <span class="icon">
@@ -182,7 +182,7 @@
         v-if="exporter == 'sftp' || exporter == 'ftp'"
         class="field"
     >
-        <label class="label">{{ $t('vod.export.username') }}</label>
+        <label class="label">{{ t('vod.export.username') }}</label>
         <div class="control">
             <input
                 v-model="exportVodSettings.username"
@@ -197,7 +197,7 @@
         v-if="exporter == 'ftp'"
         class="field"
     >
-        <label class="label">{{ $t('vod.export.password') }}</label>
+        <label class="label">{{ t('vod.export.password') }}</label>
         <div class="control">
             <input
                 v-model="exportVodSettings.password"
@@ -206,7 +206,7 @@
             >
         </div>
         <p class="help">
-            {{ $t('vod.export.password-help') }}
+            {{ t('vod.export.password-help') }}
         </p>
     </div>
 
@@ -223,7 +223,7 @@
         v-if="exporter == 'youtube'"
         class="field"
     >
-        <label class="label">{{ $t('vod.export.description') }}</label>
+        <label class="label">{{ t('vod.export.description') }}</label>
         <div class="control">
             <textarea
                 v-model="exportVodSettings.description"
@@ -237,7 +237,7 @@
         v-if="exporter == 'youtube'"
         class="field"
     >
-        <label class="label">{{ $t('vod.export.category') }}</label>
+        <label class="label">{{ t('vod.export.category') }}</label>
         <div class="control">
             <div class="select">
                 <select v-model="exportVodSettings.category">
@@ -258,7 +258,7 @@
         v-if="exporter == 'youtube'"
         class="field"
     >
-        <label class="label">{{ $t('vod.export.tags') }}</label>
+        <label class="label">{{ t('vod.export.tags') }}</label>
         <div class="control">
             <input
                 v-model="exportVodSettings.tags"
@@ -267,7 +267,7 @@
             >
         </div>
         <p class="input-help">
-            {{ $t('vod.export.tags-help') }}
+            {{ t('vod.export.tags-help') }}
         </p>
     </div>
 
@@ -276,7 +276,7 @@
         v-if="exporter == 'youtube'"
         class="field"
     >
-        <label class="label">{{ $t('vod.export.playlist') }}</label>
+        <label class="label">{{ t('vod.export.playlist') }}</label>
         <div class="control has-addon">
             <div class="select">
                 <select
@@ -284,7 +284,7 @@
                     :disabled="LoadingPlaylists"
                 >
                     <option value="">
-                        ({{ $t('messages.none') }})
+                        ({{ t('messages.none') }})
                     </option>
                     <option
                         v-for="(p, i) in YouTubePlaylists"
@@ -297,7 +297,7 @@
             </div>
             <button
                 class="button is-confirm"
-                :title="$t('vod.export.get-playlists')"
+                :title="t('vod.export.get-playlists')"
                 @click="getYouTubePlaylists"
             >
                 <span class="icon">
@@ -309,7 +309,7 @@
             </button>
             <button
                 class="button is-confirm"
-                :title="$t('vod.export.create-playlist')"
+                :title="t('vod.export.create-playlist')"
                 @click="createYouTubePlaylist"
             >
                 <span class="icon">
@@ -318,7 +318,7 @@
             </button>
         </div>
         <p class="input-help">
-            {{ $t('vod.export.playlist-help') }}
+            {{ t('vod.export.playlist-help') }}
         </p>
         <p class="input-help">
             ID: <code>{{ exportVodSettings.playlist_id }}</code>
@@ -330,23 +330,23 @@
         v-if="exporter == 'youtube'"
         class="field"
     >
-        <label class="label">{{ $t('vod.export.privacy') }}</label>
+        <label class="label">{{ t('vod.export.privacy') }}</label>
         <div class="control">
             <div class="select">
                 <select v-model="exportVodSettings.privacy">
                     <option value="public">
-                        {{ $t('vod.export.privacy-public') }}
+                        {{ t('vod.export.privacy-public') }}
                     </option>
                     <option value="unlisted">
-                        {{ $t('vod.export.privacy-unlisted') }}
+                        {{ t('vod.export.privacy-unlisted') }}
                     </option>
                     <option value="private">
-                        {{ $t('vod.export.privacy-private') }}
+                        {{ t('vod.export.privacy-private') }}
                     </option>
                 </select>
             </div>
             <p class="input-help">
-                {{ $t('vod.export.privacy-help') }}
+                {{ t('vod.export.privacy-help') }}
             </p>
         </div>
     </div>
@@ -359,7 +359,7 @@
                 :disabled="loading"
             >
                 <span class="icon"><fa :icon="loading ? 'spinner' : 'upload'" :spin="loading" /></span>
-                <span>{{ $t("buttons.export") }}</span>
+                <span>{{ t("buttons.export") }}</span>
             </button>
         </div>
     </div>
@@ -375,12 +375,14 @@ import axios from 'axios';
 import { ApiResponse } from '@common/Api/Api';
 import YoutubeAuth from "@/components/YoutubeAuth.vue";
 import { ExporterOptions } from "../../../../common/Exporter";
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
     vod: VODTypes;
 }>();
 
 const store = useStore();
+const { t } = useI18n();
 
 const exportVodSettings = ref<ExporterOptions>({
     // exporter: "file",

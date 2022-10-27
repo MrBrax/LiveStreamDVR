@@ -22,7 +22,7 @@
             class="section"
         >
             <div class="section-title">
-                <h1>{{ $t("dashboard.motd") }}</h1>
+                <h1>{{ t("dashboard.motd") }}</h1>
             </div>
             <div class="section-content motd">
                 {{ store.cfg('motd') }}
@@ -33,7 +33,7 @@
             data-section="vods"
         >
             <div class="section-title">
-                <h1>{{ $t("dashboard.recorded_vods") }}</h1>
+                <h1>{{ t("dashboard.recorded_vods") }}</h1>
             </div>
             <div
                 v-if="store.streamerListLoaded && store.streamerList.length > 0"
@@ -55,9 +55,9 @@
                 </template>
                 <hr>
                 <div class="dashboard-stats">
-                    <strong>{{ $t('views.dashboard.total-size', [formatBytes(store.diskTotalSize)]) }}</strong>
+                    <strong>{{ t('views.dashboard.total-size', [formatBytes(store.diskTotalSize)]) }}</strong>
                     <br>
-                    <strong>{{ $t('views.dashboard.free-space', [formatBytes(store.diskFreeSize)]) }}</strong>
+                    <strong>{{ t('views.dashboard.free-space', [formatBytes(store.diskFreeSize)]) }}</strong>
                 </div>
             </div>
             <div
@@ -67,13 +67,13 @@
                 <span class="icon"><fa
                     icon="sync"
                     spin
-                /></span> {{ $t("messages.loading") }}
+                /></span> {{ t("messages.loading") }}
             </div>
             <div
                 v-else-if="!store.authElement"
                 class="section-content"
             >
-                <span class="icon"><fa icon="sign-in-alt" /></span> {{ $t("messages.login") }}
+                <span class="icon"><fa icon="sign-in-alt" /></span> {{ t("messages.login") }}
             </div>
             <div
                 v-else
@@ -91,7 +91,7 @@
                 class="section-title"
                 @click="logToggle"
             >
-                <h1>{{ $t('dashboard.logs') }}</h1>
+                <h1>{{ t('dashboard.logs') }}</h1>
             </div>
             <div
                 v-if="logVisible && store.authElement"
@@ -103,7 +103,7 @@
                 v-else-if="!store.authElement"
                 class="section-content"
             >
-                <span class="icon"><fa icon="sign-in-alt" /></span> {{ $t("messages.login") }}
+                <span class="icon"><fa icon="sign-in-alt" /></span> {{ t("messages.login") }}
             </div>
         </section>
     </div>
@@ -115,6 +115,7 @@ import Streamer from "@/components/StreamerItem.vue";
 import type { ApiTwitchChannel } from "@common/Api/Client";
 import { ChannelTypes, useStore } from "@/store";
 import LogViewer from "@/components/LogViewer.vue";
+import { useI18n } from "vue-i18n";
 
 interface DashboardData {
     loading: boolean;
@@ -133,7 +134,8 @@ export default defineComponent({
     setup() {
         const store = useStore();
         const logviewer = ref<InstanceType<typeof LogViewer>>();
-        return { store, logviewer };
+        const { t } = useI18n();
+        return { store, logviewer, t };
     },
     title(): string {
         // if (this.store.channelsOnline > 0) return `[${this.store.channelsOnline}] Dashboard`;
