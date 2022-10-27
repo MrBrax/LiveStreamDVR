@@ -28,41 +28,6 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { useI18n } from "vue-i18n";
 library.add(faSync, faTimes, faExclamationTriangle, faClock, faCircle);
 
-/*
-export default defineComponent({
-    name: "WebsocketStatus",
-    props: {
-        websocket: {
-            type: WebSocket,
-            required: true,
-        },
-        websocketConnected: {
-            type: Boolean,
-            required: true,
-        },
-        websocketConnecting: {
-            type: Boolean,
-            required: true,
-        },
-        timer: {
-            type: Number,
-            required: true,
-        },
-        tickerInterval: {
-            type: Number,
-            required: true,
-        },
-        loading: {
-            type: Boolean,
-        },
-    },
-    setup() {
-        const store = useStore();
-        return { store };
-    },
-});
-*/
-
 const store = useStore();
 const { t } = useI18n();
 

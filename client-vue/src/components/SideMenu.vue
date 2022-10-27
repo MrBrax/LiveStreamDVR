@@ -22,7 +22,10 @@
                         :title="verboseVersion"
                     >
                         <span>{{ store.app_name }}</span> <template v-if="store.serverGitBranch == 'develop-ts'">
-                            <span class="githash" @click="copyDebugStuff">{{ store.serverGitHash?.substring(0, 6) }}/{{ clientHash.substring(0, 6) }}</span>
+                            <span
+                                class="githash"
+                                @click="copyDebugStuff"
+                            >{{ store.serverGitHash?.substring(0, 6) }}/{{ clientHash.substring(0, 6) }}</span>
                         </template>
                         <template v-else>
                             <span>S{{ store.version }}</span>/<span :class="{ dev: isDev }">C{{ clientVersion }}</span>
@@ -164,8 +167,8 @@
     </div>
 </template>
 
-<script lang="ts">
-import { DefineComponent, defineComponent } from "vue";
+<script lang="ts" setup>
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import pack from "../../package.json";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -174,112 +177,134 @@ import { faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faSt
 import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import SideMenuStreamer from "./SideMenuStreamer.vue";
 
-import { ChannelTypes, useStore } from "@/store";
+import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 
 library.add(faGithub, faFilm, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faArchive, faSignInAlt);
 
-export default defineComponent({
-    name: "SideMenu",
-    components: { SideMenuStreamer },
-    setup() {
-        const store = useStore();
-        const { t } = useI18n();
-        return { store, t };
+const store = useStore();
+const { t } = useI18n();
+
+const password = ref("");
+const expandAll = ref(false);
+const keySub = ref(() => { console.log("key"); });
+const keyMeme = ref<string[]>([]);
+
+/*
+    sortedStreamers(): ChannelTypes[] {
+        const streamers = [...this.store.streamerList];
+        return streamers.sort((a, b) => a.displayName.localeCompare(b.displayName));
     },
-    data() {
-        return {
-            password: "",
-            expandAll: false,
-            keySub: () => { console.log("key"); },
-            keyMeme: [] as string[],
-        };
+    clientVersion(): string {
+        return import.meta.env.VITE_APP_VERSION; // injected
     },
-    computed: {
-        sortedStreamers(): ChannelTypes[] {
-            const streamers = [...this.store.streamerList];
-            return streamers.sort((a, b) => a.displayName.localeCompare(b.displayName));
-        },
-        clientVersion(): string {
-            return import.meta.env.VITE_APP_VERSION; // injected
-        },
-        clientHash(): string {
-            return (import.meta.env.VITE_APP_GIT_HASH).substring(1); // injected
-        },
-        clientBuildDate(): string {
-            return import.meta.env.VITE_APP_BUILDDATE; // injected
-        },
-        verboseVersion(): string {
-            return `Server ${this.store.version} (${this.store.serverGitHash} / ${this.store.serverGitBranch})\n` +
-            `Client ${this.clientVersion} (${this.clientBuildDate} / ${this.clientHash})`;
-        },
-        homepageLink(): string {
-            return pack.homepage;
-        },
-        isDev(): boolean {
-            return import.meta.env.DEV; // injected
-        }
+    clientHash(): string {
+        return (import.meta.env.VITE_APP_GIT_HASH).substring(1); // injected
     },
-    mounted() {
-        this.keySub = this.store.$onAction(({ name, args }) => {
-            if (name !== "keyEvent") return;
-            const key = args[0];
-            if (key == "m") {
-                // i don't like this solution, not sure if i'm just having a brain fart
-                if (this.$refs.streamer) {
-                    this.expandAll = !this.expandAll;
-                    (this.$refs.streamer as any).forEach((element: DefineComponent) => {
-                        element.expanded = this.expandAll;
-                    });
-                }
-            }
-            /*
-            switch (key) {
-                case "q":
-                    this.$router.push({ name: "Dashboard" });
-                    break;
-                case "w":
-                    this.$router.push({ name: "Files" });
-                    break;
-                case "e":
-                    this.$router.push({ name: "Tools" });
-                    break;
-                case "r":
-                    this.$router.push({ name: "Settings" });
-                    break;
-                case "t":
-                    this.$router.push({ name: "About" });
-                    break;
-            
-                default:
-                    break;
-                
-            }
-            */
-            this.keyMeme.push(key); if (this.keyMeme.length > 10) this.keyMeme.splice(0, 1);
-            if (this.keyMeme.join(" ") == "ArrowUp ArrowUp ArrowDown ArrowDown ArrowLeft ArrowRight ArrowLeft ArrowRight b a") document.location = 'https://youtu.be/dQw4w9WgXcQ';
-        });
+    clientBuildDate(): string {
+        return import.meta.env.VITE_APP_BUILDDATE; // injected
     },
-    unmounted() {
-        this.keySub();
+    verboseVersion(): string {
+        return `Server ${this.store.version} (${this.store.serverGitHash} / ${this.store.serverGitBranch})\n` +
+        `Client ${this.clientVersion} (${this.clientBuildDate} / ${this.clientHash})`;
     },
-    methods: {
-        login() {
-            this.store.login(this.password).then((status) => {
-                if (status) location.reload();
-            });
-            this.password = "";
-        },
-        copyDebugStuff(e: Event) {
-            let text = "";
-            text += `Server ${this.store.version} (${this.store.serverGitHash} / ${this.store.serverGitBranch})\n`;
-            text += `Client ${this.clientVersion} (${import.meta.env.VITE_APP_BUILDDATE} / ${this.clientHash})`;
-            navigator.clipboard.writeText(text);
-            alert("Copied to clipboard");
-            e.preventDefault();
-        }
+    homepageLink(): string {
+        return pack.homepage;
     },
+    isDev(): boolean {
+        return import.meta.env.DEV; // injected
+    }
+*/
+
+const sortedStreamers = computed(() => {
+    const streamers = [...store.streamerList];
+    return streamers.sort((a, b) => a.displayName.localeCompare(b.displayName));
 });
+
+const clientVersion: string = import.meta.env.VITE_APP_VERSION; // injected
+
+const clientHash: string = (import.meta.env.VITE_APP_GIT_HASH).substring(1); // injected
+
+const clientBuildDate: string = import.meta.env.VITE_APP_BUILDDATE; // injected
+
+const verboseVersion = computed(() => {
+    return `Server ${store.version} (${store.serverGitHash} / ${store.serverGitBranch})\n` +
+        `Client ${clientVersion} (${clientBuildDate} / ${clientHash})`;
+});
+
+const homepageLink = computed(() => {
+    return pack.homepage;
+});
+
+const isDev = computed(() => {
+    return import.meta.env.DEV; // injected
+});
+
+
+onMounted(() => {
+    keySub.value = store.$onAction(({ name, args }) => {
+        if (name !== "keyEvent") return;
+        const key = args[0];
+
+        // TODO: redo
+        // if (key == "m") {
+        //     // i don't like this solution, not sure if i'm just having a brain fart
+        //     if (this.$refs.streamer) {
+        //         this.expandAll = !this.expandAll;
+        //         (this.$refs.streamer as any).forEach((element: DefineComponent) => {
+        //             element.expanded = this.expandAll;
+        //         });
+        //     }
+        // }
+
+        /*
+        switch (key) {
+            case "q":
+                this.$router.push({ name: "Dashboard" });
+                break;
+            case "w":
+                this.$router.push({ name: "Files" });
+                break;
+            case "e":
+                this.$router.push({ name: "Tools" });
+                break;
+            case "r":
+                this.$router.push({ name: "Settings" });
+                break;
+            case "t":
+                this.$router.push({ name: "About" });
+                break;
+        
+            default:
+                break;
+            
+        }
+        */
+        keyMeme.value.push(key); if (keyMeme.value.length > 10) keyMeme.value.splice(0, 1);
+        if (keyMeme.value.join(" ") == "ArrowUp ArrowUp ArrowDown ArrowDown ArrowLeft ArrowRight ArrowLeft ArrowRight b a") document.location = 'https://youtu.be/dQw4w9WgXcQ';
+    });
+});
+
+onUnmounted(() => {
+    keySub.value();
+});
+
+function login() {
+    store.login(password.value).then((status) => {
+        if (status) location.reload();
+    });
+    password.value = "";
+}
+
+function copyDebugStuff(e: Event) {
+    let text = "";
+    text += `Server ${store.version} (${store.serverGitHash} / ${store.serverGitBranch})\n`;
+    text += `Client ${clientVersion} (${import.meta.env.VITE_APP_BUILDDATE} / ${clientHash})`;
+    navigator.clipboard.writeText(text);
+    alert("Copied to clipboard");
+    e.preventDefault();
+}
+
 </script>
 
 <style lang="scss" scoped>

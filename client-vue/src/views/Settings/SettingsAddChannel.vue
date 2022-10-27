@@ -9,26 +9,16 @@
     </section>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import { useStore } from "@/store";
-import { defineComponent } from "vue";
 import ChannelAddForm from "@/components/forms/ChannelAddForm.vue";
 import { useI18n } from "vue-i18n";
 
-export default defineComponent({
-    // name: "SettingsChannelsView",
-    components: {
-        ChannelAddForm,
-    },
-    setup() {
-        const store = useStore();
-        const { t } = useI18n();
-        return { store, t };
-    },
-    methods: {
-        updateUsers() {
-            this.store.fetchAndUpdateStreamerList();
-        },
-    },
-});
+const store = useStore();
+const { t } = useI18n();
+
+function updateUsers() {
+    store.fetchAndUpdateStreamerList();
+}
+
 </script>

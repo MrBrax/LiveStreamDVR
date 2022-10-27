@@ -79,16 +79,16 @@
     </div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import DurationDisplay from "@/components/DurationDisplay.vue";
 import { useStore } from "@/store";
 import { JobStatus } from "@common/Defs";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCircle, faClock, faExclamationTriangle, faSync, faTimes } from "@fortawesome/free-solid-svg-icons";
-import { defineComponent } from "vue";
+import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 library.add(faSync, faTimes, faExclamationTriangle, faClock, faCircle);
-
+/*
 export default defineComponent({
     name: "JobStatus",
     components: {
@@ -107,5 +107,14 @@ export default defineComponent({
     mounted() {
         this.expanded = this.store.clientCfg("jobStatusExpandedByDefault", false);
     },
+});
+*/
+
+const store = useStore();
+const { t } = useI18n();
+const expanded = ref(false);
+
+onMounted(() => {
+    expanded.value = store.clientCfg("jobStatusExpandedByDefault", false);
 });
 </script>

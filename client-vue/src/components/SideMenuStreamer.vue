@@ -124,8 +124,8 @@
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script lang="ts" setup>
+import { computed, defineComponent, ref } from "vue";
 
 import DurationDisplay from "@/components/DurationDisplay.vue";
 import SideMenuStreamerVod from "./SideMenuStreamerVod.vue";
@@ -135,74 +135,52 @@ import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { faFilm, faHeadphones, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faTrashArrowUp, faChevronDown, faChevronUp, faLock, faGamepad, faBed, faComment } from "@fortawesome/free-solid-svg-icons";
 import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import { ChannelTypes, useStore, VODTypes } from "@/store";
+import { nonGameCategories } from "../../../common/Defs";
+import { isTwitch } from "@/mixins/newhelpers";
 library.add(faGithub, faFilm, faHeadphones, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faTrashArrowUp, faChevronDown, faChevronUp, faLock, faGamepad, faBed, faComment);
 
-import { MuteStatus, nonGameCategories, TwitchVodAge } from "../../../common/Defs";
-import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 
-export default defineComponent({
-    name: "SideMenuStreamer",
-    components: {
-        DurationDisplay,
-        SideMenuStreamerVod,
-    },
-    props: {
-        streamer: {
-            type: Object as () => ChannelTypes,
-            required: true,
-        },
-    },
-    setup() {
-        const store = useStore();
-        return { store, nonGameCategories, MuteStatus };
-    },
-    data() {
-        return {
-            expanded: false,
-            // show: {
-            //     vod_date: true,
-            //     vod_sxe: false,
-            //     vod_sxe_absolute: false,
-            //     vod_size: true,
-            //     vod_duration: true,
-            //     vod_basename: false,
-            // }
-        };
-    },
-    computed: {
-        filteredVodsList(): VODTypes[] {
-            if (!this.streamer) return [];
-            if (this.expanded || this.store.clientCfg('expandVodList')) return this.streamer.vods_list;
-            const vodsToShow = this.store.clientCfg('vodsToShowInMenu', 4);
-            if (vodsToShow === 0) return [];
-            // return last 4 vods
-            return this.streamer.vods_list.slice(-vodsToShow);
-        },
-        avatarUrl(): string {
-            if (!this.streamer) return "";
-            // if (this.streamer.channel_data?.cache_avatar) return `${this.store.cfg<string>("basepath", "")}/cache/avatars/${this.streamer.channel_data.cache_avatar}`;
-            // return this.streamer.profile_image_url;
-            return this.streamer.profilePictureUrl;
-        },
-        bannerUrl(): string {
-            if (!this.streamer || !this.isTwitch(this.streamer)) return "";
-            if (this.streamer.channel_data?.cache_offline_image) return `${this.store.cfg<string>("basepath", "")}/cache/banners/${this.streamer.channel_data.cache_offline_image}`;
-            return this.streamer.offline_image_url;
-        },
-        gameVerb(): string {
-            if (!this.streamer || !this.isTwitch(this.streamer)) return "";
-            if (!this.streamer.current_game) return "";
-            if (nonGameCategories.includes(this.streamer.current_game.name)) return "Streaming";
-            if (this.streamer.current_game.name === "Among Us") return "Sussing"; // lol
-            return "Playing";
-        }
-    },
-    methods: {
-        toggleExpand() {
-            this.expanded = !this.expanded;
-        },
-    }
+const store = useStore();
+const props = defineProps<{
+    streamer: ChannelTypes;
+}>();
+
+const expanded = ref(false);
+    
+const filteredVodsList = computed((): VODTypes[] => {
+    if (!props.streamer) return [];
+    if (expanded.value || store.clientCfg('expandVodList')) return props.streamer.vods_list;
+    const vodsToShow = store.clientCfg('vodsToShowInMenu', 4);
+    if (vodsToShow === 0) return [];
+    // return last 4 vods
+    return props.streamer.vods_list.slice(-vodsToShow);
 });
+
+const avatarUrl = computed((): string => {
+    if (!props.streamer) return "";
+    // if (props.streamer.channel_data?.cache_avatar) return `${store.cfg<string>("basepath", "")}/cache/avatars/${props.streamer.channel_data.cache_avatar}`;
+    // return props.streamer.profile_image_url;
+    return props.streamer.profilePictureUrl;
+});
+
+const bannerUrl = computed((): string => {
+    if (!props.streamer || !isTwitch(props.streamer)) return "";
+    if (props.streamer.channel_data?.cache_offline_image) return `${store.cfg<string>("basepath", "")}/cache/banners/${props.streamer.channel_data.cache_offline_image}`;
+    return props.streamer.offline_image_url;
+});
+
+const gameVerb = computed((): string => {
+    if (!props.streamer || !isTwitch(props.streamer)) return "";
+    if (!props.streamer.current_game) return "";
+    if (nonGameCategories.includes(props.streamer.current_game.name)) return "Streaming";
+    if (props.streamer.current_game.name === "Among Us") return "Sussing"; // lol
+    return "Playing";
+});
+    
+function toggleExpand() {
+    expanded.value = !expanded.value;
+}
+
 </script>
 
 <style lang="scss" scoped>
