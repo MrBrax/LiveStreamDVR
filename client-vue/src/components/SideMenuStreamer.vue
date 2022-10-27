@@ -125,7 +125,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, defineComponent, ref } from "vue";
+import { computed, ref } from "vue";
 
 import DurationDisplay from "@/components/DurationDisplay.vue";
 import SideMenuStreamerVod from "./SideMenuStreamerVod.vue";

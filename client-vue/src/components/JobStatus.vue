@@ -88,27 +88,6 @@ import { faCircle, faClock, faExclamationTriangle, faSync, faTimes } from "@fort
 import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 library.add(faSync, faTimes, faExclamationTriangle, faClock, faCircle);
-/*
-export default defineComponent({
-    name: "JobStatus",
-    components: {
-        DurationDisplay,
-    },
-    setup() {
-        const store = useStore();
-        const { t } = useI18n();
-        return { store, JobStatus, t };
-    },
-    data() {
-        return {
-            expanded: false,
-        };
-    },
-    mounted() {
-        this.expanded = this.store.clientCfg("jobStatusExpandedByDefault", false);
-    },
-});
-*/
 
 const store = useStore();
 const { t } = useI18n();
