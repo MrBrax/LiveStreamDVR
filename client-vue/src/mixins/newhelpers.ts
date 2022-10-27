@@ -48,6 +48,19 @@ export function formatDuration(duration_seconds: number) {
     return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
 }
 
+export function formatBytes(bytes: number, precision = 2): string {
+    const units = ["B", "KB", "MB", "GB", "TB"];
+    bytes = Math.max(bytes, 0);
+    let pow = Math.floor((bytes ? Math.log(bytes) : 0) / Math.log(1024));
+    pow = Math.min(pow, units.length - 1);
+    // Uncomment one of the following alternatives
+    bytes /= Math.pow(1024, pow);
+    // bytes /= (1 << (10 * pow));
+    // const finalAmount = Math.round(bytes)
+    const finalAmount = bytes.toFixed(precision);
+    return `${finalAmount} ${units[pow]}`;
+}
+
 export function isTwitch(vod: ChannelTypes): vod is TwitchChannel {
     return vod instanceof TwitchChannel;
 }

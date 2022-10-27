@@ -367,7 +367,7 @@ import axios, { AxiosError } from "axios";
 import { defineComponent, ref } from "vue";
 import ModalBox from "./ModalBox.vue";
 import YoutubeAuth from "./YoutubeAuth.vue";
-import { YouTubeCategories } from "@/defs";
+import { YouTubeCategories } from "@common/YouTube";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode, faFileLines, faDownload, faUpload } from "@fortawesome/free-solid-svg-icons";

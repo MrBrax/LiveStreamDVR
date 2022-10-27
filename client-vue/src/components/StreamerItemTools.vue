@@ -104,13 +104,14 @@
 </template>
 
 <script lang="ts" setup>
-import { ChannelTypes, useStore } from '@/store';
+import { ChannelTypes, useStore, VODTypes } from '@/store';
 import { ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
 import { computed } from 'vue';
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUpload } from "@fortawesome/free-solid-svg-icons";
+import { formatBytes } from '@/mixins/newhelpers';
 library.add(faUpload);
 
 const props = defineProps<{
@@ -289,7 +290,8 @@ function doExportVods() {
     if (!props.streamer) return;
     if (!confirm("Do you want to export ALL the VODs? This is a lot of data.")) return;
     if (!confirm("Are you sure?")) return;
-    if (!confirm("Are you really sure?")) return;
+    const totalSize: number = (props.streamer.vods_list as any).reduce((acc: number, vod: VODTypes) => acc + vod.total_size, 0); // what an ugly hack
+    if (!confirm(`This might upload ${formatBytes(totalSize)} of data. Are you really sure?`)) return;
     if (!confirm("Don't say I didn't warn you.")) return;
     const force = prompt("Do you want to force export? (y/n)", "n");
     axios
