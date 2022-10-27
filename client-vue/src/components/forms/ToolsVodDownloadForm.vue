@@ -49,7 +49,7 @@
                     type="submit"
                 >
                     <span class="icon"><fa icon="download" /></span>
-                    <span>{{ $t('buttons.execute') }}</span>
+                    <span>{{ t('buttons.execute') }}</span>
                 </button>
             </div>
             <div :class="formStatusClass">
@@ -66,96 +66,90 @@
     </form>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script lang="ts" setup>
+import { computed, reactive, ref } from "vue";
 import { VideoQualityArray } from "../../../../common/Defs";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faDownload } from "@fortawesome/free-solid-svg-icons";
+import { useI18n } from "vue-i18n";
+import axios from "axios";
 library.add(faDownload);
 
-export default defineComponent({
-    name: "ToolsVodDownloadForm",
-    emits: ["formSuccess"],
-    setup() {
-        return { VideoQualityArray };
-    },
-    data() {
-        return {
-            formStatusText: "Ready",
-            formStatus: "",
-            formData: {
-                url: "",
-                quality: "best",
-            },
-            fileLink: "",
-        };
-    },
-    computed: {
-        formStatusClass(): Record<string, boolean> {
-            return {
-                "form-status": true,
-                "is-error": this.formStatus == "ERROR",
-                "is-success": this.formStatus == "OK",
-            };
-        },
-    },
-    methods: {
-        submitForm(event: Event) {
-            this.formStatusText = this.$t("messages.loading");
-            this.formStatus = "";
+const emit = defineEmits(["formSuccess"]);
+const { t } = useI18n();
 
-            this.$http
-                .post(`/api/v0/tools/vod_download`, this.formData)
-                .then((response) => {
-                    const json = response.data;
-                    this.formStatusText = json.message;
-                    this.formStatus = json.status;
-                    if (json.status == "OK") {
-                        this.$emit("formSuccess", json);
-                    }
-                    if (json.data && json.data.web_path) {
-                        this.fileLink = json.data.web_path;
-                    }
-                })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                    if (this.axios.isAxiosError(err) && err.response) {
-                        if (err.response.data.status == "ERROR") {
-                            this.formStatusText = err.response.data.message;
-                            this.formStatus = err.response.data.status;
-                        } else {
-                            this.formStatusText = err.response.data;
-                            this.formStatus = "ERROR";
-                        }
-                    }
-                });
-
-            /*
-            fetch(`api/v0/tools/voddownload`, {
-                method: 'POST',
-                body: inputs
-            })
-            .then((response) => response.json())
-            .then((json) => {
-                this.formStatusText = json.message;
-                this.formStatus = json.status;
-                if(json.status == 'OK'){
-                    this.$emit('formSuccess', json);
-                }
-                if(json.data && json.data.web_path){
-                    this.fileLink = json.data.web_path;
-                }
-            }).catch((err) => {
-                console.error("Error burn form", err);
-                this.formStatusText = err;
-                this.formStatus = 'ERROR';
-            });
-            */
-
-            event.preventDefault();
-            return false;
-        },
-    },
+const formStatusText = ref("Ready");
+const formStatus = ref("");
+const formData = reactive({
+    url: "",
+    quality: "best",
 });
+const fileLink = ref("");
+
+const formStatusClass = computed((): Record<string, boolean> => {
+    return {
+        "form-status": true,
+        "is-error": formStatus.value == "ERROR",
+        "is-success": formStatus.value == "OK",
+    };
+});
+
+
+function submitForm(event: Event) {
+    formStatusText.value = t("messages.loading");
+    formStatus.value = "";
+
+    axios
+        .post(`/api/v0/tools/vod_download`, formData)
+        .then((response) => {
+            const json = response.data;
+            formStatusText.value = json.message;
+            formStatus.value = json.status;
+            if (json.status == "OK") {
+                emit("formSuccess", json);
+            }
+            if (json.data && json.data.web_path) {
+                fileLink.value = json.data.web_path;
+            }
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (axios.isAxiosError(err) && err.response) {
+                if (err.response.data.status == "ERROR") {
+                    formStatusText.value = err.response.data.message;
+                    formStatus.value = err.response.data.status;
+                } else {
+                    formStatusText.value = err.response.data;
+                    formStatus.value = "ERROR";
+                }
+            }
+        });
+
+    /*
+    fetch(`api/v0/tools/voddownload`, {
+        method: 'POST',
+        body: inputs
+    })
+    .then((response) => response.json())
+    .then((json) => {
+        formStatusText.value = json.message;
+        formStatus.value = json.status;
+        if(json.status == 'OK'){
+            this.$emit('formSuccess', json);
+        }
+        if(json.data && json.data.web_path){
+            this.fileLink = json.data.web_path;
+        }
+    }).catch((err) => {
+        console.error("Error burn form", err);
+        formStatusText.value = err;
+        formStatus.value = 'ERROR';
+    });
+    */
+
+    event.preventDefault();
+    return false;
+    
+}
 </script>

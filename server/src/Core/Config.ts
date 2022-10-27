@@ -1,25 +1,26 @@
+import { SettingField } from "@common/Config";
+import { ClipBasenameFields, ExporterFilenameFields, VodBasenameFields } from "@common/ReplacementsConsts";
+import { YouTubeCategories } from "@common/YouTube";
 import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
+import express from "express";
+import minimist from "minimist";
 import crypto from "node:crypto";
 import fs from "node:fs";
-import minimist from "minimist";
 import path from "node:path";
-import express from "express";
-import { SettingField } from "../../../common/Config";
-import { ClipBasenameFields, VodBasenameFields } from "../../../common/ReplacementsConsts";
+import { TwitchHelper } from "../Providers/Twitch";
+import { YouTubeHelper } from "../Providers/YouTube";
 import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot, HomeRoot } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
-import { TwitchHelper } from "../Providers/Twitch";
-import { KeyValue } from "./KeyValue";
-import { Log } from "./Log";
-import { Scheduler } from "./Scheduler";
+import { Helper } from "./Helper";
 import { Job } from "./Job";
+import { KeyValue } from "./KeyValue";
+import { LiveStreamDVR } from "./LiveStreamDVR";
+import { Log } from "./Log";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { TwitchGame } from "./Providers/Twitch/TwitchGame";
-import { YouTubeHelper } from "../Providers/YouTube";
-import { LiveStreamDVR } from "./LiveStreamDVR";
 import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
-import { Helper } from "./Helper";
+import { Scheduler } from "./Scheduler";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -71,7 +72,7 @@ export class Config {
             "help": "Enable this if your server is not exposed to the internet, aka no EventSub support.",
         },
 
-        { "key": "motd", "group": "Interface", "text": "MOTD", "type": "text", "help": "Shown at the top of the dashboard", guest: true },
+        { "key": "motd", "group": "Interface", "text": "MOTD", "type": "string", "help": "Shown at the top of the dashboard", guest: true, multiline: true },
         { "key": "password", "group": "Interface", "text": "Password", "type": "string", "help": "Keep blank for none. Username is admin" },
         { "key": "guest_mode", "group": "Interface", "text": "Guest mode", "type": "boolean", "default": false, "help": "Allow guests to access the interface.", guest: true },
         // { "key": "password_secure", "group": "Interface", "text": "Force HTTPS for password", "type": "boolean", "default": true },
@@ -214,7 +215,18 @@ export class Config {
         { "key": "exporter.default.host",           "group": "Exporter", "text": "Default host", "type": "string" },
         { "key": "exporter.default.username",       "group": "Exporter", "text": "Default username", "type": "string" },
         { "key": "exporter.default.password",       "group": "Exporter", "text": "Default password", "type": "string", "help": "This is stored unencrypted." },
-        { "key": "exporter.default.description",    "group": "Exporter", "text": "Default description", "type": "string", "help": "YouTube description." },
+        {
+            "key": "exporter.default.title_template",
+            "group": "Exporter",
+            "text": "Default title",
+            "type": "template",
+            "default": "{internalName}_{date}_{id}",
+            "help": "Default title for exporter.",
+            "replacements": ExporterFilenameFields,
+        },
+        { "key": "exporter.default.description",    "group": "Exporter", "text": "Default description", "type": "string", "help": "YouTube description.", multiline: true },
+        { "key": "exporter.default.category",       "group": "Exporter", "text": "Default category", "type": "array", "help": "YouTube category.", choices: YouTubeCategories },
+        { "key": "exporter.default.privacy",        "group": "Exporter", "text": "Default privacy", "type": "array", "help": "YouTube privacy.", choices: ["public", "unlisted", "private"], default: "private" },
         { "key": "exporter.default.tags",           "group": "Exporter", "text": "Default tags", "type": "string", "help": "YouTube tags." },
         { "key": "exporter.default.remote",         "group": "Exporter", "text": "Default remote", "type": "string", "help": "For RClone." },
         { "key": "exporter.auto.enabled",           "group": "Exporter", "text": "Enable auto exporter", "type": "boolean", "default": false, "help": "Enable auto exporter. Not fully tested yet." },
@@ -401,6 +413,10 @@ export class Config {
 
     }
 
+    /**
+     * @test disable
+     * @returns 
+     */
     loadConfig() {
 
         console.log(chalk.blue("Loading config..."));
@@ -522,6 +538,11 @@ export class Config {
                 newValue = newValue === "true" || newValue === "1";
             }
 
+            if (newValue === "") {
+                delete this.config[key]; // TODO: is this a good idea?
+                return;
+            }
+
             this.config[key] = newValue;
 
             /*
@@ -545,6 +566,11 @@ export class Config {
         }
     }
 
+    /**
+     * @test disable
+     * @param source 
+     * @returns 
+     */
     saveConfig(source = "unknown"): boolean {
 
         this._writeConfig = true;
@@ -689,12 +715,15 @@ export class Config {
 
     }
 
+    /**
+     * @test disable
+     */
     startWatchingConfig() {
 
         if (this.watcher) this.stopWatchingConfig();
 
         // no blocks in testing
-        if (process.env.NODE_ENV === "test") return;
+        // if (process.env.NODE_ENV === "test") return;
 
         // monitor config for external changes
         this.watcher = fs.watch(BaseConfigPath.config, (eventType, filename) => {
@@ -723,6 +752,55 @@ export class Config {
         }
     }
 
+    /**
+     * @test disable
+     */
+    static checkBuiltDependencies() {
+
+        // check if the client is built before starting the server
+        if (!fs.existsSync(path.join(BaseConfigFolder.client, "index.html"))) {
+            console.error(chalk.red("Client is not built. Please run yarn build inside the client-vue folder."));
+            console.error(chalk.red(`Expected path: ${path.join(BaseConfigFolder.client, "index.html")}`));
+            // process.exit(1);
+            throw new Error("Client is not built. Please run yarn build inside the client-vue folder.");
+        } else {
+            console.log(chalk.green("Client is built: " + path.join(BaseConfigFolder.client, "index.html")));
+        }
+
+        // check if the vodplayer is built before starting the server
+        if (!fs.existsSync(path.join(BaseConfigFolder.vodplayer, "index.html"))) {
+            console.error(chalk.red("VOD player is not built. Please run yarn build inside the twitch-vod-chat folder."));
+            console.error(chalk.red(`Expected path: ${path.join(BaseConfigFolder.vodplayer, "index.html")}`));
+            // process.exit(1);
+            throw new Error("VOD player is not built. Please run yarn build inside the twitch-vod-chat folder.");
+        } else {
+            console.log(chalk.green("VOD player is built: " + path.join(BaseConfigFolder.vodplayer, "index.html")));
+        }
+
+        // check if the chat dumper is built before starting the server
+        if (!fs.existsSync(path.join(AppRoot, "twitch-chat-dumper", "build", "index.js"))) {
+            console.error(chalk.red("Chat dumper is not built. Please run yarn build inside the twitch-chat-dumper folder."));
+            console.error(chalk.red(`Expected path: ${path.join(AppRoot, "twitch-chat-dumper", "build", "index.js")}`));
+            // process.exit(1);
+            throw new Error("Chat dumper is not built. Please run yarn build inside the twitch-chat-dumper folder.");
+        } else {
+            console.log(chalk.green("Chat dumper is built: " + path.join(AppRoot, "twitch-chat-dumper", "build", "index.js")));
+        }
+
+    }
+
+    /**
+     * @test disable
+     */
+    static checkAppRoot() {
+        // check that the app root is not outside of the root
+        if (!fs.existsSync(path.join(BaseConfigFolder.server, "tsconfig.json"))) {
+            console.error(chalk.red(`Could not find tsconfig.json in ${path.join(BaseConfigFolder.server, "tsconfig.json")}`));
+            // process.exit(1);
+            throw new Error(`Could not find tsconfig.json in ${path.join(BaseConfigFolder.server, "tsconfig.json")}`);
+        }
+    }
+
 
     /**
      * Initialise entire application, like loading config, creating folders, etc.
@@ -744,42 +822,9 @@ export class Config {
             fs.mkdirSync(DataRoot, { recursive: true });
         }
 
-        // check that the app root is not outside of the root
-        if (!fs.existsSync(path.join(BaseConfigFolder.server, "tsconfig.json"))) {
-            console.error(chalk.red(`Could not find tsconfig.json in ${AppRoot}`));
-            // process.exit(1);
-            throw new Error(`Could not find tsconfig.json in ${AppRoot}`);
-        }
+        this.checkAppRoot();
 
-        // check if the client is built before starting the server
-        if (!fs.existsSync(path.join(BaseConfigFolder.client, "index.html")) && process.env.NODE_ENV !== "test") {
-            console.error(chalk.red("Client is not built. Please run yarn build inside the client-vue folder."));
-            console.error(chalk.red(`Expected path: ${path.join(BaseConfigFolder.client, "index.html")}`));
-            // process.exit(1);
-            throw new Error("Client is not built. Please run yarn build inside the client-vue folder.");
-        } else {
-            console.log(chalk.green("Client is built: " + path.join(BaseConfigFolder.client, "index.html")));
-        }
-
-        // check if the vodplayer is built before starting the server
-        if (!fs.existsSync(path.join(BaseConfigFolder.vodplayer, "index.html")) && process.env.NODE_ENV !== "test") {
-            console.error(chalk.red("VOD player is not built. Please run yarn build inside the twitch-vod-chat folder."));
-            console.error(chalk.red(`Expected path: ${path.join(BaseConfigFolder.vodplayer, "index.html")}`));
-            // process.exit(1);
-            throw new Error("VOD player is not built. Please run yarn build inside the twitch-vod-chat folder.");
-        } else {
-            console.log(chalk.green("VOD player is built: " + path.join(BaseConfigFolder.vodplayer, "index.html")));
-        }
-
-        // check if the chat dumper is built before starting the server
-        if (!fs.existsSync(path.join(AppRoot, "twitch-chat-dumper", "build", "index.js")) && process.env.NODE_ENV !== "test") {
-            console.error(chalk.red("Chat dumper is not built. Please run yarn build inside the twitch-chat-dumper folder."));
-            console.error(chalk.red(`Expected path: ${path.join(AppRoot, "twitch-chat-dumper", "build", "index.js")}`));
-            // process.exit(1);
-            throw new Error("Chat dumper is not built. Please run yarn build inside the twitch-chat-dumper folder.");
-        } else {
-            console.log(chalk.green("Chat dumper is built: " + path.join(AppRoot, "twitch-chat-dumper", "build", "index.js")));
-        }
+        this.checkBuiltDependencies();
 
         const config = Config.getInstance().config;
         if (config && Object.keys(config).length > 0) {

@@ -7,16 +7,16 @@ import {isTwitchVOD} from "../../../Helpers/Types";
 import {encode as htmlentities} from "html-entities";
 import path from "node:path";
 import {trueCasePathSync} from "true-case-path";
-import {ApiTwitchVod} from "../../../../../common/Api/Client";
-import {TwitchVODBookmark} from "../../../../../common/Bookmark";
-import type {TwitchComment, TwitchCommentDump} from "../../../../../common/Comments";
-import {VideoQuality} from "../../../../../common/Config";
-import {JobStatus, MuteStatus, Providers} from "../../../../../common/Defs";
-import {AudioStream, FFProbe, VideoStream} from "../../../../../common/FFProbe";
-import {VideoMetadata} from "../../../../../common/MediaInfo";
-import {ProxyVideo} from "../../../../../common/Proxies/Video";
-import {Clip, ClipsResponse} from "../../../../../common/TwitchAPI/Clips";
-import {Video, VideosResponse} from "../../../../../common/TwitchAPI/Video";
+import {ApiTwitchVod} from "@common/Api/Client";
+import {TwitchVODBookmark} from "@common/Bookmark";
+import type {TwitchComment, TwitchCommentDump} from "@common/Comments";
+import {VideoQuality} from "@common/Config";
+import {JobStatus, MuteStatus, Providers} from "@common/Defs";
+import {AudioStream, FFProbe, VideoStream} from "@common/FFProbe";
+import {VideoMetadata} from "@common/MediaInfo";
+import {ProxyVideo} from "@common/Proxies/Video";
+import {Clip, ClipsResponse} from "@common/TwitchAPI/Clips";
+import {Video, VideosResponse} from "@common/TwitchAPI/Video";
 import {Helper} from "../../Helper";
 import {TwitchHelper} from "../../../Providers/Twitch";
 import {TwitchVODChapterJSON, TwitchVODJSON} from "../../../Storage/JSON";
@@ -730,6 +730,8 @@ export class TwitchVOD extends BaseVOD {
             capture_started2: this.capture_started2 ? this.capture_started2.toISOString() : undefined,
             conversion_started: this.conversion_started ? this.conversion_started.toISOString() : undefined,
 
+            capture_id: this.capture_id,
+
             is_converted: this.is_converted,
             is_capturing: this.is_capturing,
             is_converting: this.is_converting,
@@ -812,7 +814,7 @@ export class TwitchVOD extends BaseVOD {
         return job ? await job.getStatus() : JobStatus.STOPPED;
     }
 
-    public async saveJSON(reason = ""): Promise<false | TwitchVODJSON> {
+    public async saveJSON(reason = ""): Promise<boolean> {
 
         if (!this.filename) {
             throw new Error("Filename not set.");
@@ -934,7 +936,7 @@ export class TwitchVOD extends BaseVOD {
 
         this.broadcastUpdate(); // should this be here?
 
-        return generated;
+        return true;
 
     }
 
@@ -1170,11 +1172,15 @@ export class TwitchVOD extends BaseVOD {
         return this.twitch_vod_duration - this.duration;
     }
 
+    /**
+     * @test disable
+     * @returns 
+     */
     public async startWatching(): Promise<boolean> {
         if (this.fileWatcher) await this.stopWatching();
 
         // no blocks in testing
-        if (process.env.NODE_ENV === "test") return false;
+        // if (process.env.NODE_ENV === "test") return false;
 
         const files = this.associatedFiles.map((f) => path.join(this.directory, f));
 

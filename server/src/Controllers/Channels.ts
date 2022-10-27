@@ -4,13 +4,13 @@ import express from "express";
 import fs from "node:fs";
 import path from "node:path";
 import sanitize from "sanitize-filename";
-import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiResponse } from "../../../common/Api/Api";
-import { TwitchChannelConfig, VideoQuality, YouTubeChannelConfig } from "../../../common/Config";
-import { Providers, VideoQualityArray } from "../../../common/Defs";
-import { formatString } from "../../../common/Format";
-import { ProxyVideo } from "../../../common/Proxies/Video";
-import { VodBasenameTemplate } from "../../../common/Replacements";
-import { EventSubStreamOnline } from "../../../common/TwitchAPI/EventSub/StreamOnline";
+import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiResponse } from "@common/Api/Api";
+import { TwitchChannelConfig, VideoQuality, YouTubeChannelConfig } from "@common/Config";
+import { Providers, VideoQualityArray } from "@common/Defs";
+import { formatString } from "@common/Format";
+import { ProxyVideo } from "@common/Proxies/Video";
+import { VodBasenameTemplate } from "@common/Replacements";
+import { EventSubStreamOnline } from "@common/TwitchAPI/EventSub/StreamOnline";
 import { BaseConfigCacheFolder } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
 import { KeyValue } from "../Core/KeyValue";
@@ -27,6 +27,9 @@ import { generateStreamerList } from "../Helpers/StreamerList";
 import { isTwitchChannel, isYouTubeChannel } from "../Helpers/Types";
 import { TwitchHelper } from "../Providers/Twitch";
 import { TwitchVODChapterJSON } from "../Storage/JSON";
+import { Job } from "../Core/Job";
+import { Exporter, GetExporter } from "./Exporter";
+import { ExporterOptions } from "@common/Exporter";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -562,6 +565,8 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
             // vod.streamer_login = channel.login;
             // vod.streamer_id = channel.userid || "";
             vod.started_at = parseJSON(video.created_at);
+
+            if (video.stream_id) vod.capture_id = video.stream_id;
 
             // const duration = TwitchHelper.parseTwitchDuration(video.duration);
             vod.ended_at = new Date(vod.started_at.getTime() + (video.duration * 1000));
@@ -1158,6 +1163,126 @@ export async function GetClips(req: express.Request, res: express.Response): Pro
     res.send({
         status: "OK",
         data: clips,
+    });
+
+}
+
+export async function ExportAllVods(req: express.Request, res: express.Response): Promise<void> {
+
+    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
+    const force = req.query.force === "true";
+
+    if (!channel || !channel.internalName) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Channel not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const job = Job.create(`MassExporter_${channel.internalName}`);
+    job.dummy = true;
+    job.save();
+    job.broadcastUpdate(); // manual send
+
+    const totalVods = channel.vods_list.length;
+    let completedVods = 0;
+    let failedVods = 0;
+
+    for (const vod of channel.vods_list) {
+
+        if (vod.exportData.exported_at && !force) {
+            completedVods++;
+            Log.logAdvanced(Log.Level.INFO, "route.channels.exportallvods", `Skipping VOD ${vod.basename} because it was already exported`);
+            continue;
+        }
+
+        const options: ExporterOptions = {
+            vod: vod.uuid,
+            directory: Config.getInstance().cfg("exporter.default.directory"),
+            host: Config.getInstance().cfg("exporter.default.host"),
+            username: Config.getInstance().cfg("exporter.default.username"),
+            password: Config.getInstance().cfg("exporter.default.password"),
+            description: Config.getInstance().cfg("exporter.default.description"),
+            tags: Config.getInstance().cfg("exporter.default.tags"),
+            category: Config.getInstance().cfg("exporter.default.category"),
+            remote: Config.getInstance().cfg("exporter.default.remote"),
+            title_template: Config.getInstance().cfg("exporter.default.title_template"),
+            privacy: Config.getInstance().cfg("exporter.default.privacy"),
+        };
+
+        let exporter: Exporter | undefined;
+        try {
+            exporter = GetExporter(
+                Config.getInstance().cfg("exporter.default.exporter"),
+                "vod",
+                options
+            );
+        } catch (error) {
+            Log.logAdvanced(Log.Level.ERROR, "route.channel.ExportAllVods", `Auto exporter error for '${vod.basename}': ${(error as Error).message}`);
+            failedVods++;
+            job.setProgress((completedVods + failedVods) / totalVods);
+            continue;
+        }
+
+        if (exporter) {
+
+            let out_path;
+            try {
+                out_path = await exporter.export();
+            } catch (error) {
+                Log.logAdvanced(Log.Level.ERROR, "route.channel.ExportAllVods", (error as Error).message ? `Export error for '${vod.basename}': ${(error as Error).message}` : "Unknown error occurred while exporting export");
+                failedVods++;
+                job.setProgress((completedVods + failedVods) / totalVods);
+                continue;
+            }
+
+            if (out_path) {
+                let status;
+                try {
+                    status = await exporter.verify();
+                } catch (error) {
+                    Log.logAdvanced(Log.Level.ERROR, "route.channel.ExportAllVods", (error as Error).message ? `Verify error for '${vod.basename}': ${(error as Error).message}` : "Unknown error occurred while verifying export");
+                    failedVods++;
+                    job.setProgress((completedVods + failedVods) / totalVods);
+                    continue;
+                }
+
+                Log.logAdvanced(Log.Level.SUCCESS, "route.channel.ExportAllVods", `Exporter finished for '${vod.basename}', status: ${status}`);
+
+                if (status) {
+                    if (exporter.vod && status) {
+                        exporter.vod.exportData.exported_at = new Date().toISOString();
+                        exporter.vod.exportData.exporter = Config.getInstance().cfg("exporter.default.exporter");
+                        exporter.vod.saveJSON("export successful");
+                    }
+                    completedVods++;
+                    job.setProgress((completedVods + failedVods) / totalVods);
+                } else {
+                    failedVods++;
+                    job.setProgress((completedVods + failedVods) / totalVods);
+                    Log.logAdvanced(Log.Level.ERROR, "route.channel.ExportAllVods", `Exporter failed for '${vod.basename}'`);
+                }
+
+            } else {
+                Log.logAdvanced(Log.Level.ERROR, "route.channel.ExportAllVods", `Exporter finished but no path output for '${vod.basename}'`);
+            }
+
+        }
+
+        if (!Job.hasJob(job.name)) {
+            break; // job was deleted
+        }
+
+    }
+
+    Log.logAdvanced(Log.Level.INFO, "route.channel.ExportAllVods", `Exported ${completedVods} VODs, ${failedVods} failed`);
+
+    job.clear();
+
+    res.send({
+        status: "OK",
+        message: `Exported ${completedVods} VODs, ${failedVods} failed`,
     });
 
 }

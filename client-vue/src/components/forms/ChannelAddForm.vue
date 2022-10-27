@@ -7,7 +7,7 @@
         @submit="submitForm"
     >
         <div class="field">
-            <label class="label">{{ $t('forms.channel.provider') }}</label>
+            <label class="label">{{ t('forms.channel.provider') }}</label>
             <div class="select">
                 <select
                     v-model="formData.provider"
@@ -31,7 +31,7 @@
             v-if="formData.provider == 'twitch'"
             class="field"
         >
-            <label class="label">{{ $t('forms.channel.login') }} <span class="required">*</span></label>
+            <label class="label">{{ t('forms.channel.login') }} <span class="required">*</span></label>
             <div class="control has-addon">
                 <input
                     ref="login"
@@ -50,11 +50,11 @@
                     @click="fetchLogin"
                 >
                     <span class="icon"><fa icon="sync" /></span>
-                    <span>{{ $t('forms.channel.check') }}</span>
+                    <span>{{ t('forms.channel.check') }}</span>
                 </button>
             </div>
             <p class="input-help">
-                {{ $t('forms.channel.login_help') }}
+                {{ t('forms.channel.login_help') }}
             </p>
         </div>
 
@@ -62,7 +62,7 @@
             v-if="formData.provider == 'youtube'"
             class="field"
         >
-            <label class="label">{{ $t('forms.channel.url') }}</label>
+            <label class="label">{{ t('forms.channel.url') }}</label>
             <div class="control has-addon">
                 <input
                     v-model="channelUrl"
@@ -79,7 +79,7 @@
                         icon="sync"
                         :spin="fetchingUrl"
                     /></span>
-                    <span>{{ $t('buttons.fetch') }}</span>
+                    <span>{{ t('buttons.fetch') }}</span>
                 </button>
             </div>
         </div>
@@ -88,7 +88,7 @@
             v-if="formData.provider == 'youtube'"
             class="field"
         >
-            <label class="label">{{ $t('forms.channel.id') }} <span class="required">*</span></label>
+            <label class="label">{{ t('forms.channel.id') }} <span class="required">*</span></label>
             <div class="control has-addon">
                 <input
                     ref="channel_id"
@@ -102,12 +102,12 @@
                 <!--
                 <button class="button is-confirm" type="button" @click="fetchLogin" :disabled="!formData.login">
                     <span class="icon"><fa icon="sync" /></span>
-                    <span>{{ $t('forms.channel.check') }}</span>
+                    <span>{{ t('forms.channel.check') }}</span>
                 </button>
                 -->
             </div>
             <p class="input-help">
-                {{ $t('forms.channel.id_help') }}
+                {{ t('forms.channel.id_help') }}
             </p>
         </div>
 
@@ -135,12 +135,12 @@
             class="field"
         >
             <div class="text-is-error">
-                {{ $t('forms.channel.login-does-not-exist', [formData.login]) }}
+                {{ t('forms.channel.login-does-not-exist', [formData.login]) }}
             </div>
         </div>
 
         <div class="field">
-            <label class="label">{{ $t('forms.channel.quality') }} <span class="required">*</span></label>
+            <label class="label">{{ t('forms.channel.quality') }} <span class="required">*</span></label>
             <div class="control">
                 <input
                     ref="quality"
@@ -151,23 +151,23 @@
                     required
                 >
                 <p class="input-help">
-                    {{ $t('forms.channel.quality-help-example') }}
+                    {{ t('forms.channel.quality-help-example') }}
                 </p>
                 <p class="input-help">
-                    <strong>{{ $t('forms.channel.quality-help-warning') }}</strong>
+                    <strong>{{ t('forms.channel.quality-help-warning') }}</strong>
                 </p>
-                <!--<p class="input-help">{{ $t('forms.channel.quality-help-choices', [VideoQualityArray.join(", ")]) }}</p>-->
+                <!--<p class="input-help">{{ t('forms.channel.quality-help-choices', [VideoQualityArray.join(", ")]) }}</p>-->
                 <p
                     v-if="!qualityWarning"
                     class="input-help error"
                 >
-                    {{ $t('forms.channel.quality-help-check') }}
+                    {{ t('forms.channel.quality-help-check') }}
                 </p>
             </div>
         </div>
 
         <div class="field">
-            <label class="label">{{ $t('forms.channel.match-keywords') }}</label>
+            <label class="label">{{ t('forms.channel.match-keywords') }}</label>
             <div class="control">
                 <input
                     v-model="formData.match"
@@ -182,7 +182,7 @@
         </div>
 
         <div class="field">
-            <label class="label">{{ $t('forms.channel.max-storage') }}</label>
+            <label class="label">{{ t('forms.channel.max-storage') }}</label>
             <div class="control">
                 <input
                     v-model="formData.max_storage"
@@ -191,13 +191,13 @@
                     name="max_storage"
                 >
                 <p class="input-help">
-                    {{ $t('forms.channel.max-storage-help') }}
+                    {{ t('forms.channel.max-storage-help') }}
                 </p>
             </div>
         </div>
 
         <div class="field">
-            <label class="label">{{ $t('forms.channel.max-vods') }}</label>
+            <label class="label">{{ t('forms.channel.max-vods') }}</label>
             <div class="control">
                 <input
                     v-model="formData.max_vods"
@@ -206,7 +206,7 @@
                     name="max_vods"
                 >
                 <p class="input-help">
-                    {{ $t('forms.channel.max-vods-help') }}
+                    {{ t('forms.channel.max-vods-help') }}
                 </p>
             </div>
         </div>
@@ -218,7 +218,7 @@
                     type="checkbox"
                     name="download_chat"
                 >
-                {{ $t('forms.channel.download-chat') }}
+                {{ t('forms.channel.download-chat') }}
             </label>
         </div>
 
@@ -229,7 +229,7 @@
                     type="checkbox"
                     name="live_chat"
                 >
-                {{ $t('forms.channel.live-chat-download') }}
+                {{ t('forms.channel.live-chat-download') }}
             </label>
             <p class="input-help">
                 Requires Node binary path to be set in the settings
@@ -243,7 +243,7 @@
                     type="checkbox"
                     name="burn_chat"
                 >
-                {{ $t('forms.channel.burn-chat') }}
+                {{ t('forms.channel.burn-chat') }}
             </label>
             <p class="input-help">
                 Currently disabled
@@ -257,7 +257,7 @@
                     type="checkbox"
                     name="no_capture"
                 >
-                {{ $t('forms.channel.no-capture') }}
+                {{ t('forms.channel.no-capture') }}
             </label>
         </div>
         
@@ -268,7 +268,7 @@
                     type="checkbox"
                     name="no_cleanup"
                 >
-                {{ $t('forms.channel.no-cleanup') }}
+                {{ t('forms.channel.no-cleanup') }}
             </label>
         </div>
 
@@ -279,7 +279,7 @@
                     type="checkbox"
                     name="download_vod_at_end"
                 >
-                {{ $t('forms.channel.download_vod_at_end') }}
+                {{ t('forms.channel.download_vod_at_end') }}
             </label>
         </div>
 
@@ -287,7 +287,7 @@
             v-if="formData.download_vod_at_end"
             class="field"
         >
-            <label class="label">{{ $t('forms.channel.download_vod_at_end_quality') }}</label>
+            <label class="label">{{ t('forms.channel.download_vod_at_end_quality') }}</label>
             <div class="select">
                 <select
                     v-model="formData.download_vod_at_end_quality"
@@ -303,11 +303,11 @@
                 </select>
             </div>
             <p class="input-help">
-                {{ $t('forms.channel.download_vod_at_end_quality_help') }}
+                {{ t('forms.channel.download_vod_at_end_quality_help') }}
             </p>
         </div>
 
-        <p><em>{{ $t('forms.channel.live-channels-warning') }}</em></p>
+        <p><em>{{ t('forms.channel.live-channels-warning') }}</em></p>
         <div class="field form-submit">
             <div class="control">
                 <button
@@ -315,7 +315,7 @@
                     type="submit"
                 >
                     <span class="icon"><fa icon="user-plus" /></span>
-                    <span>{{ $t('forms.channel.add-channel') }}</span>
+                    <span>{{ t('forms.channel.add-channel') }}</span>
                 </button>
             </div>
             <div :class="formStatusClass">
@@ -335,13 +335,15 @@ import axios, { AxiosError } from "axios";
 import { UserData } from "@common/User";
 import { VideoQuality } from "@common/Config";
 import { ApiResponse } from "@common/Api/Api";
+import { useI18n } from "vue-i18n";
 library.add(faUserPlus);
 
 export default defineComponent({
     name: "ChannelAddForm",
     emits: ["formSuccess"],
     setup() {
-        return { VideoQualityArray };
+        const { t } = useI18n();
+        return { VideoQualityArray, t };
     },
     data(): {
         formStatusText: string;
@@ -409,10 +411,10 @@ export default defineComponent({
 
             console.log("submitForm", this.formData);
 
-            this.formStatusText = this.$t("messages.loading");
+            this.formStatusText = this.t("messages.loading");
             this.formStatus = "";
 
-            this.$http
+            axios
                 .post(`/api/v0/channels`, this.formData)
                 .then((response) => {
                     const json = response.data;
@@ -483,7 +485,7 @@ export default defineComponent({
         },
         */
         fetchLogin() {
-            this.$http.get<ApiResponse>(`/api/v0/twitchapi/user/${this.formData.login}`).then((response) => {
+            axios.get<ApiResponse>(`/api/v0/twitchapi/user/${this.formData.login}`).then((response) => {
                 const json = response.data;
                 const field = this.$refs.login as HTMLInputElement;
                 if (!field) {
@@ -492,7 +494,7 @@ export default defineComponent({
                 if (json.status == "OK") {
                     this.channelData = json.data;
                     if (this.channelData && this.channelData.login !== this.formData.login) {
-                        alert(this.$t('messages.login-mismatch-fixing'));
+                        alert(this.t('messages.login-mismatch-fixing'));
                         this.formData.login = this.channelData.login;
                     }
                     field.setCustomValidity("");
@@ -518,7 +520,7 @@ export default defineComponent({
         },
         getChannelId() {
             this.fetchingUrl = true;
-            this.$http.post(`/api/v0/youtubeapi/channelid`, { url: this.channelUrl } ).then((response) => {
+            axios.post(`/api/v0/youtubeapi/channelid`, { url: this.channelUrl } ).then((response) => {
                 const json = response.data;
                 if (json.status == "OK") {
                     this.formData.channel_id = json.data;

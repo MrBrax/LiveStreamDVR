@@ -9,6 +9,7 @@ export default class BaseVOD {
     uuid = "";
     channel_uuid = "";
     basename = "";
+    capture_id? = "";
     is_capturing = false;
     is_converting = false;
     is_finalized = false;

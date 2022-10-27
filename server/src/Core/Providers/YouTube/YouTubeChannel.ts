@@ -4,15 +4,15 @@ import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { BaseVODChapterJSON } from "../../../Storage/JSON";
-import { ApiYouTubeChannel } from "../../../../../common/Api/Client";
-import { YouTubeChannelConfig } from "../../../../../common/Config";
-import { Providers } from "../../../../../common/Defs";
-import { ProxyVideo } from "../../../../../common/Proxies/Video";
+import { ApiYouTubeChannel } from "@common/Api/Client";
+import { YouTubeChannelConfig } from "@common/Config";
+import { Providers } from "@common/Defs";
+import { ProxyVideo } from "@common/Proxies/Video";
 import { YouTubeHelper } from "../../../Providers/YouTube";
 import { BaseConfigDataFolder, BaseConfigPath } from "../../BaseConfig";
 import { Config } from "../../Config";
 import { KeyValue } from "../../KeyValue";
-import { ChannelTypes, LiveStreamDVR } from "../../LiveStreamDVR";
+import { LiveStreamDVR } from "../../LiveStreamDVR";
 import { Log } from "../../Log";
 import { BaseChannel } from "../Base/BaseChannel";
 import { YouTubeVOD } from "./YouTubeVOD";
@@ -171,9 +171,7 @@ export class YouTubeChannel extends BaseChannel {
 
         // $channel->api_getSubscriptionStatus = $channel->getSubscriptionStatus();
 
-        if (Config.getInstance().cfg("channel_folders") && !fs.existsSync(channel.getFolder())) {
-            fs.mkdirSync(channel.getFolder());
-        }
+        channel.makeFolder();
 
         // only needed if i implement watching
         // if (!fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "scheduler", channel.login)))

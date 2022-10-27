@@ -128,4 +128,17 @@ export class RCloneExporter extends BaseExporter {
 
     }
 
+    static async getRemotes(): Promise<string[]> {
+        let result;
+        try {
+            result = await Helper.execSimple("rclone", ["listremotes"], "rclone list remotes");
+        } catch (error) {
+            throw new Error("Failed to list remotes");
+        }
+
+        const output = result.stdout.join("").trim();
+
+        return output.split("\n").map(l => l.trim()).filter(l => l.length > 0).map(l => l.replace(/:$/, ""));
+    }
+
 }

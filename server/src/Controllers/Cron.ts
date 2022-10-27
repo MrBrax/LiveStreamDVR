@@ -1,6 +1,6 @@
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import express from "express";
-import { MuteStatus } from "../../../common/Defs";
+import { MuteStatus } from "@common/Defs";
 import { ClientBroker } from "../Core/ClientBroker";
 import {  Log } from "../Core/Log";
 import { generateStreamerList } from "../Helpers/StreamerList";

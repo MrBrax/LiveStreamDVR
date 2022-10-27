@@ -3,12 +3,12 @@
         v-if="!vod?.segments || vod.segments.length == 0"
         class="notification is-error"
     >
-        {{ $t('vod.export.no-segments') }}
+        {{ t('vod.export.no-segments') }}
     </div>
 
     <!-- Exporter -->
     <div class="field">
-        <label class="label">{{ $t('vod.export.export-type') }}</label>
+        <label class="label">{{ t('vod.export.export-type') }}</label>
         <div class="control">
             <div class="select">
                 <select v-model="exporter">
@@ -55,7 +55,7 @@
 
     <!-- File -->
     <div class="field">
-        <label class="label">{{ $t('vod.export.file-source') }}</label>
+        <label class="label">{{ t('vod.export.file-source') }}</label>
         <div class="control">
             <div class="select">
                 <select v-model="exportVodSettings.file_source">
@@ -81,7 +81,7 @@
 
     <!-- Title / Filename -->
     <div class="field">
-        <label class="label">{{ $t('vod.export.title-template') }}</label>
+        <label class="label">{{ t('vod.export.title-template') }}</label>
         <div class="control">
             <input
                 v-model="exportVodSettings.title_template"
@@ -116,7 +116,7 @@
         v-if="exporter == 'file' || exporter == 'sftp' || exporter == 'ftp' || exporter == 'rclone'"
         class="field"
     >
-        <label class="label">{{ $t('vod.export.directory') }}</label>
+        <label class="label">{{ t('vod.export.directory') }}</label>
         <div class="control">
             <input
                 v-model="exportVodSettings.directory"
@@ -134,7 +134,7 @@
         v-if="exporter == 'sftp' || exporter == 'ftp'"
         class="field"
     >
-        <label class="label">{{ $t('vod.export.host') }}</label>
+        <label class="label">{{ t('vod.export.host') }}</label>
         <div class="control">
             <input
                 v-model="exportVodSettings.host"
@@ -149,13 +149,31 @@
         v-if="exporter == 'rclone'"
         class="field"
     >
-        <label class="label">{{ $t('vod.export.remote') }}</label>
-        <div class="control">
-            <input
-                v-model="exportVodSettings.remote"
-                class="input"
-                type="text"
+        <label class="label">{{ t('vod.export.remote') }}</label>
+        <div class="control has-addon">
+            <div class="select">
+                <select v-model="exportVodSettings.remote">
+                    <option
+                        v-for="remote in rcloneRemotes"
+                        :key="remote"
+                        :value="remote"
+                    >
+                        {{ remote }}
+                    </option>
+                </select>
+            </div>
+            <button
+                class="button is-confirm"
+                :title="t('vod.export.get-remotes')"
+                @click="getRemotes"
             >
+                <span class="icon">
+                    <fa
+                        icon="sync"
+                        :spin="LoadingRemotes"
+                    />
+                </span>
+            </button>
         </div>
     </div>
 
@@ -164,7 +182,7 @@
         v-if="exporter == 'sftp' || exporter == 'ftp'"
         class="field"
     >
-        <label class="label">{{ $t('vod.export.username') }}</label>
+        <label class="label">{{ t('vod.export.username') }}</label>
         <div class="control">
             <input
                 v-model="exportVodSettings.username"
@@ -179,7 +197,7 @@
         v-if="exporter == 'ftp'"
         class="field"
     >
-        <label class="label">{{ $t('vod.export.password') }}</label>
+        <label class="label">{{ t('vod.export.password') }}</label>
         <div class="control">
             <input
                 v-model="exportVodSettings.password"
@@ -188,7 +206,7 @@
             >
         </div>
         <p class="help">
-            {{ $t('vod.export.password-help') }}
+            {{ t('vod.export.password-help') }}
         </p>
     </div>
 
@@ -205,7 +223,7 @@
         v-if="exporter == 'youtube'"
         class="field"
     >
-        <label class="label">{{ $t('vod.export.description') }}</label>
+        <label class="label">{{ t('vod.export.description') }}</label>
         <div class="control">
             <textarea
                 v-model="exportVodSettings.description"
@@ -219,7 +237,7 @@
         v-if="exporter == 'youtube'"
         class="field"
     >
-        <label class="label">{{ $t('vod.export.category') }}</label>
+        <label class="label">{{ t('vod.export.category') }}</label>
         <div class="control">
             <div class="select">
                 <select v-model="exportVodSettings.category">
@@ -240,7 +258,7 @@
         v-if="exporter == 'youtube'"
         class="field"
     >
-        <label class="label">{{ $t('vod.export.tags') }}</label>
+        <label class="label">{{ t('vod.export.tags') }}</label>
         <div class="control">
             <input
                 v-model="exportVodSettings.tags"
@@ -249,7 +267,7 @@
             >
         </div>
         <p class="input-help">
-            {{ $t('vod.export.tags-help') }}
+            {{ t('vod.export.tags-help') }}
         </p>
     </div>
 
@@ -258,7 +276,7 @@
         v-if="exporter == 'youtube'"
         class="field"
     >
-        <label class="label">{{ $t('vod.export.playlist') }}</label>
+        <label class="label">{{ t('vod.export.playlist') }}</label>
         <div class="control has-addon">
             <div class="select">
                 <select
@@ -266,7 +284,7 @@
                     :disabled="LoadingPlaylists"
                 >
                     <option value="">
-                        ({{ $t('messages.none') }})
+                        ({{ t('messages.none') }})
                     </option>
                     <option
                         v-for="(p, i) in YouTubePlaylists"
@@ -279,7 +297,7 @@
             </div>
             <button
                 class="button is-confirm"
-                :title="$t('vod.export.get-playlists')"
+                :title="t('vod.export.get-playlists')"
                 @click="getYouTubePlaylists"
             >
                 <span class="icon">
@@ -291,7 +309,7 @@
             </button>
             <button
                 class="button is-confirm"
-                :title="$t('vod.export.create-playlist')"
+                :title="t('vod.export.create-playlist')"
                 @click="createYouTubePlaylist"
             >
                 <span class="icon">
@@ -300,7 +318,7 @@
             </button>
         </div>
         <p class="input-help">
-            {{ $t('vod.export.playlist-help') }}
+            {{ t('vod.export.playlist-help') }}
         </p>
         <p class="input-help">
             ID: <code>{{ exportVodSettings.playlist_id }}</code>
@@ -312,23 +330,23 @@
         v-if="exporter == 'youtube'"
         class="field"
     >
-        <label class="label">{{ $t('vod.export.privacy') }}</label>
+        <label class="label">{{ t('vod.export.privacy') }}</label>
         <div class="control">
             <div class="select">
                 <select v-model="exportVodSettings.privacy">
                     <option value="public">
-                        {{ $t('vod.export.privacy-public') }}
+                        {{ t('vod.export.privacy-public') }}
                     </option>
                     <option value="unlisted">
-                        {{ $t('vod.export.privacy-unlisted') }}
+                        {{ t('vod.export.privacy-unlisted') }}
                     </option>
                     <option value="private">
-                        {{ $t('vod.export.privacy-private') }}
+                        {{ t('vod.export.privacy-private') }}
                     </option>
                 </select>
             </div>
             <p class="input-help">
-                {{ $t('vod.export.privacy-help') }}
+                {{ t('vod.export.privacy-help') }}
             </p>
         </div>
     </div>
@@ -338,9 +356,10 @@
             <button
                 class="button is-confirm"
                 @click="doExportVod"
+                :disabled="loading"
             >
-                <span class="icon"><fa icon="upload" /></span>
-                <span>{{ $t("buttons.export") }}</span>
+                <span class="icon"><fa :icon="loading ? 'spinner' : 'upload'" :spin="loading" /></span>
+                <span>{{ t("buttons.export") }}</span>
             </button>
         </div>
     </div>
@@ -351,17 +370,19 @@ import { onMounted, ref } from 'vue';
 import { useStore, VODTypes } from '@/store';
 import { ExporterFilenameFields } from "@common/ReplacementsConsts";
 import { formatString } from '@common/Format';
-import { YouTubeCategories } from "@/defs";
+import { YouTubeCategories } from "@common/YouTube";
 import axios from 'axios';
 import { ApiResponse } from '@common/Api/Api';
 import YoutubeAuth from "@/components/YoutubeAuth.vue";
-import { ExporterOptions } from "../../../../common/Exporter";
+import { ExporterOptions } from "@common/Exporter";
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
     vod: VODTypes;
 }>();
 
 const store = useStore();
+const { t } = useI18n();
 
 const exportVodSettings = ref<ExporterOptions>({
     // exporter: "file",
@@ -427,9 +448,14 @@ const YouTubePlaylists = ref<{
     };
 }[]>([]);
 
+const rcloneRemotes = ref<string[]>([]);
+
 const LoadingPlaylists = ref(false);
+const LoadingRemotes = ref(false);
 
 const exporter = ref("file");
+
+const loading = ref(false);
 
 function templatePreview(template: string): string {
     const replaced_string = formatString(template, Object.fromEntries(Object.entries(ExporterFilenameFields).map(([key, value]) => [key, value.display])));
@@ -438,6 +464,7 @@ function templatePreview(template: string): string {
 
 function doExportVod() {
     if (!props.vod) return;
+    loading.value = true;
     axios.post(`/api/v0/exporter?mode=vod&exporter=${exporter.value}`, exportVodSettings.value).then((response) => {
         const json: ApiResponse = response.data;
         if (json.message) alert(json.message);
@@ -447,6 +474,8 @@ function doExportVod() {
     }).catch((err) => {
         console.error("form error", err.response);
         if (err.response.data && err.response.data.message) alert(err.response.data.message);
+    }).finally(() => {
+        loading.value = false;
     });
 }
 
@@ -500,6 +529,28 @@ function createYouTubePlaylist() {
     });
 }
 
+function getRemotes() {
+    LoadingRemotes.value = true;
+    axios.get(`/api/v0/exporter/rclone/remotes`).then((response) => {
+        const json: ApiResponse = response.data;
+        if (json.message) alert(json.message);
+        console.log(json);
+        if (json.data) {
+            rcloneRemotes.value = json.data;
+            if (!exportVodSettings.value.remote && rcloneRemotes.value.length > 0) {
+                exportVodSettings.value.remote = rcloneRemotes.value[0];
+                console.log("set remote", exportVodSettings.value.remote);
+            }
+        }
+        // if (this.editVodMenu) this.editVodMenu.show = false;
+    }).catch((err) => {
+        console.error("form error", err.response);
+        if (err.response.data && err.response.data.message) alert(err.response.data.message);
+    }).finally(() => {
+        LoadingRemotes.value = false;
+    });
+}
+
 function applyDefaultExportSettings() {
     if (store.cfg("exporter.default.exporter")) exporter.value = store.cfg("exporter.default.exporter");
     if (store.cfg("exporter.default.directory")) exportVodSettings.value.directory = store.cfg("exporter.default.directory");
@@ -507,6 +558,7 @@ function applyDefaultExportSettings() {
     if (store.cfg("exporter.default.username")) exportVodSettings.value.username = store.cfg("exporter.default.username");
     if (store.cfg("exporter.default.password")) exportVodSettings.value.password = store.cfg("exporter.default.password");
     if (store.cfg("exporter.default.description")) exportVodSettings.value.description = store.cfg("exporter.default.description");
+    if (store.cfg("exporter.default.category")) exportVodSettings.value.category = store.cfg("exporter.default.category");
     if (store.cfg("exporter.default.tags")) exportVodSettings.value.tags = store.cfg("exporter.default.tags");
     if (store.cfg("exporter.default.remote")) exportVodSettings.value.remote = store.cfg("exporter.default.remote");
 }

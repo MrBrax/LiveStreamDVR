@@ -223,11 +223,12 @@ import { ChannelTypes, useStore, VODTypes } from "@/store";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import { MuteStatus, TwitchVodAge } from "../../../common/Defs";
 import DurationDisplay from "./DurationDisplay.vue";
+import { isTwitchVOD } from "@/mixins/newhelpers";
+import { formatDate, formatBytes, humanDuration, niceDuration, humanDate } from "@/mixins/newhelpers";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faTrash, faVolumeMute } from "@fortawesome/free-solid-svg-icons";
 library.add(faTrash, faVolumeMute);
-
 
 const store = useStore();
 

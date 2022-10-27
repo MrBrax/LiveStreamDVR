@@ -12,7 +12,7 @@
                 class="label"
                 :for="'input_' + key"
             >
-                {{ $te('clientsetting.' + key) ? $te('clientsetting.' + key) : value.name }} <!--<span v-if="value.required" class="required">*</span>-->
+                {{ te('clientsetting.' + key) ? te('clientsetting.' + key) : value.name }} <!--<span v-if="value.required" class="required">*</span>-->
             </label>
             <div
                 v-if="value.type === 'boolean'"
@@ -22,7 +22,7 @@
                     <input
                         v-model="(updateConfig[key] as boolean)"
                         type="checkbox"
-                    > {{ $te('clientsetting.' + key) ? $t('clientsetting.' + key) : value.name }}
+                    > {{ te('clientsetting.' + key) ? t('clientsetting.' + key) : value.name }}
                 </label>
             </div>
             <div
@@ -168,7 +168,7 @@
                 @click="saveClientConfig"
             >
                 <span class="icon"><fa icon="save" /></span>
-                <span>{{ $t('buttons.save') }}</span>
+                <span>{{ t('buttons.save') }}</span>
             </button>
         </div>
         <br>
@@ -188,100 +188,80 @@
                 @click="logout"
             >
                 <span class="icon"><fa icon="arrow-right-from-bracket" /></span>
-                <span>{{ $t('buttons.logout') }}</span>
+                <span>{{ t('buttons.logout') }}</span>
             </button>
         </div>
     </div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import { useStore } from "@/store";
-import { defineComponent } from "vue";
+import { computed, defineComponent, onMounted, ref } from "vue";
 import { defaultConfig, defaultConfigFields, defaultSidemenuShow } from "@/defs";
 import { ClientSettings, SidemenuShow } from "@/twitchautomator";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faBell, faArrowRightFromBracket, faSave } from "@fortawesome/free-solid-svg-icons";
+import { useI18n } from "vue-i18n";
 library.add(faBell, faArrowRightFromBracket, faSave);
 
-export default defineComponent({
-    name: "ClientSettingsForm",
-    title: "Client settings",
-    setup() {
-        const store = useStore();
-        return { store, defaultConfigFields };
-    },
-    data(): {
-        currentConfig: ClientSettings;
-        updateConfig: ClientSettings;
-        sideMenuShow: SidemenuShow;
-    } {
-        return {
-            currentConfig: {...defaultConfig},
-            updateConfig: {...defaultConfig},
-            sideMenuShow: {...defaultSidemenuShow},
-        };
-    },
-    computed: {
-        locales(): Record<string, string> {
-            const provided = this.$i18n.availableLocales;
-            const names = new Intl.DisplayNames(["en"], { type: "language" });
-            const all: Record<string, string> = {};
-            for (const code of provided) {
-                all[code] = names.of(code) || code;
-            }
-            return all;
-        },
-    },
-    created() {
-        if (!this.store.clientConfig) return;
-        // const crConf = {...defaultConfig};
-        const currentConfig: ClientSettings = {...this.store.clientConfig};
-        this.updateConfig = currentConfig;
-        this.currentConfig = currentConfig;
+const store = useStore();
+const { t, te, availableLocales, locale } = useI18n();
 
-        this.sideMenuShow = {...this.store.sidemenuShow};
-    },
-    methods: {
-        saveClientConfig() {
-            this.store.updateClientConfig(this.updateConfig);
-            this.store.sidemenuShow = this.sideMenuShow; // TODO: move to store
-            this.store.saveClientConfig();
-            this.$i18n.locale = this.updateConfig.language;
-            if (this.currentConfig.enableNotifications !== this.updateConfig.enableNotifications && this.updateConfig.enableNotifications) {
-                this.requestNotifications();
-            }
-            alert("Settings saved, reloading...");
-            window.location.reload();
-        },
-        requestNotifications() {
-            if (!("Notification" in window)) {
-                alert("This browser does not support desktop notification");
-            } else if (Notification.permission === "granted") {
-                new Notification("Notifications already granted.");
-            } else if (Notification.permission !== "denied") {
-                Notification.requestPermission().then(function (permission) {
-                    if (permission === "granted") {
-                        new Notification("Notifications granted.");
-                    }
-                });
-            }
-        },
-        logout() {
-            this.store.logout().then(() => {
-                window.location.reload();
-            });
-        }
+const currentConfig = ref<ClientSettings>({...defaultConfig});
+const updateConfig = ref<ClientSettings>({...defaultConfig});
+const sideMenuShow = ref<SidemenuShow>({...defaultSidemenuShow});
+    
+const locales = computed((): Record<string, string> => {
+    const names = new Intl.DisplayNames(["en"], { type: "language" });
+    const all: Record<string, string> = {};
+    for (const code of availableLocales) {
+        all[code] = names.of(code) || code;
     }
-    /*
-    watch: {
-        updateConfig: {
-            handler() {
-                this.saveClientConfig();
-            },
-            deep: true,
-        },
-    },
-    */
+    return all;
 });
+    
+onMounted(() => {
+    if (!store.clientConfig) return;
+    // const crConf = {...defaultConfig};
+    const cConfig: ClientSettings = {...store.clientConfig};
+    updateConfig.value = cConfig;
+    currentConfig.value = cConfig;
+
+    sideMenuShow.value = {...store.sidemenuShow};
+});
+
+
+function saveClientConfig() {
+    store.updateClientConfig(updateConfig.value);
+    store.sidemenuShow = sideMenuShow.value; // TODO: move to store
+    store.saveClientConfig();
+    locale.value = updateConfig.value.language;
+    if (currentConfig.value.enableNotifications !== updateConfig.value.enableNotifications && updateConfig.value.enableNotifications) {
+        requestNotifications();
+    }
+    alert("Settings saved, reloading...");
+    window.location.reload();
+}
+
+function requestNotifications() {
+    if (!("Notification" in window)) {
+        alert("This browser does not support desktop notification");
+    } else if (Notification.permission === "granted") {
+        new Notification("Notifications already granted.");
+    } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(function (permission) {
+            if (permission === "granted") {
+                new Notification("Notifications granted.");
+            }
+        });
+    }
+}
+
+function logout() {
+    store.logout().then(() => {
+        window.location.reload();
+    });
+}
+
 </script>

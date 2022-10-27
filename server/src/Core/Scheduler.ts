@@ -9,9 +9,9 @@ import { Log } from "./Log";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
 import { format, parseJSON } from "date-fns";
-import { ClipBasenameTemplate } from "../../../common/Replacements";
+import { ClipBasenameTemplate } from "@common/Replacements";
 import sanitize from "sanitize-filename";
-import { formatString } from "../../../common/Format";
+import { formatString } from "@common/Format";
 
 export class Scheduler {
 
@@ -27,13 +27,16 @@ export class Scheduler {
         return job;
     }
 
+    /**
+     * @test disable
+     */
     public static defaultJobs() {
         // # 0 5 * * 1 curl http://localhost:8080/api/v0/cron/sub
         // 0 */12 * * * curl http://localhost:8080/api/v0/cron/check_muted_vods
         // 10 */12 * * * curl http://localhost:8080/api/v0/cron/check_deleted_vods
 
         // no blocks in testing
-        if (process.env.NODE_ENV === "test") return;
+        // if (process.env.NODE_ENV === "test") return;
 
         console.log("Scheduler: default jobs");
 

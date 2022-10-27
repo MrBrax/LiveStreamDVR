@@ -4,5 +4,11 @@
   "repository": "https://github.com/MrBrax/LiveStreamDVR.git",
   "author": "braxen et al",
   "license": "MIT",
-  "private": true
+  "private": true,
+  "workspaces": [
+    "client-vue",
+    "server",
+    "twitch-chat-dumper",
+    "twitch-vod-chat"
+  ]
 }

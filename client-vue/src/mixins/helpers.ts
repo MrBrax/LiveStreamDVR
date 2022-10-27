@@ -3,7 +3,7 @@ import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
 import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
 import { ChannelTypes, VODTypes } from "@/store";
-import { format, formatDistance, formatDistanceToNow, parseISO, parseJSON } from "date-fns";
+import { format, formatDistance, formatDistanceToNow, parseISO, parseJSON, isDate } from "date-fns";
 // const dateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000
 
 export default {
@@ -16,6 +16,11 @@ export default {
             }
 
             const o = parseJSON(date);
+
+            if (!isDate(o) || !(o instanceof Date) || isNaN(o.getTime())) {
+                return `[Invalid Date: ${date}]`;
+            }
+
             return format(o, fmt);
         },
         formatLogicalDate(date: string | Date) {
@@ -151,9 +156,6 @@ export default {
             const o = parseISO(date);
             return formatDistanceToNow(o, { addSuffix: true });
         },
-        prefersReducedMotion(): boolean {
-            return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-        },
         formatDuration(duration_seconds: number) {
             const hours = Math.floor(duration_seconds / (60 * 60));
             const minutes = Math.floor((duration_seconds - (hours * 60 * 60)) / 60);
@@ -175,6 +177,8 @@ export default {
     },
 };
 
+// deprecated with yarn pnp?
+/*
 declare module "@vue/runtime-core" {
     export interface ComponentCustomProperties {
         formatDate: (date: string | Date, fmt?: string) => string;
@@ -198,3 +202,4 @@ declare module "@vue/runtime-core" {
         shortDuration: (durationInSeconds: number) => string;
     }
 }
+*/

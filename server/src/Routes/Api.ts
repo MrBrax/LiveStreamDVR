@@ -51,6 +51,7 @@ router.post("/channels/:uuid/deleteallvods", AuthAdmin, Channels.DeleteAllChanne
 router.get("/channels/:uuid/history", AuthAdmin, Channels.GetHistory);
 router.post("/channels/:uuid/scan", AuthAdmin, Channels.ScanVods);
 router.get("/channels/:uuid/clips", AuthAdmin, Channels.GetClips);
+router.post("/channels/:uuid/exportallvods", AuthAdmin, Channels.ExportAllVods);
 
 router.get("/vod/:uuid", AuthGuest, Vod.GetVod);
 router.post("/vod/:uuid", AuthAdmin, Vod.EditVod);
@@ -76,6 +77,7 @@ router.get("/games", AuthGuest, Games.ListGames);
 router.get("/games/:id/refresh", AuthAdmin, Games.RefreshGame);
 
 router.post("/exporter", AuthAdmin, Exporter.ExportFile);
+router.get("/exporter/rclone/remotes", AuthAdmin, Exporter.GetRcloneRemotes);
 
 router.get("/favourites", AuthGuest, Favourites.ListFavourites);
 // router.post("/favourites", AuthAdmin, Favourites.AddFavourite);

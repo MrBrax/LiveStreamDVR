@@ -54,7 +54,7 @@
                 </label>
             </div>
             <div v-if="!gamesData || Object.keys(gamesData).length == 0">
-                <p>{{ $t('forms.favourites.no-games-in-cache-when-streamers-change-games-they-will-be-added-to-the-cache') }}</p>
+                <p>{{ t('forms.favourites.no-games-in-cache-when-streamers-change-games-they-will-be-added-to-the-cache') }}</p>
             </div>
         </div>
         <div class="field">
@@ -63,7 +63,7 @@
                     v-model="isGrid"
                     type="checkbox"
                 >
-                {{ $t('forms.favourites.display-as-grid') }}
+                {{ t('forms.favourites.display-as-grid') }}
             </label>
         </div>
         <div class="field form-submit">
@@ -73,7 +73,7 @@
                     type="submit"
                 >
                     <span class="icon"><fa icon="save" /></span>
-                    <span>{{ $t('buttons.save-favourites') }}</span>
+                    <span>{{ t('buttons.save-favourites') }}</span>
                 </button>
             </div>
             <div :class="formStatusClass">
@@ -87,14 +87,18 @@
 import { useStore } from "@/store";
 import { ApiGamesResponse, ApiSettingsResponse } from "@common/Api/Api";
 import { ApiGame } from "@common/Api/Client";
+import axios from "axios";
 import { defineComponent } from "vue";
+import { useI18n } from "vue-i18n";
+import { formatDate } from "@/mixins/newhelpers";
 
 export default defineComponent({
     name: "FavouritesForm",
     emits: ["formSuccess"],
     setup() {
         const store = useStore();
-        return { store };
+        const { t } = useI18n();
+        return { store, t, formatDate };
     },
     data(): {
         loading: boolean;
@@ -140,10 +144,10 @@ export default defineComponent({
     },
     methods: {
         submitForm(event: Event) {
-            this.formStatusText = this.$t("messages.loading");
+            this.formStatusText = this.t("messages.loading");
             this.formStatus = "";
 
-            this.$http
+            axios
                 .put(`/api/v0/favourites`, this.formData)
                 .then((response) => {
                     const json = response.data;
@@ -164,8 +168,8 @@ export default defineComponent({
         },
         fetchData() {
             console.debug("FavouritesForm fetchData");
-            this.$http.all([
-                this.$http.get(`api/v0/games`)
+            axios.all([
+                axios.get(`api/v0/games`)
                 .then((response) => {
                     const json: ApiGamesResponse = response.data;
                     if (json.message) alert(json.message);
@@ -177,7 +181,7 @@ export default defineComponent({
                 }).finally(() => {
                     this.loading = false;
                 }),
-                this.$http
+                axios
                     .get(`api/v0/settings`)
                     .then((response) => {
                         const json: ApiSettingsResponse = response.data;
@@ -195,7 +199,7 @@ export default defineComponent({
             });
         },
         refreshGame(id: string) {
-            this.$http
+            axios
                 .get(`/api/v0/games/${id}/refresh`)
                 .then((response) => {
                     const json = response.data;

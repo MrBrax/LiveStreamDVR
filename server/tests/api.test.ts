@@ -7,13 +7,27 @@ import { Config } from "../src/Core/Config";
 import { TwitchChannel } from "../src/Core/Providers/Twitch/TwitchChannel";
 import { Auth } from "../src/Helpers/Auth";
 import ApiRouter from "../src/Routes/Api";
+import { TwitchHelper } from "../src/Providers/Twitch";
+import "./environment";
 
 // jest.mock("../src/Core/TwitchChannel");
 
 let app: Express | undefined;
 let spy1: jest.SpyInstance | undefined;
-let spy2: jest.SpyInstance | undefined;
-let spy3: jest.SpyInstance | undefined;
+
+// jest.mock("../src/Providers/Twitch");
+// jest.mock("../src/Core/Config");
+
+jest.spyOn(TwitchHelper, "getAccessToken").mockImplementation(() => {
+    return new Promise((resolve) => {
+        resolve("test");
+    });
+});
+
+jest.spyOn(Config.prototype, "saveConfig").mockImplementation((source?: string): boolean => {
+    console.debug(`Config.saveConfig(${source})`);
+    return true;
+});
 
 beforeAll(async () => {
     await Config.init();
@@ -51,26 +65,6 @@ beforeAll(async () => {
         } as UserData);
     });
 
-    // TwitchChannel.subscribe
-    spy2 = jest.spyOn(TwitchChannel, "subscribeToId").mockImplementation(() => {
-        return Promise.resolve(true);
-    });
-
-    // TwitchChannel.unsubscribe
-    spy3 = jest.spyOn(TwitchChannel, "unsubscribeFromId").mockImplementation(() => {
-        return Promise.resolve(true);
-    });
-
-    jest.spyOn(LiveStreamDVR.getInstance(), "loadChannelsConfig").mockImplementation(() => {
-        console.log("TRIED TO LOAD CONFIG");
-        return true;
-    });
-
-    jest.spyOn(LiveStreamDVR.getInstance(), "saveChannelsConfig").mockImplementation(() => {
-        console.log("TRIED TO SAVE CONFIG");
-        return true;
-    });
-
 });
 
 // afterEach(() => {
@@ -81,13 +75,13 @@ afterAll(() => {
     Config.destroyInstance();
     app = undefined;
     spy1?.mockRestore();
-    spy2?.mockRestore();
-    spy3?.mockRestore();
+    jest.restoreAllMocks();
 });
 
 describe("settings", () => {
     it("should return settings", async () => {
         const res = await request(app).get("/api/v0/settings");
+        // console.log(res.status, res.body);
         expect(res.status).toBe(200);
         expect(res.body).toHaveProperty("data.app_name");
         expect(res.body).toHaveProperty("data.version");
@@ -102,11 +96,29 @@ describe("settings", () => {
         expect(res.body.data.app_name).toBe(AppName);
 
     });
+
+    it("should update settings", async () => {
+        const res = await request(app).put("/api/v0/settings").send({
+            "password": "test",
+            "bin_dir": "test",
+            "ffmpeg_path": "test",
+            "mediainfo_path": "test",
+            "api_client_id": "test",
+            "api_secret": "test",
+            "eventsub_secret": "test",
+            "app_url": "debug",
+            // TODO: automatic required fields
+        });
+        expect(res.body.message).toBe("Settings saved");
+        expect(res.status).toBe(200);
+        expect(Config.getInstance().cfg("password")).toBe("test");
+    });
 });
 
 describe("channels", () => {
     it("should return channels", async () => {
         const res = await request(app).get("/api/v0/channels");
+        console.log("channels", res.status, res.body);
         expect(res.status).toBe(200);
         expect(res.body).toHaveProperty("data.streamer_list");
         expect(res.body).toHaveProperty("data.total_size");
@@ -211,7 +223,7 @@ describe("channels", () => {
         // TwitchChannel.channels_config = [];
 
         expect(spy1).toHaveBeenCalled();
-        expect(spy2).toHaveBeenCalled();
+        expect(TwitchChannel.subscribeToId).toHaveBeenCalled();
 
         Config.getInstance().setConfig("app_url", "");
         Config.getInstance().setConfig("isolated_mode", false);
@@ -251,7 +263,7 @@ describe("channels", () => {
         expect(res.status).toBe(200);
         expect(res.body.message).toContain("'test' deleted");
         expect(res.body.status).toBe("OK");
-        expect(spy3).toHaveBeenCalled();
+        expect(TwitchChannel.unsubscribeFromId).toHaveBeenCalled();
     });
 
 });

@@ -1,7 +1,7 @@
 <template>
     <section class="section">
         <div class="section-title">
-            <h1>{{ $t('pages.channels') }}</h1>
+            <h1>{{ t('pages.channels') }}</h1>
         </div>
         <div class="section-content">
             <h1>Channels</h1>
@@ -34,14 +34,13 @@
             >
                 <span class="icon">
                     <fa icon="sign-in-alt" />
-                </span> {{ $t("messages.login") }}
+                </span> {{ t("messages.login") }}
             </div>
         </div>
     </section>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script lang="ts" setup>
 import ChannelUpdateForm from "@/components/forms/ChannelUpdateForm.vue";
 import type { ApiSettingsResponse } from "@common/Api/Api";
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -49,88 +48,81 @@ import { faUser, faCalendarCheck, faStar, faBell, faUserCog, faDatabase } from "
 import { faTwitch, faYoutube } from "@fortawesome/free-brands-svg-icons";
 import { useStore } from "@/store";
 import { ApiChannelConfig } from "@common/Api/Client";
+import { useI18n } from "vue-i18n";
+import axios from "axios";
+import { computed, onMounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 library.add(faUser, faCalendarCheck, faStar, faBell, faUserCog, faDatabase, faTwitch, faYoutube);
 
-export default defineComponent({
-    name: "SettingsChannelsView",
-    components: {
-        ChannelUpdateForm,
-    },
-    setup() {
-        const store = useStore();
-        return { store };
-    },
-    title() {
-        return "Settings - Channels";
-    },
-    data(): {
-        loading: boolean;
-        formChannels: ApiChannelConfig[];
-        currentChannel: string;
-    } {
-        return {
-            loading: false,
-            formChannels: [],
-            currentChannel: "",
-        };
-    },
-    computed: {
-        formChannel() {
-            return this.formChannels.find(c => c.uuid == this.currentChannel);
-        }
-    },
-    watch: {
-        $route() {
-            this.currentChannel = this.$route.params.channel as string;
-        },
-    },
-    created() {
-        this.currentChannel = this.$route.params.channel as string;
-        this.fetchData();
-    },
-    methods: {
-        fetchData() {
-            console.debug("Fetching channels");
-            this.loading = true;
-            this.$http
-                .get(`api/v0/settings`)
-                .then((response) => {
-                    const json: ApiSettingsResponse = response.data;
-                    if (json.message) alert(json.message);
-                    const channels = json.data.channels;
-                    /* this.formChannels = */ 
-                    channels.sort((a, b) => {
-                        // if (a.provider == "youtube" || b.provider == "youtube") return -1;
-                        // return a..localeCompare(b.login)
-                        return this.store.channelUUIDToInternalName(a.uuid).localeCompare(this.store.channelUUIDToInternalName(b.uuid));
-                    });
-                    this.formChannels = channels;
-                    if (!this.currentChannel && this.formChannels.length > 0) {
-                        this.$router.replace({ params: { channel: this.formChannels[0].uuid }});
-                        // this.currentChannel = this.formChannels[0].uuid;
-                    }
-                })
-                .catch((err) => {
-                    console.error("settings fetch error", err.response);
-                    if (err.response.data && err.response.data.message) {
-                        alert(`Settings fetch error: ${err.response.data.message}`);
-                    } else {
-                        alert("Error fetching settings");
-                    }
-                }).finally(() => {
-                    this.loading = false;
-                });
+const store = useStore();
+const { t } = useI18n();
+const route = useRoute();
+const router = useRouter();
 
-        },
-        updateUsers() {
-            this.store.fetchAndUpdateStreamerList();
-        },
-        updateAll() {
-            this.fetchData();
-            this.updateUsers();
-        },
-    },
+// title() {
+//     return "Settings - Channels";
+// },
+
+const loading = ref(false);
+const formChannels = ref<ApiChannelConfig[]>([]);
+const currentChannel = ref("");
+
+const formChannel = computed((): ApiChannelConfig | undefined => {
+    return formChannels.value.find(c => c.uuid == currentChannel.value);
 });
+
+watch(() => route.params.channel, (channel) => {
+    currentChannel.value = channel as string;
+});
+
+onMounted(() => {
+    currentChannel.value = route.params.channel as string;
+    fetchData();
+});
+
+function fetchData() {
+    console.debug("Fetching channels");
+    loading.value = true;
+    axios
+        .get(`api/v0/settings`)
+        .then((response) => {
+            const json: ApiSettingsResponse = response.data;
+            if (json.message) alert(json.message);
+            const channels = json.data.channels;
+            /* formChannels.value = */ 
+            channels.sort((a, b) => {
+                // if (a.provider == "youtube" || b.provider == "youtube") return -1;
+                // return a..localeCompare(b.login)
+                return store.channelUUIDToInternalName(a.uuid).localeCompare(store.channelUUIDToInternalName(b.uuid));
+            });
+            formChannels.value = channels;
+            if (!currentChannel.value && formChannels.value.length > 0) {
+                router.replace({ params: { channel: formChannels.value[0].uuid }});
+                // this.currentChannel = formChannels.value[0].uuid;
+            }
+        })
+        .catch((err) => {
+            console.error("settings fetch error", err.response);
+            if (err.response.data && err.response.data.message) {
+                alert(`Settings fetch error: ${err.response.data.message}`);
+            } else {
+                alert("Error fetching settings");
+            }
+        }).finally(() => {
+            loading.value = false;
+        });
+
+}
+
+function updateUsers() {
+    store.fetchAndUpdateStreamerList();
+}
+
+function updateAll() {
+    fetchData();
+    updateUsers();
+}
+    
 </script>
 
 <style lang="scss" scoped>

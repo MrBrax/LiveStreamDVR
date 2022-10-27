@@ -11,7 +11,7 @@
                 v-model="searchText"
                 class="input"
                 type="text"
-                :placeholder="$t('input.search')"
+                :placeholder="t('input.search')"
             >
         </div>
         <details
@@ -20,7 +20,7 @@
             class="settings-details"
             :open="searchText !== ''"
         >
-            <summary>{{ $te('configgroup.' + groupData.name) ? $t('configgroup.' + groupData.name) : groupData.name }}</summary>
+            <summary>{{ te('configgroup.' + groupData.name) ? t('configgroup.' + groupData.name) : groupData.name }}</summary>
             <div
                 v-for="(data, index) in groupData.fields"
                 :key="index"
@@ -31,7 +31,7 @@
                     class="label"
                     :for="'input_' + data.key"
                 >
-                    {{ $te('config.' + data.key) ? $t('config.' + data.key) : data.text }} <span
+                    {{ te('config.' + data.key) ? t('config.' + data.key) : data.text }} <span
                         v-if="data.required"
                         class="required"
                     >*</span>
@@ -62,28 +62,15 @@
                     v-if="data.type == 'string'"
                     class="control"
                 >
-                    <input
+                    <component
+                        :is="data.multiline ? 'textarea' : 'input'"
                         :id="'input_' + data.key"
-                        v-model="(formData[data.key] as string)"
+                        v-model="formData[data.key]"
                         class="input"
                         type="text"
                         :name="data.key"
                         :title="data.help"
                         :pattern="data.pattern"
-                    >
-                </div>
-
-                <!-- text -->
-                <div
-                    v-if="data.type == 'text'"
-                    class="control"
-                >
-                    <textarea
-                        :id="'input_' + data.key"
-                        v-model="(formData[data.key] as string)"
-                        class="input"
-                        :name="data.key"
-                        :title="data.help"
                     />
                 </div>
 
@@ -94,7 +81,7 @@
                 >
                     <input
                         :id="'input_' + data.key"
-                        v-model.number="(formData[data.key] as number)"
+                        v-model.number="formData[data.key]"
                         class="input"
                         type="number"
                         :name="data.key"
@@ -114,19 +101,35 @@
                             v-model="formData[data.key]"
                             class="input"
                             :name="data.key"
+                            :data-is-array="data.choices && Array.isArray(data.choices)"
                         >
-                            <option
-                                v-for="(item, ix) in data.choices"
-                                :id="data.key"
-                                :key="ix"
-                                :selected="
-                                    (formData[data.key] !== undefined && formData[data.key] === item) ||
-                                        (formData[data.key] === undefined && item === data.default)
-                                "
-                            >
-                                {{ item }}
-                            </option>
+                            <template v-if="data.choices && Array.isArray(data.choices)">
+                                <option
+                                    v-for="(item, ix) in data.choices"
+                                    :key="ix"
+                                    :selected="
+                                        (formData[data.key] !== undefined && formData[data.key] === item) ||
+                                            (formData[data.key] === undefined && item === data.default)
+                                    "
+                                >
+                                    {{ item }}
+                                </option>
+                            </template>
+                            <template v-else>
+                                <option
+                                    v-for="(item, ix) in data.choices"
+                                    :key="ix"
+                                    :value="ix"
+                                    :selected="
+                                        (formData[data.key] !== undefined && formData[data.key] === item) ||
+                                            (formData[data.key] === undefined && ix === data.default)
+                                    "
+                                >
+                                    {{ item }}
+                                </option>
+                            </template>
                         </select>
+                        <span v-else class="is-error">No choices defined</span>
                     </div>
                 </div>
 
@@ -135,7 +138,16 @@
                     v-if="data.type == 'template'"
                     class="control"
                 >
+                    <textarea
+                        v-if="data.multiline"
+                        :id="'input_' + data.key"
+                        v-model="(formData[data.key] as string)"
+                        class="input"
+                        type="text"
+                        :name="data.key"
+                    />
                     <input
+                        v-else
                         :id="'input_' + data.key"
                         v-model="formData[data.key]"
                         class="input"
@@ -193,7 +205,7 @@
                 type="submit"
             >
                 <span class="icon"><fa icon="save" /></span>
-                <span>{{ $t('buttons.save') }}</span>
+                <span>{{ t('buttons.save') }}</span>
             </button>
             <span :class="formStatusClass">{{ formStatusText }}</span>
         </div>
@@ -206,7 +218,7 @@
                 @click="doValidateExternalURL"
             >
                 <span class="icon"><fa icon="globe" /></span>
-                <span>{{ $t('forms.config.validate-external-url') }}</span>
+                <span>{{ t('forms.config.validate-external-url') }}</span>
             </button>
         </div>
     </form>
@@ -214,7 +226,7 @@
         <span class="icon"><fa
             icon="sync"
             spin
-        /></span> {{ $t("messages.loading") }}
+        /></span> {{ t("messages.loading") }}
     </div>
     <hr>
     <youtube-auth />
@@ -224,13 +236,14 @@
 import { useStore } from "@/store";
 import { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
 import { SettingField } from "@common/Config";
-import { AxiosError } from "axios";
+import axios, { AxiosError } from "axios";
 import { defineComponent } from "vue";
 import { formatString } from "@common/Format";
 import YoutubeAuth from "@/components/YoutubeAuth.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGlobe, faSave } from "@fortawesome/free-solid-svg-icons";
+import { useI18n } from "vue-i18n";
 library.add(faGlobe, faSave);
 
 interface SettingsGroup {
@@ -246,7 +259,8 @@ export default defineComponent({
     emits: ["formSuccess"],
     setup() {
         const store = useStore();
-        return { store };
+        const { t, te } = useI18n();
+        return { store, t, te };
     },
     data(): {
         formStatusText: string;
@@ -334,7 +348,7 @@ export default defineComponent({
     methods: {
         fetchData(): void {
             this.loading = true;
-            this.$http.get("/api/v0/settings").then((response) => {
+            axios.get("/api/v0/settings").then((response) => {
                 const data: ApiSettingsResponse = response.data;
                 this.formData = data.data.config;
                 this.settingsFields = data.data.fields;
@@ -352,10 +366,10 @@ export default defineComponent({
         },
         submitForm(event: Event) {
 
-            this.formStatusText = this.$t("messages.loading");
+            this.formStatusText = this.t("messages.loading");
             this.formStatus = "";
 
-            this.$http
+            axios
                 .put<ApiResponse>(`/api/v0/settings`, this.formData)
                 .then((response) => {
                     const json: ApiResponse = response.data;
@@ -385,7 +399,7 @@ export default defineComponent({
             return this.formData[key];
         },
         doValidateExternalURL() {
-            this.$http
+            axios
                 .post<ApiResponse>(`/api/v0/settings/validate_url`)
                 .then((response) => {
                     const json: ApiResponse = response.data;
@@ -418,13 +432,21 @@ export default defineComponent({
                 if (caret !== null) {
                     const rep = `{${value}}`;
                     // input.value = input.value.substring(0, caret) + rep + input.value.substring(caret);
-                    this.formData[key] = input.value.substring(0, caret) + rep + input.value.substring(caret);
+                    const newValue = input.value.substring(0, caret) + rep + input.value.substring(caret);
+                    this.formData[key] = newValue;
+                    // console.debug("insertReplacement", newValue, this.formData[key]);
                     input.selectionStart = caret + rep.length;
                     input.selectionEnd = caret + rep.length;
                     input.focus();
+                    // console.debug("insertReplacement", "caret", caret, key, value, input.value);
+                } else {
+                    this.formData[key] = this.formData[key] + `{${value}}`;
+                    // console.debug("insertReplacement", "no caret", key, value, input.value);
                 }
                 // const text = input.value;
                 // input.value = text.substring(0, caret) + value + text.substring(caret);
+            } else {
+                console.error("input not found", key);
             }
         },
     },

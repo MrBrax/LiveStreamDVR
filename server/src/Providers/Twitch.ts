@@ -2,14 +2,14 @@ import axios, { Axios } from "axios";
 import { format } from "date-fns";
 import fs from "node:fs";
 import path from "node:path";
-import { EventSubTypes, Subscription } from "../../../common/TwitchAPI/Shared";
-import { Subscriptions } from "../../../common/TwitchAPI/Subscriptions";
+import { EventSubTypes, Subscription } from "@common/TwitchAPI/Shared";
+import { Subscriptions } from "@common/TwitchAPI/Subscriptions";
 import {BaseConfigCacheFolder, BaseConfigDataFolder} from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
 import {  Log } from "../Core/Log";
-import { TwitchCommentDumpTD } from "../../../common/Comments";
+import { TwitchCommentDumpTD } from "@common/Comments";
 import { KeyValue } from "../Core/KeyValue";
-import { SubStatus } from "../../../common/Defs";
+import { SubStatus } from "@common/Defs";
 import { Helper } from "../Core/Helper";
 
 export interface ExecReturn {

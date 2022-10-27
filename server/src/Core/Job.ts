@@ -6,8 +6,8 @@ import { parseJSON } from "date-fns";
 import { ChildProcessWithoutNullStreams } from "node:child_process";
 import { EventEmitter } from "node:events";
 import { Webhook } from "./Webhook";
-import { ApiJob } from "../../../common/Api/Client";
-import { JobStatus } from "../../../common/Defs";
+import { ApiJob } from "@common/Api/Client";
+import { JobStatus } from "@common/Defs";
 import { Helper } from "./Helper";
 
 export interface TwitchAutomatorJobJSON {

@@ -30,37 +30,29 @@
     </teleport>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script lang="ts" setup>
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 library.add(faTimes);
 
-export default defineComponent({
-    props: {
-        title: {
-            type: String,
-            default: "Modal",
-        },
-        maxWidth: {
-            type: String,
-            default: "800px",
-        },
-        show: {
-            type: Boolean,
-            default: false,
-        },
+const props = defineProps({
+    title: {
+        type: String,
+        default: "Modal",
     },
-    emits: ["close"],
-    // data() {
-    //     return {
-    //         show: false,
-    //     };
-    // },
-    methods: {
-        close() {
-            this.$emit("close");
-        },
+    maxWidth: {
+        type: String,
+        default: "800px",
+    },
+    show: {
+        type: Boolean,
+        default: false,
     },
 });
+
+const emit = defineEmits(["close"]);
+
+function close() {
+    emit("close");
+}
 </script>

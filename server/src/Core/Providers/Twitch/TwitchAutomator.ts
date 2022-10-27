@@ -4,7 +4,7 @@ import { TwitchHelper } from "../../../Providers/Twitch";
 import { KeyValue } from "../../KeyValue";
 import { Log } from "../../Log";
 import path from "node:path";
-import { EventSubResponse } from "../../../../../common/TwitchAPI/EventSub";
+import { EventSubResponse } from "@common/TwitchAPI/EventSub";
 import { BaseAutomator } from "../Base/BaseAutomator";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchVOD } from "./TwitchVOD";
@@ -13,8 +13,8 @@ import fs from "node:fs";
 import { Config } from "../../Config";
 import { Webhook } from "../../Webhook";
 import { TwitchVODChapterJSON } from "Storage/JSON";
-import { ChannelUpdateEvent } from "../../../../../common/TwitchAPI/EventSub/ChannelUpdate";
-import { ChapterUpdateData } from "../../../../../common/Webhook";
+import { ChannelUpdateEvent } from "@common/TwitchAPI/EventSub/ChannelUpdate";
+import { ChapterUpdateData } from "@common/Webhook";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 
 export class TwitchAutomator extends BaseAutomator {

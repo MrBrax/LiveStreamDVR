@@ -4,7 +4,7 @@
             v-if="isPrivate"
             class="error"
         >
-            {{ $t('components.filemanager.these-files-are-not-downloadable-due-to-a-config-setting') }}
+            {{ t('components.filemanager.these-files-are-not-downloadable-due-to-a-config-setting') }}
         </p>
         <table
             v-if="!error && files.length > 0"
@@ -17,7 +17,7 @@
                         style="cursor: pointer;"
                         @click="setSort('name')"
                     >
-                        <span>{{ $t('components.filemanager.name') }}</span>
+                        <span>{{ t('components.filemanager.name') }}</span>
                         <span
                             v-if="sortBy == 'name'"
                             class="icon is-small"
@@ -36,7 +36,7 @@
                         style="cursor: pointer;"
                         @click="setSort('size')"
                     >
-                        <span>{{ $t('components.filemanager.size') }}</span>
+                        <span>{{ t('components.filemanager.size') }}</span>
                         <span
                             v-if="sortBy == 'size'"
                             class="icon is-small"
@@ -55,7 +55,7 @@
                         style="cursor: pointer;"
                         @click="setSort('date')"
                     >
-                        <span>{{ $t('components.filemanager.last-modified') }}</span>
+                        <span>{{ t('components.filemanager.last-modified') }}</span>
                         <span
                             v-if="sortBy == 'date'"
                             class="icon is-small"
@@ -70,7 +70,7 @@
                             />
                         </span>
                     </th>
-                    <th>{{ $t('components.filemanager.actions') }}</th>
+                    <th>{{ t('components.filemanager.actions') }}</th>
                 </tr>
             </thead>
             <tr
@@ -150,7 +150,7 @@
         <form @submit.prevent="doExportFile">
             <!-- Exporter -->
             <div class="field">
-                <label class="label">{{ $t('vod.export.export-type') }}</label>
+                <label class="label">{{ t('vod.export.export-type') }}</label>
                 <div class="control">
                     <div class="select">
                         <select v-model="exporter">
@@ -176,7 +176,7 @@
 
             <!-- Title / Filename -->
             <div class="field">
-                <label class="label">{{ $t('vod.export.title') }}</label>
+                <label class="label">{{ t('vod.export.title') }}</label>
                 <div class="control">
                     <input
                         v-model="exportVodSettings.title"
@@ -192,7 +192,7 @@
                 v-if="exporter == 'file' || exporter == 'sftp' || exporter == 'ftp' || exporter == 'rclone'"
                 class="field"
             >
-                <label class="label">{{ $t('vod.export.directory') }}</label>
+                <label class="label">{{ t('vod.export.directory') }}</label>
                 <div class="control">
                     <input
                         v-model="exportVodSettings.directory"
@@ -207,7 +207,7 @@
                 v-if="exporter == 'sftp' || exporter == 'ftp'"
                 class="field"
             >
-                <label class="label">{{ $t('vod.export.host') }}</label>
+                <label class="label">{{ t('vod.export.host') }}</label>
                 <div class="control">
                     <input
                         v-model="exportVodSettings.host"
@@ -222,7 +222,7 @@
                 v-if="exporter == 'rclone'"
                 class="field"
             >
-                <label class="label">{{ $t('vod.export.remote') }}</label>
+                <label class="label">{{ t('vod.export.remote') }}</label>
                 <div class="control">
                     <input
                         v-model="exportVodSettings.remote"
@@ -237,7 +237,7 @@
                 v-if="exporter == 'sftp' || exporter == 'ftp'"
                 class="field"
             >
-                <label class="label">{{ $t('vod.export.username') }}</label>
+                <label class="label">{{ t('vod.export.username') }}</label>
                 <div class="control">
                     <input
                         v-model="exportVodSettings.username"
@@ -252,7 +252,7 @@
                 v-if="exporter == 'ftp'"
                 class="field"
             >
-                <label class="label">{{ $t('vod.export.password') }}</label>
+                <label class="label">{{ t('vod.export.password') }}</label>
                 <div class="control">
                     <input
                         v-model="exportVodSettings.password"
@@ -261,7 +261,7 @@
                     >
                 </div>
                 <p class="help">
-                    {{ $t('vod.export.password-help') }}
+                    {{ t('vod.export.password-help') }}
                 </p>
             </div>
 
@@ -278,7 +278,7 @@
                 v-if="exporter == 'youtube'"
                 class="field"
             >
-                <label class="label">{{ $t('vod.export.description') }}</label>
+                <label class="label">{{ t('vod.export.description') }}</label>
                 <div class="control">
                     <textarea
                         v-model="exportVodSettings.description"
@@ -292,7 +292,7 @@
                 v-if="exporter == 'youtube'"
                 class="field"
             >
-                <label class="label">{{ $t('vod.export.category') }}</label>
+                <label class="label">{{ t('vod.export.category') }}</label>
                 <div class="control">
                     <div class="select">
                         <select v-model="exportVodSettings.category">
@@ -313,7 +313,7 @@
                 v-if="exporter == 'youtube'"
                 class="field"
             >
-                <label class="label">{{ $t('vod.export.tags') }}</label>
+                <label class="label">{{ t('vod.export.tags') }}</label>
                 <div class="control">
                     <input
                         v-model="exportVodSettings.tags"
@@ -322,7 +322,7 @@
                     >
                 </div>
                 <p class="input-help">
-                    {{ $t('vod.export.tags-help') }}
+                    {{ t('vod.export.tags-help') }}
                 </p>
             </div>
 
@@ -331,18 +331,18 @@
                 v-if="exporter == 'youtube'"
                 class="field"
             >
-                <label class="label">{{ $t('vod.export.privacy') }}</label>
+                <label class="label">{{ t('vod.export.privacy') }}</label>
                 <div class="control">
                     <div class="select">
                         <select v-model="exportVodSettings.privacy">
                             <option value="public">
-                                {{ $t('vod.export.privacy-public') }}
+                                {{ t('vod.export.privacy-public') }}
                             </option>
                             <option value="unlisted">
-                                {{ $t('vod.export.privacy-unlisted') }}
+                                {{ t('vod.export.privacy-unlisted') }}
                             </option>
                             <option value="private">
-                                {{ $t('vod.export.privacy-private') }}
+                                {{ t('vod.export.privacy-private') }}
                             </option>
                         </select>
                     </div>
@@ -353,7 +353,7 @@
                 <div class="control">
                     <button class="button is-confirm">
                         <span class="icon"><fa icon="upload" /></span>
-                        <span>{{ $t("buttons.export") }}</span>
+                        <span>{{ t("buttons.export") }}</span>
                     </button>
                 </div>
             </div>
@@ -363,16 +363,18 @@
 
 <script lang="ts">
 import { useStore } from "@/store";
-import { AxiosError } from "axios";
-import { defineComponent, ref } from "vue";
+import axios, { AxiosError } from "axios";
+import { defineComponent } from "vue";
 import ModalBox from "./ModalBox.vue";
 import YoutubeAuth from "./YoutubeAuth.vue";
-import { YouTubeCategories } from "@/defs";
+import { YouTubeCategories } from "@common/YouTube";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode, faFileLines, faDownload, faUpload } from "@fortawesome/free-solid-svg-icons";
 import { ApiResponse } from "@common/Api/Api";
 import { ExporterOptions } from "@common/Exporter";
+import { useI18n } from "vue-i18n";
+import { formatBytes } from "@/mixins/newhelpers";
 library.add(faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode, faFileLines, faDownload, faUpload);
 
 interface ApiFile {
@@ -410,7 +412,8 @@ export default defineComponent({
     },
     setup() {
         const store = useStore();
-        return { store, YouTubeCategories };
+        const { t } = useI18n();
+        return { store, YouTubeCategories, t, formatBytes };
     },
     data(): {
         files: ApiFile[];
@@ -473,7 +476,7 @@ export default defineComponent({
     methods: {
         fetchFileList() {
             console.debug("Fetching file list...");
-            this.$http.get<ApiResponse>(`/api/v0/files?path=${this.path}`).then((response) => {
+            axios.get<ApiResponse>(`/api/v0/files?path=${this.path}`).then((response) => {
                 this.files = response.data.data.files;
             }).catch((error: AxiosError<ApiResponse> | Error) => {
                 if ("response" in error && error.response?.data.message) {
@@ -483,7 +486,7 @@ export default defineComponent({
             });
         },
         deleteFile(file: ApiFile) {
-            this.$http.delete(`/api/v0/files?path=${this.path}&name=${file.name}`).then((response) => {
+            axios.delete(`/api/v0/files?path=${this.path}&name=${file.name}`).then((response) => {
                 this.fetchFileList();
             });
         },
@@ -533,7 +536,7 @@ export default defineComponent({
         },
         doExportFile() {
             // if (!this.vod) return;
-            this.$http.post(`/api/v0/exporter?mode=file&exporter=${this.exporter}`, this.exportVodSettings).then((response) => {
+            axios.post(`/api/v0/exporter?mode=file&exporter=${this.exporter}`, this.exportVodSettings).then((response) => {
                 const json: ApiResponse = response.data;
                 if (json.message) alert(json.message);
                 console.log(json);
@@ -545,7 +548,7 @@ export default defineComponent({
             });
         },
         doCheckYouTubeStatus() {
-            this.$http.get(`/api/v0/youtube/status`).then((response) => {
+            axios.get(`/api/v0/youtube/status`).then((response) => {
                 const json: ApiResponse = response.data;
                 if (json.message) alert(json.message);
                 console.log(json);

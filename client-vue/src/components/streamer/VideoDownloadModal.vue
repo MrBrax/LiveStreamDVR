@@ -1,7 +1,7 @@
 <template>
     <div class="video-download-menu">
         <p>
-            {{ $t('messages.video_download_help') }}<br>
+            {{ t('messages.video_download_help') }}<br>
             <!--<span v-if="averageVodBitrate">Average bitrate: {{ averageVodBitrate / 1000 }} kbps</span>-->
         </p>
         <button
@@ -10,7 +10,7 @@
             @click="fetchTwitchVods"
         >
             <span class="icon"><fa icon="download" /></span>
-            <span>{{ $t('vod.fetch-vod-list') }}</span>
+            <span>{{ t('vod.fetch-vod-list') }}</span>
         </button>
         <button
             v-if="isYouTube(streamer)"
@@ -18,7 +18,7 @@
             @click="fetchYouTubeVods"
         >
             <span class="icon"><fa icon="download" /></span>
-            <span>{{ $t('vod.fetch-vod-list') }}</span>
+            <span>{{ t('vod.fetch-vod-list') }}</span>
         </button>
         <hr>
         <template v-if="!loading">
@@ -50,7 +50,7 @@
                     @click="downloadVideo(vod.id.toString())"
                 >
                     <span class="icon"><fa icon="download" /></span>
-                    <span>{{ $t("buttons.download") }}</span>
+                    <span>{{ t("buttons.download") }}</span>
                 </button>
             </div>
         </template>
@@ -58,25 +58,28 @@
             <span class="icon"><fa
                 icon="spinner"
                 spin
-            /></span> {{ $t('messages.loading') }}
+            /></span> {{ t('messages.loading') }}
         </template>
     </div>
 </template>
 
 <script lang="ts" setup>
 import YouTubeChannel from '@/core/Providers/YouTube/YouTubeChannel';
-import { isTwitch, isYouTube, formatDuration } from '@/mixins/newhelpers';
+import { isTwitch, isYouTube, formatDuration, formatNumber } from '@/mixins/newhelpers';
 import { ChannelTypes } from '@/store';
 import { ProxyVideo } from '@common/Proxies/Video';
 import axios from 'axios';
 import { ref } from 'vue';
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { useI18n } from 'vue-i18n';
 library.add(faSpinner);
 
 const props = defineProps<{
     streamer: ChannelTypes;
 }>();
+
+const { t } = useI18n();
 
 const onlineVods = ref<ProxyVideo[]>([]);
 const loading = ref(false);

@@ -1,10 +1,11 @@
 
-import path from "node:path";
-import fs from "node:fs";
 import { format } from "date-fns";
-import { ExporterFilenameTemplate } from "../../../common/Replacements";
-import { formatString } from "../../../common/Format";
+import fs from "node:fs";
+import path from "node:path";
+import { formatString } from "@common/Format";
+import { ExporterFilenameTemplate } from "@common/Replacements";
 import { VODTypes } from "../Core/LiveStreamDVR";
+import { Log } from "../Core/Log";
 import { isTwitchVOD } from "../Helpers/Types";
 
 export class BaseExporter {
@@ -97,7 +98,14 @@ export class BaseExporter {
             comment: this.vod.comment || "",
             stream_number: this.vod.stream_number?.toString() || "",
             resolution: "",
+            id: this.vod.capture_id,
         };
+
+        for (const literal in replacements) {
+            if (replacements[literal] === undefined || replacements[literal] === null || replacements[literal] === "") {
+                Log.logAdvanced(Log.Level.WARNING, "BaseExporter", `No value for replacement literal '${literal}', using template '${this.template_filename}'`);
+            }
+        }
 
         if (this.vod.video_metadata.type == "video") {
             replacements.resolution = `${this.vod.video_metadata.height}p`;

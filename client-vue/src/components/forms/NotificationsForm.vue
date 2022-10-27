@@ -44,7 +44,7 @@
                     type="submit"
                 >
                     <span class="icon"><fa icon="save" /></span>
-                    <span>{{ $t('buttons.save') }}</span>
+                    <span>{{ t('buttons.save') }}</span>
                 </button>
             </div>
             <div :class="formStatusClass">
@@ -91,7 +91,9 @@
 <script lang="ts">
 import { useStore } from "@/store";
 import { ApiResponse } from "@common/Api/Api";
+import axios from "axios";
 import { defineComponent } from "vue";
+import { useI18n } from "vue-i18n";
 import { NotificationProvider, NotificationProvidersList, NotificationCategories } from "../../../../common/Defs";
 
 export default defineComponent({
@@ -100,7 +102,8 @@ export default defineComponent({
     // props: {},
     setup() {
         const store = useStore();
-        return { store, NotificationProvider, NotificationProvidersList, NotificationCategories };
+        const { t } = useI18n();
+        return { store, NotificationProvider, NotificationProvidersList, NotificationCategories, t };
     },
     data(): {
         formStatusText: string;
@@ -169,7 +172,7 @@ export default defineComponent({
             }
         },
         fetchData() {
-            this.$http
+            axios
                 .get("/api/v0/notifications")
                 .then((response) => {
                     const json: ApiResponse = response.data;
@@ -186,7 +189,7 @@ export default defineComponent({
             const bitmasks = this.getBitmasks();
             console.debug("bitmasks", bitmasks);
 
-            this.$http
+            axios
                 .put(`/api/v0/notifications`, bitmasks)
                 .then((response) => {
                     const json: ApiResponse = response.data;
@@ -213,7 +216,7 @@ export default defineComponent({
             return false;
         },
         testNotification() {
-            this.$http
+            axios
                 .post(`/api/v0/notifications/test`, {
                     provider: this.test.provider,
                     category: this.test.category,

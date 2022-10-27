@@ -5,13 +5,13 @@ import fs from "node:fs";
 import { BaseVODSegment } from "../src/Core/Providers/Base/BaseVODSegment";
 import { randomUUID } from "node:crypto";
 import { LiveStreamDVR } from "../src/Core/LiveStreamDVR";
+import "./environment";
 
 // jest.mock("TwitchVOD");
 // const mockTwitchVOD = jest.mocked(TwitchVOD, true);
 
 beforeAll(async () => {
     const channels_config = JSON.parse(fs.readFileSync("./tests/mockdata/channels.json", "utf8"));
-    await Config.init();
     LiveStreamDVR.getInstance().channels_config = channels_config;
     LiveStreamDVR.getInstance().clearChannels();
 

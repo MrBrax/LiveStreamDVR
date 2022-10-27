@@ -4,7 +4,7 @@
         v-if="vod.provider == 'twitch'"
         class="video-bookmarks"
     >
-        <strong>{{ $t('vod.bookmarks') }}</strong>
+        <strong>{{ t('vod.bookmarks') }}</strong>
         <ul class="list-segments">
             <li
                 v-for="(bookmark, i) in vod.bookmarks"
@@ -64,8 +64,9 @@
 import { useStore, VODTypes } from '@/store';
 import { ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
-import { formatDuration } from 'date-fns';
+import { formatDuration } from "@/mixins/newhelpers";
 import { ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
     vod: {
@@ -76,6 +77,7 @@ const props = defineProps({
 });
 
 const store = useStore();
+const { t } = useI18n();
 
 const newBookmark = ref({
     name: "",

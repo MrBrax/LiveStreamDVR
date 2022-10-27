@@ -11,7 +11,7 @@
 
         <section class="section">
             <div class="section-title">
-                <h1>{{ $t('views.tools.vod-download') }}</h1>
+                <h1>{{ t('views.tools.vod-download') }}</h1>
             </div>
             <div class="section-content">
                 <tools-vod-download-form />
@@ -20,7 +20,7 @@
 
         <section class="section">
             <div class="section-title">
-                <h1>{{ $t('views.tools.chat-download') }}</h1>
+                <h1>{{ t('views.tools.chat-download') }}</h1>
             </div>
             <div class="section-content">
                 <tools-chat-download-form />
@@ -29,7 +29,7 @@
 
         <section class="section">
             <div class="section-title">
-                <h1>{{ $t('views.tools.clip-download') }}</h1>
+                <h1>{{ t('views.tools.clip-download') }}</h1>
             </div>
             <div class="section-content">
                 <tools-clip-download-form />
@@ -39,7 +39,7 @@
     <div class="container">
         <section class="section">
             <div class="section-title">
-                <h1>{{ $t('views.tools.chat-dump') }}</h1>
+                <h1>{{ t('views.tools.chat-dump') }}</h1>
             </div>
             <div class="section-content">
                 <tools-chat-dump-form />
@@ -68,7 +68,7 @@
 
         <section class="section">
             <div class="section-title">
-                <h1>{{ $t('views.tools.system') }}</h1>
+                <h1>{{ t('views.tools.system') }}</h1>
             </div>
             <div class="section-content">
                 <div class="field">
@@ -79,10 +79,10 @@
                             @click="resetChannels"
                         >
                             <span class="icon"><fa icon="sync" /></span>
-                            <span>{{ $t('views.tools.reset-channels') }}</span>
+                            <span>{{ t('views.tools.reset-channels') }}</span>
                         </button>
                         <p class="input-help">
-                            {{ $t('messages.this-is-a-bad-idea-if-any-of-your-channels-are-live') }}
+                            {{ t('messages.this-is-a-bad-idea-if-any-of-your-channels-are-live') }}
                         </p>
                     </div>
                 </div>
@@ -94,7 +94,7 @@
                             @click="shutdown"
                         >
                             <span class="icon"><fa icon="power-off" /></span>
-                            <span>{{ $t('views.tools.shutdown') }}</span>
+                            <span>{{ t('views.tools.shutdown') }}</span>
                         </button>
                     </div>
                 </div>
@@ -106,7 +106,7 @@
                             @click="buildClient"
                         >
                             <span class="icon"><fa icon="sync" /></span>
-                            <span>{{ $t('views.tools.build-client') }}</span>
+                            <span>{{ t('views.tools.build-client') }}</span>
                         </button>
                     </div>
                 </div>
@@ -135,7 +135,7 @@
     <div class="container">
         <section class="section">
             <div class="section-title">
-                <h1>{{ $t('views.tools.current-jobs') }}</h1>
+                <h1>{{ t('views.tools.current-jobs') }}</h1>
             </div>
             <div class="section-content">
                 <table
@@ -144,13 +144,13 @@
                 >
                     <thead>
                         <tr>
-                            <th>{{ $t('jobs.name') }}</th>
-                            <th>{{ $t('jobs.started-at') }}</th>
-                            <th>{{ $t('jobs.pid') }}</th>
-                            <th>{{ $t('jobs.status') }}</th>
-                            <th>{{ $t('jobs.progress') }}</th>
-                            <th>{{ $t('jobs.time-left') }}</th>
-                            <th>{{ $t('jobs.action') }}</th>
+                            <th>{{ t('jobs.name') }}</th>
+                            <th>{{ t('jobs.started-at') }}</th>
+                            <th>{{ t('jobs.pid') }}</th>
+                            <th>{{ t('jobs.status') }}</th>
+                            <th>{{ t('jobs.progress') }}</th>
+                            <th>{{ t('jobs.time-left') }}</th>
+                            <th>{{ t('jobs.action') }}</th>
                         </tr>
                     </thead>
                     <tr
@@ -229,7 +229,7 @@
                         </td>
                     </tr>
                 </table>
-                <em v-else>{{ $t('jobs.no-jobs-running') }}</em>
+                <em v-else>{{ t('jobs.no-jobs-running') }}</em>
                 <p v-if="store.jobList && store.jobList.length > 0 && allJobsDuration !== 0">
                     All jobs finish in <duration-display
                         :start-date="new Date().getTime() + allJobsDuration"
@@ -255,6 +255,9 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faHeart, faStop, faSkull, faTrash, faPowerOff } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
 import { JobStatus } from "@common/Defs";
+import { useI18n } from "vue-i18n";
+import axios from "axios";
+import { formatDate } from "@/mixins/newhelpers";
 
 library.add(faHeart, faStop, faSkull, faTrash, faPowerOff);
 
@@ -278,7 +281,8 @@ export default defineComponent({
     },
     setup() {
         const store = useStore();
-        return { store, JobStatus };
+        const { t } = useI18n();
+        return { store, JobStatus, t, formatDate };
     },
     computed: {
         allJobsDuration(): number {
@@ -289,7 +293,7 @@ export default defineComponent({
         killJob(name: string, method = "") {
             if (!confirm(`Kill job "${name}?"`)) return;
 
-            this.$http
+            axios
                 .delete(`/api/v0/jobs/${name}`, {
                     params: {
                         method: method,
@@ -307,7 +311,7 @@ export default defineComponent({
         clearJob(name: string) {
             if (!confirm(`Clear job "${name}? This does not necessarily kill the process."`)) return;
 
-            this.$http
+            axios
                 .delete(`/api/v0/jobs/${name}?clear=1`)
                 .then((response) => {
                     const json = response.data;
@@ -333,7 +337,7 @@ export default defineComponent({
 
                     console.log("payload", data);
 
-                    this.$http
+                    axios
                         .post(`/api/v0/hook`, data.body, {
                             headers: data.headers,
                         })
@@ -352,7 +356,7 @@ export default defineComponent({
         resetChannels() {
             if (!confirm("Reset channels?")) return;
 
-            this.$http
+            axios
                 .post(`/api/v0/tools/reset_channels`)
                 .then((response) => {
                     const json = response.data;
@@ -366,7 +370,7 @@ export default defineComponent({
         shutdown() {
             if (!confirm("Shutdown?")) return;
 
-            this.$http
+            axios
                 .post(`/api/v0/tools/shutdown`)
                 .then((response) => {
                     const json = response.data;
@@ -382,7 +386,7 @@ export default defineComponent({
 
             const basepath = prompt("Base path", "/");
 
-            this.$http
+            axios
                 .post(`/api/v0/tools/buildclient?basepath=${basepath}`)
                 .then((response) => {
                     const json = response.data;

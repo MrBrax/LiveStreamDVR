@@ -2,10 +2,10 @@ import { youtube_v3 } from "@googleapis/youtube";
 import chalk from "chalk";
 import fs from "node:fs";
 import path from "node:path";
-import { ApiYouTubeVod } from "../../../../../common/Api/Client";
-import { VideoQuality } from "../../../../../common/Config";
-import { Providers } from "../../../../../common/Defs";
-import { ProxyVideo } from "../../../../../common/Proxies/Video";
+import { ApiYouTubeVod } from "@common/Api/Client";
+import { VideoQuality } from "@common/Config";
+import { Providers } from "@common/Defs";
+import { ProxyVideo } from "@common/Proxies/Video";
 import { BaseConfigCacheFolder } from "../../../Core/BaseConfig";
 import { Helper } from "../../../Core/Helper";
 import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
@@ -129,7 +129,7 @@ export class YouTubeVOD extends BaseVOD {
         };
     }
 
-    public async saveJSON(reason = ""): Promise<false | YouTubeVODJSON> {
+    public async saveJSON(reason = ""): Promise<boolean> {
 
         if (!this.filename) {
             throw new Error("Filename not set.");
@@ -227,7 +227,7 @@ export class YouTubeVOD extends BaseVOD {
 
         this.broadcastUpdate(); // should this be here?
 
-        return generated;
+        return true;
 
     }
 

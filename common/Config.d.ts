@@ -9,14 +9,14 @@ export interface SettingField<T> {
     /**
      * Value type
      */
-    type: "string" | "number" | "boolean" | "array" | "template" | "text";
+    type: "string" | "number" | "boolean" | "array" | "template";
     // type: T;
 
     /** Default value */
     default?: T;
 
     /** Array of choices */
-    choices?: T[];
+    choices?: string[] | Record<string, string>;
 
     /** Help text to appear next to field in settings */
     help?: string;
@@ -40,6 +40,8 @@ export interface SettingField<T> {
     context?: string;
 
     guest?: boolean;
+
+    multiline?: boolean;
 
 }
 

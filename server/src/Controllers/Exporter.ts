@@ -1,8 +1,8 @@
 import express from "express";
 import path from "node:path";
 import sanitize from "sanitize-filename";
-import { ApiErrorResponse, ApiResponse } from "../../../common/Api/Api";
-import { ExporterOptions } from "../../../common/Exporter";
+import { ApiErrorResponse, ApiResponse } from "@common/Api/Api";
+import { ExporterOptions } from "@common/Exporter";
 import { BaseConfigDataFolder, DataRoot } from "../Core/BaseConfig";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { FileExporter } from "../Exporters/File";
@@ -23,7 +23,7 @@ export function GetExporter(name: string, mode: string, options: ExporterOptions
     if (options.directory) {
         const dircheck = validatePath(options.directory);
         if (dircheck !== true && name == "file") {
-            console.error(`Invalid path: ${options.directory}`);
+            console.error(`Invalid path, using file exporter: ${options.directory}`);
             throw new Error(dircheck.toString());
         }
         output_directory = options.directory;
@@ -221,12 +221,35 @@ export async function ExportFile(req: express.Request, res: express.Response): P
 
     if (exporter.vod && verify) {
         exporter.vod.exportData.exported_at = new Date().toISOString();
+        exporter.vod.exportData.exporter = input_exporter;
         exporter.vod.saveJSON("export successful");
     }
 
     res.send({
         status: "OK",
         message: `Export successful: ${verify}`,
+    } as ApiResponse);
+
+    return;
+
+}
+
+export async function GetRcloneRemotes(req: express.Request, res: express.Response): Promise<void> {
+
+    let remotes;
+    try {
+        remotes = await RCloneExporter.getRemotes();
+    } catch (error) {
+        res.status(400).send({
+            status: "ERROR",
+            message: (error as Error).message ? `Rclone error: ${(error as Error).message}` : "Unknown error occurred while getting remotes",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    res.send({
+        status: "OK",
+        data: remotes,
     } as ApiResponse);
 
     return;

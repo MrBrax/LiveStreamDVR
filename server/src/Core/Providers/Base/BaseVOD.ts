@@ -5,12 +5,12 @@ import { format, parseJSON } from "date-fns";
 import fs from "node:fs";
 import path from "node:path";
 import { BaseVODChapterJSON, VODJSON } from "Storage/JSON";
-import { ApiBaseVod } from "../../../../../common/Api/Client";
-import { VideoQuality } from "../../../../../common/Config";
-import { JobStatus, MuteStatus, Providers } from "../../../../../common/Defs";
-import { ExportData } from "../../../../../common/Exporter";
-import { AudioMetadata, VideoMetadata } from "../../../../../common/MediaInfo";
-import { VodUpdated } from "../../../../../common/Webhook";
+import { ApiBaseVod } from "@common/Api/Client";
+import { VideoQuality } from "@common/Config";
+import { JobStatus, MuteStatus, Providers } from "@common/Defs";
+import { ExportData } from "@common/Exporter";
+import { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
+import { VodUpdated } from "@common/Webhook";
 import { FFmpegMetadata } from "../../../Core/FFmpegMetadata";
 import { Helper } from "../../../Core/Helper";
 import { Job } from "../../../Core/Job";
@@ -147,11 +147,15 @@ export class BaseVOD {
 
     }
 
+    /**
+     * @test disable
+     * @returns 
+     */
     public async startWatching(): Promise<boolean> {
         if (this.fileWatcher) await this.stopWatching();
 
         // no blocks in testing
-        if (process.env.NODE_ENV === "test") return false;
+        // if (process.env.NODE_ENV === "test") return false;
 
         const files = this.associatedFiles.map((f) => path.join(this.directory, f));
 
@@ -291,7 +295,7 @@ export class BaseVOD {
         throw new Error("Not implemented");
     }
 
-    public async saveJSON(reason = ""): Promise<false | VODJSON> {
+    public async saveJSON(reason = ""): Promise<boolean> {
         throw new Error("Not implemented");
     }
 
@@ -615,8 +619,12 @@ export class BaseVOD {
 
     }
 
+    /**
+     * @test disable
+     * @returns 
+     */
     public broadcastUpdate(): void {
-        if (process.env.NODE_ENV === "test") return;
+        // if (process.env.NODE_ENV === "test") return;
         if (this._updateTimer) {
             clearTimeout(this._updateTimer);
             this._updateTimer = undefined;

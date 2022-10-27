@@ -3,7 +3,7 @@ import chalk from "chalk";
 import { ClientBroker } from "./ClientBroker";
 import axios from "axios";
 import {  Log } from "./Log";
-import { WebhookData, WebhookAction } from "../../../common/Webhook";
+import { WebhookData, WebhookAction } from "@common/Webhook";
 import { LiveStreamDVR } from "./LiveStreamDVR";
 
 export class Webhook {

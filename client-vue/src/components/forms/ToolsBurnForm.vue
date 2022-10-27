@@ -50,12 +50,14 @@
 <script lang="ts">
 import { defineComponent } from "vue";
 import { VideoQualityArray } from "@common/Defs";
+import { useI18n } from "vue-i18n";
 
 export default defineComponent({
     name: "ToolsBurnForm",
     emits: ["formSuccess"],
     setup() {
-        return { VideoQualityArray };
+        const { t } = useI18n();
+        return { VideoQualityArray, t };
     },
     data() {
         return {
@@ -78,7 +80,7 @@ export default defineComponent({
             const form = event.target as HTMLFormElement;
             const inputs = new FormData(form);
 
-            this.formStatusText = this.$t("messages.loading");
+            this.formStatusText = this.t("messages.loading");
             this.formStatus = "";
 
             console.log("form", form);

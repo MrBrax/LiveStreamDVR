@@ -84,10 +84,10 @@ If you want the public webapp to have a custom base folder, you must provide `BA
 ## Standalone setup
 
 ### Main requirements
-- [node.js](https://nodejs.org/) 15+
+- [node.js](https://nodejs.org/) 18+
 - npm and yarn
 - HTTPS enabled with a valid certificate on the default port 443
-- Python 3.7+
+- Python 3.8+
 - [pip](https://pypi.org/project/pip/)
 - [FFmpeg](https://ffmpeg.org/download.html)
 - [MediaInfo](https://mediaarea.net/en/MediaInfo)

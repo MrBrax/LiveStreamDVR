@@ -49,8 +49,10 @@
         "title": "Export data",
         "exported-at": "Exported at",
         "youtube-id": "YouTube ID",
-        "youtube-playlist-id": "YouTube Playlist ID"
-      }
+        "youtube-playlist-id": "YouTube Playlist ID",
+        "exporter": "Exporter"
+      },
+      "capture-id": "Capture ID"
     },
     "segments": "Segments",
     "controls": {
@@ -118,7 +120,8 @@
       "playlist": "Playlist",
       "playlist-help": "Raw playlist ID, not the URL",
       "get-playlists": "Get playlists",
-      "create-playlist": "Create playlist"
+      "create-playlist": "Create playlist",
+      "get-remotes": "Get remotes"
     },
     "bookmarks": "Bookmarks",
     "buttons": {

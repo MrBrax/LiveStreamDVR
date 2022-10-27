@@ -9,7 +9,15 @@
     "sourceMap": true,
     "baseUrl": "src",
     "outDir": "./build",
-    "isolatedModules": true
+    "isolatedModules": true,
+    "paths": {
+      "@/*": [
+        "src/*"
+      ],
+      "@common/*": [
+        "../../common/*"
+      ],
+    },
   },
   "include": [
     "src/**/*.ts",

@@ -1,7 +1,7 @@
 import express from "express";
 import fs from "node:fs";
 import path from "node:path";
-import { ApiResponse } from "../../../common/Api/Api";
+import { ApiResponse } from "@common/Api/Api";
 import { BaseConfigFolder } from "../Core/BaseConfig";
 import { ClientBroker } from "../Core/ClientBroker";
 import { Config } from "../Core/Config";

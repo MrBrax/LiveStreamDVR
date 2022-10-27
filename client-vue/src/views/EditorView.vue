@@ -25,7 +25,7 @@
                 <span v-if="videoDuration">
                     {{ formatDuration(currentVideoTime) }} / {{ videoDuration ? formatDuration(videoDuration) : '-' }}
                 </span>
-                <span v-else>{{ $t("messages.loading") }}</span>
+                <span v-else>{{ t("messages.loading") }}</span>
             </div>
             <div class="videoplayer-controls">
                 <div class="buttons">
@@ -34,14 +34,14 @@
                         @click="play"
                     >
                         <span class="icon"><fa icon="play" /></span>
-                        <span>{{ $t('views.editor.buttons.play') }}</span>
+                        <span>{{ t('views.editor.buttons.play') }}</span>
                     </button>
                     <button
                         class="button is-confirm"
                         @click="pause"
                     >
                         <span class="icon"><fa icon="pause" /></span>
-                        <span>{{ $t('views.editor.buttons.pause') }}</span>
+                        <span>{{ t('views.editor.buttons.pause') }}</span>
                     </button>
                     <button
                         type="button"
@@ -49,7 +49,7 @@
                         @click="setFrameIn(currentVideoTime)"
                     >
                         <span class="icon"><fa icon="fast-backward" /></span>
-                        <span>{{ $t('views.editor.buttons.mark-in') }}</span>
+                        <span>{{ t('views.editor.buttons.mark-in') }}</span>
                     </button>
                     <button
                         type="button"
@@ -57,14 +57,14 @@
                         @click="setFrameOut(currentVideoTime)"
                     >
                         <span class="icon"><fa icon="fast-forward" /></span>
-                        <span>{{ $t('views.editor.buttons.mark-out') }}</span>
+                        <span>{{ t('views.editor.buttons.mark-out') }}</span>
                     </button>
                     <button
                         class="button is-confirm"
                         @click="addBookmark"
                     >
                         <span class="icon"><fa icon="bookmark" /></span>
-                        <span>{{ $t('views.editor.buttons.add-bookmark') }}</span>
+                        <span>{{ t('views.editor.buttons.add-bookmark') }}</span>
                     </button>
                 </div>
             </div>
@@ -128,7 +128,7 @@
                     action="#"
                     @submit="submitForm"
                 >
-                    <h2>{{ $t('views.editor.edit-segment') }}</h2>
+                    <h2>{{ t('views.editor.edit-segment') }}</h2>
 
                     <input
                         type="hidden"
@@ -140,7 +140,7 @@
                         <label
                             for="time_in"
                             class="label"
-                        >{{ $t('views.editor.time-in') }}</label>
+                        >{{ t('views.editor.time-in') }}</label>
                         <div class="control">
                             <input
                                 id="time_in"
@@ -158,7 +158,7 @@
                         <label
                             for="time_out"
                             class="label"
-                        >{{ $t('views.editor.time-out') }}</label>
+                        >{{ t('views.editor.time-out') }}</label>
                         <div class="control">
                             <input
                                 id="time_out"
@@ -174,13 +174,13 @@
 
                     <div class="field">
                         <div class="control">
-                            <strong>{{ $t('vod.video-info.duration') }}:</strong> {{ cutSegmentlength > 0 ? humanDuration(cutSegmentlength) : "None" }}
+                            <strong>{{ t('vod.video-info.duration') }}:</strong> {{ cutSegmentlength > 0 ? humanDuration(cutSegmentlength) : "None" }}
                         </div>
                     </div>
 
                     <div class="field">
                         <div class="control">
-                            <strong>{{ $t('views.editor.filesize') }}:</strong> {{ exportSize ? "~" + formatBytes(exportSize) : "None" }}
+                            <strong>{{ t('views.editor.filesize') }}:</strong> {{ exportSize ? "~" + formatBytes(exportSize) : "None" }}
                         </div>
                     </div>
 
@@ -203,7 +203,7 @@
                                 class="button is-confirm"
                             >
                                 <span class="icon"><fa icon="save" /></span>
-                                <span>{{ $t('views.editor.buttons.submit-cut') }}</span>
+                                <span>{{ t('views.editor.buttons.submit-cut') }}</span>
                             </button>
                         </div>
                         <div :class="formStatusClass">
@@ -226,7 +226,7 @@
             <span class="icon"><fa
                 icon="sync"
                 spin
-            /></span> {{ $t("messages.loading") }}
+            /></span> {{ t("messages.loading") }}
         </div>
     </div>
 </template>
@@ -236,10 +236,13 @@ import { defineComponent } from "vue";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import { useStore, VODTypes } from "@/store";
 import { ApiResponse } from "@common/Api/Api";
-
+import { formatDuration, humanDuration, formatBytes } from "@/mixins/newhelpers";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPause, faBookmark, faFastBackward, faFastForward } from "@fortawesome/free-solid-svg-icons";
 import { BaseVODChapter } from "@/core/Providers/Base/BaseVODChapter";
+import { useI18n } from "vue-i18n";
+import axios from "axios";
+import { useRoute } from "vue-router";
 library.add(faPause, faBookmark, faFastBackward, faFastForward);
 
 export default defineComponent({
@@ -250,7 +253,9 @@ export default defineComponent({
     },
     setup() {
         const store = useStore();
-        return { store };
+        const { t } = useI18n();
+        const route = useRoute();
+        return { store, t, route, formatDuration, humanDuration, formatBytes };
     },
     data() {
         return {
@@ -318,7 +323,7 @@ export default defineComponent({
         fetchData() {
             // this.vodData = [];
             /** TODO: axios */
-            this.$http
+            axios
                 .get(`/api/v0/vod/${this.uuid}`)
                 .then((response) => {
                     const json = response.data;
@@ -332,10 +337,10 @@ export default defineComponent({
                 });
         },
         setupPlayer() {
-            if (this.$route.query.start !== undefined) {
-                (this.$refs.player as HTMLVideoElement).currentTime = parseInt(this.$route.query.start as string);
-                if (this.$route.query.start !== undefined) this.secondsIn = parseInt(this.$route.query.start as string);
-                if (this.$route.query.end !== undefined) this.secondsOut = parseInt(this.$route.query.end as string);
+            if (this.route.query.start !== undefined) {
+                (this.$refs.player as HTMLVideoElement).currentTime = parseInt(this.route.query.start as string);
+                if (this.route.query.start !== undefined) this.secondsIn = parseInt(this.route.query.start as string);
+                if (this.route.query.end !== undefined) this.secondsOut = parseInt(this.route.query.end as string);
             }
         },
         play() {
@@ -380,7 +385,7 @@ export default defineComponent({
         },
         submitForm(event: Event) {
 
-            this.formStatusText = this.$t("messages.loading");
+            this.formStatusText = this.t("messages.loading");
             this.formStatus = "";
 
             const inputs = {
@@ -390,7 +395,7 @@ export default defineComponent({
                 name: this.cutName,
             };
 
-            this.$http
+            axios
                 .post(`/api/v0/vod/${this.uuid}/cut`, inputs)
                 .then((response) => {
                     const json = response.data;
@@ -432,7 +437,7 @@ export default defineComponent({
             const offset = this.currentVideoTime;
             const name = prompt(`Bookmark name for offset ${offset}:`);
             if (!name) return;
-            this.$http.post(`/api/v0/vod/${this.vodData.basename}/bookmark`, { name: name, offset: offset }).then((response) => {
+            axios.post(`/api/v0/vod/${this.vodData.basename}/bookmark`, { name: name, offset: offset }).then((response) => {
                 const json: ApiResponse = response.data;
                 if (json.message) alert(json.message);
                 console.log(json);

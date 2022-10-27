@@ -1,7 +1,7 @@
 import { ClientBroker } from "../Core/ClientBroker";
 import express from "express";
-import { ApiResponse } from "../../../common/Api/Api";
-import { NotificationCategory } from "../../../common/Defs";
+import { ApiResponse } from "@common/Api/Api";
+import { NotificationCategory } from "@common/Defs";
 
 export function GetNotificationSettings(req: express.Request, res: express.Response) {
     res.send({

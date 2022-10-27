@@ -1,14 +1,9 @@
 import { KeyValue } from "../src/Core/KeyValue";
-
+import "./environment";
 let spy: jest.SpyInstance | undefined;
 let kv: KeyValue;
 beforeAll(() => {
     kv = KeyValue.getCleanInstance();
-    spy = jest.spyOn(kv, "save").mockImplementation(() => { console.debug("save kv"); });
-});
-
-afterAll(() => {
-    spy?.mockRestore();
 });
 
 describe("keyvalue", () => {
@@ -39,22 +34,17 @@ describe("keyvalue", () => {
     });
 
     it("should save the data", () => {
-        spy?.mockClear();
         kv.set("test4", "test");
-        expect(spy).toHaveBeenCalled();
-        spy?.mockClear();
+        expect(kv.save).toHaveBeenCalled();
 
         kv.setObject<{ test: string }>("test5", { test: "test" });
-        expect(spy).toHaveBeenCalled();
-        spy?.mockClear();
+        expect(kv.save).toHaveBeenCalled();
 
         kv.setBool("test6", true);
-        expect(spy).toHaveBeenCalled();
-        spy?.mockClear();
+        expect(kv.save).toHaveBeenCalled();
 
         kv.delete("test4");
-        expect(spy).toHaveBeenCalled();
-        spy?.mockClear();
+        expect(kv.save).toHaveBeenCalled();
 
     });
 

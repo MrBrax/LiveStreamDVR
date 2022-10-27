@@ -5,7 +5,7 @@
         class="streamer-clips"
     >
         <div class="streamer-clips-title">
-            <h3>{{ $t("messages.clips") }}</h3>
+            <h3>{{ t("messages.clips") }}</h3>
         </div>
         <ul>
             <li
@@ -52,8 +52,11 @@
 import { ChannelTypes, useStore } from "@/store";
 import { LocalClip } from "@common/LocalClip";
 import { computed, ref } from "vue";
+import { useI18n } from "vue-i18n";
+import { formatBytes, formatDuration, formatDate } from "@/mixins/newhelpers";
 
 const store = useStore();
+const { t } = useI18n();
 
 const props = defineProps<{
     streamer: ChannelTypes;

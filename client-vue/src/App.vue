@@ -33,7 +33,7 @@
                             <span class="icon"><fa
                                 icon="sync"
                                 spin
-                            /></span> {{ $t("messages.loading") }}
+                            /></span> {{ t("messages.loading") }}
                         </div>
                     </section>
                 </div>
@@ -100,6 +100,10 @@ import WebsocketStatus from "./components/WebsocketStatus.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
+import { useI18n } from "vue-i18n";
+import axios from "axios";
+import { useRoute } from "vue-router";
+import { prefersReducedMotion } from "./mixins/newhelpers";
 library.add(faArrowUpRightFromSquare);
 
 const faviconCanvas = document.createElement("canvas");
@@ -129,7 +133,9 @@ export default defineComponent({
     },
     setup() {
         const store = useStore();
-        return { store };
+        const route = useRoute();
+        const { t, locale } = useI18n({ useScope: "global" });
+        return { store, t, locale, route, prefersReducedMotion };
     },
     data(): {
         loading: boolean;
@@ -180,7 +186,7 @@ export default defineComponent({
     created() {
         console.debug("App created");
         this.store.fetchClientConfig();
-        this.$i18n.locale = this.store.clientConfig?.language ?? "en";
+        this.locale = this.store.clientConfig?.language ?? "en";
         // this.applyAuthentication();
         this.watchFaviconBadgeSub();
         this.checkLoginStatus().then((s) => {
@@ -233,7 +239,7 @@ export default defineComponent({
             // json metadata from full_path replacing the extension with .json
             /*
             const json_path = full_path.replace(/\.[^/.]+$/, ".info.json");
-            this.$http.get(json_path).then((res) => {
+            axios.get(json_path).then((res) => {
                 const json = res.data as any;
                 console.log("json ok", json);
             }).catch((err) => {
@@ -584,7 +590,7 @@ export default defineComponent({
         },
         updateTitle() {
             const channelsOnline = this.store.channelsOnline;
-            const title = this.$route.meta.title || this.$route.name;
+            const title = this.route.meta.title || this.route.name;
             const app_name = this.store.app_name;
             if (channelsOnline > 0) {
                 document.title = `[${channelsOnline}] ${title} - ${app_name}`;
@@ -631,7 +637,7 @@ export default defineComponent({
         //     }
         // }
         checkLoginStatus(): Promise<{ authentication: boolean; status: boolean; guest_mode: boolean; }> {
-            return this.$http.get("/api/v0/auth/check").then((response) => {
+            return axios.get("/api/v0/auth/check").then((response) => {
                 // console.debug("Check login status", response.data);
                 return { authentication: response.data.authentication as boolean, status: true, guest_mode: response.data.guest_mode as boolean };
             }).catch((error) => {

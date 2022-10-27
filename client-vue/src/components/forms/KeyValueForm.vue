@@ -1,14 +1,14 @@
 <template>
     <div v-if="!initialLoad">
         <p class="error">
-            {{ $t('messages.changing-values-here-will-most-likely-require-a-restart') }}
+            {{ t('messages.changing-values-here-will-most-likely-require-a-restart') }}
         </p>
         <div class="field">
             <input
                 v-model="searchText"
                 class="input"
                 type="text"
-                :placeholder="$t('input.search')"
+                :placeholder="t('input.search')"
             >
         </div>
         <table
@@ -43,7 +43,7 @@
                         @click="deleteKeyValue(key)"
                     >
                         <span class="icon"><fa icon="trash" /></span>
-                        <span>{{ $t('buttons.delete') }}</span>
+                        <span>{{ t('buttons.delete') }}</span>
                     </button>
                 </td>
             </tr>
@@ -54,7 +54,7 @@
                         @click="deleteAllKeyValues"
                     >
                         <span class="icon"><fa icon="trash" /></span>
-                        <span>{{ $t('buttons.delete-all') }}</span>
+                        <span>{{ t('buttons.delete-all') }}</span>
                     </button>
                 </td>
             </tr>
@@ -70,7 +70,7 @@
                 <label
                     for="key"
                     class="label"
-                >{{ $t('forms.keyvalue.key') }}</label>
+                >{{ t('forms.keyvalue.key') }}</label>
                 <div class="control">
                     <input
                         id="key"
@@ -84,7 +84,7 @@
                 <label
                     for="value"
                     class="label"
-                >{{ $t('forms.keyvalue.value') }}</label>
+                >{{ t('forms.keyvalue.value') }}</label>
                 <div class="control">
                     <input
                         id="value"
@@ -104,7 +104,7 @@
                         type="submit"
                     >
                         <span class="icon"><fa icon="plus" /></span>
-                        <span>{{ $t('buttons.create') }}</span>
+                        <span>{{ t('buttons.create') }}</span>
                     </button>
                 </div>
             </div>
@@ -114,7 +114,7 @@
         <span class="icon"><fa
             icon="sync"
             spin
-        /></span> {{ $t("messages.loading") }}
+        /></span> {{ t("messages.loading") }}
     </div>
 </template>
 
@@ -124,6 +124,8 @@ import { defineComponent } from "vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPencil, faSync, faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
+import { useI18n } from "vue-i18n";
+import axios from "axios";
 library.add(faPencil, faSync, faTrash, faPlus);
 
 export default defineComponent({
@@ -131,7 +133,8 @@ export default defineComponent({
     emits: ["formSuccess"],
     setup() {
         const store = useStore();
-        return { store };
+        const { t } = useI18n();
+        return { store, t };
     },
     data(): {
         keyvalue?: Record<string, string>;
@@ -166,7 +169,7 @@ export default defineComponent({
 
     methods: {
         fetchData(): void {
-            this.$http
+            axios
                 .get(`/api/v0/keyvalue`)
                 .then((response) => {
                     const json = response.data;
@@ -182,7 +185,7 @@ export default defineComponent({
                 });
         },
         deleteKeyValue(key: string) {
-            this.$http
+            axios
                 .delete(`/api/v0/keyvalue/${key}`)
                 .then((response) => {
                     const json = response.data;
@@ -195,7 +198,7 @@ export default defineComponent({
                 });
         },
         deleteAllKeyValues() {
-            this.$http
+            axios
                 .delete(`/api/v0/keyvalue`)
                 .then((response) => {
                     const json = response.data;
@@ -210,7 +213,7 @@ export default defineComponent({
         editKeyValue(key: string, value: string) {
             const new_value = prompt(`Edit value for key ${key}`, value);
             if (!new_value || new_value == value) return;
-            this.$http
+            axios
                 .put(`/api/v0/keyvalue/${key}`, { value: new_value })
                 .then((response) => {
                     const json = response.data;
@@ -225,7 +228,7 @@ export default defineComponent({
                 });
         }, 
         doAdd() {
-            this.$http
+            axios
                 .put(`/api/v0/keyvalue/${this.addForm.key}`, { value: this.addForm.value })
                 .then((response) => {
                     const json = response.data;

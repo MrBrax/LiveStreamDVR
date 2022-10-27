@@ -30,7 +30,7 @@
                 icon="cut"
                 type="fa"
             /></span>
-            <span>{{ $t('vod.controls.editor') }}</span>
+            <span>{{ t('vod.controls.editor') }}</span>
         </router-link>
 
         <!-- Player -->
@@ -44,7 +44,7 @@
                 icon="play"
                 type="fa"
             /></span>
-            <span>{{ $t('vod.controls.player') }}</span>
+            <span>{{ t('vod.controls.player') }}</span>
         </button>
 
         <!-- JSON -->
@@ -72,7 +72,7 @@
                     type="fa"
                 />
             </span>
-            <span>{{ $t('vod.controls.archive') }}</span>
+            <span>{{ t('vod.controls.archive') }}</span>
         </button>
 
         <!-- Download chat-->
@@ -94,7 +94,7 @@
                     spin
                 />
             </span>
-            <span>{{ $t('vod.controls.download-chat') }}</span>
+            <span>{{ t('vod.controls.download-chat') }}</span>
         </button>
 
         <template v-if="vod.provider == 'twitch' && vod.twitch_vod_id">
@@ -110,8 +110,8 @@
                         type="fa"
                     />
                 </span>
-                <span v-if="vod.twitch_vod_muted == MuteStatus.MUTED">{{ $t('vod.controls.download-vod-muted') }}</span>
-                <span v-else>{{ $t('vod.controls.download-vod') }}</span>
+                <span v-if="vod.twitch_vod_muted == MuteStatus.MUTED">{{ t('vod.controls.download-vod-muted') }}</span>
+                <span v-else>{{ t('vod.controls.download-vod') }}</span>
             </button>
             <!-- Check mute -->
             <button
@@ -125,7 +125,7 @@
                         type="fa"
                     />
                 </span>
-                <span>{{ $t('vod.controls.check-mute') }}</span>
+                <span>{{ t('vod.controls.check-mute') }}</span>
             </button>
         </template>
 
@@ -140,7 +140,7 @@
                     type="fa"
                 />
             </span>
-            <span>{{ $t('vod.controls.render-menu') }}</span>
+            <span>{{ t('vod.controls.render-menu') }}</span>
         </button>
 
         <!-- Fix issues -->
@@ -155,7 +155,7 @@
                     type="fa"
                 />
             </span>
-            <span>{{ $t('vod.controls.fix-issues') }}</span>
+            <span>{{ t('vod.controls.fix-issues') }}</span>
         </button>
 
         <!-- Vod export menu -->
@@ -170,7 +170,7 @@
                     type="fa"
                 />
             </span>
-            <span>{{ $t('buttons.export') }}</span>
+            <span>{{ t('buttons.export') }}</span>
         </button>
 
         <!-- Vod edit menu -->
@@ -185,7 +185,7 @@
                     type="fa"
                 />
             </span>
-            <span>{{ $t('buttons.edit') }}</span>
+            <span>{{ t('buttons.edit') }}</span>
         </button>
 
         <!-- Rename vod menu -->
@@ -200,7 +200,7 @@
                     type="fa"
                 />
             </span>
-            <span>{{ $t('buttons.rename') }}</span>
+            <span>{{ t('buttons.rename') }}</span>
         </button>
 
         <!-- Delete segment -->
@@ -217,7 +217,7 @@
                     type="fa"
                 />
             </span>
-            <span>{{ $t('buttons.delete-segment') }}</span>
+            <span>{{ t('buttons.delete-segment') }}</span>
         </button>
         -->
 
@@ -233,7 +233,7 @@
                     type="fa"
                 />
             </span>
-            <span>{{ $t('buttons.delete') }}</span>
+            <span>{{ t('buttons.delete') }}</span>
         </button>
     </div>
 </template>
@@ -244,6 +244,7 @@ import { ApiResponse } from '@common/Api/Api';
 import { MuteStatus } from "../../../common/Defs";
 import axios from 'axios';
 import { computed } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps({
     vod: {
@@ -278,6 +279,7 @@ const emit = defineEmits<{
 }>();
 
 const store = useStore();
+const { t } = useI18n();
 
 const compDownloadChat = computed(() => {
     if (!store.jobList) return false;

@@ -38,7 +38,7 @@
                     type="submit"
                 >
                     <span class="icon"><fa icon="download" /></span>
-                    <span>{{ $t('buttons.execute') }}</span>
+                    <span>{{ t('buttons.execute') }}</span>
                 </button>
             </div>
             <div :class="formStatusClass">
@@ -56,11 +56,17 @@
 </template>
 
 <script lang="ts">
+import axios from "axios";
 import { defineComponent } from "vue";
+import { useI18n } from "vue-i18n";
 
 export default defineComponent({
     name: "ToolsVodDownloadForm",
     emits: ["formSuccess"],
+    setup() {
+        const { t } = useI18n();
+        return { t };
+    },
     data() {
         return {
             formStatusText: "Ready",
@@ -83,10 +89,10 @@ export default defineComponent({
     },
     methods: {
         submitForm(event: Event) {
-            this.formStatusText = this.$t("messages.loading");
+            this.formStatusText = this.t("messages.loading");
             this.formStatus = "";
 
-            this.$http
+            axios
                 .post(`/api/v0/tools/chat_download`, this.formData)
                 .then((response) => {
                     const json = response.data;
@@ -101,7 +107,7 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
-                    if (this.axios.isAxiosError(err) && err.response) {
+                    if (axios.isAxiosError(err) && err.response) {
                         if (err.response.data.status == "ERROR") {
                             this.formStatusText = err.response.data.message;
                             this.formStatus = err.response.data.status;

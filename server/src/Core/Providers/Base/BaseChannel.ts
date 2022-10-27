@@ -3,12 +3,12 @@ import { format } from "date-fns";
 import fs from "node:fs";
 import readdirSyncRecursive from "fs-readdir-recursive";
 import path from "node:path";
-import { ApiChannels } from "../../../../../common/Api/Client";
-import { ChannelConfig, VideoQuality } from "../../../../../common/Config";
-import { LocalClip } from "../../../../../common/LocalClip";
-import { LocalVideo } from "../../../../../common/LocalVideo";
-import { AudioMetadata, VideoMetadata } from "../../../../../common/MediaInfo";
-import { ChannelUpdated } from "../../../../../common/Webhook";
+import { ApiChannels } from "@common/Api/Client";
+import { ChannelConfig, VideoQuality } from "@common/Config";
+import { LocalClip } from "@common/LocalClip";
+import { LocalVideo } from "@common/LocalVideo";
+import { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
+import { ChannelUpdated } from "@common/Webhook";
 import { BaseConfigDataFolder } from "../../../Core/BaseConfig";
 import { Config } from "../../../Core/Config";
 import { Helper } from "../../../Core/Helper";
@@ -107,10 +107,11 @@ export class BaseChannel {
      * Send the channel.toAPI call to all connected clients over websockets.
      * A debounce is used to prevent spamming the clients.
      * 
+     * @test disable
      * @returns 
      */
     public broadcastUpdate(): void {
-        if (process.env.NODE_ENV === "test") return;
+        // if (process.env.NODE_ENV === "test") return;
         if (this._updateTimer) {
             clearTimeout(this._updateTimer);
             this._updateTimer = undefined;
@@ -334,6 +335,9 @@ export class BaseChannel {
         return this.vods_list[index];
     }
 
+    /**
+     * @test disable
+     */
     public saveVodDatabase() {
         fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${this.internalName}.json`), JSON.stringify(this.vods_raw));
     }
@@ -488,6 +492,12 @@ export class BaseChannel {
 
     public addVod(vod: BaseVOD): void {
         this.vods_list.push(vod);
+    }
+
+    public makeFolder() {
+        if (Config.getInstance().cfg("channel_folders") && !fs.existsSync(this.getFolder())) {
+            fs.mkdirSync(this.getFolder());
+        }
     }
 
 }

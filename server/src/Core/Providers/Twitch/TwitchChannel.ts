@@ -8,17 +8,17 @@ import fsPromises from "fs/promises";
 import {encode as htmlentities} from "html-entities";
 import path from "node:path";
 import {Readable} from "stream";
-import type {ApiTwitchChannel} from "../../../../../common/Api/Client";
-import {TwitchChannelConfig, VideoQuality} from "../../../../../common/Config";
-import {MuteStatus, Providers, SubStatus} from "../../../../../common/Defs";
-import type {LocalVideo} from "../../../../../common/LocalVideo";
-import {AudioMetadata, VideoMetadata} from "../../../../../common/MediaInfo";
-import type {Channel, ChannelsResponse} from "../../../../../common/TwitchAPI/Channels";
-import type {ErrorResponse, EventSubTypes} from "../../../../../common/TwitchAPI/Shared";
-import type {Stream, StreamsResponse} from "../../../../../common/TwitchAPI/Streams";
-import type {SubscriptionRequest, SubscriptionResponse} from "../../../../../common/TwitchAPI/Subscriptions";
-import type {BroadcasterType, UsersResponse} from "../../../../../common/TwitchAPI/Users";
-import type {UserData} from "../../../../../common/User";
+import type {ApiTwitchChannel} from "@common/Api/Client";
+import {TwitchChannelConfig, VideoQuality} from "@common/Config";
+import {MuteStatus, Providers, SubStatus} from "@common/Defs";
+import type {LocalVideo} from "@common/LocalVideo";
+import {AudioMetadata, VideoMetadata} from "@common/MediaInfo";
+import type {Channel, ChannelsResponse} from "@common/TwitchAPI/Channels";
+import type {ErrorResponse, EventSubTypes} from "@common/TwitchAPI/Shared";
+import type {Stream, StreamsResponse} from "@common/TwitchAPI/Streams";
+import type {SubscriptionRequest, SubscriptionResponse} from "@common/TwitchAPI/Subscriptions";
+import type {BroadcasterType, UsersResponse} from "@common/TwitchAPI/Users";
+import type {UserData} from "@common/User";
 import {Helper} from "../../Helper";
 import {isTwitchChannel} from "../../../Helpers/Types";
 import {TwitchHelper} from "../../../Providers/Twitch";
@@ -794,11 +794,15 @@ export class TwitchChannel extends BaseChannel {
     }
 
     fileWatcher?: chokidar.FSWatcher;
+    /**
+     * @test disable
+     * @returns 
+     */
     public async startWatching() {
         if (this.fileWatcher) await this.stopWatching();
 
         // no blocks in testing
-        if (process.env.NODE_ENV === "test") return;
+        // if (process.env.NODE_ENV === "test") return;
 
         if (!Config.getInstance().cfg("channel_folders")) {
             Log.logAdvanced(Log.Level.WARNING, "channel", `Channel folders are disabled, not watching channel ${this.login}`);
@@ -978,9 +982,7 @@ export class TwitchChannel extends BaseChannel {
 
         // $channel->api_getSubscriptionStatus = $channel->getSubscriptionStatus();
 
-        if (Config.getInstance().cfg("channel_folders") && !fs.existsSync(channel.getFolder())) {
-            fs.mkdirSync(channel.getFolder());
-        }
+        channel.makeFolder();
 
         // only needed if i implement watching
         // if (!fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "scheduler", channel.login)))
@@ -1125,6 +1127,7 @@ export class TwitchChannel extends BaseChannel {
 
     /**
      * Load channel cache into memory, like usernames and id's.
+     * @test disable
      */
     public static loadChannelsCache(): boolean {
         if (!fs.existsSync(BaseConfigPath.streamerCache)) return false;
@@ -1297,6 +1300,7 @@ export class TwitchChannel extends BaseChannel {
      * @param identifier Either channel id or channel login
      * @param force 
      * @throws
+     * @test disable
      * @returns 
      */
     static async getUserDataProxy(method: "id" | "login", identifier: string, force: boolean): Promise<UserData | false> {
@@ -1550,6 +1554,11 @@ export class TwitchChannel extends BaseChannel {
         return await TwitchChannel.subscribeToId(this.internalId, force);
     }
 
+    /**
+     * @test disable
+     * @param channel_id
+     * @param force
+     */
     public static async subscribeToId(channel_id: string, force = false): Promise<boolean> {
 
         if (!Config.getInstance().cfg("app_url")) {
@@ -1656,6 +1665,10 @@ export class TwitchChannel extends BaseChannel {
 
     }
 
+    /**
+     * @test disable
+     * @param channel_id
+     */
     public static async unsubscribeFromId(channel_id: string): Promise<boolean> {
 
         const subscriptions = await TwitchHelper.getSubsList();

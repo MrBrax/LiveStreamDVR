@@ -88,5 +88,40 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'jsdom',
+  },
+  optimizeDeps: {
+    include: [
+      'vue',
+      'vue-router',
+      'pinia',
+      'vue-axios',
+    ],
+    link: [
+      'vue',
+      'vue-router',
+      'pinia',
+      'vue-axios',
+    ],
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // 'axios': ['axios'],
+          // 'date-fns': ['date-fns'],
+          'fonts': [
+            '@fontsource/poppins',
+            '@fontsource/roboto',
+            '@fontsource/roboto-condensed',
+          ],
+          'icons': [
+            '@fortawesome/free-solid-svg-icons',
+            '@fortawesome/free-brands-svg-icons',
+            '@fortawesome/vue-fontawesome',
+            '@fortawesome/fontawesome-svg-core'
+          ],
+        }
+      }
+    }
   }
 })

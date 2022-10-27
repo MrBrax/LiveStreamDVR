@@ -4,8 +4,8 @@ import fs from "node:fs";
 import { IncomingHttpHeaders } from "node:http";
 import path from "node:path";
 import { TwitchVODChapterJSON } from "Storage/JSON";
-import { VideoQuality } from "../../../../../common/Config";
-import { ChannelUpdateEvent } from "../../../../../common/TwitchAPI/EventSub/ChannelUpdate";
+import { VideoQuality } from "@common/Config";
+import { ChannelUpdateEvent } from "@common/TwitchAPI/EventSub/ChannelUpdate";
 import { BaseConfigDataFolder } from "../../BaseConfig";
 import { KeyValue } from "../../KeyValue";
 import { Job } from "../../Job";
@@ -15,17 +15,17 @@ import { RemuxReturn } from "../../../Providers/Twitch";
 import {  Log } from "../../Log";
 import { TwitchVOD } from "../Twitch/TwitchVOD";
 import { Webhook } from "../../Webhook";
-import { JobStatus, nonGameCategories, NotificationCategory } from "../../../../../common/Defs";
+import { JobStatus, nonGameCategories, NotificationCategory } from "@common/Defs";
 import chalk from "chalk";
 import { Sleep } from "../../../Helpers/Sleep";
 import { ClientBroker } from "../../ClientBroker";
 import sanitize from "sanitize-filename";
-import { formatString } from "../../../../../common/Format";
+import { formatString } from "@common/Format";
 import { Exporter, GetExporter } from "../../../Controllers/Exporter";
-import { VodBasenameTemplate } from "../../../../../common/Replacements";
+import { VodBasenameTemplate } from "@common/Replacements";
 import { ChannelTypes, VODTypes } from "../../LiveStreamDVR";
 import { Helper } from "../../Helper";
-import { ExporterOptions } from "../../../../../common/Exporter";
+import { ExporterOptions } from "@common/Exporter";
 import {isTwitchVODChapter} from "../../../Helpers/Types";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
@@ -345,10 +345,6 @@ export class BaseAutomator {
             }
         }
 
-        if (Config.getInstance().cfg("exporter.auto.enabled")) {
-            // TODO: export automatically
-        }
-
         KeyValue.getInstance().delete(`${this.broadcaster_user_login}.online`);
         KeyValue.getInstance().delete(`${this.broadcaster_user_login}.vod.id`);
         KeyValue.getInstance().delete(`${this.broadcaster_user_login}.vod.started_at`);
@@ -389,13 +385,17 @@ export class BaseAutomator {
             if (Config.getInstance().cfg("exporter.auto.enabled")) {
 
                 const options: ExporterOptions = {
-                    vod: this.vodBasenameTemplate(),
+                    vod: this.vod.uuid,
                     directory: Config.getInstance().cfg("exporter.default.directory"),
                     host: Config.getInstance().cfg("exporter.default.host"),
                     username: Config.getInstance().cfg("exporter.default.username"),
                     password: Config.getInstance().cfg("exporter.default.password"),
                     description: Config.getInstance().cfg("exporter.default.description"),
                     tags: Config.getInstance().cfg("exporter.default.tags"),
+                    category: Config.getInstance().cfg("exporter.default.category"),
+                    remote: Config.getInstance().cfg("exporter.default.remote"),
+                    title_template: Config.getInstance().cfg("exporter.default.title_template"),
+                    privacy: Config.getInstance().cfg("exporter.default.privacy"),
                 };
 
                 let exporter: Exporter | undefined;
@@ -416,6 +416,10 @@ export class BaseAutomator {
                         if (out_path) {
                             exporter.verify().then(status => {
                                 Log.logAdvanced(Log.Level.SUCCESS, "automator.onEndDownload", "Exporter finished for " + this.vodBasenameTemplate);
+                                if (exporter && exporter.vod && status) {
+                                    exporter.vod.exportData.exported_at = new Date().toISOString();
+                                    exporter.vod.saveJSON("export successful");
+                                }
                             }).catch(error => {
                                 Log.logAdvanced(Log.Level.ERROR, "automator.onEndDownload", (error as Error).message ? `Verify error: ${(error as Error).message}` : "Unknown error occurred while verifying export");
                             });

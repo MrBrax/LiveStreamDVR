@@ -2,14 +2,14 @@
     <div class="container">
         <section class="section">
             <div class="section-title">
-                <h1>{{ $t('pages.about') }}</h1>
+                <h1>{{ t('pages.about') }}</h1>
             </div>
             <div
                 v-if="aboutData && aboutData.bins"
                 class="section-content"
             >
                 <div class="block">
-                    <h3>{{ $t('about.installed-utilities') }}</h3>
+                    <h3>{{ t('about.installed-utilities') }}</h3>
                     <table class="table">
                         <tr>
                             <th>Name</th>
@@ -70,7 +70,7 @@
 
                 <!-- software -->
                 <div class="block">
-                    <h3>{{ $t('about.software') }}</h3>
+                    <h3>{{ t('about.software') }}</h3>
                     <ul>
                         <li><strong>Python version:</strong> {{ aboutData.bins.python.version ? aboutData.bins.python.version : "(no output)" }}</li>
                         <li><strong>Python3 version:</strong> {{ aboutData.bins.python3.version ? aboutData.bins.python3.version : "(no output)" }}</li>
@@ -86,7 +86,7 @@
                 </div>
 
                 <div class="block">
-                    <h3>{{ $t('about.subscriptions') }}</h3>
+                    <h3>{{ t('about.subscriptions') }}</h3>
                     <p class="buttons">
                         <button
                             class="button is-confirm is-small"
@@ -94,7 +94,7 @@
                             @click="fetchSubscriptions"
                         >
                             <span class="icon"><fa icon="sync" /></span>
-                            <span>{{ $t("buttons.fetch") }}</span>
+                            <span>{{ t("buttons.fetch") }}</span>
                         </button>
                         <button
                             class="button is-confirm is-small"
@@ -102,11 +102,11 @@
                             @click="subscribeAll"
                         >
                             <span class="icon"><fa icon="rss" /></span>
-                            <span>{{ $t("buttons.subscribe") }} </span>
+                            <span>{{ t("buttons.subscribe") }} </span>
                         </button>
                     </p>
                     <!--<button class="button is-confirm is-small" @click="unsubscribeAll" :disabled="subscriptionsLoading">Unsubscribe</button>-->
-                    <span v-if="subscriptionsLoading">{{ $t("messages.loading") }}</span>
+                    <span v-if="subscriptionsLoading">{{ t("messages.loading") }}</span>
                     <table class="table is-fullwidth is-striped">
                         <thead>
                             <tr>
@@ -160,7 +160,7 @@
                 </div>
                 <div class="block">
                     <!-- links -->
-                    <h3>{{ $t('about.links') }}</h3>
+                    <h3>{{ t('about.links') }}</h3>
                     <ul>
                         <li>
                             <a
@@ -207,7 +207,7 @@
                 <span class="icon"><fa
                     icon="sync"
                     spin
-                /></span> {{ $t("messages.loading") }}
+                /></span> {{ t("messages.loading") }}
             </div>
         </section>
     </div>
@@ -220,6 +220,8 @@ import { defineComponent } from "vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faRss, faBan } from "@fortawesome/free-solid-svg-icons";
+import { useI18n } from "vue-i18n";
+import axios from "axios";
 library.add(faRss, faBan);
 
 // import licenses from "../../LICENSES.txt";
@@ -264,7 +266,8 @@ export default defineComponent({
     title: "About",
     setup() {
         const store = useStore();
-        return { store };
+        const { t } = useI18n();
+        return { store, t };
     },
     data(): {
         aboutData: AboutData | null;
@@ -307,7 +310,7 @@ export default defineComponent({
         fetchData() {
             this.aboutData = null;
 
-            this.$http
+            axios
                 .get(`/api/v0/about`)
                 .then((response) => {
                     const json = response.data;
@@ -331,7 +334,7 @@ export default defineComponent({
         },
         fetchSubscriptions() {
             this.subscriptionsLoading = true;
-            this.$http
+            axios
                 .get(`/api/v0/subscriptions`)
                 .then((response) => {
                     const json = response.data;
@@ -347,7 +350,7 @@ export default defineComponent({
         },
         unsubscribe(id: string) {
             this.subscriptionsLoading = true;
-            this.$http
+            axios
                 .delete(`/api/v0/subscriptions/${id}`)
                 .then((response) => {
                     const json = response.data;
@@ -361,7 +364,7 @@ export default defineComponent({
         },
         subscribeAll() {
             this.subscriptionsLoading = true;
-            this.$http
+            axios
                 .post(`/api/v0/subscriptions`)
                 .then((response) => {
                     const json = response.data;
@@ -376,7 +379,7 @@ export default defineComponent({
         /*
         unsubscribeAll() {
             this.subscriptionsLoading = true;
-            this.$http
+            axios
                 .delete(`/api/v0/subscriptions`)
                 .then((response) => {
                     const json = response.data;
