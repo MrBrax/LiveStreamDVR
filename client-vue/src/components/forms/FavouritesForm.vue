@@ -87,6 +87,7 @@
 import { useStore } from "@/store";
 import { ApiGamesResponse, ApiSettingsResponse } from "@common/Api/Api";
 import { ApiGame } from "@common/Api/Client";
+import axios from "axios";
 import { defineComponent } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -145,7 +146,7 @@ export default defineComponent({
             this.formStatusText = this.t("messages.loading");
             this.formStatus = "";
 
-            this.$http
+            axios
                 .put(`/api/v0/favourites`, this.formData)
                 .then((response) => {
                     const json = response.data;
@@ -166,8 +167,8 @@ export default defineComponent({
         },
         fetchData() {
             console.debug("FavouritesForm fetchData");
-            this.$http.all([
-                this.$http.get(`api/v0/games`)
+            axios.all([
+                axios.get(`api/v0/games`)
                 .then((response) => {
                     const json: ApiGamesResponse = response.data;
                     if (json.message) alert(json.message);
@@ -179,7 +180,7 @@ export default defineComponent({
                 }).finally(() => {
                     this.loading = false;
                 }),
-                this.$http
+                axios
                     .get(`api/v0/settings`)
                     .then((response) => {
                         const json: ApiSettingsResponse = response.data;
@@ -197,7 +198,7 @@ export default defineComponent({
             });
         },
         refreshGame(id: string) {
-            this.$http
+            axios
                 .get(`/api/v0/games/${id}/refresh`)
                 .then((response) => {
                     const json = response.data;

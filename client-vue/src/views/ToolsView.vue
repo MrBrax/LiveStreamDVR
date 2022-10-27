@@ -256,6 +256,7 @@ import { faHeart, faStop, faSkull, faTrash, faPowerOff } from "@fortawesome/free
 import { useStore } from "@/store";
 import { JobStatus } from "@common/Defs";
 import { useI18n } from "vue-i18n";
+import axios from "axios";
 
 library.add(faHeart, faStop, faSkull, faTrash, faPowerOff);
 
@@ -291,7 +292,7 @@ export default defineComponent({
         killJob(name: string, method = "") {
             if (!confirm(`Kill job "${name}?"`)) return;
 
-            this.$http
+            axios
                 .delete(`/api/v0/jobs/${name}`, {
                     params: {
                         method: method,
@@ -309,7 +310,7 @@ export default defineComponent({
         clearJob(name: string) {
             if (!confirm(`Clear job "${name}? This does not necessarily kill the process."`)) return;
 
-            this.$http
+            axios
                 .delete(`/api/v0/jobs/${name}?clear=1`)
                 .then((response) => {
                     const json = response.data;
@@ -335,7 +336,7 @@ export default defineComponent({
 
                     console.log("payload", data);
 
-                    this.$http
+                    axios
                         .post(`/api/v0/hook`, data.body, {
                             headers: data.headers,
                         })
@@ -354,7 +355,7 @@ export default defineComponent({
         resetChannels() {
             if (!confirm("Reset channels?")) return;
 
-            this.$http
+            axios
                 .post(`/api/v0/tools/reset_channels`)
                 .then((response) => {
                     const json = response.data;
@@ -368,7 +369,7 @@ export default defineComponent({
         shutdown() {
             if (!confirm("Shutdown?")) return;
 
-            this.$http
+            axios
                 .post(`/api/v0/tools/shutdown`)
                 .then((response) => {
                     const json = response.data;
@@ -384,7 +385,7 @@ export default defineComponent({
 
             const basepath = prompt("Base path", "/");
 
-            this.$http
+            axios
                 .post(`/api/v0/tools/buildclient?basepath=${basepath}`)
                 .then((response) => {
                     const json = response.data;

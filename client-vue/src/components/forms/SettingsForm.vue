@@ -212,7 +212,7 @@
 import { useStore } from "@/store";
 import { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
 import { SettingField } from "@common/Config";
-import { AxiosError } from "axios";
+import axios, { AxiosError } from "axios";
 import { defineComponent } from "vue";
 import { formatString } from "@common/Format";
 import YoutubeAuth from "@/components/YoutubeAuth.vue";
@@ -324,7 +324,7 @@ export default defineComponent({
     methods: {
         fetchData(): void {
             this.loading = true;
-            this.$http.get("/api/v0/settings").then((response) => {
+            axios.get("/api/v0/settings").then((response) => {
                 const data: ApiSettingsResponse = response.data;
                 this.formData = data.data.config;
                 this.settingsFields = data.data.fields;
@@ -345,7 +345,7 @@ export default defineComponent({
             this.formStatusText = this.t("messages.loading");
             this.formStatus = "";
 
-            this.$http
+            axios
                 .put<ApiResponse>(`/api/v0/settings`, this.formData)
                 .then((response) => {
                     const json: ApiResponse = response.data;
@@ -375,7 +375,7 @@ export default defineComponent({
             return this.formData[key];
         },
         doValidateExternalURL() {
-            this.$http
+            axios
                 .post<ApiResponse>(`/api/v0/settings/validate_url`)
                 .then((response) => {
                     const json: ApiResponse = response.data;

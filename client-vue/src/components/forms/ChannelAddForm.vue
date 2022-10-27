@@ -414,7 +414,7 @@ export default defineComponent({
             this.formStatusText = this.t("messages.loading");
             this.formStatus = "";
 
-            this.$http
+            axios
                 .post(`/api/v0/channels`, this.formData)
                 .then((response) => {
                     const json = response.data;
@@ -485,7 +485,7 @@ export default defineComponent({
         },
         */
         fetchLogin() {
-            this.$http.get<ApiResponse>(`/api/v0/twitchapi/user/${this.formData.login}`).then((response) => {
+            axios.get<ApiResponse>(`/api/v0/twitchapi/user/${this.formData.login}`).then((response) => {
                 const json = response.data;
                 const field = this.$refs.login as HTMLInputElement;
                 if (!field) {
@@ -520,7 +520,7 @@ export default defineComponent({
         },
         getChannelId() {
             this.fetchingUrl = true;
-            this.$http.post(`/api/v0/youtubeapi/channelid`, { url: this.channelUrl } ).then((response) => {
+            axios.post(`/api/v0/youtubeapi/channelid`, { url: this.channelUrl } ).then((response) => {
                 const json = response.data;
                 if (json.status == "OK") {
                     this.formData.channel_id = json.data;

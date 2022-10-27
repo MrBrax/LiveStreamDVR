@@ -360,6 +360,7 @@
 import { useStore } from '@/store';
 import { ApiResponse } from '@common/Api/Api';
 import { ApiJob } from '@common/Api/Client';
+import axios from 'axios';
 import { defineComponent } from 'vue';
 import { useI18n } from 'vue-i18n';
 
@@ -457,7 +458,7 @@ export default defineComponent({
             if (!this.vod) return;
             this.burnLoading = true;
             console.debug("doRenderWizard", this.burnSettings);
-            this.$http
+            axios
                 .post(`/api/v0/vod/${this.vod.uuid}/renderwizard`, this.burnSettings)
                 .then((response) => {
                     const json: ApiResponse = response.data;

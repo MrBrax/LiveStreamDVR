@@ -1,38 +1,36 @@
 import { mount } from '@vue/test-utils'
 import ChannelUpdateForm from './ChannelUpdateForm.vue'
-import { assert, describe, expect, it, test, vitest } from 'vitest'
+import { expect, test, vitest } from 'vitest'
 
 import axios from "axios";
-import VueAxios from "vue-axios";
-import { VideoQualityArray } from '@common/Defs';
 import { createPinia } from 'pinia';
+import { vi } from 'vitest';
 import { ApiChannelConfig } from '@common/Api/Client';
+import { createI18n } from 'vue-i18n';
+import i18n from '@/plugins/i18n';
 
-// mock $http on vue
+// mock axios
+vi.mock("axios", () => ({
+    default: {
+        put: vi.fn(() => {
+            return new Promise((resolve) => {
+                resolve({
+                    data: {
+                        status: "OK",
+                        message: "Channel updated successfully"
+                    }
+                });
+            });
+        }),
+    }
+}));
 
 test('ChannelUpdateForm', async () => {
     expect(ChannelUpdateForm).toBeTruthy();
 
     const wrapper = mount(ChannelUpdateForm, {
         global: {
-            mocks: {
-                $http: {
-                    put: vitest.fn((url, data) => {
-                        console.log('mock $http.put', url, data);
-                        return new Promise((resolve, reject) => {
-                            resolve({
-                                data: {
-                                    status: "OK",
-                                    message: "Channel updated successfully"
-                                }
-                            });
-                        });
-                    }),
-                },
-                $t: vitest.fn((key) => { return key; }),
-                $tc: vitest.fn((key, count) => { return key; }),
-            },
-            plugins: [createPinia()],
+            plugins: [createPinia(), createI18n(i18n)],
         },
         props: {
             channel: {
@@ -116,8 +114,8 @@ test('ChannelUpdateForm', async () => {
     // await wrapper.find('button[type="submit"]').trigger('click');
 
     // check if put was called
-    expect(wrapper.vm.$http.put).toHaveBeenCalled();
-    expect(wrapper.vm.$http.put).toHaveBeenCalledWith('/api/v0/channels/randomuuid', wrapper.vm.formData);
+    expect(axios.put).toHaveBeenCalled();
+    expect(axios.put).toHaveBeenCalledWith('/api/v0/channels/randomuuid', wrapper.vm.formData);
     // expect(wrapper.vm.resetForm).toHaveBeenCalled();
     expect(wrapper.vm.store.fetchAndUpdateStreamerList).toHaveBeenCalled();
 

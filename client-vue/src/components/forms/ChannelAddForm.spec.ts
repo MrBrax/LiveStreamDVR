@@ -1,35 +1,32 @@
 import { mount } from '@vue/test-utils'
 import ChannelAddForm from './ChannelAddForm.vue'
-import { assert, describe, expect, it, test, vitest } from 'vitest'
+import { expect, test, vitest, vi } from 'vitest'
+import axios from 'axios';
+import { createI18n } from 'vue-i18n';
+import i18n from '@/plugins/i18n';
 
-import axios from "axios";
-import VueAxios from "vue-axios";
-import { VideoQualityArray } from '@common/Defs';
-
-// mock $http on vue
+// mock axios
+vi.mock("axios", () => ({
+    default: {
+        post: vi.fn(() => {
+            return new Promise((resolve, reject) => {
+                resolve({
+                    data: {
+                        status: "OK",
+                        message: "Channel added successfully"
+                    }
+                });
+            });
+        }),
+    }
+}));
 
 test('ChannelAddForm', async () => {
     expect(ChannelAddForm).toBeTruthy();
 
     const wrapper = mount(ChannelAddForm, {
         global: {
-            mocks: {
-                $http: {
-                    post: vitest.fn((url, data) => {
-                        console.log('mock $http.post', url, data);
-                        return new Promise((resolve, reject) => {
-                            resolve({
-                                data: {
-                                    status: "OK",
-                                    message: "Channel added successfully"
-                                }
-                            });
-                        });
-                    }),
-                },
-                $t: vitest.fn((key) => { return key; }),
-                $tc: vitest.fn((key, count) => { return key; }),
-            },
+            plugins: [createI18n(i18n)],
         },
     });
 
@@ -112,8 +109,8 @@ test('ChannelAddForm', async () => {
     // await wrapper.find('button[type="submit"]').trigger('click');
 
     // check if post was called
-    expect(wrapper.vm.$http.post).toHaveBeenCalled();
-    expect(wrapper.vm.$http.post).toHaveBeenCalledWith('/api/v0/channels', wrapper.vm.formData);
+    expect(axios.post).toHaveBeenCalled();
+    expect(axios.post).toHaveBeenCalledWith('/api/v0/channels', wrapper.vm.formData);
     expect(wrapper.vm.resetForm).toHaveBeenCalled();
 
 });

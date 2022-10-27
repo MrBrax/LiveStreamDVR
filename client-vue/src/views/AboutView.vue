@@ -221,6 +221,7 @@ import { defineComponent } from "vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faRss, faBan } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from "vue-i18n";
+import axios from "axios";
 library.add(faRss, faBan);
 
 // import licenses from "../../LICENSES.txt";
@@ -309,7 +310,7 @@ export default defineComponent({
         fetchData() {
             this.aboutData = null;
 
-            this.$http
+            axios
                 .get(`/api/v0/about`)
                 .then((response) => {
                     const json = response.data;
@@ -333,7 +334,7 @@ export default defineComponent({
         },
         fetchSubscriptions() {
             this.subscriptionsLoading = true;
-            this.$http
+            axios
                 .get(`/api/v0/subscriptions`)
                 .then((response) => {
                     const json = response.data;
@@ -349,7 +350,7 @@ export default defineComponent({
         },
         unsubscribe(id: string) {
             this.subscriptionsLoading = true;
-            this.$http
+            axios
                 .delete(`/api/v0/subscriptions/${id}`)
                 .then((response) => {
                     const json = response.data;
@@ -363,7 +364,7 @@ export default defineComponent({
         },
         subscribeAll() {
             this.subscriptionsLoading = true;
-            this.$http
+            axios
                 .post(`/api/v0/subscriptions`)
                 .then((response) => {
                     const json = response.data;
@@ -378,7 +379,7 @@ export default defineComponent({
         /*
         unsubscribeAll() {
             this.subscriptionsLoading = true;
-            this.$http
+            axios
                 .delete(`/api/v0/subscriptions`)
                 .then((response) => {
                     const json = response.data;

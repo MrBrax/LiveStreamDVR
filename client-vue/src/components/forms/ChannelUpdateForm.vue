@@ -347,7 +347,7 @@ import { HistoryEntry, HistoryEntryOnline } from "../../../../common/History";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSave, faList } from "@fortawesome/free-solid-svg-icons";
 import { ApiChannelConfig } from "@common/Api/Client";
-import { AxiosError } from "axios";
+import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 library.add(faSave, faList);
@@ -413,7 +413,7 @@ export default defineComponent({
             this.formStatusText = this.t('messages.loading');
             this.formStatus = "";
 
-            this.$http
+            axios
                 .put(`/api/v0/channels/${this.channel.uuid}`, this.formData)
                 .then((response) => {
                     const json = response.data;
@@ -425,7 +425,7 @@ export default defineComponent({
                     }
                 })
                 .catch((err: Error | AxiosError) => {
-                    if (this.axios.isAxiosError(err) && err.response) {
+                    if (axios.isAxiosError(err) && err.response) {
                         console.error("channel update form error", err.response);
                         this.formStatusText = err.response.data.message;
                         this.formStatus = err.response.data.status;
@@ -445,7 +445,7 @@ export default defineComponent({
                 `Do you also want to delete all VODs for "${this.channel.login}"? OK to delete all VODs and channel, Cancel to delete only the channel.`
             );
 
-            this.$http
+            axios
                 .delete(`/api/v0/channels/${this.channel.uuid}`,
                     {
                         params: {
@@ -473,7 +473,7 @@ export default defineComponent({
                 return;
             }
 
-            this.$http
+            axios
                 .post(`/api/v0/channels/${this.channel.uuid}/subscribe`)
                 .then((response) => {
                     const json = response.data;
@@ -489,7 +489,7 @@ export default defineComponent({
                 });
         },
         checkSubscriptions() {
-            this.$http
+            axios
                 .get(`/api/v0/channels/${this.channel.uuid}/checksubscriptions`)
                 .then((response) => {
                     const json = response.data;
@@ -524,7 +524,7 @@ export default defineComponent({
         renameChannel() {
             const newLogin = prompt("Enter new channel login. If channel has not changed login, this will fail in the future.\n", this.channel.login);
             if (!newLogin || newLogin == this.channel.login) return;
-            this.$http
+            axios
                 .post(`/api/v0/channels/${this.channel.uuid}/rename`, {
                     new_login: newLogin,
                 })
@@ -544,7 +544,7 @@ export default defineComponent({
         },
         deleteAllVods() {
             if (!confirm(`Do you want to delete all VODs for "${this.channel.uuid}"? This cannot be undone.`)) return;
-            this.$http
+            axios
                 .post(`/api/v0/channels/${this.channel.uuid}/deleteallvods`)
                 .then((response) => {
                     const json = response.data;
@@ -561,7 +561,7 @@ export default defineComponent({
                 });
         },
         fetchHistory() {
-            this.$http
+            axios
                 .get(`/api/v0/channels/${this.channel.uuid}/history`)
                 .then((response) => {
                     const json = response.data;

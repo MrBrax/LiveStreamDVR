@@ -50,6 +50,7 @@ import { faTwitch, faYoutube } from "@fortawesome/free-brands-svg-icons";
 import { useStore } from "@/store";
 import { ApiChannelConfig } from "@common/Api/Client";
 import { useI18n } from "vue-i18n";
+import axios from "axios";
 library.add(faUser, faCalendarCheck, faStar, faBell, faUserCog, faDatabase, faTwitch, faYoutube);
 
 export default defineComponent({
@@ -94,7 +95,7 @@ export default defineComponent({
         fetchData() {
             console.debug("Fetching channels");
             this.loading = true;
-            this.$http
+            axios
                 .get(`api/v0/settings`)
                 .then((response) => {
                     const json: ApiSettingsResponse = response.data;

@@ -91,6 +91,7 @@
 <script lang="ts">
 import { useStore } from "@/store";
 import { ApiResponse } from "@common/Api/Api";
+import axios from "axios";
 import { defineComponent } from "vue";
 import { useI18n } from "vue-i18n";
 import { NotificationProvider, NotificationProvidersList, NotificationCategories } from "../../../../common/Defs";
@@ -171,7 +172,7 @@ export default defineComponent({
             }
         },
         fetchData() {
-            this.$http
+            axios
                 .get("/api/v0/notifications")
                 .then((response) => {
                     const json: ApiResponse = response.data;
@@ -188,7 +189,7 @@ export default defineComponent({
             const bitmasks = this.getBitmasks();
             console.debug("bitmasks", bitmasks);
 
-            this.$http
+            axios
                 .put(`/api/v0/notifications`, bitmasks)
                 .then((response) => {
                     const json: ApiResponse = response.data;
@@ -215,7 +216,7 @@ export default defineComponent({
             return false;
         },
         testNotification() {
-            this.$http
+            axios
                 .post(`/api/v0/notifications/test`, {
                     provider: this.test.provider,
                     category: this.test.category,

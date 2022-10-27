@@ -4802,7 +4802,6 @@ __metadata:
     vite-plugin-pwa: ^0.13.1
     vitest: ^0.23.4
     vue: ^3.2.40
-    vue-axios: ^3.5.0
     vue-i18n: 9.3.0-beta.6
     vue-observe-visibility: ^2.0.0-alpha.1
     vue-router: ^4.1.5
@@ -6586,16 +6585,6 @@ __metadata:
   bin:
     vitest: vitest.mjs
   checksum: c0356ff585d6f85678abe4e4f61362ea55af87b15f9b1fc478f5fed511627efa5f849a1530709fa2ca09a3f5e93dd16dfaf6570c9cd84ca6fd6ef387aa8ee512
-  languageName: node
-  linkType: hard
-
-"vue-axios@npm:^3.5.0":
-  version: 3.5.0
-  resolution: "vue-axios@npm:3.5.0"
-  peerDependencies:
-    axios: ">=1.0.0"
-    vue: ^3.2.40
-  checksum: cddf6edfba1d2d40db04f0a58f7a52fc2bd99312cef1164d74a47ad01f2408d77ed4d2e5ffab883dc875269252f0dabd9536d90798bbf255294568a267197778
   languageName: node
   linkType: hard
 

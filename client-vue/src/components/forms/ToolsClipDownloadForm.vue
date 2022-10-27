@@ -65,6 +65,7 @@ import { VideoQualityArray } from "../../../../common/Defs";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faDownload } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from "vue-i18n";
+import axios from "axios";
 library.add(faDownload);
 
 export default defineComponent({
@@ -99,7 +100,7 @@ export default defineComponent({
             this.formStatusText = this.t("messages.loading");
             this.formStatus = "";
 
-            this.$http
+            axios
                 .post(`/api/v0/tools/clip_download`, this.formData)
                 .then((response) => {
                     const json = response.data;
@@ -112,7 +113,7 @@ export default defineComponent({
                 })
                 .catch((err) => {
                     console.error("form error", err.response);
-                    if (this.axios.isAxiosError(err) && err.response) {
+                    if (axios.isAxiosError(err) && err.response) {
                         if (err.response.data.status == "ERROR") {
                             this.formStatusText = err.response.data.message;
                             this.formStatus = err.response.data.status;

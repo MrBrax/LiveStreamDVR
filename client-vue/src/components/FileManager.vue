@@ -363,7 +363,7 @@
 
 <script lang="ts">
 import { useStore } from "@/store";
-import { AxiosError } from "axios";
+import axios, { AxiosError } from "axios";
 import { defineComponent, ref } from "vue";
 import ModalBox from "./ModalBox.vue";
 import YoutubeAuth from "./YoutubeAuth.vue";
@@ -475,7 +475,7 @@ export default defineComponent({
     methods: {
         fetchFileList() {
             console.debug("Fetching file list...");
-            this.$http.get<ApiResponse>(`/api/v0/files?path=${this.path}`).then((response) => {
+            axios.get<ApiResponse>(`/api/v0/files?path=${this.path}`).then((response) => {
                 this.files = response.data.data.files;
             }).catch((error: AxiosError<ApiResponse> | Error) => {
                 if ("response" in error && error.response?.data.message) {
@@ -485,7 +485,7 @@ export default defineComponent({
             });
         },
         deleteFile(file: ApiFile) {
-            this.$http.delete(`/api/v0/files?path=${this.path}&name=${file.name}`).then((response) => {
+            axios.delete(`/api/v0/files?path=${this.path}&name=${file.name}`).then((response) => {
                 this.fetchFileList();
             });
         },
@@ -535,7 +535,7 @@ export default defineComponent({
         },
         doExportFile() {
             // if (!this.vod) return;
-            this.$http.post(`/api/v0/exporter?mode=file&exporter=${this.exporter}`, this.exportVodSettings).then((response) => {
+            axios.post(`/api/v0/exporter?mode=file&exporter=${this.exporter}`, this.exportVodSettings).then((response) => {
                 const json: ApiResponse = response.data;
                 if (json.message) alert(json.message);
                 console.log(json);
@@ -547,7 +547,7 @@ export default defineComponent({
             });
         },
         doCheckYouTubeStatus() {
-            this.$http.get(`/api/v0/youtube/status`).then((response) => {
+            axios.get(`/api/v0/youtube/status`).then((response) => {
                 const json: ApiResponse = response.data;
                 if (json.message) alert(json.message);
                 console.log(json);

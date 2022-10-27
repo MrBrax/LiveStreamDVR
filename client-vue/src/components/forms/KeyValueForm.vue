@@ -125,6 +125,7 @@ import { defineComponent } from "vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPencil, faSync, faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from "vue-i18n";
+import axios from "axios";
 library.add(faPencil, faSync, faTrash, faPlus);
 
 export default defineComponent({
@@ -168,7 +169,7 @@ export default defineComponent({
 
     methods: {
         fetchData(): void {
-            this.$http
+            axios
                 .get(`/api/v0/keyvalue`)
                 .then((response) => {
                     const json = response.data;
@@ -184,7 +185,7 @@ export default defineComponent({
                 });
         },
         deleteKeyValue(key: string) {
-            this.$http
+            axios
                 .delete(`/api/v0/keyvalue/${key}`)
                 .then((response) => {
                     const json = response.data;
@@ -197,7 +198,7 @@ export default defineComponent({
                 });
         },
         deleteAllKeyValues() {
-            this.$http
+            axios
                 .delete(`/api/v0/keyvalue`)
                 .then((response) => {
                     const json = response.data;
@@ -212,7 +213,7 @@ export default defineComponent({
         editKeyValue(key: string, value: string) {
             const new_value = prompt(`Edit value for key ${key}`, value);
             if (!new_value || new_value == value) return;
-            this.$http
+            axios
                 .put(`/api/v0/keyvalue/${key}`, { value: new_value })
                 .then((response) => {
                     const json = response.data;
@@ -227,7 +228,7 @@ export default defineComponent({
                 });
         }, 
         doAdd() {
-            this.$http
+            axios
                 .put(`/api/v0/keyvalue/${this.addForm.key}`, { value: this.addForm.value })
                 .then((response) => {
                     const json = response.data;

@@ -241,6 +241,7 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPause, faBookmark, faFastBackward, faFastForward } from "@fortawesome/free-solid-svg-icons";
 import { BaseVODChapter } from "@/core/Providers/Base/BaseVODChapter";
 import { useI18n } from "vue-i18n";
+import axios from "axios";
 library.add(faPause, faBookmark, faFastBackward, faFastForward);
 
 export default defineComponent({
@@ -320,7 +321,7 @@ export default defineComponent({
         fetchData() {
             // this.vodData = [];
             /** TODO: axios */
-            this.$http
+            axios
                 .get(`/api/v0/vod/${this.uuid}`)
                 .then((response) => {
                     const json = response.data;
@@ -392,7 +393,7 @@ export default defineComponent({
                 name: this.cutName,
             };
 
-            this.$http
+            axios
                 .post(`/api/v0/vod/${this.uuid}/cut`, inputs)
                 .then((response) => {
                     const json = response.data;
@@ -434,7 +435,7 @@ export default defineComponent({
             const offset = this.currentVideoTime;
             const name = prompt(`Bookmark name for offset ${offset}:`);
             if (!name) return;
-            this.$http.post(`/api/v0/vod/${this.vodData.basename}/bookmark`, { name: name, offset: offset }).then((response) => {
+            axios.post(`/api/v0/vod/${this.vodData.basename}/bookmark`, { name: name, offset: offset }).then((response) => {
                 const json: ApiResponse = response.data;
                 if (json.message) alert(json.message);
                 console.log(json);

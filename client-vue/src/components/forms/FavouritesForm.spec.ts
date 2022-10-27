@@ -1,16 +1,29 @@
 import { mount } from '@vue/test-utils'
 import FavouritesForm from './FavouritesForm.vue'
-import { assert, describe, expect, it, test, vitest } from 'vitest'
+import { expect, test, vi, vitest } from 'vitest'
 
-import axios from "axios";
-import VueAxios from "vue-axios";
-import { VideoQualityArray } from '@common/Defs';
 import { createPinia } from 'pinia';
-import { ApiChannelConfig, ApiGame } from '@common/Api/Client';
 import helpers from '@/mixins/helpers';
 import { MockApiGamesData } from '@/../test/mockdata';
+import axios from 'axios';
+import { createI18n } from 'vue-i18n';
+import i18n from '@/plugins/i18n';
 
-// mock $http on vue
+// mock axios
+vi.mock("axios", () => ({
+    default: {
+        put: vi.fn(() => {
+            return new Promise((resolve) => {
+                resolve({
+                    data: {
+                        status: "OK",
+                        message: "Favorites updated"
+                    }
+                });
+            });
+        }),
+    }
+}));
 
 test('FavouritesForm', async () => {
     expect(FavouritesForm).toBeTruthy();
@@ -23,25 +36,8 @@ test('FavouritesForm', async () => {
 
     const wrapper = mount(FavouritesForm, {
         global: {
-            mocks: {
-                $http: {
-                    put: vitest.fn((url, data) => {
-                        console.log('mock $http.put', url, data);
-                        return new Promise((resolve, reject) => {
-                            resolve({
-                                data: {
-                                    status: "OK",
-                                    message: "Favorites updated"
-                                }
-                            });
-                        });
-                    }),
-                },
-                $t: vitest.fn((key) => { return key; }),
-                $tc: vitest.fn((key, count) => { return key; }),
-            },
             mixins: [helpers],
-            plugins: [createPinia()],
+            plugins: [createPinia(), createI18n(i18n)],
         },
         props: {
             favouritesData: [],
@@ -77,8 +73,8 @@ test('FavouritesForm', async () => {
     await wrapper.find('form').trigger('submit');
 
     // check if put was called
-    expect(wrapper.vm.$http.put).toHaveBeenCalled();
-    expect(wrapper.vm.$http.put).toHaveBeenCalledWith('/api/v0/favourites', wrapper.vm.formData);
+    expect(axios.put).toHaveBeenCalled();
+    expect(axios.put).toHaveBeenCalledWith('/api/v0/favourites', wrapper.vm.formData);
 
     // expect emit
     expect(wrapper.emitted().formSuccess).toBeTruthy();

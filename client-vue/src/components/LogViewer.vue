@@ -62,6 +62,7 @@
 import { useStore } from "@/store";
 import { ApiLogResponse } from "@common/Api/Api";
 import { ApiLogLine } from "@common/Api/Client";
+import axios from "axios";
 import { format } from "date-fns";
 import { defineComponent } from "vue";
 
@@ -131,7 +132,7 @@ export default defineComponent({
 
             let response;
             try {
-                response = await this.$http.get(`/api/v0/log/${this.logFilename}/${this.logFromLine}`);
+                response = await axios.get(`/api/v0/log/${this.logFilename}/${this.logFromLine}`);
             } catch (error) {
                 console.error(error);
                 return;
