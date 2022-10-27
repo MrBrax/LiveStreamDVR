@@ -30,4 +30,5 @@ jobs:
           cd ./server
           yarn install --immutable --immutable-cache
           yarn lint:ts
+          yarn test
           yarn build

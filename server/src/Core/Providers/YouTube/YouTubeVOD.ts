@@ -129,7 +129,7 @@ export class YouTubeVOD extends BaseVOD {
         };
     }
 
-    public async saveJSON(reason = ""): Promise<false | YouTubeVODJSON> {
+    public async saveJSON(reason = ""): Promise<boolean> {
 
         if (!this.filename) {
             throw new Error("Filename not set.");
@@ -227,7 +227,7 @@ export class YouTubeVOD extends BaseVOD {
 
         this.broadcastUpdate(); // should this be here?
 
-        return generated;
+        return true;
 
     }
 

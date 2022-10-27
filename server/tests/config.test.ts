@@ -1,8 +1,6 @@
 import { Config } from "../src/Core/Config";
 import { Log } from "../src/Core/Log";
-
-jest.mock("../src/Core/Log");
-const mockLog = jest.mocked(Log);
+import "./environment";
 
 describe("Config", () => {
 
@@ -18,7 +16,6 @@ describe("Config", () => {
     });
 
     it("config value set", () => {
-        mockLog.logAdvanced.mockImplementation((level, message, data) => { console.log(level, message, data); });
         const config = Config.getCleanInstance();
         config.config = {};
         config.setConfig("app_url", "https://example.com");
@@ -35,7 +32,6 @@ describe("Config", () => {
     });
 
     it("config value set with default", () => {
-        mockLog.logAdvanced.mockImplementation((level, message, data) => { console.log(level, message, data); });
         const config = Config.getCleanInstance();
         config.config = {};
         expect(config.cfg("app_url", "https://example.com")).toBe("https://example.com");
@@ -51,10 +47,9 @@ describe("Config", () => {
     });
 
     it("generate config", () => {
-        mockLog.logAdvanced.mockImplementation((level, message, data) => { console.log(level, message, data); });
         const config = Config.getCleanInstance();
 
-        const spy = jest.spyOn(config, "saveConfig").mockImplementation((source) => { console.log("save config", source); return true; });
+        // const spy = jest.spyOn(config, "saveConfig").mockImplementation((source) => { console.log("save config", source); return true; });
 
         config.generateConfig();
         expect(config.saveConfig).toHaveBeenCalled();
@@ -63,7 +58,19 @@ describe("Config", () => {
         expect(config.cfg("trust_proxy")).toBe(false);
         expect(config.cfg("channel_folders")).toBe(true);
 
-        spy.mockRestore();
+        // spy.mockRestore();
+    });
+
+    it("empty values", () => {
+        const config = Config.getCleanInstance();
+        config.config = {};
+        expect(config.cfg("password")).toBe(undefined);
+        expect(config.cfg("password", "")).toBe("");
+        config.setConfig("password", "test");
+        expect(config.cfg("password")).toBe("test");
+        config.setConfig("password", "");
+        expect(config.cfg("password")).toBe(undefined);
+        expect(config.cfg("password", "")).toBe("");
     });
 
     it("setting exists", () => {

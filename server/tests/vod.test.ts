@@ -8,6 +8,7 @@ import { LiveStreamDVR } from "../src/Core/LiveStreamDVR";
 import { KeyValue } from "../src/Core/KeyValue";
 import { format } from "date-fns";
 import { TwitchAutomator } from "../src/Core/Providers/Twitch/TwitchAutomator";
+import "./environment";
 
 // jest.mock("TwitchVOD");
 // const mockTwitchVOD = jest.mocked(TwitchVOD, true);
@@ -19,13 +20,7 @@ beforeAll(async () => {
     jest.spyOn(TwitchChannel, "channelLoginFromId").mockImplementation((channel_id: string) => { return Promise.resolve("testuser"); });
     jest.spyOn(TwitchChannel, "channelDisplayNameFromId").mockImplementation((channel_id: string) => { return Promise.resolve("TestUser"); });
 
-    jest.spyOn(KeyValue.prototype, "save").mockImplementation(() => true);
-    jest.spyOn(KeyValue.prototype, "load").mockImplementation(() => true);
-
-    jest.spyOn(Config.prototype, "saveConfig").mockImplementation(() => true);
-
     const channels_config = JSON.parse(fs.readFileSync("./tests/mockdata/channels.json", "utf8"));
-    await Config.init();
     LiveStreamDVR.getInstance().channels_config = channels_config;
     LiveStreamDVR.getInstance().clearChannels();
 
@@ -49,11 +44,6 @@ beforeAll(async () => {
         view_count: 0,
     };
 
-    jest.spyOn(mock_channel, "saveVodDatabase").mockImplementation(() => {
-        console.debug("save vod database");
-        return;
-    });
-    
     LiveStreamDVR.getInstance().addChannel(mock_channel);
 
     // mock twitchvod delete function

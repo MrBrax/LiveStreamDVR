@@ -12,7 +12,7 @@ import { YouTubeHelper } from "../../../Providers/YouTube";
 import { BaseConfigDataFolder, BaseConfigPath } from "../../BaseConfig";
 import { Config } from "../../Config";
 import { KeyValue } from "../../KeyValue";
-import { ChannelTypes, LiveStreamDVR } from "../../LiveStreamDVR";
+import { LiveStreamDVR } from "../../LiveStreamDVR";
 import { Log } from "../../Log";
 import { BaseChannel } from "../Base/BaseChannel";
 import { YouTubeVOD } from "./YouTubeVOD";
@@ -171,9 +171,7 @@ export class YouTubeChannel extends BaseChannel {
 
         // $channel->api_getSubscriptionStatus = $channel->getSubscriptionStatus();
 
-        if (Config.getInstance().cfg("channel_folders") && !fs.existsSync(channel.getFolder())) {
-            fs.mkdirSync(channel.getFolder());
-        }
+        channel.makeFolder();
 
         // only needed if i implement watching
         // if (!fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "scheduler", channel.login)))

@@ -494,4 +494,10 @@ export class BaseChannel {
         this.vods_list.push(vod);
     }
 
+    public makeFolder() {
+        if (Config.getInstance().cfg("channel_folders") && !fs.existsSync(this.getFolder())) {
+            fs.mkdirSync(this.getFolder());
+        }
+    }
+
 }

@@ -538,6 +538,11 @@ export class Config {
                 newValue = newValue === "true" || newValue === "1";
             }
 
+            if (newValue === "") {
+                delete this.config[key]; // TODO: is this a good idea?
+                return;
+            }
+
             this.config[key] = newValue;
 
             /*
@@ -784,6 +789,18 @@ export class Config {
 
     }
 
+    /**
+     * @test disable
+     */
+    static checkAppRoot() {
+        // check that the app root is not outside of the root
+        if (!fs.existsSync(path.join(BaseConfigFolder.server, "tsconfig.json"))) {
+            console.error(chalk.red(`Could not find tsconfig.json in ${path.join(BaseConfigFolder.server, "tsconfig.json")}`));
+            // process.exit(1);
+            throw new Error(`Could not find tsconfig.json in ${path.join(BaseConfigFolder.server, "tsconfig.json")}`);
+        }
+    }
+
 
     /**
      * Initialise entire application, like loading config, creating folders, etc.
@@ -805,12 +822,7 @@ export class Config {
             fs.mkdirSync(DataRoot, { recursive: true });
         }
 
-        // check that the app root is not outside of the root
-        if (!fs.existsSync(path.join(BaseConfigFolder.server, "tsconfig.json"))) {
-            console.error(chalk.red(`Could not find tsconfig.json in ${AppRoot}`));
-            // process.exit(1);
-            throw new Error(`Could not find tsconfig.json in ${AppRoot}`);
-        }
+        this.checkAppRoot();
 
         this.checkBuiltDependencies();
 

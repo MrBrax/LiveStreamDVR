@@ -65,6 +65,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["google-auth-library", "npm:7.14.1"],\
             ["html-entities", "npm:2.3.3"],\
             ["jest", "virtual:d78a2ce42d5279889122669697987a3f9ba038f8d2a01bb5bb7cc449b44eb1ac843364d15adc7813894c4f6884ebaf23a3b942d248859563cf369b98d76414a7#npm:29.2.2"],\
+            ["jest-environment-node", "npm:29.2.2"],\
             ["minimist", "npm:1.2.7"],\
             ["morgan", "npm:1.10.0"],\
             ["nodemon", "npm:2.0.20"],\
@@ -6409,6 +6410,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["google-auth-library", "npm:7.14.1"],\
             ["html-entities", "npm:2.3.3"],\
             ["jest", "virtual:d78a2ce42d5279889122669697987a3f9ba038f8d2a01bb5bb7cc449b44eb1ac843364d15adc7813894c4f6884ebaf23a3b942d248859563cf369b98d76414a7#npm:29.2.2"],\
+            ["jest-environment-node", "npm:29.2.2"],\
             ["minimist", "npm:1.2.7"],\
             ["morgan", "npm:1.10.0"],\
             ["nodemon", "npm:2.0.20"],\

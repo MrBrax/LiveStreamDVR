@@ -295,7 +295,7 @@ export class BaseVOD {
         throw new Error("Not implemented");
     }
 
-    public async saveJSON(reason = ""): Promise<false | VODJSON> {
+    public async saveJSON(reason = ""): Promise<boolean> {
         throw new Error("Not implemented");
     }
 

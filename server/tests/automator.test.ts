@@ -2,13 +2,10 @@ import { Config } from "../src/Core/Config";
 import { BaseAutomator } from "../src/Core/Providers/Base/BaseAutomator";
 import { KeyValue } from "../src/Core/KeyValue";
 import { TwitchChannel } from "../src/Core/Providers/Twitch/TwitchChannel";
-
+import "./environment";
 // jest.mock("Automator");
 // jest.mock("KeyValue");
 
-beforeAll(async () => {
-    await Config.init();
-});
 describe("Automator", () => {
     it("automator templating", () => {
         const TA = new BaseAutomator();

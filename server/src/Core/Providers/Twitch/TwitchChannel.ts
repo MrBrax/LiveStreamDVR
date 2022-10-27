@@ -982,9 +982,7 @@ export class TwitchChannel extends BaseChannel {
 
         // $channel->api_getSubscriptionStatus = $channel->getSubscriptionStatus();
 
-        if (Config.getInstance().cfg("channel_folders") && !fs.existsSync(channel.getFolder())) {
-            fs.mkdirSync(channel.getFolder());
-        }
+        channel.makeFolder();
 
         // only needed if i implement watching
         // if (!fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "scheduler", channel.login)))
@@ -1556,6 +1554,11 @@ export class TwitchChannel extends BaseChannel {
         return await TwitchChannel.subscribeToId(this.internalId, force);
     }
 
+    /**
+     * @test disable
+     * @param channel_id
+     * @param force
+     */
     public static async subscribeToId(channel_id: string, force = false): Promise<boolean> {
 
         if (!Config.getInstance().cfg("app_url")) {
@@ -1662,6 +1665,10 @@ export class TwitchChannel extends BaseChannel {
 
     }
 
+    /**
+     * @test disable
+     * @param channel_id
+     */
     public static async unsubscribeFromId(channel_id: string): Promise<boolean> {
 
         const subscriptions = await TwitchHelper.getSubsList();

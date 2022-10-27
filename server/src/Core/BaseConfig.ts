@@ -10,11 +10,11 @@ const argv = minimist(process.argv.slice(2));
  * the index.ts/js file is located. That's the bad hack here, but it works. * 
  */
 
-// export const AppRoot = path.join(__dirname, "..", "..", "..");
 export const AppName = "LiveStreamDVR";
 
 /**
  * The root directory of the application containing client-vue, public, etc.
+ * @test disable/mock
  */
 export const AppRoot = process.env.NODE_ENV === "development" ? path.join(__dirname, "..", "..", "..") : path.join(__dirname, "..", "..");
 
@@ -26,6 +26,7 @@ export const HomeRoot = path.join(os.homedir(), ".config", "twitch-automator"); 
 
 /**
  * The data directory of the application.
+ * @test disable/mock
  */
 export const DataRoot =
         argv.home ? HomeRoot :
