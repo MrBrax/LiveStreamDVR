@@ -1208,6 +1208,7 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
             category: Config.getInstance().cfg("exporter.default.category"),
             remote: Config.getInstance().cfg("exporter.default.remote"),
             title_template: Config.getInstance().cfg("exporter.default.title_template"),
+            privacy: Config.getInstance().cfg("exporter.default.privacy"),
         };
 
         let exporter: Exporter | undefined;

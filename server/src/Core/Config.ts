@@ -226,6 +226,7 @@ export class Config {
         },
         { "key": "exporter.default.description",    "group": "Exporter", "text": "Default description", "type": "string", "help": "YouTube description.", multiline: true },
         { "key": "exporter.default.category",       "group": "Exporter", "text": "Default category", "type": "array", "help": "YouTube category.", choices: YouTubeCategories },
+        { "key": "exporter.default.privacy",        "group": "Exporter", "text": "Default privacy", "type": "array", "help": "YouTube privacy.", choices: ["public", "unlisted", "private"], default: "private" },
         { "key": "exporter.default.tags",           "group": "Exporter", "text": "Default tags", "type": "string", "help": "YouTube tags." },
         { "key": "exporter.default.remote",         "group": "Exporter", "text": "Default remote", "type": "string", "help": "For RClone." },
         { "key": "exporter.auto.enabled",           "group": "Exporter", "text": "Enable auto exporter", "type": "boolean", "default": false, "help": "Enable auto exporter. Not fully tested yet." },
