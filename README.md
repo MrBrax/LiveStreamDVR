@@ -38,8 +38,10 @@ etc. I have only tested this with Nginx and letsencrypt.
 - Basic tools for downloading any VOD, chat, or clip.
 - Can be set to automatically download the whole stream chat to a JSON file, to be used in my [twitch-vod-chat](https://github.com/MrBrax/twitch-vod-chat) webapp or automatically burned in with [TwitchDownloader](https://github.com/lay295/TwitchDownloader).
 - Basic webhook support for external scripting.
-- Notifications over the browser, telegram, and discord.
+- Notifications over the browser, telegram, pushover, and discord.
 - Exporting of videos to external file, SFTP, and YouTube.
+    - Can be enabled for all finished captures
+    - Can be run for an entire channel at once
 
 *One high-profile streamer VOD of 10 hours at 1080p60 is about 30-50GB.*
 
@@ -85,14 +87,13 @@ If you want the public webapp to have a custom base folder, you must provide `BA
 
 ### Main requirements
 - [node.js](https://nodejs.org/) 18+
-- npm and yarn
-- HTTPS enabled with a valid certificate on the default port 443
+- npm and yarn 3+
 - Python 3.8+
 - [pip](https://pypi.org/project/pip/)
 - [FFmpeg](https://ffmpeg.org/download.html)
 - [MediaInfo](https://mediaarea.net/en/MediaInfo)
 - [TwitchDownloader](https://github.com/lay295/TwitchDownloader) (optional for chat downloading and burning)
-- Public facing webserver (nginx, apache, etc) for reverse proxy (optional)
+- Public facing webserver (nginx, apache, etc) for reverse proxy with an HTTP certificate that's valid (Let's Encrypt works fine)
 
 
 ### pip packages
