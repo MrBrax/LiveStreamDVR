@@ -415,7 +415,7 @@ export class BaseAutomator {
                         if (!exporter) return;
                         if (out_path) {
                             exporter.verify().then(status => {
-                                Log.logAdvanced(Log.Level.SUCCESS, "automator.onEndDownload", "Exporter finished for " + this.vodBasenameTemplate);
+                                Log.logAdvanced(Log.Level.SUCCESS, "automator.onEndDownload", `Exporter finished for ${this.vodBasenameTemplate()}`);
                                 if (exporter && exporter.vod && status) {
                                     exporter.vod.exportData.exported_at = new Date().toISOString();
                                     exporter.vod.saveJSON("export successful");
