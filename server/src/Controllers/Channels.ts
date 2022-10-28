@@ -1197,6 +1197,8 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
             continue;
         }
 
+        const exporter_name = Config.getInstance().cfg<string>("exporter.default.exporter", "");
+
         const options: ExporterOptions = {
             vod: vod.uuid,
             directory: Config.getInstance().cfg("exporter.default.directory"),
@@ -1214,7 +1216,7 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
         let exporter: Exporter | undefined;
         try {
             exporter = GetExporter(
-                Config.getInstance().cfg("exporter.default.exporter"),
+                exporter_name,
                 "vod",
                 options
             );
@@ -1227,6 +1229,8 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
 
         if (exporter) {
 
+            Log.logAdvanced(Log.Level.INFO, "route.channel.ExportAllVods", `Exporting VOD '${vod.basename}' as '${exporter.getFormattedTitle()}' with exporter '${exporter_name}'`);
+
             let out_path;
             try {
                 out_path = await exporter.export();
@@ -1234,6 +1238,10 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
                 Log.logAdvanced(Log.Level.ERROR, "route.channel.ExportAllVods", (error as Error).message ? `Export error for '${vod.basename}': ${(error as Error).message}` : "Unknown error occurred while exporting export");
                 failedVods++;
                 job.setProgress((completedVods + failedVods) / totalVods);
+                if ((error as Error).message && (error as Error).message.includes("exceeded your")) {
+                    Log.logAdvanced(Log.Level.FATAL, "route.channel.ExportAllVods", "Stopping mass export because of quota exceeded");
+                    break; // stop exporting if we hit the quota
+                }
                 continue;
             }
 
@@ -1253,7 +1261,7 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
                 if (status) {
                     if (exporter.vod && status) {
                         exporter.vod.exportData.exported_at = new Date().toISOString();
-                        exporter.vod.exportData.exporter = Config.getInstance().cfg("exporter.default.exporter");
+                        exporter.vod.exportData.exporter = exporter_name;
                         exporter.vod.saveJSON("export successful");
                     }
                     completedVods++;

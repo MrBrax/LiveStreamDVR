@@ -243,6 +243,7 @@ import { BaseVODChapter } from "@/core/Providers/Base/BaseVODChapter";
 import { useI18n } from "vue-i18n";
 import axios from "axios";
 import { useRoute } from "vue-router";
+import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
 library.add(faPause, faBookmark, faFastBackward, faFastForward);
 
 export default defineComponent({
@@ -327,7 +328,11 @@ export default defineComponent({
                 .get<ApiVodResponse>(`/api/v0/vod/${this.uuid}`)
                 .then((response) => {
                     const json = response.data;
-                    this.vodData = TwitchVOD.makeFromApiResponse(json.data);
+                    if (json.data.provider == "twitch") {
+                        this.vodData = TwitchVOD.makeFromApiResponse(json.data);
+                    } else {
+                        this.vodData = YouTubeVOD.makeFromApiResponse(json.data);
+                    }
                     setTimeout(() => {
                         this.setupPlayer();
                     }, 500);

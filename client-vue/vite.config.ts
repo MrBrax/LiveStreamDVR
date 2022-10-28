@@ -94,13 +94,13 @@ export default defineConfig({
       'vue',
       'vue-router',
       'pinia',
-      'vue-axios',
+      // 'vue-axios',
     ],
     link: [
       'vue',
       'vue-router',
       'pinia',
-      'vue-axios',
+      // 'vue-axios',
     ],
   },
   build: {
