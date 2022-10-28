@@ -481,8 +481,8 @@ function doExportVod() {
 
 function getYouTubePlaylists() {
     LoadingPlaylists.value = true;
-    axios.get(`/api/v0/youtube/playlists`).then((response) => {
-        const json: ApiResponse = response.data;
+    axios.get<ApiResponse>(`/api/v0/youtube/playlists`).then((response) => {
+        const json = response.data;
         if (json.message) alert(json.message);
         console.log(json);
         if (json.data) {
@@ -531,8 +531,8 @@ function createYouTubePlaylist() {
 
 function getRemotes() {
     LoadingRemotes.value = true;
-    axios.get(`/api/v0/exporter/rclone/remotes`).then((response) => {
-        const json: ApiResponse = response.data;
+    axios.get<ApiResponse>(`/api/v0/exporter/rclone/remotes`).then((response) => {
+        const json = response.data;
         if (json.message) alert(json.message);
         console.log(json);
         if (json.data) {

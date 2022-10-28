@@ -85,7 +85,7 @@
 
 <script lang="ts">
 import { useStore } from "@/store";
-import { ApiGamesResponse, ApiSettingsResponse } from "@common/Api/Api";
+import { ApiGamesResponse, ApiSettingsResponse, ApiResponse } from "@common/Api/Api";
 import { ApiGame } from "@common/Api/Client";
 import axios from "axios";
 import { defineComponent } from "vue";
@@ -169,9 +169,9 @@ export default defineComponent({
         fetchData() {
             console.debug("FavouritesForm fetchData");
             axios.all([
-                axios.get(`api/v0/games`)
+                axios.get<ApiGamesResponse>(`api/v0/games`)
                 .then((response) => {
-                    const json: ApiGamesResponse = response.data;
+                    const json = response.data;
                     if (json.message) alert(json.message);
                     const games = json.data;
                     this.gamesData = games;
@@ -182,9 +182,9 @@ export default defineComponent({
                     this.loading = false;
                 }),
                 axios
-                    .get(`api/v0/settings`)
+                    .get<ApiSettingsResponse>(`api/v0/settings`)
                     .then((response) => {
-                        const json: ApiSettingsResponse = response.data;
+                        const json = response.data;
                         if (json.message) alert(json.message);
                         const favourites = json.data.favourite_games;
                         this.favouritesData = favourites;
@@ -200,7 +200,7 @@ export default defineComponent({
         },
         refreshGame(id: string) {
             axios
-                .get(`/api/v0/games/${id}/refresh`)
+                .get<ApiResponse>(`/api/v0/games/${id}/refresh`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);

@@ -121,7 +121,7 @@
 <script lang="ts">
 import { useStore } from "@/store";
 import { defineComponent } from "vue";
-
+import { ApiResponse } from "@common/Api/Api";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPencil, faSync, faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from "vue-i18n";
@@ -170,7 +170,7 @@ export default defineComponent({
     methods: {
         fetchData(): void {
             axios
-                .get(`/api/v0/keyvalue`)
+                .get<ApiResponse>(`/api/v0/keyvalue`)
                 .then((response) => {
                     const json = response.data;
                     const kv = json.data;

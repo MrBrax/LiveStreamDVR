@@ -133,7 +133,7 @@ export default defineComponent({
 
             let response;
             try {
-                response = await axios.get(`/api/v0/log/${this.logFilename}/${this.logFromLine}`);
+                response = await axios.get<ApiLogResponse>(`/api/v0/log/${this.logFilename}/${this.logFromLine}`);
             } catch (error) {
                 console.error(error);
                 return;
@@ -141,7 +141,7 @@ export default defineComponent({
 
             // console.debug("log data", response.data);
 
-            const data: ApiLogResponse = response.data;
+            const data = response.data;
 
             if (!data.data) {
                 console.error("fetchLog invalid data", response.data);

@@ -341,9 +341,9 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
-import { VideoQualityArray } from "../../../../common/Defs";
-import { HistoryEntry, HistoryEntryOnline } from "../../../../common/History";
-
+import { VideoQualityArray } from "@common/Defs";
+import { HistoryEntry, HistoryEntryOnline } from "@common/History";
+import { ApiResponse } from "@common/Api/Api";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSave, faList } from "@fortawesome/free-solid-svg-icons";
 import { ApiChannelConfig } from "@common/Api/Client";
@@ -491,7 +491,7 @@ export default defineComponent({
         },
         checkSubscriptions() {
             axios
-                .get(`/api/v0/channels/${this.channel.uuid}/checksubscriptions`)
+                .get<ApiResponse>(`/api/v0/channels/${this.channel.uuid}/checksubscriptions`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);
@@ -563,7 +563,7 @@ export default defineComponent({
         },
         fetchHistory() {
             axios
-                .get(`/api/v0/channels/${this.channel.uuid}/history`)
+                .get<ApiResponse>(`/api/v0/channels/${this.channel.uuid}/history`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);

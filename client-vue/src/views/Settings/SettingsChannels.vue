@@ -84,9 +84,9 @@ function fetchData() {
     console.debug("Fetching channels");
     loading.value = true;
     axios
-        .get(`api/v0/settings`)
+        .get<ApiSettingsResponse>(`api/v0/settings`)
         .then((response) => {
-            const json: ApiSettingsResponse = response.data;
+            const json = response.data;
             if (json.message) alert(json.message);
             const channels = json.data.channels;
             /* formChannels.value = */ 

@@ -197,7 +197,7 @@ async function playlistRecord() {
     let response;
 
     try {
-        response = await axios.get(`/api/v0/channels/${props.streamer.uuid}/dump_playlist`);
+        response = await axios.get<ApiResponse>(`/api/v0/channels/${props.streamer.uuid}/dump_playlist`);
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error("abortCapture error", error.response);

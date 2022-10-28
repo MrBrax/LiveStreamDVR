@@ -73,6 +73,7 @@ import { ref } from 'vue';
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from 'vue-i18n';
+import { ApiResponse } from "@common/Api/Api";
 library.add(faSpinner);
 
 const props = defineProps<{
@@ -91,7 +92,7 @@ async function fetchTwitchVods() {
     let response;
 
     try {
-        response = await axios.get(`/api/v0/twitchapi/videos/${props.streamer.login}`);
+        response = await axios.get<ApiResponse>(`/api/v0/twitchapi/videos/${props.streamer.login}`);
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error("fetchTwitchVods error", error.response);
@@ -120,7 +121,7 @@ async function fetchYouTubeVods() {
     let response;
 
     try {
-        response = await axios.get(`/api/v0/youtubeapi/videos/${props.streamer.channel_id}`);
+        response = await axios.get<ApiResponse>(`/api/v0/youtubeapi/videos/${props.streamer.channel_id}`);
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error("fetchYouTubeVods error", error.response);
@@ -149,7 +150,7 @@ async function downloadVideo(id: string) {
     let response;
 
     try {
-        response = await axios.get(`/api/v0/channels/${props.streamer.uuid}/download/${id}`);
+        response = await axios.get<ApiResponse>(`/api/v0/channels/${props.streamer.uuid}/download/${id}`);
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error("downloadVideo error", error.response);

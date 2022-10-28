@@ -94,6 +94,7 @@ import { useStore } from "./store";
 import JobStatus from "./components/JobStatus.vue";
 import { ChannelUpdated, ChapterUpdateData, EndCaptureData, EndConvertData, JobClear, JobProgress, JobSave, NotifyData, VodRemoved, VodUpdated, WebhookAction } from "@common/Webhook";
 import { ApiLogLine } from "@common/Api/Client";
+import { ApiResponse, ApiAuthResponse } from "@common/Api/Api";
 import { parseISO } from "date-fns";
 import { WebsocketJSON } from "./websocket";
 import WebsocketStatus from "./components/WebsocketStatus.vue";
@@ -637,7 +638,7 @@ export default defineComponent({
         //     }
         // }
         checkLoginStatus(): Promise<{ authentication: boolean; status: boolean; guest_mode: boolean; }> {
-            return axios.get("/api/v0/auth/check").then((response) => {
+            return axios.get<ApiAuthResponse>("/api/v0/auth/check").then((response) => {
                 // console.debug("Check login status", response.data);
                 return { authentication: response.data.authentication as boolean, status: true, guest_mode: response.data.guest_mode as boolean };
             }).catch((error) => {

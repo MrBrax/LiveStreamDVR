@@ -235,7 +235,7 @@
 import { defineComponent } from "vue";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import { useStore, VODTypes } from "@/store";
-import { ApiResponse } from "@common/Api/Api";
+import { ApiResponse, ApiVodResponse } from "@common/Api/Api";
 import { formatDuration, humanDuration, formatBytes } from "@/mixins/newhelpers";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPause, faBookmark, faFastBackward, faFastForward } from "@fortawesome/free-solid-svg-icons";
@@ -324,7 +324,7 @@ export default defineComponent({
             // this.vodData = [];
             /** TODO: axios */
             axios
-                .get(`/api/v0/vod/${this.uuid}`)
+                .get<ApiVodResponse>(`/api/v0/vod/${this.uuid}`)
                 .then((response) => {
                     const json = response.data;
                     this.vodData = TwitchVOD.makeFromApiResponse(json.data);

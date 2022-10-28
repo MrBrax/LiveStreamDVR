@@ -348,8 +348,8 @@ export default defineComponent({
     methods: {
         fetchData(): void {
             this.loading = true;
-            axios.get("/api/v0/settings").then((response) => {
-                const data: ApiSettingsResponse = response.data;
+            axios.get<ApiSettingsResponse>("/api/v0/settings").then((response) => {
+                const data = response.data;
                 this.formData = data.data.config;
                 this.settingsFields = data.data.fields;
 
