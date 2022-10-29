@@ -55,7 +55,7 @@ export async function GetChannel(req: express.Request, res: express.Response): P
     if (!channel) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -74,7 +74,7 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
     if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -147,7 +147,7 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
 
     res.send({
         status: "OK",
-        message: `Channel '${channel.internalName}' updated`,
+        message: req.t("route.channels.channel-internalname-updated"),
     });
 
 }
@@ -164,7 +164,7 @@ export async function DeleteChannel(req: express.Request, res: express.Response)
 
             res.send({
                 status: "OK",
-                message: "Channel found in config but not in memory, removed from config",
+                message: req.t("route.channels.channel-found-in-config-but-not-in-memory-removed-from-config"),
             });
             Log.logAdvanced(Log.Level.INFO, "route.channels.delete", `Channel ${req.params.login} found in config but not in memory, removed from config`);
             return;
@@ -172,7 +172,7 @@ export async function DeleteChannel(req: express.Request, res: express.Response)
 
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -198,7 +198,7 @@ export async function DeleteChannel(req: express.Request, res: express.Response)
 
     res.send({
         status: "OK",
-        message: `Channel '${channel.internalName}' deleted`,
+        message: req.t("route.channels.channel-internalname-deleted", [channel.internalName]),
     });
 
 }
@@ -421,7 +421,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
     if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -773,7 +773,7 @@ export async function CleanupChannelVods(req: express.Request, res: express.Resp
     if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -794,7 +794,7 @@ export async function RefreshChannel(req: express.Request, res: express.Response
     if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -848,7 +848,7 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
     if (!channel || !channel.internalId) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -980,7 +980,7 @@ export async function RenameChannel(req: express.Request, res: express.Response)
     if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -1011,7 +1011,7 @@ export async function DeleteAllChannelVods(req: express.Request, res: express.Re
     if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -1060,7 +1060,7 @@ export function GetHistory(req: express.Request, res: express.Response): void {
     if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -1101,7 +1101,7 @@ export async function ScanVods(req: express.Request, res: express.Response): Pro
     if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -1145,7 +1145,7 @@ export async function GetClips(req: express.Request, res: express.Response): Pro
     if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -1175,7 +1175,7 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
     if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }

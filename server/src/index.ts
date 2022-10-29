@@ -17,6 +17,7 @@ import ApiRouter from "./Routes/Api";
 import i18next from "i18next";
 import i18nextMiddleware from "i18next-http-middleware";
 import messages_en from "./Translations/en.json";
+import messages_de from "./Translations/de.json";
 
 declare module "express-session" {
     interface SessionData {
@@ -54,11 +55,14 @@ try {
 
 
 i18next.use(i18nextMiddleware.LanguageDetector).init({
-    preload: ["en", "de", "it"],
+    preload: ["en", "de"],
     fallbackLng: "en",
     resources: {
         en: {
             translation: messages_en,
+        },
+        de: {
+            translation: messages_de,
         },
     },
     //...otherOptions,
