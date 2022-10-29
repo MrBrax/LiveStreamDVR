@@ -65,6 +65,9 @@ i18next.use(i18nextMiddleware.LanguageDetector).init({
             translation: messages_de,
         },
     },
+    detection: {
+        lookupHeader: "x-language",
+    },
     //...otherOptions,
 });
 
