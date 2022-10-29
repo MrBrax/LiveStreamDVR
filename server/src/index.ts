@@ -14,6 +14,9 @@ import { ClientBroker } from "./Core/ClientBroker";
 import { Config } from "./Core/Config";
 import { Webhook } from "./Core/Webhook";
 import ApiRouter from "./Routes/Api";
+import i18next from "i18next";
+import i18nextMiddleware from "i18next-http-middleware";
+import messages_en from "./Translations/en.json";
 
 declare module "express-session" {
     interface SessionData {
@@ -49,6 +52,18 @@ try {
     console.error(`Check version error: ${(error as Error).message}`);
 }
 
+
+i18next.use(i18nextMiddleware.LanguageDetector).init({
+    preload: ["en", "de", "it"],
+    fallbackLng: "en",
+    resources: {
+        en: {
+            translation: messages_en,
+        },
+    },
+    //...otherOptions,
+});
+
 // load all required config files and cache stuff
 Config.init().then(() => {
 
@@ -83,6 +98,12 @@ Config.init().then(() => {
 
     app.use(express.text({ type: "application/xml" }));
     app.use(express.text({ type: "application/atom+xml" }));
+
+    // i18n
+    app.use(
+        i18nextMiddleware.handle(i18next, {
+        })
+    );
 
     // logging
     if (process.env.NODE_ENV == "development") {

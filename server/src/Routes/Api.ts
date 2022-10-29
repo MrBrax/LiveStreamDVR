@@ -124,6 +124,7 @@ router.delete("/keyvalue/:key", AuthAdmin, KeyValue.DeleteKeyValue);
 // router.get("/debug/youtube", AuthAdmin, Debug.GetYouTubeChannel);
 // router.get("/debug/jobprogress", AuthAdmin, Debug.JobProgress);
 // router.get("/debug/rebuild", AuthAdmin, Debug.rebuildSegmentList);
+// router.get("/debug/translatetest", AuthAdmin, Debug.TranslateTest);
 
 router.get("/notifications", AuthAdmin, Notifications.GetNotificationSettings);
 router.put("/notifications", AuthAdmin, Notifications.SaveNotificationSettings);

@@ -62,6 +62,8 @@
     "fs-readdir-recursive": "^1.1.0",
     "google-auth-library": "7.14.1",
     "html-entities": "^2.3.3",
+    "i18next": "^22.0.4",
+    "i18next-http-middleware": "^3.2.1",
     "minimist": "^1.2.7",
     "morgan": "^1.10.0",
     "sanitize-filename": "^1.6.3",

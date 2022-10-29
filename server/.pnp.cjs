@@ -64,6 +64,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["fs-readdir-recursive", "npm:1.1.0"],\
             ["google-auth-library", "npm:7.14.1"],\
             ["html-entities", "npm:2.3.3"],\
+            ["i18next", "npm:22.0.4"],\
+            ["i18next-http-middleware", "npm:3.2.1"],\
             ["jest", "virtual:d78a2ce42d5279889122669697987a3f9ba038f8d2a01bb5bb7cc449b44eb1ac843364d15adc7813894c4f6884ebaf23a3b942d248859563cf369b98d76414a7#npm:29.2.2"],\
             ["jest-environment-node", "npm:29.2.2"],\
             ["minimist", "npm:1.2.7"],\
@@ -1007,6 +1009,16 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packagePeers": [\
             "@babel/core",\
             "@types/babel__core"\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["@babel/runtime", [\
+        ["npm:7.20.0", {\
+          "packageLocation": "./.yarn/cache/@babel-runtime-npm-7.20.0-722de6c8f0-637fca51db.zip/node_modules/@babel/runtime/",\
+          "packageDependencies": [\
+            ["@babel/runtime", "npm:7.20.0"],\
+            ["regenerator-runtime", "npm:0.13.10"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -5234,6 +5246,25 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["i18next", [\
+        ["npm:22.0.4", {\
+          "packageLocation": "./.yarn/cache/i18next-npm-22.0.4-de33bcaaf1-aa49e6e485.zip/node_modules/i18next/",\
+          "packageDependencies": [\
+            ["i18next", "npm:22.0.4"],\
+            ["@babel/runtime", "npm:7.20.0"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["i18next-http-middleware", [\
+        ["npm:3.2.1", {\
+          "packageLocation": "./.yarn/cache/i18next-http-middleware-npm-3.2.1-6f913242dc-650b78608f.zip/node_modules/i18next-http-middleware/",\
+          "packageDependencies": [\
+            ["i18next-http-middleware", "npm:3.2.1"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["iconv-lite", [\
         ["npm:0.4.24", {\
           "packageLocation": "./.yarn/cache/iconv-lite-npm-0.4.24-c5c4ac6695-bd9f120f5a.zip/node_modules/iconv-lite/",\
@@ -6409,6 +6440,8 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["fs-readdir-recursive", "npm:1.1.0"],\
             ["google-auth-library", "npm:7.14.1"],\
             ["html-entities", "npm:2.3.3"],\
+            ["i18next", "npm:22.0.4"],\
+            ["i18next-http-middleware", "npm:3.2.1"],\
             ["jest", "virtual:d78a2ce42d5279889122669697987a3f9ba038f8d2a01bb5bb7cc449b44eb1ac843364d15adc7813894c4f6884ebaf23a3b942d248859563cf369b98d76414a7#npm:29.2.2"],\
             ["jest-environment-node", "npm:29.2.2"],\
             ["minimist", "npm:1.2.7"],\
@@ -7435,6 +7468,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["readdirp", "npm:3.6.0"],\
             ["picomatch", "npm:2.3.1"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["regenerator-runtime", [\
+        ["npm:0.13.10", {\
+          "packageLocation": "./.yarn/cache/regenerator-runtime-npm-0.13.10-57e3c1406b-09893f5a9e.zip/node_modules/regenerator-runtime/",\
+          "packageDependencies": [\
+            ["regenerator-runtime", "npm:0.13.10"]\
           ],\
           "linkType": "HARD"\
         }]\

@@ -119,3 +119,10 @@ export async function rebuildSegmentList(req: express.Request, res: express.Resp
 
     res.send(status);
 }
+
+export function TranslateTest(req: express.Request, res: express.Response): void {
+    res.send({
+        status: "OK",
+        data: req.t("test"),
+    });
+}
