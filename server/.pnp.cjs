@@ -31,13 +31,14 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@googleapis/youtube", "npm:6.0.0"],\
             ["@types/basic-auth", "npm:1.1.3"],\
             ["@types/cron", "npm:2.0.0"],\
-            ["@types/express", "npm:4.17.13"],\
+            ["@types/express", "npm:4.17.14"],\
+            ["@types/express-serve-static-core", "npm:4.17.31"],\
             ["@types/express-session", "npm:1.17.5"],\
             ["@types/fs-readdir-recursive", "npm:1.1.0"],\
             ["@types/jest", "npm:29.2.0"],\
             ["@types/minimist", "npm:1.2.2"],\
             ["@types/morgan", "npm:1.9.3"],\
-            ["@types/node", "npm:17.0.45"],\
+            ["@types/node", "npm:18.11.7"],\
             ["@types/supertest", "npm:2.0.12"],\
             ["@types/ws", "npm:8.5.3"],\
             ["@typescript-eslint/eslint-plugin", "virtual:d78a2ce42d5279889122669697987a3f9ba038f8d2a01bb5bb7cc449b44eb1ac843364d15adc7813894c4f6884ebaf23a3b942d248859563cf369b98d76414a7#npm:5.37.0"],\
@@ -1823,6 +1824,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@types/serve-static", "npm:1.13.10"]\
           ],\
           "linkType": "HARD"\
+        }],\
+        ["npm:4.17.14", {\
+          "packageLocation": "./.yarn/cache/@types-express-npm-4.17.14-076e1b4711-15c1af46d0.zip/node_modules/@types/express/",\
+          "packageDependencies": [\
+            ["@types/express", "npm:4.17.14"],\
+            ["@types/body-parser", "npm:1.19.2"],\
+            ["@types/express-serve-static-core", "npm:4.17.28"],\
+            ["@types/qs", "npm:6.9.7"],\
+            ["@types/serve-static", "npm:1.13.10"]\
+          ],\
+          "linkType": "HARD"\
         }]\
       ]],\
       ["@types/express-serve-static-core", [\
@@ -1830,6 +1842,16 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/@types-express-serve-static-core-npm-4.17.28-608d4aa166-826489811a.zip/node_modules/@types/express-serve-static-core/",\
           "packageDependencies": [\
             ["@types/express-serve-static-core", "npm:4.17.28"],\
+            ["@types/node", "npm:17.0.21"],\
+            ["@types/qs", "npm:6.9.7"],\
+            ["@types/range-parser", "npm:1.2.4"]\
+          ],\
+          "linkType": "HARD"\
+        }],\
+        ["npm:4.17.31", {\
+          "packageLocation": "./.yarn/cache/@types-express-serve-static-core-npm-4.17.31-846873f446-009bfbe107.zip/node_modules/@types/express-serve-static-core/",\
+          "packageDependencies": [\
+            ["@types/express-serve-static-core", "npm:4.17.31"],\
             ["@types/node", "npm:17.0.21"],\
             ["@types/qs", "npm:6.9.7"],\
             ["@types/range-parser", "npm:1.2.4"]\
@@ -1969,10 +1991,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           ],\
           "linkType": "HARD"\
         }],\
-        ["npm:17.0.45", {\
-          "packageLocation": "./.yarn/cache/@types-node-npm-17.0.45-fdb38d1624-aa04366b91.zip/node_modules/@types/node/",\
+        ["npm:18.11.7", {\
+          "packageLocation": "./.yarn/cache/@types-node-npm-18.11.7-0cf2ce3a09-69d630825c.zip/node_modules/@types/node/",\
           "packageDependencies": [\
-            ["@types/node", "npm:17.0.45"]\
+            ["@types/node", "npm:18.11.7"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -6407,13 +6429,14 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@googleapis/youtube", "npm:6.0.0"],\
             ["@types/basic-auth", "npm:1.1.3"],\
             ["@types/cron", "npm:2.0.0"],\
-            ["@types/express", "npm:4.17.13"],\
+            ["@types/express", "npm:4.17.14"],\
+            ["@types/express-serve-static-core", "npm:4.17.31"],\
             ["@types/express-session", "npm:1.17.5"],\
             ["@types/fs-readdir-recursive", "npm:1.1.0"],\
             ["@types/jest", "npm:29.2.0"],\
             ["@types/minimist", "npm:1.2.2"],\
             ["@types/morgan", "npm:1.9.3"],\
-            ["@types/node", "npm:17.0.45"],\
+            ["@types/node", "npm:18.11.7"],\
             ["@types/supertest", "npm:2.0.12"],\
             ["@types/ws", "npm:8.5.3"],\
             ["@typescript-eslint/eslint-plugin", "virtual:d78a2ce42d5279889122669697987a3f9ba038f8d2a01bb5bb7cc449b44eb1ac843364d15adc7813894c4f6884ebaf23a3b942d248859563cf369b98d76414a7#npm:5.37.0"],\
@@ -8248,7 +8271,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@tsconfig/node12", "npm:1.0.9"],\
             ["@tsconfig/node14", "npm:1.0.1"],\
             ["@tsconfig/node16", "npm:1.0.2"],\
-            ["@types/node", "npm:17.0.45"],\
+            ["@types/node", "npm:18.11.7"],\
             ["@types/swc__core", null],\
             ["@types/swc__wasm", null],\
             ["@types/typescript", null],\
