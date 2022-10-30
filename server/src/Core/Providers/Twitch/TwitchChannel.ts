@@ -1219,13 +1219,13 @@ export class TwitchChannel extends BaseChannel {
         }
 
         try {
-            response = await TwitchHelper.axios.get(`/helix/streams?user_id=${streamer_id}`);
+            response = await TwitchHelper.axios.get<StreamsResponse>(`/helix/streams?user_id=${streamer_id}`);
         } catch (error) {
             Log.logAdvanced(Log.Level.ERROR, "helper", `Could not get streams for ${streamer_id}: ${error}`);
             return false;
         }
 
-        const json: StreamsResponse = response.data;
+        const json = response.data;
 
         if (!json.data) {
             Log.logAdvanced(Log.Level.ERROR, "helper", `No streams found for user id ${streamer_id}`);
@@ -1341,7 +1341,7 @@ export class TwitchChannel extends BaseChannel {
         let response;
 
         try {
-            response = await TwitchHelper.axios.get(`/helix/users?${method}=${identifier}`);
+            response = await TwitchHelper.axios.get<UsersResponse | ErrorResponse>(`/helix/users?${method}=${identifier}`);
         } catch (err) {
             if (axios.isAxiosError(err)) {
                 // Log.logAdvanced(Log.Level.ERROR, "helper", `Could not get channel data for ${method} ${identifier}: ${err.message} / ${err.response?.data.message}`, err);
@@ -1366,7 +1366,7 @@ export class TwitchChannel extends BaseChannel {
             throw new Error(`Could not get user data for ${identifier}, code ${response.status}.`);
         }
 
-        const json: UsersResponse | ErrorResponse = response.data;
+        const json = response.data;
 
         if ("error" in json) {
             Log.logAdvanced(Log.Level.ERROR, "helper", `Could not get user data for ${identifier}: ${json.message}`);
@@ -1493,7 +1493,7 @@ export class TwitchChannel extends BaseChannel {
         let response;
 
         try {
-            response = await TwitchHelper.axios.get(`/helix/channels?broadcaster_id=${broadcaster_id}`);
+            response = await TwitchHelper.axios.get<ChannelsResponse | ErrorResponse>(`/helix/channels?broadcaster_id=${broadcaster_id}`);
         } catch (err) {
             if (axios.isAxiosError(err)) {
                 // Log.logAdvanced(Log.Level.ERROR, "helper", `Could not get channel data for ${method} ${identifier}: ${err.message} / ${err.response?.data.message}`, err);
@@ -1518,7 +1518,7 @@ export class TwitchChannel extends BaseChannel {
             throw new Error(`Could not get user data for ${broadcaster_id}, code ${response.status}.`);
         }
 
-        const json: ChannelsResponse | ErrorResponse = response.data;
+        const json = response.data;
 
         if ("error" in json) {
             Log.logAdvanced(Log.Level.ERROR, "helper", `Could not get user data for ${broadcaster_id}: ${json.message}`);
@@ -1613,7 +1613,7 @@ export class TwitchChannel extends BaseChannel {
             let response;
 
             try {
-                response = await TwitchHelper.axios.post("/helix/eventsub/subscriptions", payload);
+                response = await TwitchHelper.axios.post<SubscriptionResponse>("/helix/eventsub/subscriptions", payload);
             } catch (err) {
                 if (axios.isAxiosError(err)) {
                     Log.logAdvanced(Log.Level.ERROR, "helper", `Could not subscribe to ${channel_id}:${sub_type}: ${err.message} / ${err.response?.data.message}`);
@@ -1635,7 +1635,7 @@ export class TwitchChannel extends BaseChannel {
                 continue;
             }
 
-            const json: SubscriptionResponse = response.data;
+            const json = response.data;
             const http_code = response.status;
 
             KeyValue.getInstance().setInt("twitch.max_total_cost", json.max_total_cost);

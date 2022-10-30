@@ -315,7 +315,7 @@ export class TwitchHelper {
         let response;
 
         try {
-            response = await this.axios.get("/helix/eventsub/subscriptions");
+            response = await this.axios.get<Subscriptions>("/helix/eventsub/subscriptions");
         } catch (err) {
             Log.logAdvanced(
                 Log.Level.FATAL,
@@ -325,7 +325,7 @@ export class TwitchHelper {
             return false;
         }
 
-        const json: Subscriptions = response.data;
+        const json = response.data;
 
         Log.logAdvanced(
             Log.Level.INFO,
@@ -362,7 +362,7 @@ export class TwitchHelper {
             let response;
 
             try {
-                response = await this.axios.get(
+                response = await this.axios.get<Subscriptions>(
                     "/helix/eventsub/subscriptions",
                     {
                         params: {
@@ -379,7 +379,7 @@ export class TwitchHelper {
                 return false;
             }
 
-            const json: Subscriptions = response.data;
+            const json = response.data;
 
             subscriptions = subscriptions.concat(json.data);
 
