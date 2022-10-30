@@ -3,9 +3,9 @@ import { LiveStreamDVR } from "Core/LiveStreamDVR";
 import dotenv from "dotenv";
 import express from "express";
 import session from "express-session";
-import fs from "node:fs";
 import minimist from "minimist";
 import morgan from "morgan";
+import fs from "node:fs";
 import path from "node:path";
 import { WebSocketServer } from "ws";
 import { version } from "../package.json";
@@ -13,11 +13,8 @@ import { AppName, BaseConfigDataFolder, BaseConfigFolder } from "./Core/BaseConf
 import { ClientBroker } from "./Core/ClientBroker";
 import { Config } from "./Core/Config";
 import { Webhook } from "./Core/Webhook";
+import i18n from "./Helpers/i18n";
 import ApiRouter from "./Routes/Api";
-import i18next from "i18next";
-import i18nextMiddleware from "i18next-http-middleware";
-import messages_en from "./Translations/en.json";
-import messages_de from "./Translations/de.json";
 
 declare module "express-session" {
     interface SessionData {
@@ -52,24 +49,6 @@ try {
 } catch (error) {
     console.error(`Check version error: ${(error as Error).message}`);
 }
-
-
-i18next.use(i18nextMiddleware.LanguageDetector).init({
-    preload: ["en", "de"],
-    fallbackLng: "en",
-    resources: {
-        en: {
-            translation: messages_en,
-        },
-        de: {
-            translation: messages_de,
-        },
-    },
-    detection: {
-        lookupHeader: "x-language",
-    },
-    //...otherOptions,
-});
 
 // load all required config files and cache stuff
 Config.init().then(() => {
@@ -107,10 +86,7 @@ Config.init().then(() => {
     app.use(express.text({ type: "application/atom+xml" }));
 
     // i18n
-    app.use(
-        i18nextMiddleware.handle(i18next, {
-        })
-    );
+    app.use(i18n);
 
     // logging
     if (process.env.NODE_ENV == "development") {

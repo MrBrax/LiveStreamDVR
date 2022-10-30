@@ -55,7 +55,7 @@ beforeAll(() => {
         return true;
     });
     jest.spyOn(Config.prototype, "saveConfig").mockImplementation(() => { return true; });
-    jest.spyOn(Config.prototype, "startWatchingConfig").mockImplementation(() => { return; });
+    jest.spyOn(Config.prototype, "startWatchingConfig").mockImplementation(() => { console.debug("Disable start watching config"); return; });
     jest.spyOn(Config, "checkBuiltDependencies").mockImplementation(() => { return; });
     jest.spyOn(Config, "checkAppRoot").mockImplementation(() => { return; });
     jest.spyOn(Config, "createFolders").mockImplementation(() => { return; });
@@ -73,12 +73,12 @@ beforeAll(() => {
     jest.spyOn(BaseChannel.prototype, "saveVodDatabase").mockImplementation(() => { return; });
     jest.spyOn(BaseChannel.prototype, "findClips").mockImplementation(() => { return Promise.resolve(); });
     jest.spyOn(BaseChannel.prototype, "makeFolder").mockImplementation(() => { return; });
-    jest.spyOn(BaseVOD.prototype, "startWatching").mockImplementation(() => { return Promise.resolve(true); });
+    jest.spyOn(BaseVOD.prototype, "startWatching").mockImplementation(() => { console.debug("Disable start watching basevod"); return Promise.resolve(true); });
     jest.spyOn(BaseVOD.prototype, "broadcastUpdate").mockImplementation(() => { return; });
-    jest.spyOn(TwitchChannel.prototype, "startWatching").mockImplementation(() => { return Promise.resolve(); });
+    jest.spyOn(TwitchChannel.prototype, "startWatching").mockImplementation(() => { console.debug("Disable start watching twitchchannel"); return Promise.resolve(); });
     jest.spyOn(TwitchChannel, "loadChannelsCache").mockImplementation(() => { return true; });
     jest.spyOn(TwitchChannel, "getUserDataProxy").mockImplementation(() => { return Promise.resolve(false); });
-    jest.spyOn(TwitchVOD.prototype, "startWatching").mockImplementation(() => { return Promise.resolve(true); });
+    jest.spyOn(TwitchVOD.prototype, "startWatching").mockImplementation(() => { console.debug("Disable start watching twitchvod"); return Promise.resolve(true); });
     jest.spyOn(TwitchVOD.prototype, "saveJSON").mockImplementation(() => { return Promise.resolve(true); });
     jest.spyOn(YouTubeVOD.prototype, "saveJSON").mockImplementation(() => { return Promise.resolve(true); });
     jest.spyOn(TwitchChannel, "subscribeToId").mockImplementation(() => { return Promise.resolve(true); });
@@ -99,6 +99,10 @@ beforeAll(() => {
 
 beforeEach(() => {
     Config.getInstance().generateConfig();
+});
+
+afterEach(() => {
+    Config.getInstance().config = {};
 });
 
 afterAll(() => {
