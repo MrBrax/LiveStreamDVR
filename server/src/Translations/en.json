@@ -6,7 +6,26 @@
       "channel-not-found": "Channel not found",
       "channel-internalname-updated": "Channel '{0}' updated",
       "channel-found-in-config-but-not-in-memory-removed-from-config": "Channel found in config but not in memory, removed from config",
-      "channel-internalname-deleted": "Channel '{0}' deleted"
+      "channel-internalname-deleted": "Channel '{0}' deleted",
+      "provider-not-found": "Provider not found",
+      "channel-login-not-specified": "Channel login not specified",
+      "no-quality-selected": "No quality selected",
+      "invalid-quality-selected": "Invalid quality selected",
+      "channel-already-exists": "Channel already exists",
+      "channel-login-does-not-match-data-fetched-from-api": "Channel login does not match data fetched from API",
+      "channel-id-not-specified": "Channel ID not specified",
+      "no-channel-created": "No channel created",
+      "channel-displayname-created": "Channel '{0}' created",
+      "video-not-found": "Video not found",
+      "video-download-failed": "Video download failed",
+      "video-already-downloaded": "Video already downloaded",
+      "channel-uuid-is-empty": "Channel UUID is empty",
+      "channel-is-not-supported": "Channel is not supported",
+      "channel-uuid-not-found": "Channel {0} not found",
+      "no-subscriptions-for-channel-internalname": "No subscriptions for {0}",
+      "deleted-vods_one": "Deleted {0} VOD",
+      "deleted-vods_other": "Deleted {0} VODs",
+      "deleted-vods_zero": "Deleted no VODs"
     }
   }
 }
