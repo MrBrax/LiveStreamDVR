@@ -55,7 +55,7 @@ export async function GetChannel(req: express.Request, res: express.Response): P
     if (!channel) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -74,7 +74,7 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
     if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -147,7 +147,7 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
 
     res.send({
         status: "OK",
-        message: `Channel '${channel.internalName}' updated`,
+        message: req.t("route.channels.channel-internalname-updated"),
     });
 
 }
@@ -164,7 +164,7 @@ export async function DeleteChannel(req: express.Request, res: express.Response)
 
             res.send({
                 status: "OK",
-                message: "Channel found in config but not in memory, removed from config",
+                message: req.t("route.channels.channel-found-in-config-but-not-in-memory-removed-from-config"),
             });
             Log.logAdvanced(Log.Level.INFO, "route.channels.delete", `Channel ${req.params.login} found in config but not in memory, removed from config`);
             return;
@@ -172,7 +172,7 @@ export async function DeleteChannel(req: express.Request, res: express.Response)
 
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -198,7 +198,7 @@ export async function DeleteChannel(req: express.Request, res: express.Response)
 
     res.send({
         status: "OK",
-        message: `Channel '${channel.internalName}' deleted`,
+        message: req.t("route.channels.channel-internalname-deleted", [channel.internalName]),
     });
 
 }
@@ -210,7 +210,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
     if (!provider) {
         res.status(400).send({
             status: "ERROR",
-            message: "No provider",
+            message: req.t("route.channels.provider-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -255,7 +255,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         if (!channel_config.login) {
             res.status(400).send({
                 status: "ERROR",
-                message: "Channel login not specified",
+                message: req.t("route.channels.channel-login-not-specified"),
             } as ApiErrorResponse);
             return;
         }
@@ -263,7 +263,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         if (channel_config.quality.length === 0) {
             res.status(400).send({
                 status: "ERROR",
-                message: "No quality selected",
+                message: req.t("route.channels.no-quality-selected"),
             } as ApiErrorResponse);
             return;
         }
@@ -271,7 +271,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         if (channel_config.quality.some(q => !VideoQualityArray.includes(q))) {
             res.status(400).send({
                 status: "ERROR",
-                message: "Invalid quality selected",
+                message: req.t("route.channels.invalid-quality-selected"),
             } as ApiErrorResponse);
             return;
         }
@@ -281,7 +281,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
             Log.logAdvanced(Log.Level.ERROR, "route.channels.add", `Failed to create channel, channel already exists: ${channel_config.login}`);
             res.status(400).send({
                 status: "ERROR",
-                message: "Channel already exists",
+                message: req.t("route.channels.channel-already-exists"),
             } as ApiErrorResponse);
             return;
         }
@@ -302,7 +302,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         if (api_channel_data && api_channel_data.login !== channel_config.login) {
             res.status(400).send({
                 status: "ERROR",
-                message: "Channel login does not match data fetched from API",
+                message: req.t("route.channels.channel-login-does-not-match-data-fetched-from-api"),
             } as ApiErrorResponse);
             return;
         }
@@ -343,7 +343,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         if (!channel_config.channel_id) {
             res.status(400).send({
                 status: "ERROR",
-                message: "Channel ID not specified",
+                message: req.t("route.channels.channel-id-not-specified"),
             } as ApiErrorResponse);
             return;
         }
@@ -353,7 +353,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
             Log.logAdvanced(Log.Level.ERROR, "route.channels.add", `Failed to create channel, channel already exists: ${channel_config.channel_id}`);
             res.status(400).send({
                 status: "ERROR",
-                message: "Channel already exists",
+                message: req.t("route.channels.channel-already-exists"),
             } as ApiErrorResponse);
             return;
         }
@@ -399,7 +399,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
     if (!new_channel) {
         res.status(400).send({
             status: "ERROR",
-            message: "No channel created",
+            message: req.t("route.channels.no-channel-created"),
         } as ApiErrorResponse);
         return;
     }
@@ -407,7 +407,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
     res.send({
         data: await new_channel.toAPI(),
         status: "OK",
-        message: `Channel '${new_channel.displayName}' created`,
+        message: req.t("route.channels.channel-displayname-created", [new_channel.displayName]),
     });
 
     new_channel.broadcastUpdate();
@@ -421,7 +421,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
     if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -484,7 +484,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         if (!video) {
             res.status(400).send({
                 status: "ERROR",
-                message: "Video not found",
+                message: req.t("route.channels.video-not-found"),
             } as ApiErrorResponse);
             return;
         }
@@ -583,7 +583,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         } else {
             res.status(400).send({
                 status: "ERROR",
-                message: "Video download failed",
+                message: req.t("route.channels.video-download-failed"),
             } as ApiErrorResponse);
             return;
         }
@@ -593,7 +593,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         if (YouTubeVOD.getVodByProviderId(video_id)) {
             res.status(400).send({
                 status: "ERROR",
-                message: "Video already downloaded",
+                message: req.t("route.channels.video-already-downloaded"),
             } as ApiErrorResponse);
             return;
         }
@@ -612,7 +612,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         if (!video) {
             res.status(400).send({
                 status: "ERROR",
-                message: "Video not found",
+                message: req.t("route.channels.video-not-found"),
             } as ApiErrorResponse);
             return;
         }
@@ -681,7 +681,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
                 Log.logAdvanced(Log.Level.FATAL, "route.channels.download", `Channel UUID is empty for VOD ${vod.uuid}`);
                 res.status(500).send({
                     status: "ERROR",
-                    message: "Channel UUID is empty",
+                    message: req.t("route.channels.channel-uuid-is-empty"),
                 } as ApiErrorResponse);
                 return;
             }
@@ -693,7 +693,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         } else {
             res.status(400).send({
                 status: "ERROR",
-                message: "Video download failed",
+                message: req.t("route.channels.video-download-failed"),
             } as ApiErrorResponse);
             return;
         }
@@ -701,7 +701,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
     } else {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel is not supported",
+            message: req.t("route.channels.channel-is-not-supported"),
         } as ApiErrorResponse);
         return;
     }
@@ -715,7 +715,7 @@ export async function SubscribeToChannel(req: express.Request, res: express.Resp
     if (!channel || !(channel instanceof TwitchChannel) || !channel.userid) {
         res.status(400).send({
             status: "ERROR",
-            message: `Channel ${req.params.uuid} not found`,
+            message: req.t("route.channels.channel-uuid-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -739,7 +739,7 @@ export async function CheckSubscriptions(req: express.Request, res: express.Resp
     if (!channel || !(channel instanceof TwitchChannel) || !channel.userid) {
         res.status(400).send({
             status: "ERROR",
-            message: `Channel ${req.params.uuid} not found`,
+            message: req.t("route.channels.channel-uuid-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -749,7 +749,7 @@ export async function CheckSubscriptions(req: express.Request, res: express.Resp
     if (!all_subs) {
         res.status(400).send({
             status: "ERROR",
-            message: `No subscriptions for ${channel.internalName}`,
+            message: req.t("route.channels.no-subscriptions-for-channel-internalname"),
         } as ApiErrorResponse);
         return;
     }
@@ -773,7 +773,7 @@ export async function CleanupChannelVods(req: express.Request, res: express.Resp
     if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -782,7 +782,8 @@ export async function CleanupChannelVods(req: express.Request, res: express.Resp
 
     res.send({
         status: "OK",
-        message: `Deleted ${deleted ? deleted : "no"} ${deleted === 1 ? "VOD" : "VODs"}`,
+        // message: `Deleted ${deleted ? deleted : "no"} ${deleted === 1 ? "VOD" : "VODs"}`,
+        message: req.t("route.channels.deleted-vods", { count: deleted || 0 }),
     });
 
 }
@@ -794,7 +795,7 @@ export async function RefreshChannel(req: express.Request, res: express.Response
     if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -848,7 +849,7 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
     if (!channel || !channel.internalId) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -980,7 +981,7 @@ export async function RenameChannel(req: express.Request, res: express.Response)
     if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -1011,7 +1012,7 @@ export async function DeleteAllChannelVods(req: express.Request, res: express.Re
     if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -1060,7 +1061,7 @@ export function GetHistory(req: express.Request, res: express.Response): void {
     if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -1101,7 +1102,7 @@ export async function ScanVods(req: express.Request, res: express.Response): Pro
     if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -1145,7 +1146,7 @@ export async function GetClips(req: express.Request, res: express.Response): Pro
     if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -1175,7 +1176,7 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
     if (!channel || !channel.internalName) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel not found",
+            message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -1197,6 +1198,8 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
             continue;
         }
 
+        const exporter_name = Config.getInstance().cfg<string>("exporter.default.exporter", "");
+
         const options: ExporterOptions = {
             vod: vod.uuid,
             directory: Config.getInstance().cfg("exporter.default.directory"),
@@ -1214,7 +1217,7 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
         let exporter: Exporter | undefined;
         try {
             exporter = GetExporter(
-                Config.getInstance().cfg("exporter.default.exporter"),
+                exporter_name,
                 "vod",
                 options
             );
@@ -1227,6 +1230,8 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
 
         if (exporter) {
 
+            Log.logAdvanced(Log.Level.INFO, "route.channel.ExportAllVods", `Exporting VOD '${vod.basename}' as '${exporter.getFormattedTitle()}' with exporter '${exporter_name}'`);
+
             let out_path;
             try {
                 out_path = await exporter.export();
@@ -1234,6 +1239,10 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
                 Log.logAdvanced(Log.Level.ERROR, "route.channel.ExportAllVods", (error as Error).message ? `Export error for '${vod.basename}': ${(error as Error).message}` : "Unknown error occurred while exporting export");
                 failedVods++;
                 job.setProgress((completedVods + failedVods) / totalVods);
+                if ((error as Error).message && (error as Error).message.includes("exceeded your")) {
+                    Log.logAdvanced(Log.Level.FATAL, "route.channel.ExportAllVods", "Stopping mass export because of quota exceeded");
+                    break; // stop exporting if we hit the quota
+                }
                 continue;
             }
 
@@ -1253,7 +1262,7 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
                 if (status) {
                     if (exporter.vod && status) {
                         exporter.vod.exportData.exported_at = new Date().toISOString();
-                        exporter.vod.exportData.exporter = Config.getInstance().cfg("exporter.default.exporter");
+                        exporter.vod.exportData.exporter = exporter_name;
                         exporter.vod.saveJSON("export successful");
                     }
                     completedVods++;

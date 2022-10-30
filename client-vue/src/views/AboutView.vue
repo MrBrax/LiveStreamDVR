@@ -217,7 +217,7 @@
 import { useStore } from "@/store";
 import { ApiSubscription } from "@common/Api/Client";
 import { defineComponent } from "vue";
-
+import { ApiResponse } from "@common/Api/Api";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faRss, faBan } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from "vue-i18n";
@@ -311,7 +311,7 @@ export default defineComponent({
             this.aboutData = null;
 
             axios
-                .get(`/api/v0/about`)
+                .get<ApiResponse>(`/api/v0/about`)
                 .then((response) => {
                     const json = response.data;
                     const about = json.data;
@@ -335,7 +335,7 @@ export default defineComponent({
         fetchSubscriptions() {
             this.subscriptionsLoading = true;
             axios
-                .get(`/api/v0/subscriptions`)
+                .get<ApiResponse>(`/api/v0/subscriptions`)
                 .then((response) => {
                     const json = response.data;
                     console.log("subscriptions", json);

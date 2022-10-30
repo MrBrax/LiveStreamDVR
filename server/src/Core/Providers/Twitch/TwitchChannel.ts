@@ -1,39 +1,38 @@
-import axios, {AxiosResponse} from "axios";
+import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
 import chokidar from "chokidar";
-import {randomUUID} from "node:crypto";
-import {format, parseJSON} from "date-fns";
+import { randomUUID } from "node:crypto";
+import { format, parseJSON } from "date-fns";
 import fs from "node:fs";
-import fsPromises from "fs/promises";
-import {encode as htmlentities} from "html-entities";
+import { encode as htmlentities } from "html-entities";
 import path from "node:path";
-import {Readable} from "stream";
-import type {ApiTwitchChannel} from "@common/Api/Client";
-import {TwitchChannelConfig, VideoQuality} from "@common/Config";
-import {MuteStatus, Providers, SubStatus} from "@common/Defs";
-import type {LocalVideo} from "@common/LocalVideo";
-import {AudioMetadata, VideoMetadata} from "@common/MediaInfo";
-import type {Channel, ChannelsResponse} from "@common/TwitchAPI/Channels";
-import type {ErrorResponse, EventSubTypes} from "@common/TwitchAPI/Shared";
-import type {Stream, StreamsResponse} from "@common/TwitchAPI/Streams";
-import type {SubscriptionRequest, SubscriptionResponse} from "@common/TwitchAPI/Subscriptions";
-import type {BroadcasterType, UsersResponse} from "@common/TwitchAPI/Users";
-import type {UserData} from "@common/User";
-import {Helper} from "../../Helper";
-import {isTwitchChannel} from "../../../Helpers/Types";
-import {TwitchHelper} from "../../../Providers/Twitch";
-import {TwitchVODChapterJSON} from "../../../Storage/JSON";
-import {AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath} from "../../BaseConfig";
-import {ClientBroker} from "../../ClientBroker";
-import {Config} from "../../Config";
-import {Job} from "../../Job";
-import {KeyValue} from "../../KeyValue";
-import {LiveStreamDVR} from "../../LiveStreamDVR";
-import {Log} from "../../Log";
-import {Webhook} from "../../Webhook";
-import {BaseChannel} from "../Base/BaseChannel";
-import {TwitchGame} from "./TwitchGame";
-import {TwitchVOD} from "./TwitchVOD";
+import { Readable } from "stream";
+import type { ApiTwitchChannel } from "@common/Api/Client";
+import { TwitchChannelConfig, VideoQuality } from "@common/Config";
+import { MuteStatus, Providers, SubStatus } from "@common/Defs";
+import type { LocalVideo } from "@common/LocalVideo";
+import { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
+import type { Channel, ChannelsResponse } from "@common/TwitchAPI/Channels";
+import type { ErrorResponse, EventSubTypes } from "@common/TwitchAPI/Shared";
+import type { Stream, StreamsResponse } from "@common/TwitchAPI/Streams";
+import type { SubscriptionRequest, SubscriptionResponse } from "@common/TwitchAPI/Subscriptions";
+import type { BroadcasterType, UsersResponse } from "@common/TwitchAPI/Users";
+import type { UserData } from "@common/User";
+import { Helper } from "../../Helper";
+import { isTwitchChannel } from "../../../Helpers/Types";
+import { TwitchHelper } from "../../../Providers/Twitch";
+import { TwitchVODChapterJSON } from "../../../Storage/JSON";
+import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath } from "../../BaseConfig";
+import { ClientBroker } from "../../ClientBroker";
+import { Config } from "../../Config";
+import { Job } from "../../Job";
+import { KeyValue } from "../../KeyValue";
+import { LiveStreamDVR } from "../../LiveStreamDVR";
+import { Log } from "../../Log";
+import { Webhook } from "../../Webhook";
+import { BaseChannel } from "../Base/BaseChannel";
+import { TwitchGame } from "./TwitchGame";
+import { TwitchVOD } from "./TwitchVOD";
 
 export class TwitchChannel extends BaseChannel {
     public provider: Providers = "twitch";
@@ -1220,13 +1219,13 @@ export class TwitchChannel extends BaseChannel {
         }
 
         try {
-            response = await TwitchHelper.axios.get(`/helix/streams?user_id=${streamer_id}`);
+            response = await TwitchHelper.axios.get<StreamsResponse>(`/helix/streams?user_id=${streamer_id}`);
         } catch (error) {
             Log.logAdvanced(Log.Level.ERROR, "helper", `Could not get streams for ${streamer_id}: ${error}`);
             return false;
         }
 
-        const json: StreamsResponse = response.data;
+        const json = response.data;
 
         if (!json.data) {
             Log.logAdvanced(Log.Level.ERROR, "helper", `No streams found for user id ${streamer_id}`);
@@ -1342,7 +1341,7 @@ export class TwitchChannel extends BaseChannel {
         let response;
 
         try {
-            response = await TwitchHelper.axios.get(`/helix/users?${method}=${identifier}`);
+            response = await TwitchHelper.axios.get<UsersResponse | ErrorResponse>(`/helix/users?${method}=${identifier}`);
         } catch (err) {
             if (axios.isAxiosError(err)) {
                 // Log.logAdvanced(Log.Level.ERROR, "helper", `Could not get channel data for ${method} ${identifier}: ${err.message} / ${err.response?.data.message}`, err);
@@ -1367,7 +1366,7 @@ export class TwitchChannel extends BaseChannel {
             throw new Error(`Could not get user data for ${identifier}, code ${response.status}.`);
         }
 
-        const json: UsersResponse | ErrorResponse = response.data;
+        const json = response.data;
 
         if ("error" in json) {
             Log.logAdvanced(Log.Level.ERROR, "helper", `Could not get user data for ${identifier}: ${json.message}`);
@@ -1400,7 +1399,7 @@ export class TwitchChannel extends BaseChannel {
                     url: userData.profile_image_url,
                     method: "GET",
                     responseType: "stream",
-                }) as AxiosResponse<Readable>;
+                });
             } catch (error) {
                 Log.logAdvanced(Log.Level.ERROR, "helper", `Could not download user logo for ${userData.id}: ${(error as Error).message}`, error);
             }
@@ -1408,11 +1407,12 @@ export class TwitchChannel extends BaseChannel {
                 // const ws = fs.createWriteStream(logo_path);
                 // avatar_response.data.pipe(ws);
                 // ws.close();
-                await fsPromises.writeFile(logo_path, avatar_response.data);
 
-                userData.cache_avatar = logo_filename;
+                avatar_response.data.pipe(fs.createWriteStream(logo_path));
 
                 if (fs.existsSync(logo_path)) {
+                    userData.cache_avatar = logo_filename;
+
                     let avatar_thumbnail;
                     try {
                         avatar_thumbnail = await Helper.imageThumbnail(logo_path, 64);
@@ -1427,6 +1427,7 @@ export class TwitchChannel extends BaseChannel {
                 } else {
                     Log.logAdvanced(Log.Level.ERROR, "helper", `Could not find downloaded avatar for ${userData.id}`);
                 }
+
             }
         } else {
             Log.logAdvanced(Log.Level.WARNING, "helper", `User ${userData.id} has no profile image url`);
@@ -1448,9 +1449,11 @@ export class TwitchChannel extends BaseChannel {
             } catch (error) {
                 Log.logAdvanced(Log.Level.ERROR, "helper", `Could not download user offline image for ${userData.id}: ${(error as Error).message}`, error);
             }
-            if (offline_response) {
+            if (offline_response && offline_response.data instanceof Readable) {
                 offline_response.data.pipe(fs.createWriteStream(offline_path));
                 userData.cache_offline_image = offline_filename;
+            } else {
+                Log.logAdvanced(Log.Level.ERROR, "helper", `Could not download offline image for ${userData.id}, data is not readable`);
             }
         }
 
@@ -1490,7 +1493,7 @@ export class TwitchChannel extends BaseChannel {
         let response;
 
         try {
-            response = await TwitchHelper.axios.get(`/helix/channels?broadcaster_id=${broadcaster_id}`);
+            response = await TwitchHelper.axios.get<ChannelsResponse | ErrorResponse>(`/helix/channels?broadcaster_id=${broadcaster_id}`);
         } catch (err) {
             if (axios.isAxiosError(err)) {
                 // Log.logAdvanced(Log.Level.ERROR, "helper", `Could not get channel data for ${method} ${identifier}: ${err.message} / ${err.response?.data.message}`, err);
@@ -1515,7 +1518,7 @@ export class TwitchChannel extends BaseChannel {
             throw new Error(`Could not get user data for ${broadcaster_id}, code ${response.status}.`);
         }
 
-        const json: ChannelsResponse | ErrorResponse = response.data;
+        const json = response.data;
 
         if ("error" in json) {
             Log.logAdvanced(Log.Level.ERROR, "helper", `Could not get user data for ${broadcaster_id}: ${json.message}`);
@@ -1610,7 +1613,7 @@ export class TwitchChannel extends BaseChannel {
             let response;
 
             try {
-                response = await TwitchHelper.axios.post("/helix/eventsub/subscriptions", payload);
+                response = await TwitchHelper.axios.post<SubscriptionResponse>("/helix/eventsub/subscriptions", payload);
             } catch (err) {
                 if (axios.isAxiosError(err)) {
                     Log.logAdvanced(Log.Level.ERROR, "helper", `Could not subscribe to ${channel_id}:${sub_type}: ${err.message} / ${err.response?.data.message}`);
@@ -1632,7 +1635,7 @@ export class TwitchChannel extends BaseChannel {
                 continue;
             }
 
-            const json: SubscriptionResponse = response.data;
+            const json = response.data;
             const http_code = response.status;
 
             KeyValue.getInstance().setInt("twitch.max_total_cost", json.max_total_cost);

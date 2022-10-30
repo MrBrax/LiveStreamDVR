@@ -89,7 +89,7 @@ export const useStore = defineStore("twitchAutomator", {
             let response;
 
             try {
-                response = await axios.get(`/api/v0/settings`);
+                response = await axios.get<ApiSettingsResponse>(`/api/v0/settings`);
             } catch (error) {
                 alert(error);
                 return;
@@ -106,7 +106,7 @@ export const useStore = defineStore("twitchAutomator", {
                 return;
             }
 
-            const data: ApiSettingsResponse = response.data;
+            const data = response.data;
 
             console.log(`Server type: ${data.data.server ?? "unknown"}`);
 
@@ -151,14 +151,14 @@ export const useStore = defineStore("twitchAutomator", {
             this.loading = true;
             let response;
             try {
-                response = await axios.get(`/api/v0/channels`);
+                response = await axios.get<ApiChannelsResponse | ApiErrorResponse>(`/api/v0/channels`);
             } catch (error) {
                 console.error(error);
                 this.loading = false;
                 return false;
             }
 
-            const data: ApiChannelsResponse | ApiErrorResponse = response.data;
+            const data = response.data;
 
             if (data.status === "ERROR") {
                 // console.error("fetchStreamerList", data.message);
@@ -172,14 +172,14 @@ export const useStore = defineStore("twitchAutomator", {
             this.loading = true;
             let response;
             try {
-                response = await axios.get(`/api/v0/vod/${uuid}`);
+                response = await axios.get<ApiVodResponse | ApiErrorResponse>(`/api/v0/vod/${uuid}`);
             } catch (error) {
                 console.error("fetchVod error", error);
                 this.loading = false;
                 return false;
             }
 
-            const data: ApiVodResponse | ApiErrorResponse = response.data;
+            const data = response.data;
 
             if (data.status === "ERROR") {
                 console.error("fetchVod", data.message);
@@ -276,7 +276,7 @@ export const useStore = defineStore("twitchAutomator", {
             this.loading = true;
             let response;
             try {
-                response = await axios.get(`/api/v0/channels/${uuid}`);
+                response = await axios.get<ApiChannelResponse | ApiErrorResponse>(`/api/v0/channels/${uuid}`);
             } catch (error) {
                 console.error("fetchStreamer error", error);
                 this.loading = false;
@@ -286,7 +286,7 @@ export const useStore = defineStore("twitchAutomator", {
                 this.loading = false;
                 return false;
             }
-            const data: ApiChannelResponse | ApiErrorResponse = response.data;
+            const data = response.data;
 
             if (data.status === "ERROR") {
                 console.error("fetchVod", data.message);
@@ -372,7 +372,7 @@ export const useStore = defineStore("twitchAutomator", {
             let response;
 
             try {
-                response = await axios.get(`/api/v0/jobs`);
+                response = await axios.get<ApiJobsResponse | ApiErrorResponse>(`/api/v0/jobs`);
             } catch (error) {
                 console.error(error);
                 this.loading = false;
@@ -381,7 +381,12 @@ export const useStore = defineStore("twitchAutomator", {
 
             this.loading = false;
 
-            const json: ApiJobsResponse = response.data;
+            if (response.data.status === "ERROR") {
+                console.error("fetchAndUpdateJobs", response.data.message);
+                return;
+            }
+
+            const json = response.data;
             this.updateJobList(json.data);
         },
         updateJobList(data: ApiJob[]) {

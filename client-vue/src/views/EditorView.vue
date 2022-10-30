@@ -235,7 +235,7 @@
 import { defineComponent } from "vue";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import { useStore, VODTypes } from "@/store";
-import { ApiResponse } from "@common/Api/Api";
+import { ApiResponse, ApiVodResponse } from "@common/Api/Api";
 import { formatDuration, humanDuration, formatBytes } from "@/mixins/newhelpers";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPause, faBookmark, faFastBackward, faFastForward } from "@fortawesome/free-solid-svg-icons";
@@ -243,6 +243,7 @@ import { BaseVODChapter } from "@/core/Providers/Base/BaseVODChapter";
 import { useI18n } from "vue-i18n";
 import axios from "axios";
 import { useRoute } from "vue-router";
+import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
 library.add(faPause, faBookmark, faFastBackward, faFastForward);
 
 export default defineComponent({
@@ -324,10 +325,14 @@ export default defineComponent({
             // this.vodData = [];
             /** TODO: axios */
             axios
-                .get(`/api/v0/vod/${this.uuid}`)
+                .get<ApiVodResponse>(`/api/v0/vod/${this.uuid}`)
                 .then((response) => {
                     const json = response.data;
-                    this.vodData = TwitchVOD.makeFromApiResponse(json.data);
+                    if (json.data.provider == "twitch") {
+                        this.vodData = TwitchVOD.makeFromApiResponse(json.data);
+                    } else {
+                        this.vodData = YouTubeVOD.makeFromApiResponse(json.data);
+                    }
                     setTimeout(() => {
                         this.setupPlayer();
                     }, 500);

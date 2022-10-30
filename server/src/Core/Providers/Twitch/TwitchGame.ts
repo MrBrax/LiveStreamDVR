@@ -104,13 +104,13 @@ export class TwitchGame {
 
         let response;
         try {
-            response = await TwitchHelper.axios.get(`/helix/games?id=${game_id}`);
+            response = await TwitchHelper.axios.get<GamesResponse>(`/helix/games?id=${game_id}`);
         } catch (th) {
             Log.logAdvanced(Log.Level.FATAL, "game", `Tried to get game data for ${game_id} but server returned: ${th}`);
             return null;
         }
 
-        const json: GamesResponse = response.data;
+        const json = response.data;
 
         const game_data = json.data[0];
 

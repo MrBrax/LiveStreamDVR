@@ -57,6 +57,7 @@ import { ref } from 'vue';
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from 'vue-i18n';
+import { ApiResponse } from "@common/Api/Api";
 library.add(faSpinner);
 
 const props = defineProps<{
@@ -75,7 +76,7 @@ async function fetchTwitchClips() {
     let response;
 
     try {
-        response = await axios.get(`/api/v0/channels/${props.streamer.uuid}/clips`);
+        response = await axios.get<ApiResponse>(`/api/v0/channels/${props.streamer.uuid}/clips`);
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error("fetchTwitchClips error", error.response);

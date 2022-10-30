@@ -1,5 +1,5 @@
 import { ChannelConfig, SettingField } from "../Config";
-import { ApiTwitchChannel, ApiGame, ApiJob, ApiLogLine, ApiTwitchVod, ApiChannels, ApiVods } from "./Client";
+import { ApiTwitchChannel, ApiGame, ApiJob, ApiLogLine, ApiTwitchVod, ApiChannels, ApiVods, ApiFile } from "./Client";
 
 interface ApiResponse {
     data: any;
@@ -74,4 +74,21 @@ export interface ApiFavouriteGamesResponse extends ApiResponse {
 
 export interface ApiJobsResponse extends ApiResponse {
     data: ApiJob[];
+}
+
+export interface ApiFilesResponse extends ApiResponse {
+    data: {
+        files: ApiFile[];
+    }
+}
+
+export interface ApiAuthResponse {
+    authentication: boolean;
+    guest_mode: boolean;
+}
+
+export interface IApiResponse<T> {
+    data: T;
+    status: "OK";
+    message?: string;
 }

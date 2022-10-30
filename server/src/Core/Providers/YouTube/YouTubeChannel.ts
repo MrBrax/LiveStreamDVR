@@ -531,9 +531,9 @@ export class YouTubeChannel extends BaseChannel {
         this.saveVodDatabase();
 
         try {
-            this.checkStaleVodsInMemory();   
+            this.checkStaleVodsInMemory();
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "channel", `Error while checking stale vods in memory: ${error}`);            
+            Log.logAdvanced(Log.Level.ERROR, "channel", `Error while checking stale vods in memory: ${error}`);
         }
 
         return load_vod;
@@ -702,12 +702,12 @@ export class YouTubeChannel extends BaseChannel {
     }
 
     public static async getChannelIdFromUrl(url: string): Promise<string | false> {
-        
+
         // const match = url.match(/youtube\.com\/c\/([^/]+)/);
         // if (match) {
         //     return match[1];
         // }
-        
+
         // to get the channel id, the page needs to be parsed. very bad but there's no api for that
         let response;
         try {
@@ -715,7 +715,7 @@ export class YouTubeChannel extends BaseChannel {
         } catch (error) {
             Log.logAdvanced(Log.Level.ERROR, "channel.yt", "Could not get channel id from url", error);
             return false;
-        } 
+        }
 
         const html = response.data;
 

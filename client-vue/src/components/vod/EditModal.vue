@@ -452,9 +452,9 @@ onMounted(() => {
         editChapters: false,
     };
 
-    axios.get(`api/v0/games`)
+    axios.get<ApiGamesResponse>(`/api/v0/games`)
         .then((response) => {
-            const json: ApiGamesResponse = response.data;
+            const json = response.data;
             if (json.message) alert(json.message);
             const games = json.data;
             gamesData.value = games;

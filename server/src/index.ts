@@ -3,9 +3,9 @@ import { LiveStreamDVR } from "Core/LiveStreamDVR";
 import dotenv from "dotenv";
 import express from "express";
 import session from "express-session";
-import fs from "node:fs";
 import minimist from "minimist";
 import morgan from "morgan";
+import fs from "node:fs";
 import path from "node:path";
 import { WebSocketServer } from "ws";
 import { version } from "../package.json";
@@ -13,6 +13,7 @@ import { AppName, BaseConfigDataFolder, BaseConfigFolder } from "./Core/BaseConf
 import { ClientBroker } from "./Core/ClientBroker";
 import { Config } from "./Core/Config";
 import { Webhook } from "./Core/Webhook";
+import i18n from "./Helpers/i18n";
 import ApiRouter from "./Routes/Api";
 
 declare module "express-session" {
@@ -83,6 +84,9 @@ Config.init().then(() => {
 
     app.use(express.text({ type: "application/xml" }));
     app.use(express.text({ type: "application/atom+xml" }));
+
+    // i18n
+    app.use(i18n);
 
     // logging
     if (process.env.NODE_ENV == "development") {

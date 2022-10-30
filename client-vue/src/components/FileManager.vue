@@ -371,20 +371,14 @@ import { YouTubeCategories } from "@common/YouTube";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode, faFileLines, faDownload, faUpload } from "@fortawesome/free-solid-svg-icons";
-import { ApiResponse } from "@common/Api/Api";
+import { ApiResponse, ApiFilesResponse } from "@common/Api/Api";
+import { ApiFile } from "@common/Api/Client";
 import { ExporterOptions } from "@common/Exporter";
 import { useI18n } from "vue-i18n";
 import { formatBytes } from "@/mixins/newhelpers";
 library.add(faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode, faFileLines, faDownload, faUpload);
 
-interface ApiFile {
-    name: string;
-    size: number;
-    date: string;
-    is_dir: boolean;
-    extension: string;
-    is_public: boolean;
-}
+
 
 export default defineComponent({
     name: "FileManager",
@@ -476,9 +470,9 @@ export default defineComponent({
     methods: {
         fetchFileList() {
             console.debug("Fetching file list...");
-            axios.get<ApiResponse>(`/api/v0/files?path=${this.path}`).then((response) => {
+            axios.get<ApiFilesResponse>(`/api/v0/files?path=${this.path}`).then((response) => {
                 this.files = response.data.data.files;
-            }).catch((error: AxiosError<ApiResponse> | Error) => {
+            }).catch((error: AxiosError<ApiFilesResponse> | Error) => {
                 if ("response" in error && error.response?.data.message) {
                     // alert(error.response.data.message);
                     this.error = error.response.data.message;
@@ -548,8 +542,8 @@ export default defineComponent({
             });
         },
         doCheckYouTubeStatus() {
-            axios.get(`/api/v0/youtube/status`).then((response) => {
-                const json: ApiResponse = response.data;
+            axios.get<ApiResponse>(`/api/v0/youtube/status`).then((response) => {
+                const json = response.data;
                 if (json.message) alert(json.message);
                 console.log(json);
             }).catch((err) => {

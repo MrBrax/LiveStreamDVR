@@ -110,11 +110,12 @@ export class YouTubeExporter extends BaseExporter {
         if (response) {
             Log.logAdvanced(Log.Level.SUCCESS, "YouTube", `Video uploaded: ${response.data.id}`);
             this.video_id = response.data.id || "";
-            if (response.data.id && this.playlist_id) {
+            if (response.data.id) {
                 if (this.vod) this.vod.exportData.youtube_id = response.data.id;
-                let success;
+
+                let playlist_success;
                 try {
-                    success = await this.addToPlaylist(response.data.id, this.playlist_id);
+                    playlist_success = await this.addToPlaylist(response.data.id, this.playlist_id);
                 } catch (error) {
                     Log.logAdvanced(Log.Level.ERROR, "YouTube", `Could not add video to playlist: ${(error as Error).message}`, error);
                     job.clear();
@@ -122,13 +123,14 @@ export class YouTubeExporter extends BaseExporter {
                 }
 
                 if (this.vod) this.vod.exportData.youtube_playlist_id = this.playlist_id;
-                Log.logAdvanced(Log.Level.SUCCESS, "YouTube", `Video added to playlist: ${success}`);
+
+                if (playlist_success) {
+                    Log.logAdvanced(Log.Level.SUCCESS, "YouTube", `Video '${this.video_id}' added to playlist '${this.playlist_id}'.`);
+                } else {
+                    Log.logAdvanced(Log.Level.WARNING, "YouTube", `Video '${this.video_id}' not added to playlist.`);
+                }
+
                 job.clear();
-                return this.video_id;
-            } else if (response.data.id) {
-                job.clear();
-                if (this.vod) this.vod.exportData.youtube_id = response.data.id;
-                Log.logAdvanced(Log.Level.SUCCESS, "YouTube", `Video uploaded, no playlist: ${response.data.id}`);
                 return this.video_id;
             } else {
                 job.clear();
@@ -230,6 +232,11 @@ export class YouTubeExporter extends BaseExporter {
                 Log.logAdvanced(Log.Level.ERROR, "YouTubeExporter", "No playlists configured");
                 return false;
             }
+        }
+
+        if (this.playlist_id == "") {
+            Log.logAdvanced(Log.Level.WARNING, "YouTubeExporter", "No playlist configured");
+            return false;
         }
 
         let response;

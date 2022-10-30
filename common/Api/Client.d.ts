@@ -316,3 +316,12 @@ export interface EditableChapter {
     is_mature?: boolean;
     // online: boolean;
 }
+
+export interface ApiFile {
+    name: string;
+    size: number;
+    date: string;
+    is_dir: boolean;
+    extension: string;
+    is_public: boolean;
+}

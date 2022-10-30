@@ -269,8 +269,8 @@ function addFavouriteGame(game_id: string) {
             console.log(json);
 
             // fetch the new config
-            axios.get(`/api/v0/settings`).then((response) => {
-                const settings_json: ApiSettingsResponse = response.data;
+            axios.get<ApiSettingsResponse>(`/api/v0/settings`).then((response) => {
+                const settings_json = response.data;
                 store.updateConfig(settings_json.data.config);
                 store.updateFavouriteGames(settings_json.data.favourite_games);
             });

@@ -173,9 +173,9 @@ export default defineComponent({
         },
         fetchData() {
             axios
-                .get("/api/v0/notifications")
+                .get<ApiResponse>("/api/v0/notifications")
                 .then((response) => {
-                    const json: ApiResponse = response.data;
+                    const json = response.data;
                     if (json.status == "OK") {
                         this.setBitmasks(json.data);
                     }
@@ -190,9 +190,9 @@ export default defineComponent({
             console.debug("bitmasks", bitmasks);
 
             axios
-                .put(`/api/v0/notifications`, bitmasks)
+                .put<ApiResponse>(`/api/v0/notifications`, bitmasks)
                 .then((response) => {
-                    const json: ApiResponse = response.data;
+                    const json = response.data;
                     console.debug("notifications", json);
                     this.formStatusText = json.message || "Unknown";
                     this.formStatus = json.status;
