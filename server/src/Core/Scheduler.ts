@@ -106,7 +106,7 @@ export class Scheduler {
         const amount = Config.getInstance().cfg<number>("scheduler.clipdownload.amount");
         const age = Config.getInstance().cfg<number>("scheduler.clipdownload.age");
         const logins = Config.getInstance().cfg<string>("scheduler.clipdownload.channels").split(",").map(s => s.trim());
-        
+
         const clips_database = path.join(BaseConfigCacheFolder.cache, "downloaded_clips.json");
         const downloaded_clips: string[] =
             fs.existsSync(clips_database) ?
@@ -121,6 +121,7 @@ export class Scheduler {
             if (clips) {
 
                 for (let i = 0; i < Math.min(amount, clips.length) + skipped; i++) {
+                    if (!clips[i]) continue;
                     const clip = clips[i];
 
                     if (downloaded_clips.includes(clip.id)) {
