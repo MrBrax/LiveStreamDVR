@@ -4,9 +4,9 @@
   "route": {
     "channels": {
       "channel-not-found": "Channel not found",
-      "channel-internalname-updated": "Channel '{0}' updated",
+      "channel-internalname-updated": "Channel '{{0}}' updated",
       "channel-found-in-config-but-not-in-memory-removed-from-config": "Channel found in config but not in memory, removed from config",
-      "channel-internalname-deleted": "Channel '{0}' deleted",
+      "channel-internalname-deleted": "Channel '{{0}}' deleted",
       "provider-not-found": "Provider not found",
       "channel-login-not-specified": "Channel login not specified",
       "no-quality-selected": "No quality selected",
@@ -15,17 +15,30 @@
       "channel-login-does-not-match-data-fetched-from-api": "Channel login does not match data fetched from API",
       "channel-id-not-specified": "Channel ID not specified",
       "no-channel-created": "No channel created",
-      "channel-displayname-created": "Channel '{0}' created",
+      "channel-displayname-created": "Channel '{{0}}' created",
       "video-not-found": "Video not found",
       "video-download-failed": "Video download failed",
       "video-already-downloaded": "Video already downloaded",
       "channel-uuid-is-empty": "Channel UUID is empty",
       "channel-is-not-supported": "Channel is not supported",
-      "channel-uuid-not-found": "Channel {0} not found",
-      "no-subscriptions-for-channel-internalname": "No subscriptions for {0}",
-      "deleted-vods_one": "Deleted {0} VOD",
-      "deleted-vods_other": "Deleted {0} VODs",
-      "deleted-vods_zero": "Deleted no VODs"
+      "channel-uuid-not-found": "Channel {{0}} not found",
+      "no-subscriptions-for-channel-internalname": "No subscriptions for {{0}}",
+      "deleted-vods_one": "Deleted {{0}} VOD",
+      "deleted-vods_other": "Deleted {{0}} VODs",
+      "deleted-vods_zero": "Deleted no VODs",
+      "no-streams-found": "No streams found",
+      "failed-to-rename-channel": "Failed to rename channel",
+      "failed-to-delete-all-vods": "Failed to delete all VODs",
+      "no-history-found": "No history found",
+      "channel-is-currently-capturing-please-stop-the-capture-first-or-wait-until-it-is-finished": "Channel is currently capturing. Please stop the capture first or wait until it is finished.",
+      "channel-is-not-a-twitch-channel": "Channel is not a Twitch channel",
+      "error-while-fetching-video-data-error": "Error while fetching video data: {{0}}",
+      "vod-already-exists-basename": "VOD already exists: {{0}}",
+      "deleted-all-vods-of-channel-channel-internalname": "Deleted all VODs of channel: {{0}}",
+      "forced-recording-of-channel-channel-internalname": "Forced recording of channel: {{0}}",
+      "failed-to-refresh-channel": "Failed to refresh channel",
+      "refreshed-channel-channel-internalname": "Refreshed channel: {{0}}",
+      "renamed-channel-channel-internalname-to-req-body-new_login": "Renamed channel: {0} to {1}"
     }
   }
 }

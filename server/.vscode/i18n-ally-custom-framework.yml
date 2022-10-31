@@ -22,9 +22,15 @@ usageMatchRegex:
 # The "$1" will be replaced by the keypath specified.
 # Optional: uncomment the following two lines to use
 
-refactorTemplates:
-  - req.t("$1")
+# refactorTemplates:
+#   - req.t("$1")
+#   - req.t("$1", { ... })
+#   - req.t("$1", [ ... ])
+#   - req.t("$1", [])
+#   - req.t("$1", $2)
+#   - req.t("$1", [$2])
+#   - req.t("$1", $0)
 
 
 # If set to true, only enables this custom framework (will disable all built-in frameworks)
-monopoly: true
+# monopoly: true

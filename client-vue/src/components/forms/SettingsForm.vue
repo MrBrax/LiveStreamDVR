@@ -62,12 +62,21 @@
                     v-if="data.type == 'string'"
                     class="control"
                 >
-                    <component
-                        :is="data.multiline ? 'textarea' : 'input'"
+                    <input
+                        v-if="!data.multiline"
                         :id="'input_' + data.key"
                         v-model="formData[data.key]"
                         class="input"
                         type="text"
+                        :name="data.key"
+                        :title="data.help"
+                        :pattern="data.pattern"
+                    >
+                    <textarea
+                        v-if="data.multiline"
+                        :id="'input_' + data.key"
+                        v-model="(formData[data.key] as string)"
+                        class="textarea"
                         :name="data.key"
                         :title="data.help"
                         :pattern="data.pattern"
