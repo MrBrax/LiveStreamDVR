@@ -465,7 +465,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         if (TwitchVOD.getVodByProviderId(video_id)) {
             res.status(400).send({
                 status: "ERROR",
-                message: "Video already downloaded",
+                message: req.t("route.channels.video-already-downloaded"),
             } as ApiErrorResponse);
             return;
         }
@@ -476,7 +476,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         } catch (error) {
             res.status(400).send({
                 status: "ERROR",
-                message: `Error while fetching video data: ${(error as Error).message}`,
+                message: req.t("route.channels.error-while-fetching-video-data-error", [(error as Error).message]),
             } as ApiErrorResponse);
             return;
         }
@@ -490,8 +490,6 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         }
 
         // const basename = `${channel.login}_${replaceAll(video.created_at, ":", "-")}_${video.stream_id}`;
-
-
 
         /*
 
@@ -524,7 +522,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         if (TwitchVOD.hasVod(basename)) {
             res.status(400).send({
                 status: "ERROR",
-                message: `VOD already exists: ${basename}`,
+                message: req.t("route.channels.vod-already-exists-basename", [basename]),
             } as ApiErrorResponse);
             return;
         }
@@ -627,7 +625,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         if (YouTubeVOD.hasVod(basename)) {
             res.status(400).send({
                 status: "ERROR",
-                message: `VOD already exists: ${basename}`,
+                message: req.t("route.channels.vod-already-exists-basename", [basename]),
             } as ApiErrorResponse);
             return;
         }
@@ -829,14 +827,14 @@ export async function RefreshChannel(req: express.Request, res: express.Response
         Log.logAdvanced(Log.Level.SUCCESS, "route.channels.refresh", `Refreshed channel: ${channel.internalName}`);
         res.send({
             status: "OK",
-            message: `Refreshed channel: ${channel.internalName}`,
+            message: req.t("route.channels.refreshed-channel-channel-internalname", [channel.internalName]),
         });
         channel.broadcastUpdate();
     } else {
         Log.logAdvanced(Log.Level.ERROR, "route.channels.refresh", `Failed to refresh channel: ${channel.internalName}`);
         res.status(400).send({
             status: "ERROR",
-            message: "Failed to refresh channel",
+            message: req.t("route.channels.failed-to-refresh-channel"),
         } as ApiErrorResponse);
     }
 
@@ -913,7 +911,7 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
 
                 res.send({
                     status: "OK",
-                    message: `Forced recording of channel: ${channel.internalName}`,
+                    message: req.t("route.channels.forced-recording-of-channel-channel-internalname", [channel.internalName]),
                 });
 
                 return;
@@ -956,14 +954,14 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
 
             res.send({
                 status: "OK",
-                message: `Forced recording of channel: ${channel.internalName}`,
+                message: req.t("route.channels.forced-recording-of-channel-channel-internalname", [channel.internalName]),
             });
 
         } else {
 
             res.status(400).send({
                 status: "ERROR",
-                message: "No streams found",
+                message: req.t("route.channels.no-streams-found"),
             } as ApiErrorResponse);
 
         }
@@ -992,14 +990,14 @@ export async function RenameChannel(req: express.Request, res: express.Response)
         Log.logAdvanced(Log.Level.SUCCESS, "route.channels.rename", `Renamed channel: ${channel.internalName} to ${req.body.new_login}`);
         res.send({
             status: "OK",
-            message: `Renamed channel: ${channel.internalName} to ${req.body.new_login}`,
+            message: req.t("route.channels.renamed-channel-channel-internalname-to-req-body-new_login", [channel.internalName, req.body.new_login]),
         });
         channel.broadcastUpdate();
     } else {
         Log.logAdvanced(Log.Level.ERROR, "route.channels.rename", `Failed to rename channel: ${channel.internalName} to ${req.body.new_login}`);
         res.status(400).send({
             status: "ERROR",
-            message: "Failed to rename channel",
+            message: req.t("route.channels.failed-to-rename-channel"),
         } as ApiErrorResponse);
     }
 
@@ -1034,14 +1032,14 @@ export async function DeleteAllChannelVods(req: express.Request, res: express.Re
         Log.logAdvanced(Log.Level.SUCCESS, "route.channels.deleteallvods", `Deleted all VODs of channel: ${channel.internalName}`);
         res.send({
             status: "OK",
-            message: `Deleted all VODs of channel: ${channel.internalName}`,
+            message: req.t("route.channels.deleted-all-vods-of-channel-channel-internalname", [channel.internalName]),
         });
         channel.broadcastUpdate();
     } else {
         Log.logAdvanced(Log.Level.ERROR, "route.channels.deleteallvods", `Failed to delete all VODs of channel: ${channel.internalName}`);
         res.status(400).send({
             status: "ERROR",
-            message: "Failed to delete all VODs",
+            message: req.t("route.channels.failed-to-delete-all-vods"),
         } as ApiErrorResponse);
     }
 
@@ -1072,7 +1070,7 @@ export function GetHistory(req: express.Request, res: express.Response): void {
     if (!fs.existsSync(file)) {
         res.status(400).send({
             status: "ERROR",
-            message: "No history found",
+            message: req.t("route.channels.no-history-found"),
         } as ApiErrorResponse);
         return;
     }
@@ -1110,7 +1108,7 @@ export async function ScanVods(req: express.Request, res: express.Response): Pro
     if (channel.is_capturing || channel.is_converting) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel is currently capturing. Please stop the capture first or wait until it is finished.",
+            message: req.t("route.channels.channel-is-currently-capturing-please-stop-the-capture-first-or-wait-until-it-is-finished"),
         } as ApiErrorResponse);
         return;
     }
@@ -1154,7 +1152,7 @@ export async function GetClips(req: express.Request, res: express.Response): Pro
     if (!isTwitchChannel(channel)) {
         res.status(400).send({
             status: "ERROR",
-            message: "Channel is not a Twitch channel",
+            message: req.t("route.channels.channel-is-not-a-twitch-channel"),
         } as ApiErrorResponse);
         return;
     }

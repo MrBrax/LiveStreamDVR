@@ -25,7 +25,20 @@
       "no-subscriptions-for-channel-internalname": "No subscriptions for {{0}}",
       "deleted-vods_one": "Deleted {{0}} VOD",
       "deleted-vods_other": "Deleted {{0}} VODs",
-      "deleted-vods_zero": "Deleted no VODs"
+      "deleted-vods_zero": "Deleted no VODs",
+      "no-streams-found": "No streams found",
+      "failed-to-rename-channel": "Failed to rename channel",
+      "failed-to-delete-all-vods": "Failed to delete all VODs",
+      "no-history-found": "No history found",
+      "channel-is-currently-capturing-please-stop-the-capture-first-or-wait-until-it-is-finished": "Channel is currently capturing. Please stop the capture first or wait until it is finished.",
+      "channel-is-not-a-twitch-channel": "Channel is not a Twitch channel",
+      "error-while-fetching-video-data-error": "Error while fetching video data: {{0}}",
+      "vod-already-exists-basename": "VOD already exists: {{0}}",
+      "deleted-all-vods-of-channel-channel-internalname": "Deleted all VODs of channel: {{0}}",
+      "forced-recording-of-channel-channel-internalname": "Forced recording of channel: {{0}}",
+      "failed-to-refresh-channel": "Failed to refresh channel",
+      "refreshed-channel-channel-internalname": "Refreshed channel: {{0}}",
+      "renamed-channel-channel-internalname-to-req-body-new_login": "Renamed channel: {0} to {1}"
     }
   }
 }

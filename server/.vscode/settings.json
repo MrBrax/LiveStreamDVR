@@ -5,5 +5,19 @@
   },
   "eslint.nodePath": ".yarn/sdks",
   "typescript.tsdk": ".yarn/sdks/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true
+  "typescript.enablePromptUseWorkspaceTsdk": true,
+  "i18n-ally.localesPaths": [
+    "./src/Translations"
+  ],
+  "i18n-ally.keystyle": "nested",
+  "i18n-ally.refactor.templates": [
+    {
+      "templates": [
+        "req.t(\"{key}\"{args})",
+      ],
+      "exclude": [
+        "src/config/**"
+      ]
+    }
+  ]
 }
