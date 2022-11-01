@@ -102,19 +102,44 @@ describe("settings", () => {
 
     it("should update settings", async () => {
         const res = await request(app).put("/api/v0/settings").send({
-            "password": "test",
-            "bin_dir": "test",
-            "ffmpeg_path": "test",
-            "mediainfo_path": "test",
-            "api_client_id": "test",
-            "api_secret": "test",
-            "eventsub_secret": "test",
-            "app_url": "debug",
+            config: {
+                "password": "test",
+                "bin_dir": "test",
+                "ffmpeg_path": "test",
+                "mediainfo_path": "test",
+                "api_client_id": "test",
+                "api_secret": "test",
+                "eventsub_secret": "test",
+                "app_url": "debug",
+            },
             // TODO: automatic required fields
         });
         expect(res.body.message).toBe("Settings saved");
         expect(res.status).toBe(200);
         expect(Config.getInstance().cfg("password")).toBe("test");
+    });
+
+    it("should fail adding when required fields are missing", async () => {
+        Config.destroyInstance();
+        Config.getInstance().generateConfig();
+        expect(Config.getInstance().cfg("password")).toBe(undefined);
+        const res = await request(app).put("/api/v0/settings").send({
+            config: {
+                "password": "test",
+            },
+        });
+        expect(res.body.message).toBe("Missing required setting: bin_dir");
+        expect(res.status).toBe(400);
+
+        Config.destroyInstance();
+        Config.getInstance().generateConfig();
+        const res2 = await request(app).put("/api/v0/settings").send({
+            config: {
+                "password": "test",
+                "bin_dir": "test",
+            },
+        });
+        expect(res2.body.message).toBe("Missing required setting: ffmpeg_path");
     });
 });
 

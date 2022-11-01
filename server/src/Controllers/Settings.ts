@@ -47,22 +47,29 @@ export function GetSettings(req: express.Request, res: express.Response): void {
 
 export function SaveSettings(req: express.Request, res: express.Response): void {
 
+    const postConfig = req.body.config;
+
+    if (!postConfig) {
+        res.status(400).send({ status: "ERROR", message: "No config provided" });
+        return;
+    }
+
     let force_new_token = false;
-    if (Config.getInstance().cfg("api_client_id") !== req.body.api_client_id) {
+    if (Config.getInstance().cfg("api_client_id") !== postConfig.api_client_id) {
         force_new_token = true;
     }
 
     let fields = 0;
     for (const setting of Config.settingsFields) {
         const key = setting.key;
-        if (setting.required && req.body[key] === undefined) {
+        if (setting.required && postConfig[key] === undefined) {
             res.status(400).send({
                 status: "ERROR",
                 message: `Missing required setting: ${key}`,
             });
             return;
         }
-        if (req.body[key] !== undefined) {
+        if (postConfig[key] !== undefined) {
             fields++;
         }
     }
@@ -78,14 +85,14 @@ export function SaveSettings(req: express.Request, res: express.Response): void 
     for (const setting of Config.settingsFields) {
         const key = setting.key;
         if (setting.type === "boolean") {
-            Config.getInstance().setConfig<boolean>(key, req.body[key]);
+            Config.getInstance().setConfig<boolean>(key, postConfig[key]);
         } else if (setting.type === "number") {
-            if (req.body[key] !== undefined) {
-                Config.getInstance().setConfig<number>(key, parseInt(req.body[key]));
+            if (postConfig[key] !== undefined) {
+                Config.getInstance().setConfig<number>(key, parseInt(postConfig[key]));
             }
         } else {
-            if (req.body[key] !== undefined) {
-                Config.getInstance().setConfig(key, req.body[key]);
+            if (postConfig[key] !== undefined) {
+                Config.getInstance().setConfig(key, postConfig[key]);
             }
         }
     }

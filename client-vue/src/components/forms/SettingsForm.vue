@@ -49,7 +49,7 @@
                     <label class="checkbox">
                         <input
                             :id="'input_' + data.key"
-                            v-model="(formData[data.key] as boolean)"
+                            v-model="(formData.config[data.key] as boolean)"
                             type="checkbox"
                             :name="data.key"
                         >
@@ -65,7 +65,7 @@
                     <input
                         v-if="!data.multiline"
                         :id="'input_' + data.key"
-                        v-model="formData[data.key]"
+                        v-model="formData.config[data.key]"
                         class="input"
                         type="text"
                         :name="data.key"
@@ -75,7 +75,7 @@
                     <textarea
                         v-if="data.multiline"
                         :id="'input_' + data.key"
-                        v-model="(formData[data.key] as string)"
+                        v-model="(formData.config[data.key] as string)"
                         class="textarea"
                         :name="data.key"
                         :title="data.help"
@@ -90,7 +90,7 @@
                 >
                     <input
                         :id="'input_' + data.key"
-                        v-model.number="formData[data.key]"
+                        v-model.number="formData.config[data.key]"
                         class="input"
                         type="number"
                         :name="data.key"
@@ -107,7 +107,7 @@
                         <select
                             v-if="data.choices"
                             :id="'input_' + data.key"
-                            v-model="formData[data.key]"
+                            v-model="formData.config[data.key]"
                             class="input"
                             :name="data.key"
                             :data-is-array="data.choices && Array.isArray(data.choices)"
@@ -117,8 +117,8 @@
                                     v-for="(item, ix) in data.choices"
                                     :key="ix"
                                     :selected="
-                                        (formData[data.key] !== undefined && formData[data.key] === item) ||
-                                            (formData[data.key] === undefined && item === data.default)
+                                        (formData.config[data.key] !== undefined && formData.config[data.key] === item) ||
+                                            (formData.config[data.key] === undefined && item === data.default)
                                     "
                                 >
                                     {{ item }}
@@ -130,8 +130,8 @@
                                     :key="ix"
                                     :value="ix"
                                     :selected="
-                                        (formData[data.key] !== undefined && formData[data.key] === item) ||
-                                            (formData[data.key] === undefined && ix === data.default)
+                                        (formData.config[data.key] !== undefined && formData.config[data.key] === item) ||
+                                            (formData.config[data.key] === undefined && ix === data.default)
                                     "
                                 >
                                     {{ item }}
@@ -150,7 +150,7 @@
                     <textarea
                         v-if="data.multiline"
                         :id="'input_' + data.key"
-                        v-model="(formData[data.key] as string)"
+                        v-model="(formData.config[data.key] as string)"
                         class="input"
                         type="text"
                         :name="data.key"
@@ -158,7 +158,7 @@
                     <input
                         v-else
                         :id="'input_' + data.key"
-                        v-model="formData[data.key]"
+                        v-model="formData.config[data.key]"
                         class="input"
                         type="text"
                         :name="data.key"
@@ -187,7 +187,7 @@
                         </li>
                     </ul>
                     <p class="template-preview">
-                        {{ templatePreview(data, formData[data.key] as string) }}
+                        {{ templatePreview(data, formData.config[data.key] as string) }}
                     </p>
                 </div>
 
@@ -274,7 +274,9 @@ export default defineComponent({
     data(): {
         formStatusText: string;
         formStatus: string;
-        formData: Record<string, string | number | boolean>;
+        formData: {
+            config: Record<string, string | number | boolean>;
+        },
         settingsFields: SettingField<string | number | boolean>[];
         loading: boolean;
         searchText: string;
@@ -282,7 +284,9 @@ export default defineComponent({
         return {
             formStatusText: "Ready",
             formStatus: "",
-            formData: {},
+            formData: {
+                config: {},
+            },
             settingsFields: [],
             loading: false,
             searchText: "",
@@ -359,13 +363,13 @@ export default defineComponent({
             this.loading = true;
             axios.get<ApiSettingsResponse>("/api/v0/settings").then((response) => {
                 const data = response.data;
-                this.formData = data.data.config;
+                this.formData.config = data.data.config;
                 this.settingsFields = data.data.fields;
 
                 // set defaults
                 for (const field of this.settingsFields) {
-                    if (field.default !== undefined && this.formData[field.key] === undefined) {
-                        this.formData[field.key] = field.default;
+                    if (field.default !== undefined && this.formData.config[field.key] === undefined) {
+                        this.formData.config[field.key] = field.default;
                     }
                 }
 
@@ -405,7 +409,7 @@ export default defineComponent({
             if (!this.formData) return undefined;
             // const k: keyof ApiConfig = key as keyof ApiConfig;
             // return this.formData[k] as unknown as T;
-            return this.formData[key];
+            return this.formData.config[key];
         },
         doValidateExternalURL() {
             axios
@@ -442,14 +446,14 @@ export default defineComponent({
                     const rep = `{${value}}`;
                     // input.value = input.value.substring(0, caret) + rep + input.value.substring(caret);
                     const newValue = input.value.substring(0, caret) + rep + input.value.substring(caret);
-                    this.formData[key] = newValue;
+                    this.formData.config[key] = newValue;
                     // console.debug("insertReplacement", newValue, this.formData[key]);
                     input.selectionStart = caret + rep.length;
                     input.selectionEnd = caret + rep.length;
                     input.focus();
                     // console.debug("insertReplacement", "caret", caret, key, value, input.value);
                 } else {
-                    this.formData[key] = this.formData[key] + `{${value}}`;
+                    this.formData.config[key] = this.formData.config[key] + `{${value}}`;
                     // console.debug("insertReplacement", "no caret", key, value, input.value);
                 }
                 // const text = input.value;
