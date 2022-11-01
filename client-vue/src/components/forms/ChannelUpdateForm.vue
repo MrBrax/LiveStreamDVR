@@ -244,6 +244,14 @@
                         <span class="icon"><fa icon="save" /></span>
                         <span>{{ t('buttons.save') }}</span>
                     </button>
+                    <button
+                        class="button is-danger"
+                        type="button"
+                        @click="resetForm"
+                    >
+                        <span class="icon"><fa icon="sync" /></span>
+                        <span>{{ t('buttons.reset') }}</span>
+                    </button>
                 </div>
                 <div :class="formStatusClass">
                     {{ formStatusText }}
@@ -345,13 +353,13 @@ import { VideoQualityArray } from "@common/Defs";
 import { HistoryEntry, HistoryEntryOnline } from "@common/History";
 import { ApiResponse } from "@common/Api/Api";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faSave, faList } from "@fortawesome/free-solid-svg-icons";
+import { faSave, faList, faTrash, faVideoSlash } from "@fortawesome/free-solid-svg-icons";
 import { ApiChannelConfig } from "@common/Api/Client";
 import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 import { formatDate } from "@/mixins/newhelpers";
-library.add(faSave, faList);
+library.add(faSave, faList, faTrash, faVideoSlash);
 
 export default defineComponent({
     name: "ChannelUpdateForm",
@@ -372,17 +380,17 @@ export default defineComponent({
             formStatusText: "Ready",
             formStatus: "",
             formData: {
-                quality: this.channel.quality ? this.channel.quality.join(" ") : "",
-                match: this.channel.match ? this.channel.match.join(",") : "",
-                download_chat: this.channel.download_chat || false,
-                live_chat: this.channel.live_chat || false,
-                burn_chat: this.channel.burn_chat || false,
-                no_capture: this.channel.no_capture || false,
-                no_cleanup: this.channel.no_cleanup || false,
-                max_storage: this.channel.max_storage || 0,
-                max_vods: this.channel.max_vods || 0,
-                download_vod_at_end: this.channel.download_vod_at_end || false,
-                download_vod_at_end_quality: this.channel.download_vod_at_end_quality || "best",
+                quality: "",
+                match: "",
+                download_chat: false,
+                live_chat: false,
+                burn_chat: false,
+                no_capture: false,
+                no_cleanup: false,
+                max_storage: 0,
+                max_vods: 0,
+                download_vod_at_end: false,
+                download_vod_at_end_quality: "best",
             },
             history: [] as HistoryEntry[],
         };
@@ -408,7 +416,39 @@ export default defineComponent({
             return `${hours}:${minutes}`;
         },
     },
+    watch: {
+        channel: {
+            immediate: true,
+            handler() {
+                this.resetForm();
+            },
+        },
+    },
+    mounted() {
+        this.resetForm();
+    },
     methods: {
+        resetForm() {
+            console.debug("Resetting form", JSON.stringify(this.channel));
+            this.formStatus = "";
+            this.formStatusText = "Ready";
+
+            this.formData = {
+                quality: this.channel.quality ? this.channel.quality.join(" ") : "",
+                match: this.channel.match ? this.channel.match.join(",") : "",
+                download_chat: this.channel.download_chat || false,
+                live_chat: this.channel.live_chat || false,
+                burn_chat: this.channel.burn_chat || false,
+                no_capture: this.channel.no_capture || false,
+                no_cleanup: this.channel.no_cleanup || false,
+                max_storage: this.channel.max_storage || 0,
+                max_vods: this.channel.max_vods || 0,
+                download_vod_at_end: this.channel.download_vod_at_end || false,
+                download_vod_at_end_quality: this.channel.download_vod_at_end_quality || "best",
+            };
+
+            console.debug("Form data", JSON.stringify(this.formData));
+        },
         submitForm(event: Event) {
 
             this.formStatusText = this.t('messages.loading');

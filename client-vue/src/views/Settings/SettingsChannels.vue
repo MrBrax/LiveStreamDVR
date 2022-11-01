@@ -22,6 +22,7 @@
             <div v-if="formChannel">
                 <h1>{{ store.channelUUIDToInternalName(formChannel.uuid) || formChannel.login || "<<unknown>>" }}</h1>
                 <channel-update-form
+                    :key="formChannel.uuid"
                     :channel="formChannel"
                     @form-success="updateAll"
                 />
