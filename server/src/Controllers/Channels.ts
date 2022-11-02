@@ -147,7 +147,7 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
 
     res.send({
         status: "OK",
-        message: req.t("route.channels.channel-internalname-updated"),
+        message: req.t("route.channels.channel-internalname-updated", [channel.internalName]),
     });
 
 }

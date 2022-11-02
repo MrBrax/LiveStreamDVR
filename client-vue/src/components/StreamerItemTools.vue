@@ -4,7 +4,7 @@
         <router-link
             class="icon-button white"
             :to="{ name: 'SettingsChannels', params: { channel: streamer.uuid } }"
-            title="Edit channel"
+            :title="t('streamer.tools.edit-channel')"
         >
             <span class="icon"><fa icon="pencil" /></span>
         </router-link>
@@ -13,7 +13,7 @@
         <button
             v-if="canAbortCapture"
             class="icon-button white"
-            title="Abort record"
+            :title="t('streamer.tools.abort-record')"
             @click="abortCapture"
         >
             <span class="icon"><fa icon="video-slash" /></span>
@@ -23,7 +23,7 @@
         <button
             v-else
             class="icon-button white"
-            title="Force record"
+            :title="t('streamer.tools.force-record')"
             @click="forceRecord"
         >
             <span class="icon"><fa icon="video" /></span>
@@ -33,7 +33,7 @@
         <!--
         <button
             class="icon-button white"
-            title="Playlist record"
+            :title="Playlist record"
             @click="playlistRecord"
         >
             <span class="icon"><fa icon="play-circle" /></span>
@@ -43,7 +43,7 @@
         <!-- run cleanup -->
         <button
             class="icon-button white"
-            title="Clean up"
+            :title="t('streamer.tools.clean-up')"
             @click="doChannelCleanup"
         >
             <span class="icon"><fa icon="trash" /></span>
@@ -52,7 +52,7 @@
         <!-- refresh channel data -->
         <button
             class="icon-button white"
-            title="Refresh data"
+            :title="t('streamer.tools.refresh-data')"
             @click="doChannelRefresh"
         >
             <span class="icon"><fa icon="sync" /></span>
@@ -61,7 +61,7 @@
         <!-- expand/collapse all vods -->
         <button
             class="icon-button white"
-            title="Expand/collapse all vods"
+            :title="t('streamer.tools.expand-collapse-all-vods')"
             @click="emit('toggleExpandVods')"
         >
             <span class="icon"><fa :icon="!toggleAllVodsExpanded ? 'chevron-up' : 'chevron-down'" /></span>
@@ -70,7 +70,7 @@
         <!-- open more menu -->
         <button
             class="icon-button white"
-            title="More"
+            :title="t('streamer.tools.more')"
             @click="openMoreMenu"
         >
             <span class="icon"><fa icon="ellipsis-h" /></span>
@@ -90,51 +90,51 @@
                 <!-- download videos -->
                 <button
                     class="expand-menu-button white"
-                    title="Video download"
+                    :title="t('streamer.tools.video-download')"
                     @click="emit('showVideoDownloadMenu')"
                 >
                     <span class="icon"><fa icon="download" /></span>
-                    <span>Video download</span>
+                    <span>{{ t('streamer.tools.video-download') }}</span>
                 </button>
 
                 <!-- download clips -->
                 <button
                     class="expand-menu-button white"
-                    title="Clip download"
+                    :title="t('streamer.tools.clip-download')"
                     @click="emit('showClipDownloadMenu')"
                 >
                     <span class="icon"><fa icon="download" /></span>
-                    <span>Clip download</span>
+                    <span>{{ t('streamer.tools.clip-download') }}</span>
                 </button>
 
                 <!-- scan vods -->
                 <button
                     class="expand-menu-button white"
-                    title="Scan for VODs"
+                    :title="t('streamer.tools.scan-for-vods')"
                     @click="doScanVods"
                 >
                     <span class="icon"><fa icon="folder-open" /></span>
-                    <span>Scan for VODs</span>
+                    <span>{{ t('streamer.tools.scan-for-vods') }}</span>
                 </button>
 
                 <!-- scan local videos -->
                 <button
                     class="expand-menu-button white"
-                    title="Scan for local videos"
+                    :title="t('streamer.tools.scan-for-local-videos')"
                     @click="doScanLocalVideos"
                 >
                     <span class="icon"><fa icon="folder-open" /></span>
-                    <span>Scan for local videos</span>
+                    <span>{{ t('streamer.tools.scan-for-local-videos') }}</span>
                 </button>
 
                 <!-- export vods -->
                 <button
                     class="expand-menu-button white"
-                    title="Export VODs"
+                    :title="t('streamer.tools.export-vods')"
                     @click="doExportVods"
                 >
                     <span class="icon"><fa icon="upload" /></span>
-                    <span>Export VODs</span>
+                    <span>{{ t('streamer.tools.export-vods') }}</span>
                 </button>
             </div>
         </Transition>
@@ -150,6 +150,7 @@ import { computed, ref } from 'vue';
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUpload, faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import { formatBytes } from '@/mixins/newhelpers';
+import { useI18n } from 'vue-i18n';
 library.add(faUpload, faEllipsisH);
 
 const props = defineProps<{
@@ -164,6 +165,7 @@ const emit = defineEmits<{
 }>();
 
 const store = useStore();
+const { t } = useI18n();
 
 const showMoreMenu = ref(false);
 const moreMenu = ref<HTMLElement | null>(null);
