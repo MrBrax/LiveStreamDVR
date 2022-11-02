@@ -84,6 +84,9 @@
                 class="expand-menu"
                 @mouseout="closeMoreMenu"
             >
+                <div class="expand-menu-header">
+                    {{ streamer.displayName }}
+                </div>
                 <!-- download videos -->
                 <button
                     class="expand-menu-button white"
@@ -178,12 +181,17 @@ function openMoreMenu(event: MouseEvent) {
         const y = event.pageY - moreMenu.value.offsetHeight - 16;
         moreMenu.value.style.setProperty("--expand-menu-left", `${x}px`);
         moreMenu.value.style.setProperty("--expand-menu-top", `${y}px`);
+        document.addEventListener("click", closeMoreMenu);
+    } else {
+        document.removeEventListener("click", closeMoreMenu);
     }
 }
 
 function closeMoreMenu(event: MouseEvent) {
     if (moreMenu.value && !moreMenu.value.contains(event.relatedTarget as Node)) {
         showMoreMenu.value = false;
+        document.removeEventListener("click", closeMoreMenu);
+        event.stopPropagation();
     }
     // showMoreMenu.value = false;
 }
@@ -408,15 +416,16 @@ function doExportVods() {
     box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.5);
     border-radius: 5px;
 
-    // padding for mouseout detection
     &::before {
         content: "";
-        position: relative;
-        top: -10px;
-        left: -10px;
-        right: -10px;
-        bottom: -10px;
-        background-color: #f00;
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #000;
+        opacity: 0.2;
+        z-index: -1;
     }
 }
 .expand-menu-button {
@@ -428,15 +437,48 @@ function doExportVods() {
     color: #fff;
     border: none;
     cursor: pointer;
+    .icon {
+        transition: margin-right 0.1s ease-in-out;
+        margin-right: 0.5em;
+    }
     &:not(:last-child) {
         margin-bottom: 0.2em;
     }
     &:hover {
         background-color: #333;
         color: #ff0;
+        .icon {
+            margin-right: 0.6em;
+        }
     }
-    span:first-child {
-        margin-right: 0.5em;
+}
+
+.expand-menu-header {
+    display: none;
+}
+
+@media screen and (orientation: portrait) {
+    .expand-menu {
+        position: fixed;
+        left: 1em;
+        right: 1em;
+        bottom: 4em;
+        top: unset;
+        width: auto;
+        // width: 100%;
+        // height: 100%;
+        border-radius: 0;
+    }
+    .expand-menu-button {
+        padding: 1em;
+    }
+    .expand-menu-header {
+        display: block;
+        padding: 1em;
+        background-color: #252525;
+        color: #fff;
+        border-bottom: 1px solid #000;
+        font-weight: bold;
     }
 }
 </style>
