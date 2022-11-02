@@ -112,7 +112,7 @@
   max-height: 0px;
 }
 
-/* we will explain what these classes do next! */
+// fade but quicker
 .fadequick-enter-active,
 .fadequick-leave-active {
   transition: opacity 0.2s ease;
@@ -121,4 +121,18 @@
 .fadequick-enter-from,
 .fadequick-leave-to {
   opacity: 0;
+}
+
+// slide down (change height
+.blinds-enter-active,
+.blinds-leave-active {
+    transition: all 0.3s ease;
+    max-height: 400px;
+}
+
+.blinds-enter,
+.blinds-enter-from,
+.blinds-leave-to {
+    // opacity: 0;
+    max-height: 0px;
 }

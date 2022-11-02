@@ -49,15 +49,6 @@
             <span class="icon"><fa icon="trash" /></span>
         </button>
 
-        <!-- refresh channel data -->
-        <button
-            class="icon-button white"
-            :title="t('streamer.tools.refresh-data')"
-            @click="doChannelRefresh"
-        >
-            <span class="icon"><fa icon="sync" /></span>
-        </button>
-
         <!-- expand/collapse all vods -->
         <button
             class="icon-button white"
@@ -77,7 +68,7 @@
         </button>
     </span>
     <Teleport to="body">
-        <Transition name="fadequick">
+        <Transition name="blinds">
             <div
                 v-show="showMoreMenu"
                 ref="moreMenu"
@@ -87,6 +78,17 @@
                 <div class="expand-menu-header">
                     {{ streamer.displayName }}
                 </div>
+
+                <!-- refresh channel data -->
+                <button
+                    class="expand-menu-button white"
+                    :title="t('streamer.tools.refresh-data')"
+                    @click="doChannelRefresh"
+                >
+                    <span class="icon"><fa icon="sync" /></span>
+                    <span class="text">{{ t('streamer.tools.refresh-data') }}</span>
+                </button>
+
                 <!-- download videos -->
                 <button
                     class="expand-menu-button white"
