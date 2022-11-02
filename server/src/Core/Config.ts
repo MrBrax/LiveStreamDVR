@@ -72,6 +72,15 @@ export class Config {
             "help": "Enable this if your server is not exposed to the internet, aka no EventSub support.",
         },
 
+        {
+            "key": "date_format",
+            "group": "Basic",
+            "text": "Date format",
+            "type": "string",
+            "default": "yyyy-MM-dd",
+            "help": "Date format for filenames. See https://date-fns.org/v2.29.3/docs/format",
+        },
+
         { "key": "motd", "group": "Interface", "text": "MOTD", "type": "string", "help": "Shown at the top of the dashboard", guest: true, multiline: true },
         { "key": "password", "group": "Interface", "text": "Password", "type": "string", "help": "Keep blank for none. Username is admin" },
         { "key": "guest_mode", "group": "Interface", "text": "Guest mode", "type": "boolean", "default": false, "help": "Allow guests to access the interface.", guest: true },
@@ -1039,6 +1048,10 @@ export class Config {
             return "localhost:8082";
         }
         return "localhost:8080";
+    }
+
+    get dateFormat() {
+        return this.cfg("date_format", "yyyy-MM-dd"); // if you're crazy enough to not use ISO8601
     }
 
 }

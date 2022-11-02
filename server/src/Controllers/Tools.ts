@@ -255,7 +255,7 @@ export async function DownloadClip(req: express.Request, res: express.Response):
     const variables: ClipBasenameTemplate = {
         id: metadata.id,
         quality: quality,
-        clip_date: format(clip_date, "yyyy-MM-dd"),
+        clip_date: format(clip_date, Config.getInstance().dateFormat),
         title: metadata.title,
         creator: metadata.creator_name,
         broadcaster: metadata.broadcaster_name,

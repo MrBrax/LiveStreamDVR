@@ -481,6 +481,9 @@ export class BaseChannel {
         const list = readdirSyncRecursive(this.getFolder())
             .filter(file =>
                 file.endsWith(".json") &&
+                !file.endsWith(".info.json") &&
+                !file.endsWith(".metadata.json") &&
+                !file.endsWith(".chat.json") &&
                 fs.statSync(path.join(this.getFolder(), file)).size < 1024 * 1024
             );
         return list.map(

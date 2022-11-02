@@ -348,7 +348,6 @@ export class TwitchChannel extends BaseChannel {
         const vods_in_main_memory = LiveStreamDVR.getInstance().getVodsByChannelUUID(this.uuid);
 
         if (vods_on_disk.length !== vods_in_channel_memory.length) {
-            Log.logAdvanced(Log.Level.ERROR, "channel", `Vod on disk and vod in memory are not the same for ${this.internalName}`);
             const removedVods = vods_in_channel_memory.filter(v => !vods_on_disk.includes(v.basename));
             ClientBroker.notify(
                 "VOD changed externally",
@@ -356,10 +355,14 @@ export class TwitchChannel extends BaseChannel {
                 undefined,
                 "system"
             );
+            Log.logAdvanced(Log.Level.ERROR, "channel", `Vod on disk and vod in memory are not the same for ${this.internalName}`, {
+                vods_on_disk,
+                vods_in_channel_memory,
+                vods_in_main_memory,
+            });
         }
 
         if (vods_on_disk.length !== vods_in_main_memory.length) {
-            Log.logAdvanced(Log.Level.ERROR, "channel", `Vod on disk and vod in main memory are not the same for ${this.internalName}`);
             const removedVods = vods_in_main_memory.filter(v => !vods_on_disk.includes(v.basename));
             ClientBroker.notify(
                 "VOD changed externally",
@@ -367,10 +370,14 @@ export class TwitchChannel extends BaseChannel {
                 undefined,
                 "system"
             );
+            Log.logAdvanced(Log.Level.ERROR, "channel", `Vod on disk and vod in main memory are not the same for ${this.internalName}`, {
+                vods_on_disk,
+                vods_in_channel_memory,
+                vods_in_main_memory,
+            });
         }
 
         if (vods_in_channel_memory.length !== vods_in_main_memory.length) {
-            Log.logAdvanced(Log.Level.ERROR, "channel", `Vod in memory and vod in main memory are not the same for ${this.internalName}`);
             const removedVods = vods_in_main_memory.filter(v => v instanceof TwitchVOD && !vods_in_channel_memory.includes(v));
             ClientBroker.notify(
                 "VOD changed externally",
@@ -378,6 +385,11 @@ export class TwitchChannel extends BaseChannel {
                 undefined,
                 "system"
             );
+            Log.logAdvanced(Log.Level.ERROR, "channel", `Vod in memory and vod in main memory are not the same for ${this.internalName}`, {
+                vods_on_disk,
+                vods_in_channel_memory,
+                vods_in_main_memory,
+            });
         }
 
     }
@@ -808,7 +820,7 @@ export class TwitchChannel extends BaseChannel {
             return; // don't watch if no channel folders are enabled
         }
 
-        const folders = [Helper.vodFolder(this.login)];
+        const folders = [Helper.vodFolder(this.internalName)];
 
         // if (this.login && fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "scheduler", this.login)))
         //     folders.push(path.join(BaseConfigDataFolder.saved_clips, "scheduler", this.login));
@@ -816,7 +828,7 @@ export class TwitchChannel extends BaseChannel {
         // if (this.login && fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "downloader", this.login)))
         //     folders.push(path.join(BaseConfigDataFolder.saved_clips, "downloader", this.login));
 
-        console.log(`Watching channel ${this.login} folders...`);
+        console.log(`Watching channel ${this.internalName} folders...`);
 
         this.fileWatcher = chokidar.watch(folders, {
             ignoreInitial: true,

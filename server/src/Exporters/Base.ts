@@ -7,6 +7,7 @@ import { ExporterFilenameTemplate } from "@common/Replacements";
 import { VODTypes } from "../Core/LiveStreamDVR";
 import { Log } from "../Core/Log";
 import { isTwitchVOD } from "../Helpers/Types";
+import { Config } from "../Core/Config";
 
 export class BaseExporter {
 
@@ -91,7 +92,7 @@ export class BaseExporter {
             internalName: this.vod.getChannel().internalName,
             displayName: this.vod.getChannel().displayName,
             title: title,
-            date: format(this.vod.started_at, "yyyy-MM-dd"),
+            date: format(this.vod.started_at, Config.getInstance().dateFormat),
             year: this.vod.started_at ? format(this.vod.started_at, "yyyy") : "",
             month: this.vod.started_at ? format(this.vod.started_at, "MM") : "", 
             day: this.vod.started_at ? format(this.vod.started_at, "dd") : "", 
