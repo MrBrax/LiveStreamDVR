@@ -30,6 +30,7 @@
         </button>
 
         <!-- dump playlist -->
+        <!--
         <button
             class="icon-button white"
             title="Playlist record"
@@ -37,24 +38,7 @@
         >
             <span class="icon"><fa icon="play-circle" /></span>
         </button>
-
-        <!-- download videos -->
-        <button
-            class="icon-button white"
-            title="Video download"
-            @click="emit('showVideoDownloadMenu')"
-        >
-            <span class="icon"><fa icon="download" /></span>
-        </button>
-
-        <!-- download clips -->
-        <button
-            class="icon-button white"
-            title="Clip download"
-            @click="emit('showClipDownloadMenu')"
-        >
-            <span class="icon"><fa icon="download" /></span>
-        </button>
+        -->
 
         <!-- run cleanup -->
         <button
@@ -74,24 +58,6 @@
             <span class="icon"><fa icon="sync" /></span>
         </button>
 
-        <!-- scan vods -->
-        <button
-            class="icon-button white"
-            title="Scan for VODs"
-            @click="doScanVods"
-        >
-            <span class="icon"><fa icon="folder-open" /></span>
-        </button>
-
-        <!-- export vods -->
-        <button
-            class="icon-button white"
-            title="Export VODs"
-            @click="doExportVods"
-        >
-            <span class="icon"><fa icon="upload" /></span>
-        </button>
-
         <!-- expand/collapse all vods -->
         <button
             class="icon-button white"
@@ -100,19 +66,88 @@
         >
             <span class="icon"><fa :icon="!toggleAllVodsExpanded ? 'chevron-up' : 'chevron-down'" /></span>
         </button>
+
+        <!-- open more menu -->
+        <button
+            class="icon-button white"
+            title="More"
+            @click="openMoreMenu"
+        >
+            <span class="icon"><fa icon="ellipsis-h" /></span>
+        </button>
     </span>
+    <Teleport to="body">
+        <Transition name="fadequick">
+            <div
+                v-show="showMoreMenu"
+                ref="moreMenu"
+                class="expand-menu"
+                @mouseout="closeMoreMenu"
+            >
+                <!-- download videos -->
+                <button
+                    class="expand-menu-button white"
+                    title="Video download"
+                    @click="emit('showVideoDownloadMenu')"
+                >
+                    <span class="icon"><fa icon="download" /></span>
+                    <span>Video download</span>
+                </button>
+
+                <!-- download clips -->
+                <button
+                    class="expand-menu-button white"
+                    title="Clip download"
+                    @click="emit('showClipDownloadMenu')"
+                >
+                    <span class="icon"><fa icon="download" /></span>
+                    <span>Clip download</span>
+                </button>
+
+                <!-- scan vods -->
+                <button
+                    class="expand-menu-button white"
+                    title="Scan for VODs"
+                    @click="doScanVods"
+                >
+                    <span class="icon"><fa icon="folder-open" /></span>
+                    <span>Scan for VODs</span>
+                </button>
+
+                <!-- scan local videos -->
+                <button
+                    class="expand-menu-button white"
+                    title="Scan for local videos"
+                    @click="doScanLocalVideos"
+                >
+                    <span class="icon"><fa icon="folder-open" /></span>
+                    <span>Scan for local videos</span>
+                </button>
+
+                <!-- export vods -->
+                <button
+                    class="expand-menu-button white"
+                    title="Export VODs"
+                    @click="doExportVods"
+                >
+                    <span class="icon"><fa icon="upload" /></span>
+                    <span>Export VODs</span>
+                </button>
+            </div>
+        </Transition>
+    </Teleport>
 </template>
 
 <script lang="ts" setup>
 import { ChannelTypes, useStore, VODTypes } from '@/store';
 import { ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faUpload } from "@fortawesome/free-solid-svg-icons";
+import { faUpload, faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import { formatBytes } from '@/mixins/newhelpers';
-library.add(faUpload);
+library.add(faUpload, faEllipsisH);
 
 const props = defineProps<{
     streamer: ChannelTypes;
@@ -127,16 +162,35 @@ const emit = defineEmits<{
 
 const store = useStore();
 
+const showMoreMenu = ref(false);
+const moreMenu = ref<HTMLElement | null>(null);
+
 const canAbortCapture = computed(() => {
     if (!props.streamer) return false;
     return props.streamer.is_capturing && store.jobList.some((job) => props.streamer && job.name.startsWith(`capture_${props.streamer.internalName}`));
 });
 
+function openMoreMenu(event: MouseEvent) {
+    event.stopPropagation();
+    showMoreMenu.value = !showMoreMenu.value;
+    if (moreMenu.value) {
+        const x = event.pageX - moreMenu.value.offsetWidth - 16;
+        const y = event.pageY - moreMenu.value.offsetHeight - 16;
+        moreMenu.value.style.setProperty("--expand-menu-left", `${x}px`);
+        moreMenu.value.style.setProperty("--expand-menu-top", `${y}px`);
+    }
+}
+
+function closeMoreMenu(event: MouseEvent) {
+    if (moreMenu.value && !moreMenu.value.contains(event.relatedTarget as Node)) {
+        showMoreMenu.value = false;
+    }
+    // showMoreMenu.value = false;
+}
+
 async function abortCapture() {
-    // href="{{ url_for('api_jobs_kill', { 'job': 'capture_' ~ streamer.current_vod.basename }) }}"
-
+    showMoreMenu.value = false;
     if (!props.streamer || !props.streamer.current_vod) return;
-
     if (!confirm("Abort record is unstable. Continue?")) return;
 
     let response;
@@ -225,7 +279,7 @@ async function doChannelCleanup() {
     let response;
 
     try {
-        response = await axios.post(`/api/v0/channels/${props.streamer.uuid}/cleanup`);
+        response = await axios.post<ApiResponse>(`/api/v0/channels/${props.streamer.uuid}/cleanup`);
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error("doChannelCleanup error", error.response);
@@ -248,9 +302,9 @@ async function doChannelCleanup() {
 async function doChannelRefresh() {
     if (!props.streamer) return;
     axios
-        .post(`/api/v0/channels/${props.streamer.uuid}/refresh`)
+        .post<ApiResponse>(`/api/v0/channels/${props.streamer.uuid}/refresh`)
         .then((response) => {
-            const json: ApiResponse = response.data;
+            const json = response.data;
             if (json.message) alert(json.message);
             console.log(json);
             store.fetchStreamerList();
@@ -269,9 +323,9 @@ async function doScanVods() {
     if (!props.streamer) return;
     if (!confirm("Do you want to rescan for VODs? It might not find everything.")) return;
     axios
-        .post(`/api/v0/channels/${props.streamer.uuid}/scan`)
+        .post<ApiResponse>(`/api/v0/channels/${props.streamer.uuid}/scan`)
         .then((response) => {
-            const json: ApiResponse = response.data;
+            const json = response.data;
             if (json.message) alert(json.message);
             console.log(json);
             store.fetchStreamerList();
@@ -279,6 +333,27 @@ async function doScanVods() {
         .catch((error) => {
             if (axios.isAxiosError(error)) {
                 console.error("doScanVods error", error.response);
+                if (error.response && error.response.data && error.response.data.message) {
+                    alert(error.response.data.message);
+                }
+            }
+        });
+}
+
+async function doScanLocalVideos() {
+    if (!props.streamer) return;
+    if (!confirm("Do you want to rescan for local videos?")) return;
+    axios
+        .post<ApiResponse>(`/api/v0/channels/${props.streamer.uuid}/scanlocalvideos`)
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            store.fetchStreamerList();
+        })
+        .catch((error) => {
+            if (axios.isAxiosError(error)) {
+                console.error("doScanLocalVideos error", error.response);
                 if (error.response && error.response.data && error.response.data.message) {
                     alert(error.response.data.message);
                 }
@@ -318,6 +393,50 @@ function doExportVods() {
 .streamer-title-tools {
     .icon-button {
         margin-left: 0.3em;
+    }
+}
+.expand-menu {
+    position: absolute;
+    background-color: #222;
+    border: 1px solid #000;
+    color: #fff;
+    left: var(--expand-menu-left);
+    top: var(--expand-menu-top);
+    width: 200px;
+    z-index: 99;
+    overflow: hidden;
+    box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.5);
+    border-radius: 5px;
+
+    // padding for mouseout detection
+    &::before {
+        content: "";
+        position: relative;
+        top: -10px;
+        left: -10px;
+        right: -10px;
+        bottom: -10px;
+        background-color: #f00;
+    }
+}
+.expand-menu-button {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 0.5em;
+    background: transparent;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    &:not(:last-child) {
+        margin-bottom: 0.2em;
+    }
+    &:hover {
+        background-color: #333;
+        color: #ff0;
+    }
+    span:first-child {
+        margin-right: 0.5em;
     }
 }
 </style>

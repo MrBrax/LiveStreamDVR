@@ -1137,6 +1137,32 @@ export async function ScanVods(req: express.Request, res: express.Response): Pro
 
 }
 
+export function ScanLocalVideos(req: express.Request, res: express.Response): void {
+
+    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
+
+    if (!channel || !channel.internalName) {
+        res.status(400).send({
+            status: "ERROR",
+            message: req.t("route.channels.channel-not-found"),
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (isTwitchChannel(channel)) {
+        channel.video_list = [];
+        channel.addAllLocalVideos();
+    }
+
+    channel.broadcastUpdate();
+
+    res.send({
+        status: "OK",
+        message: `Channel '${channel.internalName}' scanned, found ${channel.video_list.length} local videos.`,
+    });
+
+}
+
 export async function GetClips(req: express.Request, res: express.Response): Promise<void> {
 
     const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);

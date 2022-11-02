@@ -50,6 +50,7 @@ router.post("/channels/:uuid/rename", AuthAdmin, Channels.RenameChannel);
 router.post("/channels/:uuid/deleteallvods", AuthAdmin, Channels.DeleteAllChannelVods);
 router.get("/channels/:uuid/history", AuthAdmin, Channels.GetHistory);
 router.post("/channels/:uuid/scan", AuthAdmin, Channels.ScanVods);
+router.post("/channels/:uuid/scanlocalvideos", AuthAdmin, Channels.ScanLocalVideos);
 router.get("/channels/:uuid/clips", AuthAdmin, Channels.GetClips);
 router.post("/channels/:uuid/exportallvods", AuthAdmin, Channels.ExportAllVods);
 
