@@ -216,8 +216,9 @@
 <script lang="ts">
 import { useStore } from "@/store";
 import { ApiSubscription } from "@common/Api/Client";
+import { AboutData } from "@common/Api/About";
 import { defineComponent } from "vue";
-import { ApiResponse } from "@common/Api/Api";
+import { ApiResponse, ApiAboutResponse } from "@common/Api/Api";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faRss, faBan } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from "vue-i18n";
@@ -225,41 +226,6 @@ import axios from "axios";
 library.add(faRss, faBan);
 
 // import licenses from "../../LICENSES.txt";
-
-interface SoftwareCallback {
-    path: string;
-    status: string;
-    update: string;
-    version: string;
-
-    user?: string;
-    pid?: number;
-    uid?: number;
-    gid?: number;
-    sapi: string;
-    platform?: string;
-    platform_family?: string;
-    display_errors?: string;
-    error_reporting?: string;
-}
-
-interface AboutData {
-    is_docker: boolean;
-    bins: {
-        ffmpeg: SoftwareCallback;
-        mediainfo: SoftwareCallback;
-        tcd: SoftwareCallback;
-        streamlink: SoftwareCallback;
-        youtubedl: SoftwareCallback;
-        pipenv: SoftwareCallback;
-        python: SoftwareCallback;
-        python3: SoftwareCallback;
-        twitchdownloader: SoftwareCallback;
-        php: SoftwareCallback;
-        node: SoftwareCallback;
-    };
-    pip: Record<string, { comparator: string; version: string; }>;
-}
 
 export default defineComponent({
     name: "AboutView",
@@ -311,7 +277,7 @@ export default defineComponent({
             this.aboutData = null;
 
             axios
-                .get<ApiResponse>(`/api/v0/about`)
+                .get<ApiAboutResponse>(`/api/v0/about`)
                 .then((response) => {
                     const json = response.data;
                     const about = json.data;

@@ -43,7 +43,7 @@
 
 <script lang="ts" setup>
 import ChannelUpdateForm from "@/components/forms/ChannelUpdateForm.vue";
-import type { ApiSettingsResponse } from "@common/Api/Api";
+import type { ApiSettingsResponse, ApiErrorResponse } from "@common/Api/Api";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUser, faCalendarCheck, faStar, faBell, faUserCog, faDatabase } from "@fortawesome/free-solid-svg-icons";
 import { faTwitch, faYoutube } from "@fortawesome/free-brands-svg-icons";
@@ -102,12 +102,13 @@ function fetchData() {
                 // this.currentChannel = formChannels.value[0].uuid;
             }
         })
-        .catch((err) => {
-            console.error("settings fetch error", err.response);
-            if (err.response.data && err.response.data.message) {
+        .catch((err: Error | ApiErrorResponse) => {
+            console.error("settings fetch error", err);
+            if (axios.isAxiosError<ApiErrorResponse>(err) && err.response) {
                 alert(`Settings fetch error: ${err.response.data.message}`);
             } else {
                 alert("Error fetching settings");
+                console.error(err);
             }
         }).finally(() => {
             loading.value = false;

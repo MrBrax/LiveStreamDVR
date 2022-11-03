@@ -334,7 +334,7 @@ import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import axios, { AxiosError } from "axios";
 import { UserData } from "@common/User";
 import { VideoQuality } from "@common/Config";
-import { ApiResponse } from "@common/Api/Api";
+import { ApiResponse, ApiErrorResponse, IApiResponse } from "@common/Api/Api";
 import { useI18n } from "vue-i18n";
 library.add(faUserPlus);
 
@@ -425,16 +425,11 @@ export default defineComponent({
                         this.resetForm();
                     }
                 })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                    if (axios.isAxiosError(err) && err.response) {
-                        if (err.response.data.status == "ERROR") {
-                            this.formStatusText = err.response.data.message;
-                            this.formStatus = err.response.data.status;
-                        } else {
-                            this.formStatusText = err.response.data;
-                            this.formStatus = "ERROR";
-                        }
+                .catch((err: Error | AxiosError) => {
+                    console.error("form error", err);
+                    if (axios.isAxiosError<ApiErrorResponse>(err) && err.response) {
+                        this.formStatusText = err.response.data.message;
+                        this.formStatus = err.response.data.status;
                     }
                 });
 
@@ -485,7 +480,7 @@ export default defineComponent({
         },
         */
         fetchLogin() {
-            axios.get<ApiResponse>(`/api/v0/twitchapi/user/${this.formData.login}`).then((response) => {
+            axios.get<IApiResponse<UserData>>(`/api/v0/twitchapi/user/${this.formData.login}`).then((response) => {
                 const json = response.data;
                 const field = this.$refs.login as HTMLInputElement;
                 if (!field) {
@@ -506,15 +501,15 @@ export default defineComponent({
                     field.reportValidity();
                     this.userExists = false;
                 }
-            }).catch((err: AxiosError<ApiResponse>) => {
-                console.error("form error", err.response);
+            }).catch((err: Error | AxiosError) => {
+                console.error("form error", err);
                 const field = this.$refs.login as HTMLInputElement;
-                if (field && err.response && err.response.data && err.response.data.message) {
+                if (field && axios.isAxiosError<ApiErrorResponse>(err) && err.response && err.response.data && err.response.data.message) {
                     field.setCustomValidity(err.response.data.message);
                     field.reportValidity();
                     this.userExists = false;
                 } else {
-                    console.error("no field or no response", field, err.response);
+                    console.error("no field or no response", field, err);
                 }
             });
         },

@@ -1,4 +1,5 @@
 import { ChannelConfig, SettingField } from "../Config";
+import { AboutData } from "./About";
 import { ApiTwitchChannel, ApiGame, ApiJob, ApiLogLine, ApiTwitchVod, ApiChannels, ApiVods, ApiFile } from "./Client";
 
 interface ApiResponse {
@@ -99,4 +100,8 @@ export interface IApiResponse<T> {
     data: T;
     status: "OK";
     message?: string;
+}
+
+export interface ApiAboutResponse extends ApiResponse {
+    data: AboutData;
 }
