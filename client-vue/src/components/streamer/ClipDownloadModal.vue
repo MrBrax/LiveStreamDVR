@@ -5,7 +5,7 @@
             class="button is-confirm"
             @click="fetchTwitchClips"
         >
-            <span class="icon"><fa icon="download" /></span>
+            <span class="icon"><font-awesome-icon icon="download" /></span>
             <span>{{ t('vod.fetch-clip-list') }}</span>
         </button>
         <hr>
@@ -34,7 +34,7 @@
                     class="button is-small is-confirm"
                     @click="downloadClip(clip)"
                 >
-                    <span class="icon"><fa icon="download" /></span>
+                    <span class="icon"><font-awesome-icon icon="download" /></span>
                     <span>{{ t("buttons.download") }}</span>
                 </button>
             </div>

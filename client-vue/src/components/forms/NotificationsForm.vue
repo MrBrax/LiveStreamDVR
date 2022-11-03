@@ -43,7 +43,7 @@
                     class="button is-confirm"
                     type="submit"
                 >
-                    <span class="icon"><fa icon="save" /></span>
+                    <span class="icon"><font-awesome-icon icon="save" /></span>
                     <span>{{ t('buttons.save') }}</span>
                 </button>
             </div>

@@ -12,7 +12,7 @@
                 >
                     <router-link :to="{ params: { channel: channel.uuid } }">
                         <span class="icon">
-                            <fa :icon="['fab', channel.provider]" />
+                            <font-awesome-icon :icon="['fab', channel.provider]" />
                         </span>
                         <span>{{ store.channelUUIDToInternalName(channel.uuid) || channel.login || "<<unknown>>" }}</span>
                     </router-link>
@@ -34,7 +34,7 @@
                 class="section-content"
             >
                 <span class="icon">
-                    <fa icon="sign-in-alt" />
+                    <font-awesome-icon icon="sign-in-alt" />
                 </span> {{ t("messages.login") }}
             </div>
         </div>

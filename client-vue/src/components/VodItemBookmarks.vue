@@ -15,7 +15,7 @@
                     class="icon-button"
                     @click="doDeleteBookmark(i)"
                 >
-                    <span class="icon"><fa icon="xmark" /></span>
+                    <span class="icon"><font-awesome-icon icon="xmark" /></span>
                 </button>
             </li>
         </ul>
@@ -53,7 +53,7 @@
                 class="button is-small is-confirm"
                 @click="doMakeBookmark"
             >
-                <span class="icon"><fa icon="plus" /></span>
+                <span class="icon"><font-awesome-icon icon="plus" /></span>
                 <span>Create</span>
             </button>
         </details>

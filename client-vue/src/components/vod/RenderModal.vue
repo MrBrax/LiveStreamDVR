@@ -327,7 +327,7 @@
                 @click="doRenderWizard"
             >
                 <span class="icon">
-                    <fa icon="burn" />
+                    <font-awesome-icon icon="burn" />
                 </span>
                 <span>Execute</span>
             </button>

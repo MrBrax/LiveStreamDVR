@@ -203,7 +203,7 @@
                                 href="javascript:void(0)"
                                 title="Match VOD"
                                 @click="matchVod()"
-                            ><fa icon="sync" /></a>
+                            ><font-awesome-icon icon="sync" /></a>
                         </span>
                         <span
                             v-else
@@ -263,7 +263,7 @@
                         href="javascript:void(0)"
                         title="Retry VOD match"
                         @click="matchVod()"
-                        ><fa icon="sync" /></a>
+                        ><font-awesome-icon icon="sync" /></a>
                     </li>
                     <li>
                         <template v-if="vod.twitch_vod_id">

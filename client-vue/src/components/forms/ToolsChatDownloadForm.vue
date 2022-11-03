@@ -37,7 +37,7 @@
                     class="button is-confirm"
                     type="submit"
                 >
-                    <span class="icon"><fa icon="download" /></span>
+                    <span class="icon"><font-awesome-icon icon="download" /></span>
                     <span>{{ t('buttons.execute') }}</span>
                 </button>
             </div>

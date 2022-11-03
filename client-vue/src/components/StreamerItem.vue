@@ -109,7 +109,7 @@
                     title="Click to toggle VOD list"
                     @click="toggleLimitVods"
                 >
-                    <span class="icon"><fa :icon="limitVods ? 'chevron-up' : 'chevron-down'" /></span>
+                    <span class="icon"><font-awesome-icon :icon="limitVods ? 'chevron-up' : 'chevron-down'" /></span>
                     <transition>
                         <span
                             v-if="!limitVods"

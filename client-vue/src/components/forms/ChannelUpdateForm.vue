@@ -241,7 +241,7 @@
                         class="button is-confirm"
                         type="submit"
                     >
-                        <span class="icon"><fa icon="save" /></span>
+                        <span class="icon"><font-awesome-icon icon="save" /></span>
                         <span>{{ t('buttons.save') }}</span>
                     </button>
                     <button
@@ -249,7 +249,7 @@
                         type="button"
                         @click="resetForm"
                     >
-                        <span class="icon"><fa icon="sync" /></span>
+                        <span class="icon"><font-awesome-icon icon="sync" /></span>
                         <span>{{ t('buttons.reset') }}</span>
                     </button>
                 </div>
@@ -264,35 +264,35 @@
                 class="button is-small is-danger"
                 @click="deleteChannel"
             >
-                <span class="icon"><fa icon="trash" /></span>
+                <span class="icon"><font-awesome-icon icon="trash" /></span>
                 <span>{{ t('buttons.delete') }}</span>
             </button>
             <button
                 class="button is-small is-danger"
                 @click="deleteAllVods"
             >
-                <span class="icon"><fa icon="video-slash" /></span>
+                <span class="icon"><font-awesome-icon icon="video-slash" /></span>
                 <span>{{ t('buttons.delete-all-vods') }}</span>
             </button>
             <button
                 class="button is-small"
                 @click="subscribeChannel"
             >
-                <span class="icon"><fa icon="sync" /></span>
+                <span class="icon"><font-awesome-icon icon="sync" /></span>
                 <span>{{ t('buttons.subscribe') }}</span>
             </button>
             <button
                 class="button is-small"
                 @click="checkSubscriptions"
             >
-                <span class="icon"><fa icon="list" /></span>
+                <span class="icon"><font-awesome-icon icon="list" /></span>
                 <span>{{ t('buttons.check-subscriptions') }}</span>
             </button>
             <button
                 class="button is-small"
                 @click="renameChannel"
             >
-                <span class="icon"><fa icon="pencil" /></span>
+                <span class="icon"><font-awesome-icon icon="pencil" /></span>
                 <span>{{ t('buttons.rename') }}</span>
             </button>
         </div>
@@ -304,7 +304,7 @@
                     class="button is-small is-confirm"
                     @click="fetchHistory"
                 >
-                    <span class="icon"><fa icon="sync" /></span>
+                    <span class="icon"><font-awesome-icon icon="sync" /></span>
                     <span>{{ t('buttons.fetch') }}</span>
                 </button>
             </div>

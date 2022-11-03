@@ -70,7 +70,7 @@
                 class="button is-small is-danger"
                 @click="mediaPlayerSource = undefined; ($refs.mediaplayer as HTMLDialogElement).close()"
             >
-                <span class="icon"><fa icon="xmark" /></span>
+                <span class="icon"><font-awesome-icon icon="xmark" /></span>
                 <span>Close</span>
             </button>
             <a
@@ -79,7 +79,7 @@
                 target="_blank"
                 @click="($refs.mediaplayervideo as HTMLVideoElement).pause()"
             >
-                <span class="icon"><fa icon="arrow-up-right-from-square" /></span>
+                <span class="icon"><font-awesome-icon icon="arrow-up-right-from-square" /></span>
                 <span>Open in new tab</span>
             </a>
         </div>

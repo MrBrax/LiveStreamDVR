@@ -49,7 +49,7 @@
                     :disabled="!formData.login"
                     @click="fetchLogin"
                 >
-                    <span class="icon"><fa icon="sync" /></span>
+                    <span class="icon"><font-awesome-icon icon="sync" /></span>
                     <span>{{ t('forms.channel.check') }}</span>
                 </button>
             </div>
@@ -101,7 +101,7 @@
                 >
                 <!--
                 <button class="button is-confirm" type="button" @click="fetchLogin" :disabled="!formData.login">
-                    <span class="icon"><fa icon="sync" /></span>
+                    <span class="icon"><font-awesome-icon icon="sync" /></span>
                     <span>{{ t('forms.channel.check') }}</span>
                 </button>
                 -->
@@ -314,7 +314,7 @@
                     class="button is-confirm"
                     type="submit"
                 >
-                    <span class="icon"><fa icon="user-plus" /></span>
+                    <span class="icon"><font-awesome-icon icon="user-plus" /></span>
                     <span>{{ t('forms.channel.add-channel') }}</span>
                 </button>
             </div>

@@ -167,7 +167,7 @@
                 class="button is-confirm"
                 @click="saveClientConfig"
             >
-                <span class="icon"><fa icon="save" /></span>
+                <span class="icon"><font-awesome-icon icon="save" /></span>
                 <span>{{ t('buttons.save') }}</span>
             </button>
         </div>
@@ -177,7 +177,7 @@
                 class="button is-small"
                 @click="requestNotifications"
             >
-                <span class="icon"><fa icon="bell" /></span>
+                <span class="icon"><font-awesome-icon icon="bell" /></span>
                 <span>Request notification permissions</span>
             </button>
         </div>
@@ -187,7 +187,7 @@
                 :disabled="!store.authenticated"
                 @click="logout"
             >
-                <span class="icon"><fa icon="arrow-right-from-bracket" /></span>
+                <span class="icon"><font-awesome-icon icon="arrow-right-from-bracket" /></span>
                 <span>{{ t('buttons.logout') }}</span>
             </button>
         </div>

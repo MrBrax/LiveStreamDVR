@@ -19,7 +19,7 @@
                 to="/"
                 class="button is-primary"
             >
-                <span class="icon"><fa icon="home" /></span>
+                <span class="icon"><font-awesome-icon icon="home" /></span>
                 <span>Go to home</span>
             </router-link>
         </p>

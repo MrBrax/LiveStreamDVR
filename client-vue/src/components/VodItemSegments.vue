@@ -25,7 +25,7 @@
                     title="Delete segment"
                     @click.prevent="doDeleteSegment(i)"
                 >
-                    <span class="icon"><fa icon="xmark" /></span>
+                    <span class="icon"><font-awesome-icon icon="xmark" /></span>
                 </button>
                 <strong
                     v-if="segment.deleted && !vod.cloud_storage"
@@ -34,7 +34,7 @@
                 <strong
                     v-else-if="segment.deleted && vod.cloud_storage"
                     class="text-is-error"
-                >&nbsp;<fa icon="cloud" /></strong> 
+                >&nbsp;<font-awesome-icon icon="cloud" /></strong> 
                 <strong
                     v-else-if="!segment.filesize"
                     class="text-is-error"

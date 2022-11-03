@@ -313,7 +313,7 @@
                 @click="createYouTubePlaylist"
             >
                 <span class="icon">
-                    <fa icon="plus" />
+                    <font-awesome-icon icon="plus" />
                 </span>
             </button>
         </div>
@@ -358,7 +358,7 @@
                 @click="doExportVod"
                 :disabled="loading"
             >
-                <span class="icon"><fa :icon="loading ? 'spinner' : 'upload'" :spin="loading" /></span>
+                <span class="icon"><font-awesome-icon :icon="loading ? 'spinner' : 'upload'" :spin="loading" /></span>
                 <span>{{ t("buttons.export") }}</span>
             </button>
         </div>

@@ -26,7 +26,7 @@
     "date-fns": "^2.29.3",
     "normalize.css": "^8.0.1",
     "pinia": "^2.0.23",
-    "vue": "^3.2.40",
+    "vue": "^3.2.41",
     "vue-i18n": "9.3.0-beta.6",
     "vue-observe-visibility": "^2.0.0-alpha.1",
     "vue-router": "^4.1.5"
@@ -57,5 +57,10 @@
   "packageManager": "yarn@3.2.4",
   "engines": {
     "node": ">=15"
+  },
+  "dependenciesMeta": {
+    "vue@3.2.41": {
+      "unplugged": true
+    }
   }
 }

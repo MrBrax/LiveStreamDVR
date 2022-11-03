@@ -6,7 +6,7 @@
             :to="{ name: 'SettingsChannels', params: { channel: streamer.uuid } }"
             :title="t('streamer.tools.edit-channel')"
         >
-            <span class="icon"><fa icon="pencil" /></span>
+            <span class="icon"><font-awesome-icon icon="pencil" /></span>
         </router-link>
 
         <!-- abort recording -->
@@ -16,7 +16,7 @@
             :title="t('streamer.tools.abort-record')"
             @click="abortCapture"
         >
-            <span class="icon"><fa icon="video-slash" /></span>
+            <span class="icon"><font-awesome-icon icon="video-slash" /></span>
         </button>
 
         <!-- force recording -->
@@ -26,7 +26,7 @@
             :title="t('streamer.tools.force-record')"
             @click="forceRecord"
         >
-            <span class="icon"><fa icon="video" /></span>
+            <span class="icon"><font-awesome-icon icon="video" /></span>
         </button>
 
         <!-- dump playlist -->
@@ -36,7 +36,7 @@
             :title="Playlist record"
             @click="playlistRecord"
         >
-            <span class="icon"><fa icon="play-circle" /></span>
+            <span class="icon"><font-awesome-icon icon="play-circle" /></span>
         </button>
         -->
 
@@ -46,7 +46,7 @@
             :title="t('streamer.tools.clean-up')"
             @click="doChannelCleanup"
         >
-            <span class="icon"><fa icon="trash" /></span>
+            <span class="icon"><font-awesome-icon icon="trash" /></span>
         </button>
 
         <!-- expand/collapse all vods -->
@@ -55,7 +55,7 @@
             :title="t('streamer.tools.expand-collapse-all-vods')"
             @click="emit('toggleExpandVods')"
         >
-            <span class="icon"><fa :icon="!toggleAllVodsExpanded ? 'chevron-up' : 'chevron-down'" /></span>
+            <span class="icon"><font-awesome-icon :icon="!toggleAllVodsExpanded ? 'chevron-up' : 'chevron-down'" /></span>
         </button>
 
         <!-- open more menu -->
@@ -64,7 +64,7 @@
             :title="t('streamer.tools.more')"
             @click="openMoreMenu"
         >
-            <span class="icon"><fa icon="ellipsis-h" /></span>
+            <span class="icon"><font-awesome-icon icon="ellipsis-h" /></span>
         </button>
     </span>
     <Teleport to="body">
@@ -85,7 +85,7 @@
                     :title="t('streamer.tools.refresh-data')"
                     @click="doChannelRefresh"
                 >
-                    <span class="icon"><fa icon="sync" /></span>
+                    <span class="icon"><font-awesome-icon icon="sync" /></span>
                     <span class="text">{{ t('streamer.tools.refresh-data') }}</span>
                 </button>
 
@@ -95,7 +95,7 @@
                     :title="t('streamer.tools.video-download')"
                     @click="emit('showVideoDownloadMenu')"
                 >
-                    <span class="icon"><fa icon="download" /></span>
+                    <span class="icon"><font-awesome-icon icon="download" /></span>
                     <span>{{ t('streamer.tools.video-download') }}</span>
                 </button>
 
@@ -105,7 +105,7 @@
                     :title="t('streamer.tools.clip-download')"
                     @click="emit('showClipDownloadMenu')"
                 >
-                    <span class="icon"><fa icon="download" /></span>
+                    <span class="icon"><font-awesome-icon icon="download" /></span>
                     <span>{{ t('streamer.tools.clip-download') }}</span>
                 </button>
 
@@ -115,7 +115,7 @@
                     :title="t('streamer.tools.scan-for-vods')"
                     @click="doScanVods"
                 >
-                    <span class="icon"><fa icon="folder-open" /></span>
+                    <span class="icon"><font-awesome-icon icon="folder-open" /></span>
                     <span>{{ t('streamer.tools.scan-for-vods') }}</span>
                 </button>
 
@@ -125,7 +125,7 @@
                     :title="t('streamer.tools.scan-for-local-videos')"
                     @click="doScanLocalVideos"
                 >
-                    <span class="icon"><fa icon="folder-open" /></span>
+                    <span class="icon"><font-awesome-icon icon="folder-open" /></span>
                     <span>{{ t('streamer.tools.scan-for-local-videos') }}</span>
                 </button>
 
@@ -135,7 +135,7 @@
                     :title="t('streamer.tools.export-vods')"
                     @click="doExportVods"
                 >
-                    <span class="icon"><fa icon="upload" /></span>
+                    <span class="icon"><font-awesome-icon icon="upload" /></span>
                     <span>{{ t('streamer.tools.export-vods') }}</span>
                 </button>
             </div>

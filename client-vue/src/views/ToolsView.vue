@@ -78,7 +78,7 @@
                             class="button is-danger"
                             @click="resetChannels"
                         >
-                            <span class="icon"><fa icon="sync" /></span>
+                            <span class="icon"><font-awesome-icon icon="sync" /></span>
                             <span>{{ t('views.tools.reset-channels') }}</span>
                         </button>
                         <p class="input-help">
@@ -93,7 +93,7 @@
                             class="button is-danger"
                             @click="shutdown"
                         >
-                            <span class="icon"><fa icon="power-off" /></span>
+                            <span class="icon"><font-awesome-icon icon="power-off" /></span>
                             <span>{{ t('views.tools.shutdown') }}</span>
                         </button>
                     </div>
@@ -105,7 +105,7 @@
                             class="button is-confirm"
                             @click="buildClient"
                         >
-                            <span class="icon"><fa icon="sync" /></span>
+                            <span class="icon"><font-awesome-icon icon="sync" /></span>
                             <span>{{ t('views.tools.build-client') }}</span>
                         </button>
                     </div>
@@ -199,7 +199,7 @@
                                     title="Gracefully kill job (SIGHUP)"
                                     @click="killJob(job.name, 'SIGHUP')"
                                 >
-                                    <span class="icon"><fa icon="heart" /></span>
+                                    <span class="icon"><font-awesome-icon icon="heart" /></span>
                                 </a>
                                 <a
                                     v-if="job.status"
@@ -207,7 +207,7 @@
                                     title="Gracefully kill job (SIGINT)"
                                     @click="killJob(job.name, 'SIGINT')"
                                 >
-                                    <span class="icon"><fa icon="stop" /></span>
+                                    <span class="icon"><font-awesome-icon icon="stop" /></span>
                                 </a>
                                 <a
                                     v-if="job.status"
@@ -215,7 +215,7 @@
                                     title="Kill job (SIGTERM)"
                                     @click="killJob(job.name)"
                                 >
-                                    <span class="icon"><fa icon="skull" /></span>
+                                    <span class="icon"><font-awesome-icon icon="skull" /></span>
                                 </a>
                                 <a
                                     v-if="job.status"
@@ -223,7 +223,7 @@
                                     title="Clear job"
                                     @click="clearJob(job.name)"
                                 >
-                                    <span class="icon"><fa icon="trash" /></span>
+                                    <span class="icon"><font-awesome-icon icon="trash" /></span>
                                 </a>
                             </div>
                         </td>

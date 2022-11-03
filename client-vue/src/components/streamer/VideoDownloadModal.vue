@@ -9,7 +9,7 @@
             class="button is-confirm"
             @click="fetchTwitchVods"
         >
-            <span class="icon"><fa icon="download" /></span>
+            <span class="icon"><font-awesome-icon icon="download" /></span>
             <span>{{ t('vod.fetch-vod-list') }}</span>
         </button>
         <button
@@ -17,7 +17,7 @@
             class="button is-confirm"
             @click="fetchYouTubeVods"
         >
-            <span class="icon"><fa icon="download" /></span>
+            <span class="icon"><font-awesome-icon icon="download" /></span>
             <span>{{ t('vod.fetch-vod-list') }}</span>
         </button>
         <hr>
@@ -49,7 +49,7 @@
                     class="button is-small is-confirm"
                     @click="downloadVideo(vod.id.toString())"
                 >
-                    <span class="icon"><fa icon="download" /></span>
+                    <span class="icon"><font-awesome-icon icon="download" /></span>
                     <span>{{ t("buttons.download") }}</span>
                 </button>
             </div>

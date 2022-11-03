@@ -96,7 +96,7 @@
                         class="amount"
                     >{{ streamer.vods_list.length - store.clientCfg('vodsToShowInMenu', 4) }}</span>
                 </transition>
-                <fa :icon="expanded ? 'chevron-up' : 'chevron-down'" />
+                <font-awesome-icon :icon="expanded ? 'chevron-up' : 'chevron-down'" />
             </button>
         </div>
     </div>

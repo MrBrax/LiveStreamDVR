@@ -33,14 +33,14 @@
                         class="button is-confirm"
                         @click="play"
                     >
-                        <span class="icon"><fa icon="play" /></span>
+                        <span class="icon"><font-awesome-icon icon="play" /></span>
                         <span>{{ t('views.editor.buttons.play') }}</span>
                     </button>
                     <button
                         class="button is-confirm"
                         @click="pause"
                     >
-                        <span class="icon"><fa icon="pause" /></span>
+                        <span class="icon"><font-awesome-icon icon="pause" /></span>
                         <span>{{ t('views.editor.buttons.pause') }}</span>
                     </button>
                     <button
@@ -48,7 +48,7 @@
                         class="button is-confirm"
                         @click="setFrameIn(currentVideoTime)"
                     >
-                        <span class="icon"><fa icon="fast-backward" /></span>
+                        <span class="icon"><font-awesome-icon icon="fast-backward" /></span>
                         <span>{{ t('views.editor.buttons.mark-in') }}</span>
                     </button>
                     <button
@@ -56,14 +56,14 @@
                         class="button is-confirm"
                         @click="setFrameOut(currentVideoTime)"
                     >
-                        <span class="icon"><fa icon="fast-forward" /></span>
+                        <span class="icon"><font-awesome-icon icon="fast-forward" /></span>
                         <span>{{ t('views.editor.buttons.mark-out') }}</span>
                     </button>
                     <button
                         class="button is-confirm"
                         @click="addBookmark"
                     >
-                        <span class="icon"><fa icon="bookmark" /></span>
+                        <span class="icon"><font-awesome-icon icon="bookmark" /></span>
                         <span>{{ t('views.editor.buttons.add-bookmark') }}</span>
                     </button>
                 </div>
@@ -202,7 +202,7 @@
                                 type="submit"
                                 class="button is-confirm"
                             >
-                                <span class="icon"><fa icon="save" /></span>
+                                <span class="icon"><font-awesome-icon icon="save" /></span>
                                 <span>{{ t('views.editor.buttons.submit-cut') }}</span>
                             </button>
                         </div>

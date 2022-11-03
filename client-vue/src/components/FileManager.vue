@@ -82,7 +82,7 @@
                     width="16"
                     class="file-manager-item-icon"
                 >
-                    <fa :icon="getIconName(item.extension)" />
+                    <font-awesome-icon :icon="getIconName(item.extension)" />
                 </td>
                 <td class="file-manager-item-name">
                     <a
@@ -111,20 +111,20 @@
                             target="_blank"
                             download
                         >
-                            <span><fa icon="download" /></span>
+                            <span><font-awesome-icon icon="download" /></span>
                         </a>
                         <button
                             class="button is-small is-danger"
                             @click="deleteFile(item)"
                         >
-                            <span><fa icon="trash" /></span>
+                            <span><font-awesome-icon icon="trash" /></span>
                         </button>
                         <button
                             v-if="['mp4'].includes(item.extension)"
                             class="button is-small is-info"
                             @click="showExportFileDialog(item)"
                         >
-                            <span><fa icon="upload" /></span>
+                            <span><font-awesome-icon icon="upload" /></span>
                         </button>
                     </div>
                 </td>
@@ -352,7 +352,7 @@
             <div class="field">
                 <div class="control">
                     <button class="button is-confirm">
-                        <span class="icon"><fa icon="upload" /></span>
+                        <span class="icon"><font-awesome-icon icon="upload" /></span>
                         <span>{{ t("buttons.export") }}</span>
                     </button>
                 </div>

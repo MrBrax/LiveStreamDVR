@@ -93,7 +93,7 @@
                             :disabled="subscriptionsLoading"
                             @click="fetchSubscriptions"
                         >
-                            <span class="icon"><fa icon="sync" /></span>
+                            <span class="icon"><font-awesome-icon icon="sync" /></span>
                             <span>{{ t("buttons.fetch") }}</span>
                         </button>
                         <button
@@ -101,7 +101,7 @@
                             :disabled="subscriptionsLoading"
                             @click="subscribeAll"
                         >
-                            <span class="icon"><fa icon="rss" /></span>
+                            <span class="icon"><font-awesome-icon icon="rss" /></span>
                             <span>{{ t("buttons.subscribe") }} </span>
                         </button>
                     </p>
@@ -140,7 +140,7 @@
                                         :disabled="subscriptionsLoading"
                                         @click="unsubscribe(subscription.id)"
                                     >
-                                        <span class="icon"><fa icon="ban" /></span>
+                                        <span class="icon"><font-awesome-icon icon="ban" /></span>
                                         <span>Unsubscribe</span>
                                     </button>
                                 </td>

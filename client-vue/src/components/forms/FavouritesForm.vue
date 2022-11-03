@@ -34,7 +34,7 @@
                             class="icon is-error"
                             title="Deleted"
                         >
-                            <fa icon="trash" />
+                            <font-awesome-icon icon="trash" />
                         </span>
                         <span class="game-name">
                             {{ game.name }}
@@ -49,7 +49,7 @@
                         class="icon-button is-small"
                         @click="refreshGame(game.id)"
                     >
-                        <fa icon="sync" />
+                        <font-awesome-icon icon="sync" />
                     </button>
                 </label>
             </div>
@@ -72,7 +72,7 @@
                     class="button is-confirm"
                     type="submit"
                 >
-                    <span class="icon"><fa icon="save" /></span>
+                    <span class="icon"><font-awesome-icon icon="save" /></span>
                     <span>{{ t('buttons.save-favourites') }}</span>
                 </button>
             </div>

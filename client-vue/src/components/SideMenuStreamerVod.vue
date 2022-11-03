@@ -40,24 +40,24 @@
         <span
             v-else-if="isTwitchVOD(vod) && vod.hasFavouriteGame() && store.sidemenuShow.vod_icon"
             class="icon"
-        ><fa icon="star" /></span>
+        ><font-awesome-icon icon="star" /></span>
 
         <span
             v-else-if="(vod.failed || vod.hasError()) && store.sidemenuShow.vod_icon"
             class="icon is-error"
-        ><fa icon="exclamation-triangle" /></span>
+        ><font-awesome-icon icon="exclamation-triangle" /></span>
 
         <!-- waiting after capture -->
         <span
             v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized && store.sidemenuShow.vod_icon"
             class="icon"
-        ><fa :icon="['far', 'hourglass']" /></span>
+        ><font-awesome-icon :icon="['far', 'hourglass']" /></span>
 
         <!-- video -->
         <span
             v-else-if="vod.is_finalized && store.sidemenuShow.vod_icon"
             class="icon"
-        ><fa :icon="fileIcon(vod)" /></span>
+        ><font-awesome-icon :icon="fileIcon(vod)" /></span>
 
         <!-- basename -->
         <span v-if="store.sidemenuShow.vod_basename">{{ vod.basename }}</span>
@@ -139,44 +139,44 @@
                     v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === false"
                     class="icon is-error"
                     title="Deleted from provider"
-                ><fa icon="trash" /></span><!-- vod deleted -->
+                ><font-awesome-icon icon="trash" /></span><!-- vod deleted -->
                 <span
                     v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === true && isRiskOfBeingDeleted(vod)"
                     class="icon is-warning"
                     title="Is risking deletion from provider"
                 >
-                    <fa icon="trash-arrow-up" />
+                    <font-awesome-icon icon="trash-arrow-up" />
                 </span><!-- vod deleted -->
                 <span
                     v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === null"
                     class="icon is-error"
                     title="Not checked"
-                ><fa icon="question" /></span><!-- vod not checked -->
+                ><font-awesome-icon icon="question" /></span><!-- vod not checked -->
                 <span
                     v-if="isTwitchVOD(vod) && vod.twitch_vod_muted === MuteStatus.MUTED"
                     class="icon is-error"
                     title="Muted"
-                ><fa icon="volume-mute" /></span><!-- vod muted -->
+                ><font-awesome-icon icon="volume-mute" /></span><!-- vod muted -->
                 <span
                     v-if="vod.is_capture_paused"
                     class="icon is-error"
                     title="Paused"
-                ><fa icon="pause" /></span><!-- capturing paused -->
+                ><font-awesome-icon icon="pause" /></span><!-- capturing paused -->
                 <span
                     v-if="vod.prevent_deletion"
                     class="icon is-success"
                     title="Preventing deletion"
-                ><fa icon="lock" /></span><!-- prevent deletion -->
+                ><font-awesome-icon icon="lock" /></span><!-- prevent deletion -->
                 <span
                     v-if="vod.hasDeletedSegment"
                     class="icon is-error"
                     title="Deleted segment"
-                ><fa icon="film" /></span><!-- deleted segment -->
+                ><font-awesome-icon icon="film" /></span><!-- deleted segment -->
                 <span
                     v-if="vod.comment"
                     class="icon is-success"
                     title="Has comment"
-                ><fa icon="comment" /></span><!-- has comment -->
+                ><font-awesome-icon icon="comment" /></span><!-- has comment -->
             </span>
         </template>
 

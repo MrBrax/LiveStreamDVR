@@ -213,7 +213,7 @@
                 class="button is-confirm"
                 type="submit"
             >
-                <span class="icon"><fa icon="save" /></span>
+                <span class="icon"><font-awesome-icon icon="save" /></span>
                 <span>{{ t('buttons.save') }}</span>
             </button>
             <span :class="formStatusClass">{{ formStatusText }}</span>
@@ -226,7 +226,7 @@
                 type="button"
                 @click="doValidateExternalURL"
             >
-                <span class="icon"><fa icon="globe" /></span>
+                <span class="icon"><font-awesome-icon icon="globe" /></span>
                 <span>{{ t('forms.config.validate-external-url') }}</span>
             </button>
         </div>
