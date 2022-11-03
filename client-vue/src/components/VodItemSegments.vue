@@ -102,9 +102,9 @@ function doDeleteSegment(index = 0) {
     const keepEntry = confirm(`Do you want to keep the entry and mark it as cloud storage?`);
     if (isTwitchVOD(props.vod) && props.vod.twitch_vod_exists === false && !confirm(`The VOD "${props.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
     axios
-        .post(`/api/v0/vod/${props.vod.uuid}/delete_segment?segment=${index}&keep_entry=${keepEntry ? "true" : "false"}`)
+        .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/delete_segment?segment=${index}&keep_entry=${keepEntry ? "true" : "false"}`)
         .then((response) => {
-            const json: ApiResponse = response.data;
+            const json = response.data;
             if (json.message) alert(json.message);
             console.log(json);
             // emit("refresh");

@@ -235,7 +235,7 @@ async function forceRecord() {
     let response;
 
     try {
-        response = await axios.post(`/api/v0/channels/${props.streamer.uuid}/force_record`);
+        response = await axios.post<ApiResponse>(`/api/v0/channels/${props.streamer.uuid}/force_record`);
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error("forceRecord error", error.response);
@@ -382,9 +382,9 @@ function doExportVods() {
     if (!confirm("Don't say I didn't warn you.")) return;
     const force = prompt("Do you want to force export? (y/n)", "n");
     axios
-        .post(`/api/v0/channels/${props.streamer.uuid}/exportallvods${force === "y" ? "?force=true" : ""}`)
+        .post<ApiResponse>(`/api/v0/channels/${props.streamer.uuid}/exportallvods${force === "y" ? "?force=true" : ""}`)
         .then((response) => {
-            const json: ApiResponse = response.data;
+            const json = response.data;
             if (json.message) alert(json.message);
             console.log(json);
             store.fetchStreamerList();

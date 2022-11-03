@@ -370,8 +370,8 @@ function sortChapters() {
 function doEditVod() {
     if (!props.vod) return;
     sortChapters();
-    axios.post(`/api/v0/vod/${props.vod.uuid}`, editVodSettings.value).then((response) => {
-        const json: ApiResponse = response.data;
+    axios.post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}`, editVodSettings.value).then((response) => {
+        const json = response.data;
         if (json.message) alert(json.message);
         console.log(json);
         if (props.vod) store.fetchAndUpdateVod(props.vod.uuid);

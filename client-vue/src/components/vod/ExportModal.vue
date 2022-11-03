@@ -465,8 +465,8 @@ function templatePreview(template: string): string {
 function doExportVod() {
     if (!props.vod) return;
     loading.value = true;
-    axios.post(`/api/v0/exporter?mode=vod&exporter=${exporter.value}`, exportVodSettings.value).then((response) => {
-        const json: ApiResponse = response.data;
+    axios.post<ApiResponse>(`/api/v0/exporter?mode=vod&exporter=${exporter.value}`, exportVodSettings.value).then((response) => {
+        const json = response.data;
         if (json.message) alert(json.message);
         console.log(json);
         if (props.vod) store.fetchAndUpdateVod(props.vod.uuid);
@@ -505,12 +505,12 @@ function createYouTubePlaylist() {
     const title = prompt("Playlist Title");
     if (!title) return;
     const description = prompt("Playlist Description");
-    axios.post(`/api/v0/youtube/playlists`, {
+    axios.post<ApiResponse>(`/api/v0/youtube/playlists`, {
         title: title,
         description: description,
         // privacy: exportVodSettings.value.privacy,
     }).then((response) => {
-        const json: ApiResponse = response.data;
+        const json = response.data;
         if (json.message) alert(json.message);
         console.log(json);
         if (json.data) {

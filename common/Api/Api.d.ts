@@ -84,7 +84,15 @@ export interface ApiFilesResponse extends ApiResponse {
 
 export interface ApiAuthResponse {
     authentication: boolean;
+    authenticated: boolean;
     guest_mode: boolean;
+    message?: string;
+}
+
+export interface ApiLoginResponse {
+    authenticated: boolean;
+    message?: string;
+    status: "OK" | "ERROR";
 }
 
 export interface IApiResponse<T> {

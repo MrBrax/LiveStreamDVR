@@ -415,10 +415,10 @@ export default defineComponent({
             this.formStatus = "";
 
             axios
-                .post(`/api/v0/channels`, this.formData)
+                .post<ApiResponse>(`/api/v0/channels`, this.formData)
                 .then((response) => {
                     const json = response.data;
-                    this.formStatusText = json.message;
+                    this.formStatusText = json.message || "No message";
                     this.formStatus = json.status;
                     if (json.status == "OK") {
                         this.$emit("formSuccess", json);
@@ -520,7 +520,7 @@ export default defineComponent({
         },
         getChannelId() {
             this.fetchingUrl = true;
-            axios.post(`/api/v0/youtubeapi/channelid`, { url: this.channelUrl } ).then((response) => {
+            axios.post<ApiResponse>(`/api/v0/youtubeapi/channelid`, { url: this.channelUrl } ).then((response) => {
                 const json = response.data;
                 if (json.status == "OK") {
                     this.formData.channel_id = json.data;

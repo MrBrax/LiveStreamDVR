@@ -1,5 +1,5 @@
-import { ApiJob, ApiLogLine, ApiChannels, ApiVods } from "../../../common/Api/Client";
-import { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiJobsResponse, ApiSettingsResponse, ApiVodResponse } from "../../../common/Api/Api";
+import { ApiJob, ApiLogLine, ApiChannels, ApiVods } from "@common/Api/Client";
+import { ApiResponse, ApiAuthResponse, ApiLoginResponse, ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiJobsResponse, ApiSettingsResponse, ApiVodResponse } from "@common/Api/Api";
 import axios from "axios";
 import { defineStore } from "pinia";
 import { ClientSettings, SidemenuShow } from "@/twitchautomator";
@@ -505,7 +505,7 @@ export const useStore = defineStore("twitchAutomator", {
             let response;
 
             try {
-                response = await axios.post(`/api/v0/auth/login`, { password });
+                response = await axios.post<ApiLoginResponse>(`/api/v0/auth/login`, { password });
             } catch (error) {
                 console.error(error);
                 this.loading = false;
@@ -526,7 +526,7 @@ export const useStore = defineStore("twitchAutomator", {
             let response;
 
             try {
-                response = await axios.post(`/api/v0/auth/logout`);
+                response = await axios.post<ApiResponse>(`/api/v0/auth/logout`);
             } catch (error) {
                 console.error(error);
                 this.loading = false;

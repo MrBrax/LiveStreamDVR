@@ -365,7 +365,7 @@ export default defineComponent({
         subscribeAll() {
             this.subscriptionsLoading = true;
             axios
-                .post(`/api/v0/subscriptions`)
+                .post<ApiResponse>(`/api/v0/subscriptions`)
                 .then((response) => {
                     const json = response.data;
                     console.debug("subscribeAll", json);

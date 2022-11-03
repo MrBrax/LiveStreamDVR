@@ -691,9 +691,9 @@ function doDownloadChat(method = "tcd"): void {
     if (!props.vod) return;
     if (!confirm(`Do you want to download the chat for "${props.vod.basename}" with ${method}?`)) return;
     axios
-        .post(`/api/v0/vod/${props.vod.uuid}/download_chat?method=${method}`)
+        .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/download_chat?method=${method}`)
         .then((response) => {
-            const json: ApiResponse = response.data;
+            const json = response.data;
             if (json.message) alert(json.message);
             console.log(json);
             emit("refresh");
@@ -713,9 +713,9 @@ function doDownloadVod(): void {
     }
 
     axios
-        .post(`/api/v0/vod/${props.vod.uuid}/download?quality=${vodDownloadSettings.value.quality}`)
+        .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/download?quality=${vodDownloadSettings.value.quality}`)
         .then((response) => {
-            const json: ApiResponse = response.data;
+            const json = response.data;
             if (json.message) alert(json.message);
             console.log(json);
             emit("refresh");
@@ -729,9 +729,9 @@ function doDownloadVod(): void {
 function doCheckMute(): void {
     if (!props.vod) return;
     axios
-        .post(`/api/v0/vod/${props.vod.uuid}/check_mute`)
+        .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/check_mute`)
         .then((response) => {
-            const json: ApiResponse = response.data;
+            const json = response.data;
             if (json.message) alert(json.message);
             console.log(json);
 
@@ -781,9 +781,9 @@ function doFixIssues(): void {
     );
     if (!c) return;
     axios
-        .post(`/api/v0/vod/${props.vod.uuid}/fix_issues`)
+        .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/fix_issues`)
         .then((response) => {
-            const json: ApiResponse = response.data;
+            const json = response.data;
             if (json.message) alert(json.message);
             console.log(json);
             emit("refresh");
@@ -834,8 +834,8 @@ function templatePreview(template: string): string {
 
 function doRenameVod(): void {
     if (!props.vod) return;
-    axios.post(`/api/v0/vod/${props.vod.uuid}/rename`, renameVodSettings.value).then((response) => {
-        const json: ApiResponse = response.data;
+    axios.post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/rename`, renameVodSettings.value).then((response) => {
+        const json = response.data;
         if (json.message) alert(json.message);
         console.log(json);
         store.fetchAndUpdateStreamerList();

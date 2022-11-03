@@ -530,8 +530,8 @@ export default defineComponent({
         },
         doExportFile() {
             // if (!this.vod) return;
-            axios.post(`/api/v0/exporter?mode=file&exporter=${this.exporter}`, this.exportVodSettings).then((response) => {
-                const json: ApiResponse = response.data;
+            axios.post<ApiResponse>(`/api/v0/exporter?mode=file&exporter=${this.exporter}`, this.exportVodSettings).then((response) => {
+                const json = response.data;
                 if (json.message) alert(json.message);
                 console.log(json);
                 // if (this.vod) this.store.fetchAndUpdateVod(this.vod.basename);

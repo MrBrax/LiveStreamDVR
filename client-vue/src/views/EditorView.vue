@@ -401,10 +401,10 @@ export default defineComponent({
             };
 
             axios
-                .post(`/api/v0/vod/${this.uuid}/cut`, inputs)
+                .post<ApiResponse>(`/api/v0/vod/${this.uuid}/cut`, inputs)
                 .then((response) => {
                     const json = response.data;
-                    this.formStatusText = json.message;
+                    this.formStatusText = json.message || "No message";
                     this.formStatus = json.status;
                     if (json.status == "OK") {
                         // this.$emit("formSuccess", json);
@@ -442,8 +442,8 @@ export default defineComponent({
             const offset = this.currentVideoTime;
             const name = prompt(`Bookmark name for offset ${offset}:`);
             if (!name) return;
-            axios.post(`/api/v0/vod/${this.vodData.basename}/bookmark`, { name: name, offset: offset }).then((response) => {
-                const json: ApiResponse = response.data;
+            axios.post<ApiResponse>(`/api/v0/vod/${this.vodData.basename}/bookmark`, { name: name, offset: offset }).then((response) => {
+                const json = response.data;
                 if (json.message) alert(json.message);
                 console.log(json);
                 if (this.uuid) this.store.fetchAndUpdateVod(this.uuid);

@@ -86,8 +86,8 @@ const newBookmark = ref({
 
 function doMakeBookmark() {
     if (!props.vod) return;
-    axios.post(`/api/v0/vod/${props.vod.uuid}/bookmark`, newBookmark.value).then((response) => {
-        const json: ApiResponse = response.data;
+    axios.post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/bookmark`, newBookmark.value).then((response) => {
+        const json = response.data;
         if (json.message) alert(json.message);
         console.log(json);
         if (props.vod) store.fetchAndUpdateVod(props.vod.uuid);
@@ -100,8 +100,8 @@ function doMakeBookmark() {
 
 function doDeleteBookmark(i: number) {
     if (!props.vod) return;
-    axios.delete(`/api/v0/vod/${props.vod.uuid}/bookmark?index=${i}`).then((response) => {
-        const json: ApiResponse = response.data;
+    axios.delete<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/bookmark?index=${i}`).then((response) => {
+        const json = response.data;
         if (json.message) alert(json.message);
         console.log(json);
         if (props.vod) store.fetchAndUpdateVod(props.vod.uuid);

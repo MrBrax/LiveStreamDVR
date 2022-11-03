@@ -296,9 +296,9 @@ function doArchive() {
     if (!confirm(`Do you want to archive "${props.vod?.basename}"?`)) return;
     // taskStatus.archive = true;
     axios
-        .post(`/api/v0/vod/${props.vod.uuid}/save`)
+        .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/save`)
         .then((response) => {
-            const json: ApiResponse = response.data;
+            const json = response.data;
             if (json.message) alert(json.message);
             console.log(json);
             // this.taskStatus.archive = false;

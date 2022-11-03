@@ -348,9 +348,9 @@ function twitchVideoLink(video_id: string): string {
 function matchVod() {
     if (!props.vod) return;
     axios
-        .post(`/api/v0/vod/${props.vod.uuid}/match`)
+        .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/match`)
         .then((response) => {
-            const json: ApiResponse = response.data;
+            const json = response.data;
             if (json.message) alert(json.message);
             console.log(json);
             // emit("refresh");

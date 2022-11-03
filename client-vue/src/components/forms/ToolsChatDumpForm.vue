@@ -42,6 +42,7 @@
 
 <script lang="ts">
 import axios from "axios";
+import { ApiResponse } from "@common/Api/Api";
 import { defineComponent } from "vue";
 import { useI18n } from "vue-i18n";
 
@@ -76,10 +77,10 @@ export default defineComponent({
             this.formStatus = "";
 
             axios
-                .post(`/api/v0/tools/chat_dump`, this.formData)
+                .post<ApiResponse>(`/api/v0/tools/chat_dump`, this.formData)
                 .then((response) => {
                     const json = response.data;
-                    this.formStatusText = json.message;
+                    this.formStatusText = json.message || "No message";
                     this.formStatus = json.status;
                     if (json.status == "OK") {
                         this.$emit("formSuccess", json);

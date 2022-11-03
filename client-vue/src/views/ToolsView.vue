@@ -243,6 +243,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { ApiResponse } from "@common/Api/Api";
 
 // import ToolsBurnForm from "@/components/forms/ToolsBurnForm.vue";
 import ToolsVodDownloadForm from "@/components/forms/ToolsVodDownloadForm.vue";
@@ -338,7 +339,7 @@ export default defineComponent({
                     console.log("payload", data);
 
                     axios
-                        .post(`/api/v0/hook`, data.body, {
+                        .post<ApiResponse>(`/api/v0/hook`, data.body, {
                             headers: data.headers,
                         })
                         .then((response) => {
@@ -357,7 +358,7 @@ export default defineComponent({
             if (!confirm("Reset channels?")) return;
 
             axios
-                .post(`/api/v0/tools/reset_channels`)
+                .post<ApiResponse>(`/api/v0/tools/reset_channels`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);
@@ -371,7 +372,7 @@ export default defineComponent({
             if (!confirm("Shutdown?")) return;
 
             axios
-                .post(`/api/v0/tools/shutdown`)
+                .post<ApiResponse>(`/api/v0/tools/shutdown`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);
@@ -387,7 +388,7 @@ export default defineComponent({
             const basepath = prompt("Base path", "/");
 
             axios
-                .post(`/api/v0/tools/buildclient?basepath=${basepath}`)
+                .post<ApiResponse>(`/api/v0/tools/buildclient?basepath=${basepath}`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);

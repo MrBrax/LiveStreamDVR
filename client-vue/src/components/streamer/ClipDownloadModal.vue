@@ -105,7 +105,7 @@ async function downloadClip(clip: Clip) {
     let response;
 
     try {
-        response = await axios.post(`/api/v0/tools/clip_download`, {
+        response = await axios.post<ApiResponse>(`/api/v0/tools/clip_download`, {
             url: clip.url,
         });
     } catch (error) {

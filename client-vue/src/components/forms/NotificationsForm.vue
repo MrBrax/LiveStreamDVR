@@ -217,12 +217,12 @@ export default defineComponent({
         },
         testNotification() {
             axios
-                .post(`/api/v0/notifications/test`, {
+                .post<ApiResponse>(`/api/v0/notifications/test`, {
                     provider: this.test.provider,
                     category: this.test.category,
                 })
                 .then((response) => {
-                    const json: ApiResponse = response.data;
+                    const json = response.data;
                     console.debug("notifications", json);
                     this.formStatusText = json.message || "Unknown";
                     this.formStatus = json.status;

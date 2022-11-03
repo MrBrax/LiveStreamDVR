@@ -515,7 +515,7 @@ export default defineComponent({
             }
 
             axios
-                .post(`/api/v0/channels/${this.channel.uuid}/subscribe`)
+                .post<ApiResponse>(`/api/v0/channels/${this.channel.uuid}/subscribe`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);
@@ -566,7 +566,7 @@ export default defineComponent({
             const newLogin = prompt("Enter new channel login. If channel has not changed login, this will fail in the future.\n", this.channel.login);
             if (!newLogin || newLogin == this.channel.login) return;
             axios
-                .post(`/api/v0/channels/${this.channel.uuid}/rename`, {
+                .post<ApiResponse>(`/api/v0/channels/${this.channel.uuid}/rename`, {
                     new_login: newLogin,
                 })
                 .then((response) => {
@@ -586,7 +586,7 @@ export default defineComponent({
         deleteAllVods() {
             if (!confirm(`Do you want to delete all VODs for "${this.channel.uuid}"? This cannot be undone.`)) return;
             axios
-                .post(`/api/v0/channels/${this.channel.uuid}/deleteallvods`)
+                .post<ApiResponse>(`/api/v0/channels/${this.channel.uuid}/deleteallvods`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);
