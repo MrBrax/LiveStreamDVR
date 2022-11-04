@@ -122,6 +122,7 @@ export class Config {
         // { "key": "sub_lease", "group": "Advanced", "text": "Subscription lease", "type": "number", "default": 604800 },
         { "key": "api_client_id", "group": "Basic", "text": "Twitch client ID", "type": "string", "required": true },
         { "key": "api_secret", "group": "Basic", "text": "Twitch secret", "type": "string", "secret": true, "required": true, "help": "Keep blank to not change" },
+        { "key": "twitchapi.auth_type", "group": "Basic", "text": "Twitch auth type", "type": "string", "default": "app", "choices": { "user": "User", "app": "App" } },
 
         { "key": "youtube.client_id", "group": "YouTube", "text": "YouTube client ID", "type": "string" },
         { "key": "youtube.client_secret", "group": "YouTube", "text": "YouTube secret", "type": "string", "secret": true },

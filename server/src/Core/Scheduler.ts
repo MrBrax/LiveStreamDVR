@@ -12,6 +12,8 @@ import { format, parseJSON } from "date-fns";
 import { ClipBasenameTemplate } from "@common/Replacements";
 import sanitize from "sanitize-filename";
 import { formatString } from "@common/Format";
+import { TwitchHelper } from "Providers/Twitch";
+import axios from "axios";
 
 export class Scheduler {
 
@@ -61,6 +63,12 @@ export class Scheduler {
         // this.schedule("* * * * *", () => {
         //     console.log("Cronjob ran", new Date().toISOString());
         // });
+
+        // validate oauth token every hour
+        this.schedule("validate_oauth", "0 */1 * * *", () => {
+            if (Config.getInstance().cfg("twitchapi.auth_type") == "app") return;
+            this.validateOAuth();
+        });
 
     }
 
@@ -190,6 +198,32 @@ export class Scheduler {
         fs.writeFileSync(clips_database, JSON.stringify(downloaded_clips, null, 4));
 
         Log.logAdvanced(Log.Level.INFO, "Scheduler", "Scheduler: scheduleClipDownload - end");
+
+    }
+
+    public static async validateOAuth(): Promise<boolean> {
+        const token = TwitchHelper.accessToken;
+        if (TwitchHelper.accessTokenType !== "user") return false;
+
+        let res;
+        try {
+            res = await axios.get("https://id.twitch.tv/oauth2/validate", {
+                headers: {
+                    Authorization: `OAuth ${token}`,
+                },
+            });
+        } catch (error) {
+            Log.logAdvanced(Log.Level.ERROR, "Scheduler", `Failed to validate oauth token: ${(error as Error).message}`, error);
+            return false;            
+        }
+
+        if (res.status === 200) {
+            Log.logAdvanced(Log.Level.INFO, "Scheduler", "OAuth token is valid");
+            return true;
+        } else {
+            Log.logAdvanced(Log.Level.ERROR, "Scheduler", `Failed to validate oauth token: ${res.status} ${res.statusText}`, res.data);
+            return false;
+        }
 
     }
 

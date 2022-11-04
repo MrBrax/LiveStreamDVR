@@ -30,10 +30,16 @@ export class TwitchHelper {
     static axios: Axios | undefined;
 
     static accessToken = "";
+    static accessTokenType?: "user" | "app";
 
-    static readonly accessTokenFile = path.join(
+    static readonly accessTokenAppFile = path.join(
         BaseConfigCacheFolder.cache,
         "oauth.bin"
+    );
+
+    static readonly accessTokenUserFile = path.join(
+        BaseConfigCacheFolder.cache,
+        "oauth_user.bin"
     );
 
     static readonly accessTokenExpire = 60 * 60 * 24 * 60 * 1000; // 60 days
@@ -62,29 +68,34 @@ export class TwitchHelper {
     ];
 
     static async getAccessToken(force = false): Promise<string> {
+        return await this.getAccessTokenApp(force);
+    }
+
+    static async getAccessTokenApp(force = false): Promise<string> {
         // token should last 60 days, delete it after 30 just to be sure
-        if (fs.existsSync(this.accessTokenFile)) {
+        if (fs.existsSync(this.accessTokenAppFile)) {
             if (
                 Date.now() >
-                fs.statSync(this.accessTokenFile).mtimeMs +
+                fs.statSync(this.accessTokenAppFile).mtimeMs +
                     this.accessTokenRefresh
             ) {
                 Log.logAdvanced(
                     Log.Level.INFO,
                     "tw.helper",
                     `Deleting old access token, too old: ${format(
-                        fs.statSync(this.accessTokenFile).mtimeMs,
+                        fs.statSync(this.accessTokenAppFile).mtimeMs,
                         this.PHP_DATE_FORMAT
                     )}`
                 );
-                fs.unlinkSync(this.accessTokenFile);
+                fs.unlinkSync(this.accessTokenAppFile);
             } else if (!force) {
                 Log.logAdvanced(
                     Log.Level.DEBUG,
                     "tw.helper",
                     "Fetched access token from cache"
                 );
-                return fs.readFileSync(this.accessTokenFile, "utf8");
+                this.accessTokenType = "app";
+                return fs.readFileSync(this.accessTokenAppFile, "utf8");
             }
         }
 
@@ -166,7 +177,7 @@ export class TwitchHelper {
 
         this.accessToken = access_token;
 
-        fs.writeFileSync(this.accessTokenFile, access_token);
+        fs.writeFileSync(this.accessTokenAppFile, access_token);
 
         Log.logAdvanced(
             Log.Level.INFO,
@@ -174,7 +185,47 @@ export class TwitchHelper {
             "Fetched new access token"
         );
 
+        this.accessTokenType = "app";
+
         return access_token;
+    }
+
+    static async getAccessTokenUser(force = false): Promise<string> {
+
+        if (fs.existsSync(this.accessTokenUserFile)) {
+            if (
+                Date.now() >
+                fs.statSync(this.accessTokenUserFile).mtimeMs +
+                    this.accessTokenRefresh
+            ) {
+                Log.logAdvanced(
+                    Log.Level.INFO,
+                    "tw.helper",
+                    `Deleting old access token, too old: ${format(
+                        fs.statSync(this.accessTokenUserFile).mtimeMs,
+                        this.PHP_DATE_FORMAT
+                    )}`
+                );
+                fs.unlinkSync(this.accessTokenUserFile);
+            } else if (!force) {
+                Log.logAdvanced(
+                    Log.Level.DEBUG,
+                    "tw.helper",
+                    "Fetched access token from cache"
+                );
+                this.accessTokenType = "user";
+                return fs.readFileSync(this.accessTokenUserFile, "utf8");
+            }
+        }
+
+        Log.logAdvanced(
+            Log.Level.ERROR,
+            "tw.helper",
+            "Can't automate user access token, and no user access token found in cache!"
+        );
+
+        throw new Error("Can't automate user access token, and no user access token found in cache!");
+
     }
 
     /**
