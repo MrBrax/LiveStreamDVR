@@ -612,7 +612,9 @@ export class Config {
 
         this.startWatchingConfig();
 
-        this.postSaveConfig();
+        if (this.initialised) { // don't post save config on startup
+            this.postSaveConfig();
+        }
 
         return success;
 
@@ -916,6 +918,8 @@ export class Config {
         Log.logAdvanced(Log.Level.SUCCESS, "config", "Loading config stuff done.");
 
         Config.getInstance().initialised = true;
+
+        // TwitchHelper.refreshUserAccessToken();
 
     }
 

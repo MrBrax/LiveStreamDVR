@@ -24,9 +24,9 @@ export interface Pagination {
 }
 
 export interface ErrorResponse {
-    error: "Unauthorized";
+    error: string;
     status: number;
-    "message": "Invalid OAuth token";
+    message: string;
 }
 
 export type EventSubStatus = 

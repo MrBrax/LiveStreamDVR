@@ -103,7 +103,7 @@ export async function Callback(req: express.Request, res: express.Response): Pro
     TwitchHelper.accessTokenType = "user";
     TwitchHelper.accessToken = token;
     TwitchHelper.accessTokenTime = Date.now() + tokenResponse.data.expires_in;
-    TwitchHelper.accessRefreshToken = tokenResponse.data.refresh_token;
+    TwitchHelper.userRefreshToken = tokenResponse.data.refresh_token;
 
     fs.writeFileSync(TwitchHelper.accessTokenUserFile, JSON.stringify(tokenResponse.data));
 
@@ -131,7 +131,7 @@ export async function Status(req: express.Request, res: express.Response): Promi
     //     return;
     // }
 
-    if (!TwitchHelper.accessTokenUserId) {
+    if (!TwitchHelper.userTokenUserId) {
         res.status(500).send({
             status: "ERROR",
             message: "No user ID found.",
@@ -141,7 +141,7 @@ export async function Status(req: express.Request, res: express.Response): Promi
 
     let data;
     try {
-        data = await TwitchChannel.getUserDataById(TwitchHelper.accessTokenUserId);
+        data = await TwitchChannel.getUserDataById(TwitchHelper.userTokenUserId);
     } catch (error) {
         res.status(500).send({
             status: "ERROR",

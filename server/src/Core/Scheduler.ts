@@ -74,6 +74,15 @@ export class Scheduler {
             TwitchHelper.validateOAuth();
         });
 
+        // refresh oauth token every 29 days
+        // this.schedule("refresh_oauth", "0 0 */29 * *", () => {
+        //     // if (Config.getInstance().cfg("twitchapi.auth_type") == "app") return;
+        //     if (TwitchHelper.accessToken && TwitchHelper.accessTokenType !== "user") {
+        //         return;
+        //     }
+        //     TwitchHelper.refreshUserAccessToken();
+        // });
+
     }
 
     public static hasJob(name: string) {
