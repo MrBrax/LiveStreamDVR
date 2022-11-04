@@ -4,6 +4,7 @@ import fs from "node:fs";
 import { WebSocket } from "ws";
 import path from "node:path";
 import { EventSubTypes, Subscription } from "@common/TwitchAPI/Shared";
+import type { TwitchAuthAppTokenResponse } from "@common/TwitchAPI/Auth";
 import { Subscriptions } from "@common/TwitchAPI/Subscriptions";
 import { BaseConfigCacheFolder } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
@@ -31,10 +32,16 @@ export class TwitchHelper {
 
     static accessToken = "";
     static accessTokenType?: "user" | "app";
+    static accessTokenTime = 0;
+
+    static readonly accessTokenAppFileLegacy = path.join(
+        BaseConfigCacheFolder.cache,
+        "oauth.bin"
+    );
 
     static readonly accessTokenAppFile = path.join(
         BaseConfigCacheFolder.cache,
-        "oauth.bin"
+        "oauth.json"
     );
 
     static readonly accessTokenUserFile = path.join(
@@ -81,7 +88,7 @@ export class TwitchHelper {
             ) {
                 Log.logAdvanced(
                     Log.Level.INFO,
-                    "tw.helper",
+                    "tw.helper.getAccessTokenApp",
                     `Deleting old access token, too old: ${format(
                         fs.statSync(this.accessTokenAppFile).mtimeMs,
                         this.PHP_DATE_FORMAT
@@ -91,13 +98,48 @@ export class TwitchHelper {
             } else if (!force) {
                 Log.logAdvanced(
                     Log.Level.DEBUG,
-                    "tw.helper",
+                    "tw.helper.getAccessTokenApp",
                     "Fetched access token from cache"
                 );
                 this.accessTokenType = "app";
-                return fs.readFileSync(this.accessTokenAppFile, "utf8");
+                const data: TwitchAuthAppTokenResponse = JSON.parse(
+                    fs.readFileSync(this.accessTokenAppFile, "utf8")
+                );
+                this.accessToken = data.access_token;
+                this.accessTokenTime = Date.now() + (data.expires_in * 1000);
+                Log.logAdvanced(
+                    Log.Level.INFO,
+                    "tw.helper.getAccessTokenApp",
+                    `Access token expires at ${format(this.accessTokenTime, Config.getInstance().dateFormat)}`
+                );
+                return this.accessToken;
+            }
+        } else if (fs.existsSync(this.accessTokenAppFileLegacy)) {
+            if (
+                Date.now() >
+                fs.statSync(this.accessTokenAppFileLegacy).mtimeMs +
+                    this.accessTokenRefresh
+            ) {
+                Log.logAdvanced(
+                    Log.Level.INFO,
+                    "tw.helper.getAccessTokenApp",
+                    `Deleting old access token, too old: ${format(
+                        fs.statSync(this.accessTokenAppFileLegacy).mtimeMs,
+                        this.PHP_DATE_FORMAT
+                    )}`
+                );
+                fs.unlinkSync(this.accessTokenAppFileLegacy);
+            } else if (!force) {
+                Log.logAdvanced(
+                    Log.Level.DEBUG,
+                    "tw.helper.getAccessTokenApp",
+                    "Fetched access token from cache"
+                );
+                this.accessTokenType = "app";
+                return fs.readFileSync(this.accessTokenAppFileLegacy, "utf8");
             }
         }
+
 
         if (
             !Config.getInstance().cfg("api_secret") ||
@@ -105,7 +147,7 @@ export class TwitchHelper {
         ) {
             Log.logAdvanced(
                 Log.Level.ERROR,
-                "tw.helper",
+                "tw.helper.getAccessTokenApp",
                 "Missing either api secret or client id, aborting fetching of access token!"
             );
             throw new Error(
@@ -129,13 +171,13 @@ export class TwitchHelper {
                 ]
             ]);
         } catch (\Throwable $th) {
-            TwitchLog.logAdvanced(Log.Level.FATAL, "tw.helper", "Tried to get oauth token but server returned: " . $th->getMessage());
+            TwitchLog.logAdvanced(Log.Level.FATAL, "tw.helper.getAccessTokenApp", "Tried to get oauth token but server returned: " . $th->getMessage());
             sleep(5);
             return false;
         }
         */
 
-        const response = await axios.post(
+        const response = await axios.post<TwitchAuthAppTokenResponse>(
             oauth_url,
             {
                 client_id: Config.getInstance().cfg("api_client_id"),
@@ -152,7 +194,7 @@ export class TwitchHelper {
         if (response.status != 200) {
             Log.logAdvanced(
                 Log.Level.FATAL,
-                "tw.helper",
+                "tw.helper.getAccessTokenApp",
                 "Tried to get oauth token but server returned: " +
                     response.statusText
             );
@@ -167,7 +209,7 @@ export class TwitchHelper {
         if (!json || !json.access_token) {
             Log.logAdvanced(
                 Log.Level.ERROR,
-                "tw.helper",
+                "tw.helper.getAccessTokenApp",
                 `Failed to fetch access token: ${json}`
             );
             throw new Error(`Failed to fetch access token: ${json}`);
@@ -176,13 +218,15 @@ export class TwitchHelper {
         const access_token = json.access_token;
 
         this.accessToken = access_token;
+        this.accessTokenTime = Date.now() + (json.expires_in * 1000);
 
-        fs.writeFileSync(this.accessTokenAppFile, access_token);
+        // fs.writeFileSync(this.accessTokenAppFileLegacy, access_token);
+        fs.writeFileSync(this.accessTokenAppFile, JSON.stringify(json));
 
         Log.logAdvanced(
             Log.Level.INFO,
-            "tw.helper",
-            "Fetched new access token"
+            "tw.helper.getAccessTokenApp",
+            `Fetched new access token, expires at ${format(this.accessTokenTime, Config.getInstance().dateFormat)}`
         );
 
         this.accessTokenType = "app";
