@@ -231,8 +231,8 @@
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script lang="ts" setup>
+import { computed, defineComponent, onMounted, ref } from "vue";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import { useStore, VODTypes } from "@/store";
 import { ApiResponse, ApiVodResponse } from "@common/Api/Api";
@@ -246,215 +246,236 @@ import { useRoute } from "vue-router";
 import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
 library.add(faPause, faBookmark, faFastBackward, faFastForward);
 
-export default defineComponent({
-    name: "EditorView",
-    title: "Editor",
-    props: {
-        uuid: String,
-    },
-    setup() {
-        const store = useStore();
-        const { t } = useI18n();
-        const route = useRoute();
-        return { store, t, route, formatDuration, humanDuration, formatBytes };
-    },
-    data() {
-        return {
-            vodData: {} as VODTypes,
-            secondsIn: 0,
-            secondsOut: 0,
-            currentVideoTime: 0,
-            cutName: "",
-            formStatusText: "Ready",
-            formStatus: "",
-            videoDuration: 0,
-        };
-    },
-    computed: {
-        timelineCutStyle(): Record<string, string> {
-            if (!this.currentVideoTime) return { left: "0%", right: "100%" };
-            const dur = (this.$refs.player as HTMLVideoElement).duration;
-            return {
-                left: (this.secondsIn / dur) * 100 + "%",
-                right: 100 - (this.secondsOut / dur) * 100 + "%",
-            };
-        },
-        timelinePlayheadStyle(): Record<string, string> {
-            if (!this.currentVideoTime) return { left: "0%" };
-            const percent = (this.currentVideoTime / (this.$refs.player as HTMLVideoElement).duration) * 100;
-            return {
-                left: percent + "%",
-            };
-        },
-        formStatusClass(): Record<string, boolean> {
-            return {
-                "form-status": true,
-                "is-error": this.formStatus == "ERROR",
-                "is-success": this.formStatus == "OK",
-            };
-        },
-        cutSegmentlength(): number {
-            if (this.secondsIn === undefined || this.secondsOut === undefined) return 0;
-            return (this.secondsOut - this.secondsIn);
-        },
-        exportSize(): number {
-            if (this.secondsIn === undefined || this.secondsOut === undefined) return 0;
-            if (!this.vodData || this.vodData.segments.length == 0) return 0;
-            const duration = this.secondsOut - this.secondsIn;
-            const original_size = this.vodData.segments[0].filesize;
-            if (!original_size) return 0;
-            return Math.round(original_size * (duration / this.videoDuration));
-        },
-        videoSource(): string {
-            return `${this.vodData.webpath}/${this.vodData.basename}.mp4`
-        },
-        chapterSource(): string {
-            return `${this.vodData.webpath}/${this.vodData.basename}.chapters.vtt`;
-        }
-        // videoDuration(): number {
-        //     const player = this.$refs.player as HTMLVideoElement;
-        //     if (!player) return 0;
-        //     return player.duration;
-        // },
-    },
-    created() {
-        this.fetchData();
-    },
-    methods: {
-        fetchData() {
-            // this.vodData = [];
-            /** TODO: axios */
-            axios
-                .get<ApiVodResponse>(`/api/v0/vod/${this.uuid}`)
-                .then((response) => {
-                    const json = response.data;
-                    if (json.data.provider == "twitch") {
-                        this.vodData = TwitchVOD.makeFromApiResponse(json.data);
-                    } else {
-                        this.vodData = YouTubeVOD.makeFromApiResponse(json.data);
-                    }
-                    setTimeout(() => {
-                        this.setupPlayer();
-                    }, 500);
-                })
-                .catch((err) => {
-                    console.error("about error", err.response);
-                });
-        },
-        setupPlayer() {
-            if (this.route.query.start !== undefined) {
-                (this.$refs.player as HTMLVideoElement).currentTime = parseInt(this.route.query.start as string);
-                if (this.route.query.start !== undefined) this.secondsIn = parseInt(this.route.query.start as string);
-                if (this.route.query.end !== undefined) this.secondsOut = parseInt(this.route.query.end as string);
-            }
-        },
-        play() {
-            console.log("play", this.$refs.player);
-            (this.$refs.player as HTMLVideoElement).play();
-        },
-        pause() {
-            console.log("pause", this.$refs.player);
-            (this.$refs.player as HTMLVideoElement).pause();
-        },
-        scrub(tIn: number, tOut: number) {
-            // const gameOffset = this.vodData.game_offset; // TODO: why
-            const gameOffset = 0;
-            this.secondsIn = Math.round(tIn - gameOffset);
-            this.secondsOut = Math.round(tIn + tOut - gameOffset);
-            // this.$forceUpdate();
-        },
-        seek(event: MouseEvent) {
-            console.log("seek", event);
-            const duration = (this.$refs.player as HTMLVideoElement).duration;
-            const rect = (this.$refs.timeline as HTMLDivElement).getBoundingClientRect();
-            const percent = (event.clientX - rect.left) / (this.$refs.timeline as HTMLDivElement).clientWidth;
-            const seconds = Math.round(duration * percent);
-            (this.$refs.player as HTMLVideoElement).currentTime = seconds;
+const props = defineProps<{
+    uuid: string;
+}>();
 
-            // this.$forceUpdate();
-        },
-        videoTimeUpdate(event: Event) {
-            // console.log(v);
-            this.currentVideoTime = (event.target as HTMLVideoElement).currentTime;
-        },
-        videoCanPlay(event: Event) {
-            console.log("can play", event);
-            this.videoDuration = (event.target as HTMLVideoElement).duration;
-        },
-        videoSeeked(event: Event) {
-            console.log("seeked", event);
-        },
-        videoError(event: Event) {
-            console.error("video error", event);
-            alert("Video error, does the video exist?");
-        },
-        submitForm(event: Event) {
+const store = useStore();
+const { t } = useI18n();
+const route = useRoute();
 
-            this.formStatusText = this.t("messages.loading");
-            this.formStatus = "";
+const vodData = ref<VODTypes | undefined>(undefined);
+const secondsIn = ref<number>(0);
+const secondsOut = ref<number>(0);
+const currentVideoTime = ref<number>(0);
+const cutName = ref<string>("");
+const formStatusText = ref<string>("Ready");
+const formStatus = ref<string>("");
+const videoDuration = ref<number>(0);
 
-            const inputs = {
-                vod: this.vodData.basename,
-                time_in: this.secondsIn,
-                time_out: this.secondsOut,
-                name: this.cutName,
-            };
+const player = ref<HTMLVideoElement | null>(null);
+const timeline = ref<HTMLDivElement | null>(null);
 
-            axios
-                .post<ApiResponse>(`/api/v0/vod/${this.uuid}/cut`, inputs)
-                .then((response) => {
-                    const json = response.data;
-                    this.formStatusText = json.message || "No message";
-                    this.formStatus = json.status;
-                    if (json.status == "OK") {
-                        // this.$emit("formSuccess", json);
-                    }
-                })
-                .catch((err) => {
-                    const json = err.response.data;
-                    console.error("form error", err.response);
-                    this.formStatus = json.status;
-                    this.formStatusText = json.message;
-                });
-
-            event.preventDefault();
-            return false;
-        },
-        chapterWidth(chapter: BaseVODChapter): number {
-            const player = this.$refs.player as HTMLVideoElement;
-            if (!player) return 0;
-            // const chapterOffset = chapter.offset || 0;
-            const chapterDuration = chapter.duration || 0;
-            const videoDuration = player.duration;
-            const width = (chapterDuration / videoDuration) * 100;
-            return width;
-        },
-        setFrameIn(frameNum: number) {
-            this.secondsIn = Math.round(frameNum);
-            if (this.secondsOut < this.secondsIn) this.secondsOut = this.secondsIn;
-        },
-        setFrameOut(frameNum: number) {
-            this.secondsOut = Math.round(frameNum);
-            if (this.secondsIn > this.secondsOut) this.secondsIn = this.secondsOut;
-        },
-        addBookmark() {
-            this.pause();
-            const offset = this.currentVideoTime;
-            const name = prompt(`Bookmark name for offset ${offset}:`);
-            if (!name) return;
-            axios.post<ApiResponse>(`/api/v0/vod/${this.vodData.basename}/bookmark`, { name: name, offset: offset }).then((response) => {
-                const json = response.data;
-                if (json.message) alert(json.message);
-                console.log(json);
-                if (this.uuid) this.store.fetchAndUpdateVod(this.uuid);
-                // if (this.editVodMenu) this.editVodMenu.show = false;
-            }).catch((err) => {
-                console.error("form error", err.response);
-                if (err.response.data && err.response.data.message) alert(err.response.data.message);
-            });
-        },
-    },
+const timelineCutStyle = computed((): Record<string, string> => {
+    if (!currentVideoTime.value || !player.value) return { left: "0%", right: "100%" };
+    const dur = player.value.duration;
+    return {
+        left: (secondsIn.value / dur) * 100 + "%",
+        right: 100 - (secondsOut.value / dur) * 100 + "%",
+    };
 });
+
+const timelinePlayheadStyle = computed((): Record<string, string> => {
+    if (!currentVideoTime.value || !player.value) return { left: "0%" };
+    const percent = (currentVideoTime.value / (player.value).duration) * 100;
+    return {
+        left: percent + "%",
+    };
+});
+
+const formStatusClass = computed((): Record<string, boolean> => {
+    return {
+        "form-status": true,
+        "is-error": formStatus.value == "ERROR",
+        "is-success": formStatus.value == "OK",
+    };
+});
+
+const cutSegmentlength = computed((): number => {
+    if (secondsIn.value === undefined || secondsOut.value === undefined) return 0;
+    return (secondsOut.value - secondsIn.value);
+});
+
+const exportSize = computed((): number => {
+    if (secondsIn.value === undefined || secondsOut.value === undefined) return 0;
+    if (!vodData.value || vodData.value.segments.length == 0) return 0;
+    const duration = secondsOut.value - secondsIn.value;
+    const original_size = vodData.value.segments[0].filesize;
+    if (!original_size) return 0;
+    return Math.round(original_size * (duration / videoDuration.value));
+});
+
+const videoSource = computed((): string => {
+    if (!vodData.value) return "";
+    return `${vodData.value.webpath}/${vodData.value.basename}.mp4`
+});
+
+const chapterSource = computed((): string => {
+    if (!vodData.value) return "";
+    return `${vodData.value.webpath}/${vodData.value.basename}.chapters.vtt`;
+});
+
+// videoDuration(): number {
+//     const player = player.value;
+//     if (!player) return 0;
+//     return player.duration;
+// },
+
+onMounted(() => {
+    fetchData();
+});
+    
+function fetchData() {
+    // vodData.value = [];
+    /** TODO: axios */
+    axios
+        .get<ApiVodResponse>(`/api/v0/vod/${props.uuid}`)
+        .then((response) => {
+            const json = response.data;
+            if (json.data.provider == "twitch") {
+                vodData.value = TwitchVOD.makeFromApiResponse(json.data);
+            } else {
+                vodData.value = YouTubeVOD.makeFromApiResponse(json.data);
+            }
+            setTimeout(() => {
+                setupPlayer();
+            }, 500);
+        })
+        .catch((err) => {
+            console.error("about error", err.response);
+        });
+}
+function setupPlayer() {
+    if (route.query.start !== undefined) {
+        if (player.value) player.value.currentTime = parseInt(route.query.start as string);
+        if (route.query.start !== undefined) secondsIn.value = parseInt(route.query.start as string);
+        if (route.query.end !== undefined) secondsOut.value = parseInt(route.query.end as string);
+    }
+}
+
+function play() {
+    if (!player.value) return;
+    console.log("play", player.value);
+    player.value.play();
+}
+
+function pause() {
+    if (!player.value) return;
+    console.log("pause", player.value);
+    player.value.pause();
+}
+
+function scrub(tIn: number, tOut: number) {
+    // const gameOffset = vodData.value.game_offset; // TODO: why
+    const gameOffset = 0;
+    secondsIn.value = Math.round(tIn - gameOffset);
+    secondsOut.value = Math.round(tIn + tOut - gameOffset);
+    // this.$forceUpdate();
+}
+
+function seek(event: MouseEvent) {
+    console.log("seek", event);
+    if (!player.value || !timeline.value) return;
+    const duration = player.value.duration;
+    const rect = timeline.value.getBoundingClientRect();
+    const percent = (event.clientX - rect.left) / timeline.value.clientWidth;
+    const seconds = Math.round(duration * percent);
+    player.value.currentTime = seconds;
+
+    // this.$forceUpdate();
+}
+
+function videoTimeUpdate(event: Event) {
+    // console.log(v);
+    currentVideoTime.value = (event.target as HTMLVideoElement).currentTime;
+}
+
+function videoCanPlay(event: Event) {
+    console.log("can play", event);
+    videoDuration.value = (event.target as HTMLVideoElement).duration;
+}
+
+function videoSeeked(event: Event) {
+    console.log("seeked", event);
+}
+
+function videoError(event: Event) {
+    console.error("video error", event);
+    alert("Video error, does the video exist?");
+}
+
+function submitForm(event: Event) {
+
+    if (!vodData.value) return;
+
+    formStatusText.value = t("messages.loading");
+    formStatus.value = "";
+
+    const inputs = {
+        vod: vodData.value.basename,
+        time_in: secondsIn.value,
+        time_out: secondsOut.value,
+        name: cutName.value,
+    };
+
+    axios
+        .post<ApiResponse>(`/api/v0/vod/${props.uuid}/cut`, inputs)
+        .then((response) => {
+            const json = response.data;
+            formStatusText.value = json.message || "No message";
+            formStatus.value = json.status;
+            if (json.status == "OK") {
+                // this.$emit("formSuccess", json);
+            }
+        })
+        .catch((err) => {
+            const json = err.response.data;
+            console.error("form error", err.response);
+            formStatus.value = json.status;
+            formStatusText.value = json.message;
+        });
+
+    event.preventDefault();
+    return false;
+}
+
+function chapterWidth(chapter: BaseVODChapter): number {
+    if (!player.value) return 0;
+    // const chapterOffset = chapter.offset || 0;
+    const chapterDuration = chapter.duration || 0;
+    const videoDuration = player.value.duration;
+    const width = (chapterDuration / videoDuration) * 100;
+    return width;
+}
+
+function setFrameIn(frameNum: number) {
+    secondsIn.value = Math.round(frameNum);
+    if (secondsOut.value < secondsIn.value) secondsOut.value = secondsIn.value;
+}
+
+function setFrameOut(frameNum: number) {
+    secondsOut.value = Math.round(frameNum);
+    if (secondsIn.value > secondsOut.value) secondsIn.value = secondsOut.value;
+}
+
+function addBookmark() {
+    if (!vodData.value) return;
+    pause();
+    const offset = currentVideoTime.value;
+    const name = prompt(`Bookmark name for offset ${offset}:`);
+    if (!name) return;
+    axios.post<ApiResponse>(`/api/v0/vod/${vodData.value.basename}/bookmark`, { name: name, offset: offset }).then((response) => {
+        const json = response.data;
+        if (json.message) alert(json.message);
+        console.log(json);
+        if (props.uuid) store.fetchAndUpdateVod(props.uuid);
+        // if (this.editVodMenu) this.editVodMenu.show = false;
+    }).catch((err) => {
+        console.error("form error", err.response);
+        if (err.response.data && err.response.data.message) alert(err.response.data.message);
+    });
+}
+    
 </script>
 
 <style lang="scss" scoped>
