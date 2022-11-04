@@ -72,6 +72,23 @@ export class Config {
             "help": "Enable this if your server is not exposed to the internet, aka no EventSub support.",
         },
 
+        {
+            "key": "date_format",
+            "group": "Basic",
+            "text": "Date format",
+            "type": "array",
+            "default": "yyyy-MM-dd",
+            "help": "Date format for various filenames. See https://date-fns.org/v2.29.3/docs/format",
+            "choices": {
+                "yyyy-MM-dd": "2021-12-31 (default)",
+                "yyyy-dd-MM": "2021-31-12",
+                "dd-MM-yyyy": "31-12-2021",
+                "MM-dd-yyyy": "12-31-2021",
+                "dd-MM yyyy": "31-12 2021",
+                "MM-dd yyyy": "12-31 2021",
+            },
+        },
+
         { "key": "motd", "group": "Interface", "text": "MOTD", "type": "string", "help": "Shown at the top of the dashboard", guest: true, multiline: true },
         { "key": "password", "group": "Interface", "text": "Password", "type": "string", "help": "Keep blank for none. Username is admin" },
         { "key": "guest_mode", "group": "Interface", "text": "Guest mode", "type": "boolean", "default": false, "help": "Allow guests to access the interface.", guest: true },
@@ -106,8 +123,8 @@ export class Config {
         { "key": "api_client_id", "group": "Basic", "text": "Twitch client ID", "type": "string", "required": true },
         { "key": "api_secret", "group": "Basic", "text": "Twitch secret", "type": "string", "secret": true, "required": true, "help": "Keep blank to not change" },
 
-        { "key": "youtube.client_id",       "group": "YouTube", "text": "YouTube client ID", "type": "string" },
-        { "key": "youtube.client_secret",   "group": "YouTube", "text": "YouTube secret", "type": "string", "secret": true },
+        { "key": "youtube.client_id", "group": "YouTube", "text": "YouTube client ID", "type": "string" },
+        { "key": "youtube.client_secret", "group": "YouTube", "text": "YouTube secret", "type": "string", "secret": true },
 
         // { 'key': 'hook_callback', 		'text': 'Hook callback', 									'type': 'string', 'required': true },
         // {'key': 'timezone', 				'group': 'Interface',	'text': 'Timezone', 										'type': 'array',		'default': 'UTC', 'help': 'This only affects the GUI, not the values stored', 'deprecated': true},
@@ -151,18 +168,18 @@ export class Config {
         { "key": "checkmute_method", "group": "Basic", "text": "Method to use when checking for muted vods", "type": "array", "default": "streamlink", "choices": ["api", "streamlink"], "help": "Bugged as of 2022-03-29: https://github.com/twitchdev/issues/issues/501" },
 
         // telegram
-        { "key": "telegram_enabled",                "group": "Notifications (Telegram)", "text": "Enable Telegram notifications", "type": "boolean", "default": false },
-        { "key": "telegram_token",                  "group": "Notifications (Telegram)", "text": "Telegram token", "type": "string" },
-        { "key": "telegram_chat_id",                "group": "Notifications (Telegram)", "text": "Telegram chat id", "type": "string" },
+        { "key": "telegram_enabled", "group": "Notifications (Telegram)", "text": "Enable Telegram notifications", "type": "boolean", "default": false },
+        { "key": "telegram_token", "group": "Notifications (Telegram)", "text": "Telegram token", "type": "string" },
+        { "key": "telegram_chat_id", "group": "Notifications (Telegram)", "text": "Telegram chat id", "type": "string" },
 
         // discord
-        { "key": "discord_enabled",                 "group": "Notifications (Discord)", "text": "Enable Discord notifications", "type": "boolean", "default": false },
-        { "key": "discord_webhook",                 "group": "Notifications (Discord)", "text": "Discord webhook", "type": "string" },
+        { "key": "discord_enabled", "group": "Notifications (Discord)", "text": "Enable Discord notifications", "type": "boolean", "default": false },
+        { "key": "discord_webhook", "group": "Notifications (Discord)", "text": "Discord webhook", "type": "string" },
 
         // pushover
-        { "key": "notifications.pushover.enabled",  "group": "Notifications (Pushover)", "text": "Enable Pushover notifications", "type": "boolean", "default": false },
-        { "key": "notifications.pushover.token",    "group": "Notifications (Pushover)", "text": "Pushover token", "type": "string" },
-        { "key": "notifications.pushover.user",     "group": "Notifications (Pushover)", "text": "Pushover user", "type": "string" },
+        { "key": "notifications.pushover.enabled", "group": "Notifications (Pushover)", "text": "Enable Pushover notifications", "type": "boolean", "default": false },
+        { "key": "notifications.pushover.token", "group": "Notifications (Pushover)", "text": "Pushover token", "type": "string" },
+        { "key": "notifications.pushover.user", "group": "Notifications (Pushover)", "text": "Pushover user", "type": "string" },
 
         { "key": "schedule_muted_vods", "group": "Schedules", "text": "Check muted vods", "type": "boolean", "default": true },
         { "key": "schedule_deleted_vods", "group": "Schedules", "text": "Check deleted vods", "type": "boolean", "default": true },
@@ -210,11 +227,11 @@ export class Config {
 
         { "key": "no_vod_convert", "group": "Video", "text": "Don't convert VODs", "type": "boolean", "default": false },
 
-        { "key": "exporter.default.exporter",       "group": "Exporter", "text": "Default exporter", "type": "array", "default": "file", "choices": ["file", "sftp", "ftp", "rclone", "youtube"], "help": "Default exporter for exporter." },
-        { "key": "exporter.default.directory",      "group": "Exporter", "text": "Default directory", "type": "string" },
-        { "key": "exporter.default.host",           "group": "Exporter", "text": "Default host", "type": "string" },
-        { "key": "exporter.default.username",       "group": "Exporter", "text": "Default username", "type": "string" },
-        { "key": "exporter.default.password",       "group": "Exporter", "text": "Default password", "type": "string", "help": "This is stored unencrypted." },
+        { "key": "exporter.default.exporter", "group": "Exporter", "text": "Default exporter", "type": "array", "default": "file", "choices": ["file", "sftp", "ftp", "rclone", "youtube"], "help": "Default exporter for exporter." },
+        { "key": "exporter.default.directory", "group": "Exporter", "text": "Default directory", "type": "string" },
+        { "key": "exporter.default.host", "group": "Exporter", "text": "Default host", "type": "string" },
+        { "key": "exporter.default.username", "group": "Exporter", "text": "Default username", "type": "string" },
+        { "key": "exporter.default.password", "group": "Exporter", "text": "Default password", "type": "string", "help": "This is stored unencrypted." },
         {
             "key": "exporter.default.title_template",
             "group": "Exporter",
@@ -224,19 +241,19 @@ export class Config {
             "help": "Default title for exporter.",
             "replacements": ExporterFilenameFields,
         },
-        { "key": "exporter.default.description",    "group": "Exporter", "text": "Default description", "type": "string", "help": "YouTube description.", multiline: true },
-        { "key": "exporter.default.category",       "group": "Exporter", "text": "Default category", "type": "array", "help": "YouTube category.", choices: YouTubeCategories },
-        { "key": "exporter.default.privacy",        "group": "Exporter", "text": "Default privacy", "type": "array", "help": "YouTube privacy.", choices: ["public", "unlisted", "private"], default: "private" },
-        { "key": "exporter.default.tags",           "group": "Exporter", "text": "Default tags", "type": "string", "help": "YouTube tags." },
-        { "key": "exporter.default.remote",         "group": "Exporter", "text": "Default remote", "type": "string", "help": "For RClone." },
-        { "key": "exporter.auto.enabled",           "group": "Exporter", "text": "Enable auto exporter", "type": "boolean", "default": false, "help": "Enable auto exporter. Not fully tested yet." },
+        { "key": "exporter.default.description", "group": "Exporter", "text": "Default description", "type": "string", "help": "YouTube description.", multiline: true },
+        { "key": "exporter.default.category", "group": "Exporter", "text": "Default category", "type": "array", "help": "YouTube category.", choices: YouTubeCategories },
+        { "key": "exporter.default.privacy", "group": "Exporter", "text": "Default privacy", "type": "array", "help": "YouTube privacy.", choices: ["public", "unlisted", "private"], default: "private" },
+        { "key": "exporter.default.tags", "group": "Exporter", "text": "Default tags", "type": "string", "help": "YouTube tags." },
+        { "key": "exporter.default.remote", "group": "Exporter", "text": "Default remote", "type": "string", "help": "For RClone." },
+        { "key": "exporter.auto.enabled", "group": "Exporter", "text": "Enable auto exporter", "type": "boolean", "default": false, "help": "Enable auto exporter. Not fully tested yet." },
 
-        { "key": "exporter.youtube.playlists",      "group": "Exporter", "text": "YouTube playlists", "type": "string", "help": "Use this format with playlist ID's: channelname=ABC123;secondchannel=DEF456" },
+        { "key": "exporter.youtube.playlists", "group": "Exporter", "text": "YouTube playlists", "type": "string", "help": "Use this format with playlist ID's: channelname=ABC123;secondchannel=DEF456" },
 
-        { "key": "scheduler.clipdownload.enabled",  "group": "Scheduler (Clip Download)", "text": "Enable clip download scheduler", "type": "boolean", "default": false },
+        { "key": "scheduler.clipdownload.enabled", "group": "Scheduler (Clip Download)", "text": "Enable clip download scheduler", "type": "boolean", "default": false },
         { "key": "scheduler.clipdownload.channels", "group": "Scheduler (Clip Download)", "text": "Channels to download clips from", "type": "string", "help": "Separate by commas." },
-        { "key": "scheduler.clipdownload.amount",   "group": "Scheduler (Clip Download)", "text": "Amount of clips to download", "type": "number", "default": 1 },
-        { "key": "scheduler.clipdownload.age",      "group": "Scheduler (Clip Download)", "text": "Age of clips to download", "type": "number", "default": 1 * 24 * 60 * 60, "help": "In seconds." },
+        { "key": "scheduler.clipdownload.amount", "group": "Scheduler (Clip Download)", "text": "Amount of clips to download", "type": "number", "default": 1 },
+        { "key": "scheduler.clipdownload.age", "group": "Scheduler (Clip Download)", "text": "Age of clips to download", "type": "number", "default": 1 * 24 * 60 * 60, "help": "In seconds." },
 
         { "key": "reencoder.enabled", "group": "Reencoder", "text": "Enable reencoder", "type": "boolean", "default": false },
 
@@ -330,15 +347,15 @@ export class Config {
             ffmpegPreset: "slow",
             ffmpegCrf: 26,
         */
-        { key: "chatburn.default.chat_width",       group: "Chat burn", text: "Chat width", type: "number", default: 300 },
+        { key: "chatburn.default.chat_width", group: "Chat burn", text: "Chat width", type: "number", default: 300 },
         { key: "chatburn.default.auto_chat_height", group: "Chat burn", text: "Chat auto height", type: "boolean", default: true },
-        { key: "chatburn.default.chat_height",      group: "Chat burn", text: "Chat height", type: "number", default: 300 },
-        { key: "chatburn.default.chat_font",        group: "Chat burn", text: "Chat font", type: "string", default: "Inter" },
-        { key: "chatburn.default.chat_font_size",   group: "Chat burn", text: "Chat font size", type: "number", default: 12 },
-        { key: "chatburn.default.horizontal",       group: "Chat burn", text: "Chat horizontal position", type: "array", choices: ["left", "right"], default: "left" },
-        { key: "chatburn.default.vertical",         group: "Chat burn", text: "Chat vertical position", type: "array", choices: ["top", "bottom"], default: "top" },
-        { key: "chatburn.default.preset",           group: "Chat burn", text: "Burning ffmpeg preset", type: "string", default: "slow" },
-        { key: "chatburn.default.crf",              group: "Chat burn", text: "Burning ffmpeg crf", type: "number", default: 26 },
+        { key: "chatburn.default.chat_height", group: "Chat burn", text: "Chat height", type: "number", default: 300 },
+        { key: "chatburn.default.chat_font", group: "Chat burn", text: "Chat font", type: "string", default: "Inter" },
+        { key: "chatburn.default.chat_font_size", group: "Chat burn", text: "Chat font size", type: "number", default: 12 },
+        { key: "chatburn.default.horizontal", group: "Chat burn", text: "Chat horizontal position", type: "array", choices: ["left", "right"], default: "left" },
+        { key: "chatburn.default.vertical", group: "Chat burn", text: "Chat vertical position", type: "array", choices: ["top", "bottom"], default: "top" },
+        { key: "chatburn.default.preset", group: "Chat burn", text: "Burning ffmpeg preset", type: "string", default: "slow" },
+        { key: "chatburn.default.crf", group: "Chat burn", text: "Burning ffmpeg crf", type: "number", default: 26 },
 
         { key: "thumbnail_format", group: "Thumbnails", text: "Thumbnail format", type: "array", choices: ["jpg", "png", "webp"], default: "jpg" },
 
@@ -1004,8 +1021,8 @@ export class Config {
             ret = await Helper.execSimple("git", ["rev-parse", "HEAD"], "git hash check");
         } catch (error) {
             Log.logAdvanced(Log.Level.WARNING, "config.getGitHash", "Could not fetch git hash");
-            return false;            
-        } 
+            return false;
+        }
         if (ret && ret.stdout) {
             this.gitHash = ret.stdout.join("").trim();
             Log.logAdvanced(Log.Level.SUCCESS, "config.getGitHash", `Running on Git hash: ${this.gitHash}`);
@@ -1022,8 +1039,8 @@ export class Config {
             ret = await Helper.execSimple("git", ["rev-parse", "--abbrev-ref", "HEAD"], "git branch check");
         } catch (error) {
             Log.logAdvanced(Log.Level.WARNING, "config.getGitBranch", "Could not fetch git branch");
-            return false;            
-        } 
+            return false;
+        }
         if (ret && ret.stdout) {
             this.gitBranch = ret.stdout.join("").trim();
             Log.logAdvanced(Log.Level.SUCCESS, "config.getGitBranch", `Running on Git branch: ${this.gitBranch}`);
@@ -1039,6 +1056,10 @@ export class Config {
             return "localhost:8082";
         }
         return "localhost:8080";
+    }
+
+    get dateFormat() {
+        return this.cfg("date_format", "yyyy-MM-dd"); // if you're crazy enough to not use ISO8601
     }
 
 }

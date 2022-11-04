@@ -25,7 +25,7 @@
                     title="Delete segment"
                     @click.prevent="doDeleteSegment(i)"
                 >
-                    <span class="icon"><fa icon="xmark" /></span>
+                    <span class="icon"><font-awesome-icon icon="xmark" /></span>
                 </button>
                 <strong
                     v-if="segment.deleted && !vod.cloud_storage"
@@ -34,7 +34,7 @@
                 <strong
                     v-else-if="segment.deleted && vod.cloud_storage"
                     class="text-is-error"
-                >&nbsp;<fa icon="cloud" /></strong> 
+                >&nbsp;<font-awesome-icon icon="cloud" /></strong> 
                 <strong
                     v-else-if="!segment.filesize"
                     class="text-is-error"
@@ -102,9 +102,9 @@ function doDeleteSegment(index = 0) {
     const keepEntry = confirm(`Do you want to keep the entry and mark it as cloud storage?`);
     if (isTwitchVOD(props.vod) && props.vod.twitch_vod_exists === false && !confirm(`The VOD "${props.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
     axios
-        .post(`/api/v0/vod/${props.vod.uuid}/delete_segment?segment=${index}&keep_entry=${keepEntry ? "true" : "false"}`)
+        .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/delete_segment?segment=${index}&keep_entry=${keepEntry ? "true" : "false"}`)
         .then((response) => {
-            const json: ApiResponse = response.data;
+            const json = response.data;
             if (json.message) alert(json.message);
             console.log(json);
             // emit("refresh");

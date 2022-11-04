@@ -1287,6 +1287,15 @@ export class BaseVOD {
             }
         }
 
+        if (this.directory !== Helper.vodFolder(this.getChannel().internalName)) { // if vod has its own folder
+            Log.logAdvanced(Log.Level.DEBUG, "vod", `Delete folder ${this.directory}`);
+            try {
+                fs.rmdirSync(this.directory);
+            } catch (e) {
+                Log.logAdvanced(Log.Level.ERROR, "vod", `Could not delete ${this.directory}: ${(e as Error).message}`);
+            }
+        }
+
         const channel = this.getChannel();
         if (channel) channel.removeVod(this.uuid);
 

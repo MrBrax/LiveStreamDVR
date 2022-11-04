@@ -49,7 +49,7 @@
                     :disabled="!formData.login"
                     @click="fetchLogin"
                 >
-                    <span class="icon"><fa icon="sync" /></span>
+                    <span class="icon"><font-awesome-icon icon="sync" /></span>
                     <span>{{ t('forms.channel.check') }}</span>
                 </button>
             </div>
@@ -101,7 +101,7 @@
                 >
                 <!--
                 <button class="button is-confirm" type="button" @click="fetchLogin" :disabled="!formData.login">
-                    <span class="icon"><fa icon="sync" /></span>
+                    <span class="icon"><font-awesome-icon icon="sync" /></span>
                     <span>{{ t('forms.channel.check') }}</span>
                 </button>
                 -->
@@ -314,7 +314,7 @@
                     class="button is-confirm"
                     type="submit"
                 >
-                    <span class="icon"><fa icon="user-plus" /></span>
+                    <span class="icon"><font-awesome-icon icon="user-plus" /></span>
                     <span>{{ t('forms.channel.add-channel') }}</span>
                 </button>
             </div>
@@ -334,7 +334,7 @@ import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import axios, { AxiosError } from "axios";
 import { UserData } from "@common/User";
 import { VideoQuality } from "@common/Config";
-import { ApiResponse } from "@common/Api/Api";
+import { ApiResponse, ApiErrorResponse, IApiResponse } from "@common/Api/Api";
 import { useI18n } from "vue-i18n";
 library.add(faUserPlus);
 
@@ -415,26 +415,21 @@ export default defineComponent({
             this.formStatus = "";
 
             axios
-                .post(`/api/v0/channels`, this.formData)
+                .post<ApiResponse>(`/api/v0/channels`, this.formData)
                 .then((response) => {
                     const json = response.data;
-                    this.formStatusText = json.message;
+                    this.formStatusText = json.message || "No message";
                     this.formStatus = json.status;
                     if (json.status == "OK") {
                         this.$emit("formSuccess", json);
                         this.resetForm();
                     }
                 })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                    if (axios.isAxiosError(err) && err.response) {
-                        if (err.response.data.status == "ERROR") {
-                            this.formStatusText = err.response.data.message;
-                            this.formStatus = err.response.data.status;
-                        } else {
-                            this.formStatusText = err.response.data;
-                            this.formStatus = "ERROR";
-                        }
+                .catch((err: Error | AxiosError) => {
+                    console.error("form error", err);
+                    if (axios.isAxiosError<ApiErrorResponse>(err) && err.response) {
+                        this.formStatusText = err.response.data.message;
+                        this.formStatus = err.response.data.status;
                     }
                 });
 
@@ -485,7 +480,7 @@ export default defineComponent({
         },
         */
         fetchLogin() {
-            axios.get<ApiResponse>(`/api/v0/twitchapi/user/${this.formData.login}`).then((response) => {
+            axios.get<IApiResponse<UserData>>(`/api/v0/twitchapi/user/${this.formData.login}`).then((response) => {
                 const json = response.data;
                 const field = this.$refs.login as HTMLInputElement;
                 if (!field) {
@@ -506,21 +501,21 @@ export default defineComponent({
                     field.reportValidity();
                     this.userExists = false;
                 }
-            }).catch((err: AxiosError<ApiResponse>) => {
-                console.error("form error", err.response);
+            }).catch((err: Error | AxiosError) => {
+                console.error("form error", err);
                 const field = this.$refs.login as HTMLInputElement;
-                if (field && err.response && err.response.data && err.response.data.message) {
+                if (field && axios.isAxiosError<ApiErrorResponse>(err) && err.response && err.response.data && err.response.data.message) {
                     field.setCustomValidity(err.response.data.message);
                     field.reportValidity();
                     this.userExists = false;
                 } else {
-                    console.error("no field or no response", field, err.response);
+                    console.error("no field or no response", field, err);
                 }
             });
         },
         getChannelId() {
             this.fetchingUrl = true;
-            axios.post(`/api/v0/youtubeapi/channelid`, { url: this.channelUrl } ).then((response) => {
+            axios.post<ApiResponse>(`/api/v0/youtubeapi/channelid`, { url: this.channelUrl } ).then((response) => {
                 const json = response.data;
                 if (json.status == "OK") {
                     this.formData.channel_id = json.data;

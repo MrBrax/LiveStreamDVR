@@ -3,8 +3,9 @@ import express from "express";
 import fs from "node:fs";
 import path from "node:path";
 import { ExecReturn } from "../Providers/Twitch";
-import { KeyValue } from "../Core/KeyValue";
+// import { KeyValue } from "../Core/KeyValue";
 import { Helper } from "../Core/Helper";
+import { ApiAboutResponse } from "@common/Api/Api";
 
 interface Bins {
     path?: string;
@@ -149,9 +150,9 @@ export async function About(req: express.Request, res: express.Response) {
             bins: bins,
             pip: pip_requirements,
             is_docker: Helper.is_docker(),
-            keyvalue: KeyValue.getInstance().data,
+            // keyvalue: KeyValue.getInstance().data,
         },
         status: "OK",
-    });
+    } as ApiAboutResponse);
 
 }

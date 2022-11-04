@@ -39,7 +39,7 @@
                     class="button is-confirm"
                     type="submit"
                 >
-                    <span class="icon"><fa icon="burn" /></span> Execute
+                    <span class="icon"><font-awesome-icon icon="burn" /></span> Execute
                 </button>
                 <span :class="formStatusClass">{{ formStatusText }}</span>
             </div>

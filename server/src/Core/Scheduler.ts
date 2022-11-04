@@ -140,7 +140,7 @@ export class Scheduler {
                     const variables: ClipBasenameTemplate = {
                         id: clip.id,
                         quality: "best", // TODO: get quality somehow
-                        clip_date: format(clip_date, "yyyy-MM-dd"),
+                        clip_date: format(clip_date, Config.getInstance().dateFormat),
                         title: clip.title,
                         creator: clip.creator_name,
                         broadcaster: clip.broadcaster_name,

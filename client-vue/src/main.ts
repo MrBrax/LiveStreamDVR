@@ -26,6 +26,7 @@ createApp(App)
     .use(i18n)
     .use(VueObserveVisibility)
     .component("fa", FontAwesomeIcon)
+    .component("font-awesome-icon", FontAwesomeIcon)
     .mixin(titleMixin)
     .mixin(helpers)
     .mount("#app");

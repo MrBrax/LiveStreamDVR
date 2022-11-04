@@ -286,7 +286,21 @@
   "streamer": {
     "one-or-more-subscriptions-missing": "One or more subscriptions missing",
     "no-vods-not-capturing": "No VODs, not capturing",
-    "no-save-vods": "Does not save VODs"
+    "no-save-vods": "Does not save VODs",
+    "tools": {
+      "video-download": "Video download",
+      "clip-download": "Clip download",
+      "scan-for-vods": "Scan for VODs",
+      "scan-for-local-videos": "Scan for local videos",
+      "export-vods": "Export VODs",
+      "edit-channel": "Edit channel",
+      "abort-record": "Abort record",
+      "force-record": "Force record",
+      "clean-up": "Clean up",
+      "refresh-data": "Refresh data",
+      "expand-collapse-all-vods": "Expand/collapse all vods",
+      "more": "More"
+    }
   },
   "about": {
     "installed-utilities": "Installed utilities",

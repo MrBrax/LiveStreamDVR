@@ -203,7 +203,7 @@
                                 href="javascript:void(0)"
                                 title="Match VOD"
                                 @click="matchVod()"
-                            ><fa icon="sync" /></a>
+                            ><font-awesome-icon icon="sync" /></a>
                         </span>
                         <span
                             v-else
@@ -263,7 +263,7 @@
                         href="javascript:void(0)"
                         title="Retry VOD match"
                         @click="matchVod()"
-                        ><fa icon="sync" /></a>
+                        ><font-awesome-icon icon="sync" /></a>
                     </li>
                     <li>
                         <template v-if="vod.twitch_vod_id">
@@ -348,9 +348,9 @@ function twitchVideoLink(video_id: string): string {
 function matchVod() {
     if (!props.vod) return;
     axios
-        .post(`/api/v0/vod/${props.vod.uuid}/match`)
+        .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/match`)
         .then((response) => {
-            const json: ApiResponse = response.data;
+            const json = response.data;
             if (json.message) alert(json.message);
             console.log(json);
             // emit("refresh");

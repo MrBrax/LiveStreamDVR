@@ -42,7 +42,7 @@
                 title="Expand/collapse all clips"
                 @click="expandedClipsList = !expandedClipsList"
             >
-                <span class="icon"><fa :icon="expandedClipsList ? 'chevron-up' : 'chevron-down'" /></span>
+                <span class="icon"><font-awesome-icon :icon="expandedClipsList ? 'chevron-up' : 'chevron-down'" /></span>
             </button>
         </div>
     </div>

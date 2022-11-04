@@ -1,6 +1,6 @@
 <template>
     <div class="youtube-auth">
-        <h3><span class="icon"><fa :icon="['fab', 'youtube']" /></span> YouTube authentication</h3>
+        <h3><span class="icon"><font-awesome-icon :icon="['fab', 'youtube']" /></span> YouTube authentication</h3>
         <div class="youtube-help">
             Follow the guide here and set up the API keys in the config tab:
             <a
@@ -18,7 +18,7 @@
                 type="button"
                 @click="doCheckYouTubeStatus"
             >
-                <span class="icon"><fa icon="sync" /></span>
+                <span class="icon"><font-awesome-icon icon="sync" /></span>
                 <span>{{ t("buttons.checkstatus") }}</span>
             </button>
             <button
@@ -53,7 +53,7 @@
                 type="button"
                 @click="doDestroyYouTube"
             >
-                <span class="icon"><fa icon="right-from-bracket" /></span>
+                <span class="icon"><font-awesome-icon icon="right-from-bracket" /></span>
                 <span>{{ t("buttons.destroy-session") }}</span>
             </button>
         </div>

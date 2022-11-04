@@ -348,7 +348,6 @@ export class TwitchChannel extends BaseChannel {
         const vods_in_main_memory = LiveStreamDVR.getInstance().getVodsByChannelUUID(this.uuid);
 
         if (vods_on_disk.length !== vods_in_channel_memory.length) {
-            Log.logAdvanced(Log.Level.ERROR, "channel", `Vod on disk and vod in memory are not the same for ${this.internalName}`);
             const removedVods = vods_in_channel_memory.filter(v => !vods_on_disk.includes(v.basename));
             ClientBroker.notify(
                 "VOD changed externally",
@@ -356,10 +355,14 @@ export class TwitchChannel extends BaseChannel {
                 undefined,
                 "system"
             );
+            Log.logAdvanced(Log.Level.ERROR, "channel", `Vod on disk and vod in memory are not the same for ${this.internalName}`, {
+                vods_on_disk,
+                vods_in_channel_memory,
+                vods_in_main_memory,
+            });
         }
 
         if (vods_on_disk.length !== vods_in_main_memory.length) {
-            Log.logAdvanced(Log.Level.ERROR, "channel", `Vod on disk and vod in main memory are not the same for ${this.internalName}`);
             const removedVods = vods_in_main_memory.filter(v => !vods_on_disk.includes(v.basename));
             ClientBroker.notify(
                 "VOD changed externally",
@@ -367,10 +370,14 @@ export class TwitchChannel extends BaseChannel {
                 undefined,
                 "system"
             );
+            Log.logAdvanced(Log.Level.ERROR, "channel", `Vod on disk and vod in main memory are not the same for ${this.internalName}`, {
+                vods_on_disk,
+                vods_in_channel_memory,
+                vods_in_main_memory,
+            });
         }
 
         if (vods_in_channel_memory.length !== vods_in_main_memory.length) {
-            Log.logAdvanced(Log.Level.ERROR, "channel", `Vod in memory and vod in main memory are not the same for ${this.internalName}`);
             const removedVods = vods_in_main_memory.filter(v => v instanceof TwitchVOD && !vods_in_channel_memory.includes(v));
             ClientBroker.notify(
                 "VOD changed externally",
@@ -378,6 +385,11 @@ export class TwitchChannel extends BaseChannel {
                 undefined,
                 "system"
             );
+            Log.logAdvanced(Log.Level.ERROR, "channel", `Vod in memory and vod in main memory are not the same for ${this.internalName}`, {
+                vods_on_disk,
+                vods_in_channel_memory,
+                vods_in_main_memory,
+            });
         }
 
     }
@@ -808,7 +820,7 @@ export class TwitchChannel extends BaseChannel {
             return; // don't watch if no channel folders are enabled
         }
 
-        const folders = [Helper.vodFolder(this.login)];
+        const folders = [Helper.vodFolder(this.internalName)];
 
         // if (this.login && fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "scheduler", this.login)))
         //     folders.push(path.join(BaseConfigDataFolder.saved_clips, "scheduler", this.login));
@@ -816,7 +828,7 @@ export class TwitchChannel extends BaseChannel {
         // if (this.login && fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "downloader", this.login)))
         //     folders.push(path.join(BaseConfigDataFolder.saved_clips, "downloader", this.login));
 
-        console.log(`Watching channel ${this.login} folders...`);
+        console.log(`Watching channel ${this.internalName} folders...`);
 
         this.fileWatcher = chokidar.watch(folders, {
             ignoreInitial: true,
@@ -1221,18 +1233,18 @@ export class TwitchChannel extends BaseChannel {
         try {
             response = await TwitchHelper.axios.get<StreamsResponse>(`/helix/streams?user_id=${streamer_id}`);
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Could not get streams for ${streamer_id}: ${error}`);
+            Log.logAdvanced(Log.Level.ERROR, "channel", `Could not get streams for ${streamer_id}: ${error}`);
             return false;
         }
 
         const json = response.data;
 
         if (!json.data) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `No streams found for user id ${streamer_id}`);
+            Log.logAdvanced(Log.Level.ERROR, "channel", `No streams found for user id ${streamer_id}`);
             return false;
         }
 
-        Log.logAdvanced(Log.Level.INFO, "helper", `Querying streams for streamer id ${streamer_id}`);
+        Log.logAdvanced(Log.Level.INFO, "channel", `Querying streams for streamer id ${streamer_id}`);
 
         return json.data ?? false;
     }
@@ -1312,7 +1324,7 @@ export class TwitchChannel extends BaseChannel {
             if (channelData) {
                 Log.logAdvanced(Log.Level.DEBUG, "channel", `User data found in memory cache for ${method} ${identifier}`);
                 if (Date.now() > channelData._updated + Config.streamerCacheTime) {
-                    Log.logAdvanced(Log.Level.INFO, "helper", `Memory cache for ${identifier} is outdated, fetching new data`);
+                    Log.logAdvanced(Log.Level.INFO, "channel", `Memory cache for ${identifier} is outdated, fetching new data`);
                 } else {
                     Log.logAdvanced(Log.Level.DEBUG, "channel", `Returning memory cache for ${method} ${identifier}`);
                     return channelData;
@@ -1322,7 +1334,7 @@ export class TwitchChannel extends BaseChannel {
             }
 
             if (KeyValue.getInstance().get(`${identifier}.deleted`)) {
-                Log.logAdvanced(Log.Level.WARNING, "helper", `Channel ${identifier} is deleted, ignore. Delete kv file to force update.`);
+                Log.logAdvanced(Log.Level.WARNING, "channel", `Channel ${identifier} is deleted, ignore. Delete kv file to force update.`);
                 return false;
             }
         }
@@ -1330,7 +1342,7 @@ export class TwitchChannel extends BaseChannel {
         const access_token = await TwitchHelper.getAccessToken();
 
         if (!access_token) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", "Could not get access token, aborting.");
+            Log.logAdvanced(Log.Level.ERROR, "channel", "Could not get access token, aborting.");
             throw new Error("Could not get access token, aborting.");
         }
 
@@ -1344,37 +1356,37 @@ export class TwitchChannel extends BaseChannel {
             response = await TwitchHelper.axios.get<UsersResponse | ErrorResponse>(`/helix/users?${method}=${identifier}`);
         } catch (err) {
             if (axios.isAxiosError(err)) {
-                // Log.logAdvanced(Log.Level.ERROR, "helper", `Could not get channel data for ${method} ${identifier}: ${err.message} / ${err.response?.data.message}`, err);
+                // Log.logAdvanced(Log.Level.ERROR, "channel", `Could not get channel data for ${method} ${identifier}: ${err.message} / ${err.response?.data.message}`, err);
                 // return false;
                 if (err.response && err.response.status === 404) {
                     // throw new Error(`Could not find channel data for ${method} ${identifier}, server responded with 404`);
-                    Log.logAdvanced(Log.Level.ERROR, "helper", `Could not find user data for ${method} ${identifier}, server responded with 404`);
+                    Log.logAdvanced(Log.Level.ERROR, "channel", `Could not find user data for ${method} ${identifier}, server responded with 404`);
                     return false;
                 }
                 throw new Error(`Could not get user data for ${method} ${identifier} axios error: ${(err as Error).message}`);
             }
 
-            Log.logAdvanced(Log.Level.ERROR, "helper", `User data request for ${identifier} exceptioned: ${err}`, err);
+            Log.logAdvanced(Log.Level.ERROR, "channel", `User data request for ${identifier} exceptioned: ${err}`, err);
             console.log(err);
             return false;
         }
 
-        // TwitchLog.logAdvanced(Log.Level.INFO, "helper", `URL: ${response.request.path} (default ${axios.defaults.baseURL})`);
+        // TwitchLog.logAdvanced(Log.Level.INFO, "channel", `URL: ${response.request.path} (default ${axios.defaults.baseURL})`);
 
         if (response.status !== 200) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Could not get user data for ${identifier}, code ${response.status}.`);
+            Log.logAdvanced(Log.Level.ERROR, "channel", `Could not get user data for ${identifier}, code ${response.status}.`);
             throw new Error(`Could not get user data for ${identifier}, code ${response.status}.`);
         }
 
         const json = response.data;
 
         if ("error" in json) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Could not get user data for ${identifier}: ${json.message}`);
+            Log.logAdvanced(Log.Level.ERROR, "channel", `Could not get user data for ${identifier}: ${json.message}`);
             return false;
         }
 
         if (json.data.length === 0) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Could not get user data for ${identifier}, no data.`, { json });
+            Log.logAdvanced(Log.Level.ERROR, "channel", `Could not get user data for ${identifier}, no data.`, { json });
             throw new Error(`Could not get user data for ${identifier}, no data.`);
         }
 
@@ -1401,14 +1413,23 @@ export class TwitchChannel extends BaseChannel {
                     responseType: "stream",
                 });
             } catch (error) {
-                Log.logAdvanced(Log.Level.ERROR, "helper", `Could not download user logo for ${userData.id}: ${(error as Error).message}`, error);
+                Log.logAdvanced(Log.Level.ERROR, "channel", `Could not download user logo for ${userData.id}: ${(error as Error).message}`, error);
             }
             if (avatar_response) {
                 // const ws = fs.createWriteStream(logo_path);
                 // avatar_response.data.pipe(ws);
                 // ws.close();
 
-                avatar_response.data.pipe(fs.createWriteStream(logo_path));
+                // const s = fs.createWriteStream(logo_path);
+                // avatar_response.data.pipe(s);
+
+                // async write stream
+                const stream = fs.createWriteStream(logo_path);
+                await new Promise((resolve, reject) => {
+                    if (avatar_response) avatar_response.data.pipe(stream);
+                    stream.on("finish", resolve);
+                    stream.on("error", reject);
+                });
 
                 if (fs.existsSync(logo_path)) {
                     userData.cache_avatar = logo_filename;
@@ -1417,20 +1438,20 @@ export class TwitchChannel extends BaseChannel {
                     try {
                         avatar_thumbnail = await Helper.imageThumbnail(logo_path, 64);
                     } catch (error) {
-                        Log.logAdvanced(Log.Level.ERROR, "helper", `Could not create thumbnail for user logo for ${userData.id}: ${(error as Error).message}`, error);
+                        Log.logAdvanced(Log.Level.ERROR, "channel", `Could not create thumbnail for user logo for ${userData.id}: ${(error as Error).message}`, error);
                     }
 
                     if (avatar_thumbnail) {
                         userData.cache_avatar = avatar_thumbnail;
-                        Log.logAdvanced(Log.Level.DEBUG, "helper", `Created thumbnail for user logo for ${userData.id}`);
+                        Log.logAdvanced(Log.Level.DEBUG, "channel", `Created thumbnail for user logo for ${userData.id}`);
                     }
                 } else {
-                    Log.logAdvanced(Log.Level.ERROR, "helper", `Could not find downloaded avatar for ${userData.id}`);
+                    Log.logAdvanced(Log.Level.ERROR, "channel", `Could not find downloaded avatar for ${userData.id}`);
                 }
 
             }
         } else {
-            Log.logAdvanced(Log.Level.WARNING, "helper", `User ${userData.id} has no profile image url`);
+            Log.logAdvanced(Log.Level.WARNING, "channel", `User ${userData.id} has no profile image url`);
         }
 
         if (userData.offline_image_url) {
@@ -1447,13 +1468,13 @@ export class TwitchChannel extends BaseChannel {
                     responseType: "stream",
                 });
             } catch (error) {
-                Log.logAdvanced(Log.Level.ERROR, "helper", `Could not download user offline image for ${userData.id}: ${(error as Error).message}`, error);
+                Log.logAdvanced(Log.Level.ERROR, "channel", `Could not download user offline image for ${userData.id}: ${(error as Error).message}`, error);
             }
             if (offline_response && offline_response.data instanceof Readable) {
                 offline_response.data.pipe(fs.createWriteStream(offline_path));
                 userData.cache_offline_image = offline_filename;
             } else {
-                Log.logAdvanced(Log.Level.ERROR, "helper", `Could not download offline image for ${userData.id}, data is not readable`);
+                Log.logAdvanced(Log.Level.ERROR, "channel", `Could not download offline image for ${userData.id}, data is not readable`);
             }
         }
 
@@ -1482,7 +1503,7 @@ export class TwitchChannel extends BaseChannel {
         const access_token = await TwitchHelper.getAccessToken();
 
         if (!access_token) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", "Could not get access token, aborting.");
+            Log.logAdvanced(Log.Level.ERROR, "channel", "Could not get access token, aborting.");
             throw new Error("Could not get access token, aborting.");
         }
 
@@ -1496,37 +1517,37 @@ export class TwitchChannel extends BaseChannel {
             response = await TwitchHelper.axios.get<ChannelsResponse | ErrorResponse>(`/helix/channels?broadcaster_id=${broadcaster_id}`);
         } catch (err) {
             if (axios.isAxiosError(err)) {
-                // Log.logAdvanced(Log.Level.ERROR, "helper", `Could not get channel data for ${method} ${identifier}: ${err.message} / ${err.response?.data.message}`, err);
+                // Log.logAdvanced(Log.Level.ERROR, "channel", `Could not get channel data for ${method} ${identifier}: ${err.message} / ${err.response?.data.message}`, err);
                 // return false;
                 if (err.response && err.response.status === 404) {
                     // throw new Error(`Could not find channel data for ${method} ${identifier}, server responded with 404`);
-                    Log.logAdvanced(Log.Level.ERROR, "helper", `Could not find user data for ${broadcaster_id}, server responded with 404`);
+                    Log.logAdvanced(Log.Level.ERROR, "channel", `Could not find user data for ${broadcaster_id}, server responded with 404`);
                     return false;
                 }
                 throw new Error(`Could not get user data for ${broadcaster_id} axios error: ${(err as Error).message}`);
             }
 
-            Log.logAdvanced(Log.Level.ERROR, "helper", `User data request for ${broadcaster_id} exceptioned: ${err}`, err);
+            Log.logAdvanced(Log.Level.ERROR, "channel", `User data request for ${broadcaster_id} exceptioned: ${err}`, err);
             console.log(err);
             return false;
         }
 
-        // TwitchLog.logAdvanced(Log.Level.INFO, "helper", `URL: ${response.request.path} (default ${axios.defaults.baseURL})`);
+        // TwitchLog.logAdvanced(Log.Level.INFO, "channel", `URL: ${response.request.path} (default ${axios.defaults.baseURL})`);
 
         if (response.status !== 200) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Could not get user data for ${broadcaster_id}, code ${response.status}.`);
+            Log.logAdvanced(Log.Level.ERROR, "channel", `Could not get user data for ${broadcaster_id}, code ${response.status}.`);
             throw new Error(`Could not get user data for ${broadcaster_id}, code ${response.status}.`);
         }
 
         const json = response.data;
 
         if ("error" in json) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Could not get user data for ${broadcaster_id}: ${json.message}`);
+            Log.logAdvanced(Log.Level.ERROR, "channel", `Could not get user data for ${broadcaster_id}: ${json.message}`);
             return false;
         }
 
         if (json.data.length === 0) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Could not get user data for ${broadcaster_id}, no data.`, { json });
+            Log.logAdvanced(Log.Level.ERROR, "channel", `Could not get user data for ${broadcaster_id}, no data.`, { json });
             throw new Error(`Could not get user data for ${broadcaster_id}, no data.`);
         }
 
@@ -1587,11 +1608,11 @@ export class TwitchChannel extends BaseChannel {
         for (const sub_type of TwitchHelper.CHANNEL_SUB_TYPES) {
 
             if (KeyValue.getInstance().get(`${channel_id}.sub.${sub_type}`) && !force) {
-                Log.logAdvanced(Log.Level.INFO, "helper", `Skip subscription to ${channel_id}:${sub_type} (${streamer_login}), in cache.`);
+                Log.logAdvanced(Log.Level.INFO, "channel", `Skip subscription to ${channel_id}:${sub_type} (${streamer_login}), in cache.`);
                 continue; // todo: alert
             }
 
-            Log.logAdvanced(Log.Level.INFO, "helper", `Subscribe to ${channel_id}:${sub_type} (${streamer_login})`);
+            Log.logAdvanced(Log.Level.INFO, "channel", `Subscribe to ${channel_id}:${sub_type} (${streamer_login})`);
 
             const payload: SubscriptionRequest = {
                 type: sub_type,
@@ -1616,7 +1637,7 @@ export class TwitchChannel extends BaseChannel {
                 response = await TwitchHelper.axios.post<SubscriptionResponse>("/helix/eventsub/subscriptions", payload);
             } catch (err) {
                 if (axios.isAxiosError(err)) {
-                    Log.logAdvanced(Log.Level.ERROR, "helper", `Could not subscribe to ${channel_id}:${sub_type}: ${err.message} / ${err.response?.data.message}`);
+                    Log.logAdvanced(Log.Level.ERROR, "channel", `Could not subscribe to ${channel_id}:${sub_type}: ${err.message} / ${err.response?.data.message}`);
 
                     if (err.response?.data.status == 409) { // duplicate
                         const sub_id = await TwitchChannel.getSubscriptionId(channel_id, sub_type);
@@ -1630,7 +1651,7 @@ export class TwitchChannel extends BaseChannel {
                     continue;
                 }
 
-                Log.logAdvanced(Log.Level.ERROR, "helper", `Subscription request for ${channel_id} exceptioned: ${err}`);
+                Log.logAdvanced(Log.Level.ERROR, "channel", `Subscription request for ${channel_id} exceptioned: ${err}`);
                 console.log(err);
                 continue;
             }
@@ -1645,7 +1666,7 @@ export class TwitchChannel extends BaseChannel {
             if (http_code == 202) {
 
                 if (json.data[0].status !== "webhook_callback_verification_pending") {
-                    Log.logAdvanced(Log.Level.ERROR, "helper", `Got 202 return for subscription request for ${channel_id}:${sub_type} but did not get callback verification.`);
+                    Log.logAdvanced(Log.Level.ERROR, "channel", `Got 202 return for subscription request for ${channel_id}:${sub_type} but did not get callback verification.`);
                     return false;
                     // continue;
                 }
@@ -1653,11 +1674,11 @@ export class TwitchChannel extends BaseChannel {
                 KeyValue.getInstance().set(`${channel_id}.sub.${sub_type}`, json.data[0].id);
                 KeyValue.getInstance().set(`${channel_id}.substatus.${sub_type}`, SubStatus.WAITING);
 
-                Log.logAdvanced(Log.Level.SUCCESS, "helper", `Subscribe for ${channel_id}:${sub_type} (${streamer_login}) sent. Check logs for a 'subscription active' message.`);
+                Log.logAdvanced(Log.Level.SUCCESS, "channel", `Subscribe for ${channel_id}:${sub_type} (${streamer_login}) sent. Check logs for a 'subscription active' message.`);
             } else if (http_code == 409) {
-                Log.logAdvanced(Log.Level.ERROR, "helper", `Duplicate sub for ${channel_id}:${sub_type} detected.`);
+                Log.logAdvanced(Log.Level.ERROR, "channel", `Duplicate sub for ${channel_id}:${sub_type} detected.`);
             } else {
-                Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to send subscription request for ${channel_id}:${sub_type}: ${json}, HTTP ${http_code})`);
+                Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to send subscription request for ${channel_id}:${sub_type}: ${json}, HTTP ${http_code})`);
                 return false;
                 // continue;
             }
@@ -1692,12 +1713,12 @@ export class TwitchChannel extends BaseChannel {
             const unsub = await TwitchHelper.eventSubUnsubscribe(sub.id);
 
             if (unsub) {
-                Log.logAdvanced(Log.Level.SUCCESS, "helper", `Unsubscribed from ${channel_id}:${sub.type} (${streamer_login})`);
+                Log.logAdvanced(Log.Level.SUCCESS, "channel", `Unsubscribed from ${channel_id}:${sub.type} (${streamer_login})`);
                 unsubbed++;
                 KeyValue.getInstance().delete(`${channel_id}.sub.${sub.type}`);
                 KeyValue.getInstance().delete(`${channel_id}.substatus.${sub.type}`);
             } else {
-                Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to unsubscribe from ${channel_id}:${sub.type} (${streamer_login})`);
+                Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to unsubscribe from ${channel_id}:${sub.type} (${streamer_login})`);
             }
 
         }

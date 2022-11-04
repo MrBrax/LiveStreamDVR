@@ -158,6 +158,13 @@
         flex-grow: 1;
         padding-left: 1em;
     }
+    .control {
+        button {
+            &:not(:last-child) {
+                margin-right: 0.5em;
+            }
+        }
+    }
 }
 
 ul.radio-list {

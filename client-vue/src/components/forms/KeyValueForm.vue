@@ -34,7 +34,7 @@
                         title="Edit"
                         @click="editKeyValue(key, value)"
                     >
-                        <span><fa icon="pencil" /></span>
+                        <span><font-awesome-icon icon="pencil" /></span>
                     </button>
                 </td>
                 <td>
@@ -42,7 +42,7 @@
                         class="button is-danger is-small"
                         @click="deleteKeyValue(key)"
                     >
-                        <span class="icon"><fa icon="trash" /></span>
+                        <span class="icon"><font-awesome-icon icon="trash" /></span>
                         <span>{{ t('buttons.delete') }}</span>
                     </button>
                 </td>
@@ -53,7 +53,7 @@
                         class="button is-danger"
                         @click="deleteAllKeyValues"
                     >
-                        <span class="icon"><fa icon="trash" /></span>
+                        <span class="icon"><font-awesome-icon icon="trash" /></span>
                         <span>{{ t('buttons.delete-all') }}</span>
                     </button>
                 </td>
@@ -103,7 +103,7 @@
                         class="button is-confirm"
                         type="submit"
                     >
-                        <span class="icon"><fa icon="plus" /></span>
+                        <span class="icon"><font-awesome-icon icon="plus" /></span>
                         <span>{{ t('buttons.create') }}</span>
                     </button>
                 </div>

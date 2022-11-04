@@ -18,7 +18,7 @@
                             class="modal-box__close"
                             @click="$emit('close')"
                         >
-                            <fa icon="times" />
+                            <font-awesome-icon icon="times" />
                         </div>
                     </div>
                     <div class="modal-box__body">

@@ -151,7 +151,7 @@
                             @click="deleteChapter(i)"
                         >
                             <span class="icon">
-                                <fa icon="trash" />
+                                <font-awesome-icon icon="trash" />
                             </span>
                         </button>
                     </td>
@@ -225,7 +225,7 @@
                             @click="addChapter"
                         >
                             <span class="icon">
-                                <fa icon="plus" />
+                                <font-awesome-icon icon="plus" />
                             </span>
                         </button>
                     </td>
@@ -255,7 +255,7 @@
                 class="button is-small is-danger"
                 @click="resetChapters"
             >
-                <span class="icon"><fa icon="undo" /></span>
+                <span class="icon"><font-awesome-icon icon="undo" /></span>
                 <span>{{ t('vod.edit.reset-chapters') }}</span>
             </button>
             <p>
@@ -293,7 +293,7 @@
             class="button is-confirm"
             @click="doEditVod"
         >
-            <span class="icon"><fa icon="save" /></span>
+            <span class="icon"><font-awesome-icon icon="save" /></span>
             <span>{{ t("buttons.save") }}</span>
         </button>
     </div>
@@ -370,8 +370,8 @@ function sortChapters() {
 function doEditVod() {
     if (!props.vod) return;
     sortChapters();
-    axios.post(`/api/v0/vod/${props.vod.uuid}`, editVodSettings.value).then((response) => {
-        const json: ApiResponse = response.data;
+    axios.post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}`, editVodSettings.value).then((response) => {
+        const json = response.data;
         if (json.message) alert(json.message);
         console.log(json);
         if (props.vod) store.fetchAndUpdateVod(props.vod.uuid);

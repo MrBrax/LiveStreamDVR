@@ -22,7 +22,7 @@
         >
             <div class="video-title-text">
                 <h3>
-                    <span class="icon"><fa icon="file-video" /></span>
+                    <span class="icon"><font-awesome-icon icon="file-video" /></span>
                     <span
                         v-if="vod.started_at"
                         class="video-date"
@@ -37,7 +37,7 @@
                 </h3>
             </div>
             <div class="video-title-actions">
-                <fa :icon="!minimized ? 'chevron-up' : 'chevron-down'" />
+                <font-awesome-icon :icon="!minimized ? 'chevron-up' : 'chevron-down'" />
             </div>
         </div>
 
@@ -81,7 +81,7 @@
                             href="#"
                             @click.prevent="showModal.edit = true"
                         >
-                            <fa icon="comment-dots" />
+                            <font-awesome-icon icon="comment-dots" />
                             {{ t("vod.add_comment") }}
                         </a>
                     </p>
@@ -156,7 +156,7 @@
                 class="video-error"
             >
                 <strong>
-                    <span class="icon"><fa icon="exclamation-triangle" /></span> {{ t('vod.failed') }}
+                    <span class="icon"><font-awesome-icon icon="exclamation-triangle" /></span> {{ t('vod.failed') }}
                 </strong>&nbsp;
                 <div class="buttons">
                     <!-- Delete -->
@@ -195,7 +195,7 @@
             >
                 <template v-if="vod.is_converting">
                     <em>
-                        <span class="icon"><fa icon="file-signature" /></span>
+                        <span class="icon"><font-awesome-icon icon="file-signature" /></span>
                         Converting <strong>{{ vod.basename }}.ts</strong> to <strong>{{ vod.basename }}.mp4</strong>
                     </em>
                     <br>
@@ -209,14 +209,14 @@
                         </span>
                         <span v-else>
                             <strong class="text-is-error flashing">
-                                <span class="icon"><fa icon="exclamation-triangle" /></span> Not running, did it crash?
+                                <span class="icon"><font-awesome-icon icon="exclamation-triangle" /></span> Not running, did it crash?
                             </strong>
                         </span>
                     </em>
                 </template>
                 <template v-else-if="vod && vod.is_capturing">
                     <em class="text-overflow">
-                        <span class="icon"><fa icon="video" /></span>
+                        <span class="icon"><font-awesome-icon icon="video" /></span>
                         Capturing to <strong>{{ vod.basename }}.ts</strong> (<strong>{{
                             vod.getRecordingSize() ? formatBytes(vod.getRecordingSize() as number) : "unknown"
                         }}</strong>)
@@ -224,7 +224,7 @@
                             class="icon clickable"
                             title="Refresh"
                             @click="vod && store.fetchAndUpdateVod(vod.uuid)"
-                        ><fa icon="sync" /></span>
+                        ><font-awesome-icon icon="sync" /></span>
                     </em>
 
                     <br>
@@ -241,7 +241,7 @@
                             </span>
                             <span v-else>
                                 <strong class="text-is-error flashing">
-                                    <span class="icon"><fa icon="exclamation-triangle" /></span>
+                                    <span class="icon"><font-awesome-icon icon="exclamation-triangle" /></span>
                                     Video capture not running, did it crash?
                                 </strong>
                             </span>
@@ -258,7 +258,7 @@
                                 </span>
                                 <span v-else>
                                     <strong class="text-is-error flashing">
-                                        <span class="icon"><fa icon="exclamation-triangle" /></span>
+                                        <span class="icon"><font-awesome-icon icon="exclamation-triangle" /></span>
                                         Chat dump not running, did it crash?
                                     </strong>
                                 </span>
@@ -322,14 +322,14 @@
                     class="button is-confirm"
                     @click="doDownloadChat('tcd')"
                 >
-                    <span class="icon"><fa icon="download" /></span>
+                    <span class="icon"><font-awesome-icon icon="download" /></span>
                     <span>{{ t('vod.buttons.download-with', ['tcd']) }}</span>
                 </button>
                 <button
                     class="button is-confirm"
                     @click="doDownloadChat('td')"
                 >
-                    <span class="icon"><fa icon="download" /></span>
+                    <span class="icon"><font-awesome-icon icon="download" /></span>
                     <span>{{ t('vod.buttons.download-with', ['TwitchDownloader']) }}</span>
                 </button>
             </div>
@@ -361,7 +361,7 @@
                         class="button is-confirm"
                         @click="doDownloadVod"
                     >
-                        <span class="icon"><fa icon="download" /></span>
+                        <span class="icon"><font-awesome-icon icon="download" /></span>
                         <span>Download</span>
                     </button>
                 </div>
@@ -428,7 +428,7 @@
                     class="button is-confirm"
                     @click="openPlayer"
                 >
-                    <span class="icon"><fa icon="play" /></span>
+                    <span class="icon"><font-awesome-icon icon="play" /></span>
                     <span>Play</span>
                 </button>
             </div>
@@ -485,7 +485,7 @@
                     class="button is-confirm"
                     @click="doRenameVod"
                 >
-                    <span class="icon"><fa icon="save" /></span>
+                    <span class="icon"><font-awesome-icon icon="save" /></span>
                     <span>{{ t("buttons.rename") }}</span>
                 </button>
             </div>
@@ -691,9 +691,9 @@ function doDownloadChat(method = "tcd"): void {
     if (!props.vod) return;
     if (!confirm(`Do you want to download the chat for "${props.vod.basename}" with ${method}?`)) return;
     axios
-        .post(`/api/v0/vod/${props.vod.uuid}/download_chat?method=${method}`)
+        .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/download_chat?method=${method}`)
         .then((response) => {
-            const json: ApiResponse = response.data;
+            const json = response.data;
             if (json.message) alert(json.message);
             console.log(json);
             emit("refresh");
@@ -713,9 +713,9 @@ function doDownloadVod(): void {
     }
 
     axios
-        .post(`/api/v0/vod/${props.vod.uuid}/download?quality=${vodDownloadSettings.value.quality}`)
+        .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/download?quality=${vodDownloadSettings.value.quality}`)
         .then((response) => {
-            const json: ApiResponse = response.data;
+            const json = response.data;
             if (json.message) alert(json.message);
             console.log(json);
             emit("refresh");
@@ -729,9 +729,9 @@ function doDownloadVod(): void {
 function doCheckMute(): void {
     if (!props.vod) return;
     axios
-        .post(`/api/v0/vod/${props.vod.uuid}/check_mute`)
+        .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/check_mute`)
         .then((response) => {
-            const json: ApiResponse = response.data;
+            const json = response.data;
             if (json.message) alert(json.message);
             console.log(json);
 
@@ -781,9 +781,9 @@ function doFixIssues(): void {
     );
     if (!c) return;
     axios
-        .post(`/api/v0/vod/${props.vod.uuid}/fix_issues`)
+        .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/fix_issues`)
         .then((response) => {
-            const json: ApiResponse = response.data;
+            const json = response.data;
             if (json.message) alert(json.message);
             console.log(json);
             emit("refresh");
@@ -834,8 +834,8 @@ function templatePreview(template: string): string {
 
 function doRenameVod(): void {
     if (!props.vod) return;
-    axios.post(`/api/v0/vod/${props.vod.uuid}/rename`, renameVodSettings.value).then((response) => {
-        const json: ApiResponse = response.data;
+    axios.post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/rename`, renameVodSettings.value).then((response) => {
+        const json = response.data;
         if (json.message) alert(json.message);
         console.log(json);
         store.fetchAndUpdateStreamerList();

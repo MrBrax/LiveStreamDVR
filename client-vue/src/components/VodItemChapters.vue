@@ -115,7 +115,7 @@
                                         query: { start: chapter.offset, end: (chapter.offset || 0) + (chapter.duration || 0), chapter: chapterIndex },
                                     }"
                                 >
-                                    <span class="icon"><fa icon="cut" /></span>
+                                    <span class="icon"><font-awesome-icon icon="cut" /></span>
                                 </router-link>
 
                                 <!-- open on twitch link -->
@@ -127,7 +127,7 @@
                                     aria-label="Open on Twitch"
                                     title="Open on Twitch"
                                 >
-                                    <span class="icon"><fa icon="external-link-alt" /></span>
+                                    <span class="icon"><font-awesome-icon icon="external-link-alt" /></span>
                                 </a>
                             </span>
                         </template>
@@ -142,7 +142,7 @@
                             title="Add to favourites"
                             @click="chapter.game_id && addFavouriteGame(chapter.game_id.toString())"
                         >
-                            <span class="icon"><fa icon="star" /></span>
+                            <span class="icon"><font-awesome-icon icon="star" /></span>
                         </button>
                     </td>
 

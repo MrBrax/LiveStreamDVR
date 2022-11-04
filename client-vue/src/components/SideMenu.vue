@@ -77,7 +77,7 @@
                             type="submit"
                             :disabled="!password"
                         >
-                            <span class="icon"><fa icon="sign-in-alt" /></span>
+                            <span class="icon"><font-awesome-icon icon="sign-in-alt" /></span>
                             <span>Login</span>
                         </button>
                     </div>
@@ -95,7 +95,7 @@
                     :title="t('pages.dashboard')"
                     class="link"
                 >
-                    <span class="icon"><fa icon="tachometer-alt" /></span>
+                    <span class="icon"><font-awesome-icon icon="tachometer-alt" /></span>
                 </router-link>
             </div>
             <div
@@ -108,7 +108,7 @@
                     :title="t('pages.files')"
                     class="link"
                 >
-                    <span class="icon"><fa icon="archive" /></span>
+                    <span class="icon"><font-awesome-icon icon="archive" /></span>
                 </router-link>
             </div>
             <div
@@ -121,7 +121,7 @@
                     :title="t('pages.tools')"
                     class="link"
                 >
-                    <span class="icon"><fa icon="wrench" /></span>
+                    <span class="icon"><font-awesome-icon icon="wrench" /></span>
                 </router-link>
             </div>
             <div
@@ -133,7 +133,7 @@
                     :title="t('pages.settings')"
                     class="link"
                 >
-                    <span class="icon"><fa icon="cog" /></span>
+                    <span class="icon"><font-awesome-icon icon="cog" /></span>
                 </router-link>
             </div>
             <div
@@ -146,7 +146,7 @@
                     :title="t('pages.about')"
                     class="link"
                 >
-                    <span class="icon"><fa icon="info-circle" /></span>
+                    <span class="icon"><font-awesome-icon icon="info-circle" /></span>
                 </router-link>
             </div>
             <div
@@ -160,7 +160,7 @@
                     rel="noreferrer"
                     title="GitHub"
                 >
-                    <span class="icon"><fa :icon="['fab', 'github']" /></span>
+                    <span class="icon"><font-awesome-icon :icon="['fab', 'github']" /></span>
                 </a>
             </div>
         </div>

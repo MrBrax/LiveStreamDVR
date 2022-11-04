@@ -40,7 +40,7 @@
                     class="button is-confirm"
                     type="submit"
                 >
-                    <span class="icon"><fa icon="download" /></span>
+                    <span class="icon"><font-awesome-icon icon="download" /></span>
                     <span>{{ t('buttons.execute') }}</span>
                 </button>
             </div>
@@ -61,11 +61,11 @@
 <script lang="ts" setup>
 import { computed, reactive, ref } from "vue";
 import { VideoQualityArray } from "../../../../common/Defs";
-
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faDownload } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from "vue-i18n";
 import axios from "axios";
+import { ApiResponse } from "@common/Api/Api";
 library.add(faDownload);
 
 const emit = defineEmits(["formSuccess"]);
@@ -78,7 +78,7 @@ const formData = reactive({
     quality: "best",
 });
 const fileLink = ref("");
-    
+
 const formStatusClass = computed((): Record<string, boolean> => {
     return {
         "form-status": true,
@@ -93,11 +93,11 @@ function submitForm(event: Event) {
     formStatus.value = "";
 
     axios
-        .post(`/api/v0/tools/clip_download`, formData)
+        .post<ApiResponse>(`/api/v0/tools/clip_download`, formData)
         .then((response) => {
             const json = response.data;
             console.log("form success", json);
-            formStatusText.value = json.message;
+            formStatusText.value = json.message || "No message";
             formStatus.value = json.status;
             if (json.data && json.data.web_path) {
                 fileLink.value = json.data.web_path;

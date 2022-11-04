@@ -327,7 +327,7 @@
                 @click="doRenderWizard"
             >
                 <span class="icon">
-                    <fa icon="burn" />
+                    <font-awesome-icon icon="burn" />
                 </span>
                 <span>Execute</span>
             </button>
@@ -461,7 +461,7 @@ export default defineComponent({
             this.burnLoading = true;
             console.debug("doRenderWizard", this.burnSettings);
             axios
-                .post(`/api/v0/vod/${this.vod.uuid}/renderwizard`, this.burnSettings)
+                .post<ApiResponse>(`/api/v0/vod/${this.vod.uuid}/renderwizard`, this.burnSettings)
                 .then((response) => {
                     const json: ApiResponse = response.data;
                     if (json.message) alert(json.message);

@@ -16,7 +16,7 @@
                 type="button"
                 @click="fetchLog(true)"
             >
-                <span class="icon"><fa icon="sync" /></span>
+                <span class="icon"><font-awesome-icon icon="sync" /></span>
                 <span>Fetch</span>
             </button>
         </div>

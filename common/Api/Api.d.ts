@@ -1,4 +1,5 @@
 import { ChannelConfig, SettingField } from "../Config";
+import { AboutData } from "./About";
 import { ApiTwitchChannel, ApiGame, ApiJob, ApiLogLine, ApiTwitchVod, ApiChannels, ApiVods, ApiFile } from "./Client";
 
 interface ApiResponse {
@@ -84,11 +85,23 @@ export interface ApiFilesResponse extends ApiResponse {
 
 export interface ApiAuthResponse {
     authentication: boolean;
+    authenticated: boolean;
     guest_mode: boolean;
+    message?: string;
+}
+
+export interface ApiLoginResponse {
+    authenticated: boolean;
+    message?: string;
+    status: "OK" | "ERROR";
 }
 
 export interface IApiResponse<T> {
     data: T;
     status: "OK";
     message?: string;
+}
+
+export interface ApiAboutResponse extends ApiResponse {
+    data: AboutData;
 }

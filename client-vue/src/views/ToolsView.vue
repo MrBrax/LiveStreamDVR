@@ -78,7 +78,7 @@
                             class="button is-danger"
                             @click="resetChannels"
                         >
-                            <span class="icon"><fa icon="sync" /></span>
+                            <span class="icon"><font-awesome-icon icon="sync" /></span>
                             <span>{{ t('views.tools.reset-channels') }}</span>
                         </button>
                         <p class="input-help">
@@ -93,7 +93,7 @@
                             class="button is-danger"
                             @click="shutdown"
                         >
-                            <span class="icon"><fa icon="power-off" /></span>
+                            <span class="icon"><font-awesome-icon icon="power-off" /></span>
                             <span>{{ t('views.tools.shutdown') }}</span>
                         </button>
                     </div>
@@ -105,7 +105,7 @@
                             class="button is-confirm"
                             @click="buildClient"
                         >
-                            <span class="icon"><fa icon="sync" /></span>
+                            <span class="icon"><font-awesome-icon icon="sync" /></span>
                             <span>{{ t('views.tools.build-client') }}</span>
                         </button>
                     </div>
@@ -199,7 +199,7 @@
                                     title="Gracefully kill job (SIGHUP)"
                                     @click="killJob(job.name, 'SIGHUP')"
                                 >
-                                    <span class="icon"><fa icon="heart" /></span>
+                                    <span class="icon"><font-awesome-icon icon="heart" /></span>
                                 </a>
                                 <a
                                     v-if="job.status"
@@ -207,7 +207,7 @@
                                     title="Gracefully kill job (SIGINT)"
                                     @click="killJob(job.name, 'SIGINT')"
                                 >
-                                    <span class="icon"><fa icon="stop" /></span>
+                                    <span class="icon"><font-awesome-icon icon="stop" /></span>
                                 </a>
                                 <a
                                     v-if="job.status"
@@ -215,7 +215,7 @@
                                     title="Kill job (SIGTERM)"
                                     @click="killJob(job.name)"
                                 >
-                                    <span class="icon"><fa icon="skull" /></span>
+                                    <span class="icon"><font-awesome-icon icon="skull" /></span>
                                 </a>
                                 <a
                                     v-if="job.status"
@@ -223,7 +223,7 @@
                                     title="Clear job"
                                     @click="clearJob(job.name)"
                                 >
-                                    <span class="icon"><fa icon="trash" /></span>
+                                    <span class="icon"><font-awesome-icon icon="trash" /></span>
                                 </a>
                             </div>
                         </td>
@@ -243,6 +243,7 @@
 
 <script lang="ts">
 import { defineComponent } from "vue";
+import { ApiResponse } from "@common/Api/Api";
 
 // import ToolsBurnForm from "@/components/forms/ToolsBurnForm.vue";
 import ToolsVodDownloadForm from "@/components/forms/ToolsVodDownloadForm.vue";
@@ -338,7 +339,7 @@ export default defineComponent({
                     console.log("payload", data);
 
                     axios
-                        .post(`/api/v0/hook`, data.body, {
+                        .post<ApiResponse>(`/api/v0/hook`, data.body, {
                             headers: data.headers,
                         })
                         .then((response) => {
@@ -357,7 +358,7 @@ export default defineComponent({
             if (!confirm("Reset channels?")) return;
 
             axios
-                .post(`/api/v0/tools/reset_channels`)
+                .post<ApiResponse>(`/api/v0/tools/reset_channels`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);
@@ -371,7 +372,7 @@ export default defineComponent({
             if (!confirm("Shutdown?")) return;
 
             axios
-                .post(`/api/v0/tools/shutdown`)
+                .post<ApiResponse>(`/api/v0/tools/shutdown`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);
@@ -387,7 +388,7 @@ export default defineComponent({
             const basepath = prompt("Base path", "/");
 
             axios
-                .post(`/api/v0/tools/buildclient?basepath=${basepath}`)
+                .post<ApiResponse>(`/api/v0/tools/buildclient?basepath=${basepath}`)
                 .then((response) => {
                     const json = response.data;
                     if (json.message) alert(json.message);

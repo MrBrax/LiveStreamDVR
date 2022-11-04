@@ -73,13 +73,13 @@
                 v-else-if="!store.authElement"
                 class="section-content"
             >
-                <span class="icon"><fa icon="sign-in-alt" /></span> {{ t("messages.login") }}
+                <span class="icon"><font-awesome-icon icon="sign-in-alt" /></span> {{ t("messages.login") }}
             </div>
             <div
                 v-else
                 class="section-content"
             >
-                <span class="icon"><fa icon="exclamation-triangle" /></span>
+                <span class="icon"><font-awesome-icon icon="exclamation-triangle" /></span>
                 No channels found. Add some at <router-link :to="{ name: 'Settings', params: { tab: 'newchannel' } }">
                     New Channel
                 </router-link> to start.
@@ -103,7 +103,7 @@
                 v-else-if="!store.authElement"
                 class="section-content"
             >
-                <span class="icon"><fa icon="sign-in-alt" /></span> {{ t("messages.login") }}
+                <span class="icon"><font-awesome-icon icon="sign-in-alt" /></span> {{ t("messages.login") }}
             </div>
         </section>
     </div>
