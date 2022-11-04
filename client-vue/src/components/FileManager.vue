@@ -7,7 +7,7 @@
             {{ t('components.filemanager.these-files-are-not-downloadable-due-to-a-config-setting') }}
         </p>
         <table
-            v-if="!error && files.length > 0"
+            v-if="!errorDisplay && files.length > 0"
             class="table is-fullwidth is-striped"
         >
             <thead>
@@ -130,14 +130,14 @@
                 </td>
             </tr> 
         </table>
-        <div v-else-if="!error">
+        <div v-else-if="!errorDisplay">
             No files found.
         </div>
         <div
-            v-if="error"
+            v-if="errorDisplay"
             class="notification is-danger error"
         >
-            {{ error }}
+            {{ errorDisplay }}
         </div>
     </div>
     <modal-box
@@ -361,10 +361,10 @@
     </modal-box>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import { useStore } from "@/store";
 import axios, { AxiosError } from "axios";
-import { defineComponent } from "vue";
+import { computed, defineComponent, onMounted, ref } from "vue";
 import ModalBox from "./ModalBox.vue";
 import YoutubeAuth from "./YoutubeAuth.vue";
 import { YouTubeCategories } from "@common/YouTube";
@@ -378,185 +378,167 @@ import { useI18n } from "vue-i18n";
 import { formatBytes } from "@/mixins/newhelpers";
 library.add(faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode, faFileLines, faDownload, faUpload);
 
+// props
+const props = defineProps<{
+    path: string;
+    web: string;
+    defaultSortBy: string;
+    defaultSortOrder: string;
+}>();
 
+// setup   
+const store = useStore();
+const { t } = useI18n();
 
-export default defineComponent({
-    name: "FileManager",
-    components: {
-        ModalBox,
-        YoutubeAuth,
-    },
-    props: {
-        path: {
-            type: String,
-            required: true,
-        },
-        web: {
-            type: String,
-            default: "",
-        },
-        defaultSortBy: {
-            type: String,
-            default: "name",
-        },
-        defaultSortOrder: {
-            type: String,
-            default: "asc",
-        },
-    },
-    setup() {
-        const store = useStore();
-        const { t } = useI18n();
-        return { store, YouTubeCategories, t, formatBytes };
-    },
-    data(): {
-        files: ApiFile[];
-        error: string;
-        sortBy: "name" | "size" | "date";
-        sortOrder: "asc" | "desc";
-        exportVodSettings: ExporterOptions;
-        exporter: string;
-        showExportFileDialogEl: boolean;
-    } {
-        return {
-            files: [],
-            error: "",
-            sortBy: this.defaultSortBy as "name" | "size" | "date",
-            sortOrder: this.defaultSortOrder as "asc" | "desc",
-            exportVodSettings: {
-                // exporter: "file",
-                title: "",
-                directory: "",
-                host: "",
-                username: "",
-                description: "",
-                tags: "",
-                category: "",
-                file_folder: "",
-                file_name: "",
-                privacy: "private",
-                remote: "",
-                password: "",
-            },
-            exporter: "file",
-            showExportFileDialogEl: false,
-        };
-    },
-    computed: {
-        sortedFiles() {
-            return this.files.filter(file => !file.is_dir).sort((a, b) => {
-                if (typeof a[this.sortBy] === "string") {
-                    if (this.sortOrder === "asc") {
-                        return (a[this.sortBy] as string).localeCompare(b[this.sortBy] as string);
-                    } else {
-                        return (b[this.sortBy] as string).localeCompare(a[this.sortBy] as string);
-                    }
-                } else {
-                    if (this.sortOrder === "asc") {
-                        return (a[this.sortBy] as number) - (b[this.sortBy] as number);
-                    } else {
-                        return (b[this.sortBy] as number) - (a[this.sortBy] as number);
-                    }
-                }
-            });
-        },
-        isPrivate() {
-            return this.files.some(file => file.is_public === false);
-        },
-    },
-    mounted() {
-        this.fetchFileList();
-    },
-    methods: {
-        fetchFileList() {
-            console.debug("Fetching file list...");
-            axios.get<ApiFilesResponse>(`/api/v0/files?path=${this.path}`).then((response) => {
-                this.files = response.data.data.files;
-            }).catch((error: AxiosError<ApiFilesResponse> | Error) => {
-                if ("response" in error && error.response?.data.message) {
-                    // alert(error.response.data.message);
-                    this.error = error.response.data.message;
-                }
-            });
-        },
-        deleteFile(file: ApiFile) {
-            axios.delete(`/api/v0/files?path=${this.path}&name=${file.name}`).then((response) => {
-                this.fetchFileList();
-            });
-        },
-        downloadLink(file: ApiFile) {
-            const base = import.meta.env.BASE_URL || "/";
-            const url = `${base}${this.web}/${file.name}`;
-            return url;
-        },
-        setSort(sortBy: "name" | "size" | "date") {
-            this.sortBy = sortBy;
-            this.sortOrder = this.sortOrder === "asc" ? "desc" : "asc";
-        },
-        getIconName(extension: string) {
-            switch (extension) {
-                case "mp4":
-                    return "file-video";
-                case "mkv":
-                    return "file-video";
-                case "ts":
-                    return "file-video";
-                case "csv":
-                    return "file-csv";
-                case "json":
-                    return "file-code";
-                case "jsonline":
-                    return "file-code";
-                case "log":
-                    return "file-lines";
-                case "txt":
-                    return "file-lines";
-                case "vtt":
-                    return "file-lines";
-                case "chatdump":
-                    return "file-lines";
-                case "line":
-                    return "file-lines";
-                default:
-                    return "file";
-            }
-        },
-        showExportFileDialog(file: ApiFile) {
-            // this.exportFileMenu.value = this.$refs.exportFileMenu as InstanceType<typeof ModalBox>;
-            // this.exportFileMenu.value.show();
-            this.exportVodSettings.file_folder = this.path;
-            this.exportVodSettings.file_name = file.name;
-            this.showExportFileDialogEl = true;
-        },
-        doExportFile() {
-            // if (!this.vod) return;
-            axios.post<ApiResponse>(`/api/v0/exporter?mode=file&exporter=${this.exporter}`, this.exportVodSettings).then((response) => {
-                const json = response.data;
-                if (json.message) alert(json.message);
-                console.log(json);
-                // if (this.vod) this.store.fetchAndUpdateVod(this.vod.basename);
-                // if (this.editVodMenu) this.editVodMenu.show = false;
-            }).catch((err) => {
-                console.error("form error", err.response);
-                if (err.response.data && err.response.data.message) alert(err.response.data.message);
-            });
-        },
-        doCheckYouTubeStatus() {
-            axios.get<ApiResponse>(`/api/v0/youtube/status`).then((response) => {
-                const json = response.data;
-                if (json.message) alert(json.message);
-                console.log(json);
-            }).catch((err) => {
-                console.error("youtube check error", err.response);
-                if (err.response.data && err.response.data.message) alert(err.response.data.message);
-            });
-        },
-        doAuthenticateYouTube() {
-            const url = `${this.store.cfg<string>("basepath", "")}/api/v0/youtube/authenticate`;
-            window.open(url, "_blank");
-        },
-    },
+// data
+const files = ref<ApiFile[]>([]);
+const errorDisplay = ref<string>("");
+const sortBy = ref<"name" | "size" | "date">(props.defaultSortBy as "name" | "size" | "date");
+const sortOrder = ref<"asc" | "desc">(props.defaultSortOrder as "asc" | "desc");
+const exportVodSettings = ref<ExporterOptions>({
+    // exporter: "file",
+    title: "",
+    directory: "",
+    host: "",
+    username: "",
+    description: "",
+    tags: "",
+    category: "",
+    file_folder: "",
+    file_name: "",
+    privacy: "private",
+    remote: "",
+    password: "",
 });
+const exporter = ref<string>("file");
+const showExportFileDialogEl = ref<boolean>(false);
+
+
+// computed
+const sortedFiles = computed(() => {
+    return files.value.filter(file => !file.is_dir).sort((a, b) => {
+        if (typeof a[sortBy.value] === "string") {
+            if (sortOrder.value === "asc") {
+                return (a[sortBy.value] as string).localeCompare(b[sortBy.value] as string);
+            } else {
+                return (b[sortBy.value] as string).localeCompare(a[sortBy.value] as string);
+            }
+        } else {
+            if (sortOrder.value === "asc") {
+                return (a[sortBy.value] as number) - (b[sortBy.value] as number);
+            } else {
+                return (b[sortBy.value] as number) - (a[sortBy.value] as number);
+            }
+        }
+    });
+});
+
+const isPrivate = computed(() => {
+    return files.value.some(file => file.is_public === false);
+});
+
+
+// mounted
+onMounted(() => {
+    fetchFileList();
+});
+
+function fetchFileList() {
+    console.debug("Fetching file list...");
+    axios.get<ApiFilesResponse>(`/api/v0/files?path=${props.path}`).then((response) => {
+        files.value = response.data.data.files;
+    }).catch((error: AxiosError<ApiFilesResponse> | Error) => {
+        if ("response" in error && error.response?.data.message) {
+            // alert(error.response.data.message);
+            errorDisplay.value = error.response.data.message;
+        }
+    });
+}
+
+function deleteFile(file: ApiFile) {
+    axios.delete(`/api/v0/files?path=${props.path}&name=${file.name}`).then((response) => {
+        fetchFileList();
+    });
+}
+
+function downloadLink(file: ApiFile) {
+    const base = import.meta.env.BASE_URL || "/";
+    const url = `${base}${props.web}/${file.name}`;
+    return url;
+}
+
+function setSort(newSortBy: "name" | "size" | "date") {
+    sortBy.value = newSortBy;
+    sortOrder.value = sortOrder.value === "asc" ? "desc" : "asc";
+}
+
+function getIconName(extension: string) {
+    switch (extension) {
+        case "mp4":
+            return "file-video";
+        case "mkv":
+            return "file-video";
+        case "ts":
+            return "file-video";
+        case "csv":
+            return "file-csv";
+        case "json":
+            return "file-code";
+        case "jsonline":
+            return "file-code";
+        case "log":
+            return "file-lines";
+        case "txt":
+            return "file-lines";
+        case "vtt":
+            return "file-lines";
+        case "chatdump":
+            return "file-lines";
+        case "line":
+            return "file-lines";
+        default:
+            return "file";
+    }
+}
+
+function showExportFileDialog(file: ApiFile) {
+    // this.exportFileMenu.value = this.$refs.exportFileMenu as InstanceType<typeof ModalBox>;
+    // this.exportFileMenu.value.show();
+    exportVodSettings.value.file_folder = props.path;
+    exportVodSettings.value.file_name = file.name;
+    showExportFileDialogEl.value = true;
+}
+
+function doExportFile() {
+    // if (!this.vod) return;
+    axios.post<ApiResponse>(`/api/v0/exporter?mode=file&exporter=${exporter.value}`, exportVodSettings.value).then((response) => {
+        const json = response.data;
+        if (json.message) alert(json.message);
+        console.log(json);
+        // if (this.vod) this.store.fetchAndUpdateVod(this.vod.basename);
+        // if (this.editVodMenu) this.editVodMenu.show = false;
+    }).catch((err) => {
+        console.error("form error", err.response);
+        if (err.response.data && err.response.data.message) alert(err.response.data.message);
+    });
+}
+
+function doCheckYouTubeStatus() {
+    axios.get<ApiResponse>(`/api/v0/youtube/status`).then((response) => {
+        const json = response.data;
+        if (json.message) alert(json.message);
+        console.log(json);
+    }).catch((err) => {
+        console.error("youtube check error", err.response);
+        if (err.response.data && err.response.data.message) alert(err.response.data.message);
+    });
+}
+
+function doAuthenticateYouTube() {
+    const url = `${store.cfg<string>("basepath", "")}/api/v0/youtube/authenticate`;
+    window.open(url, "_blank");
+}
+
 </script>
 
 <style lang="scss">
