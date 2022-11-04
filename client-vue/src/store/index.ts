@@ -574,6 +574,12 @@ export const useStore = defineStore("twitchAutomator", {
             if (this.guest_mode && !this.authenticated) return false;
             if (this.authentication && this.authenticated) return true;
             return false;
+        },
+        appUrl(): string {
+            if (!this.config) return "";
+            const url = this.config.app_url;
+            if (url == "debug") return "http://localhost:8080";
+            return url;
         }
     },
 });

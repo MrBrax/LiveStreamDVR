@@ -4,7 +4,7 @@ import fs from "node:fs";
 import { WebSocket } from "ws";
 import path from "node:path";
 import { EventSubTypes, Subscription } from "@common/TwitchAPI/Shared";
-import type { TwitchAuthAppTokenResponse } from "@common/TwitchAPI/Auth";
+import type { TwitchAuthAppTokenResponse, TwitchAuthTokenValidationResponse, TwitchAuthUserTokenResponse } from "@common/TwitchAPI/Auth";
 import { Subscriptions } from "@common/TwitchAPI/Subscriptions";
 import { BaseConfigCacheFolder } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
@@ -33,6 +33,8 @@ export class TwitchHelper {
     static accessToken = "";
     static accessTokenType?: "user" | "app";
     static accessTokenTime = 0;
+    static accessRefreshToken = "";
+    static accessTokenUserId = "";
 
     static readonly accessTokenAppFileLegacy = path.join(
         BaseConfigCacheFolder.cache,
@@ -46,7 +48,7 @@ export class TwitchHelper {
 
     static readonly accessTokenUserFile = path.join(
         BaseConfigCacheFolder.cache,
-        "oauth_user.bin"
+        "oauth_user.json"
     );
 
     static readonly accessTokenExpire = 60 * 60 * 24 * 60 * 1000; // 60 days
@@ -75,7 +77,11 @@ export class TwitchHelper {
     ];
 
     static async getAccessToken(force = false): Promise<string> {
-        return await this.getAccessTokenApp(force);
+        if (Config.getInstance().cfg("twitchapi.auth_type") == "app") {
+            return await this.getAccessTokenApp(force);
+        } else {
+            return await this.getAccessTokenUser(force);
+        }
     }
 
     static async getAccessTokenApp(force = false): Promise<string> {
@@ -258,7 +264,19 @@ export class TwitchHelper {
                     "Fetched access token from cache"
                 );
                 this.accessTokenType = "user";
-                return fs.readFileSync(this.accessTokenUserFile, "utf8");
+                // const data = fs.readFileSync(this.accessTokenUserFile, "utf8");
+                // this.accessToken = data.
+                const data: TwitchAuthUserTokenResponse = JSON.parse(
+                    fs.readFileSync(this.accessTokenUserFile, "utf8")
+                );
+                this.accessToken = data.access_token;
+                this.accessTokenTime = Date.now() + (data.expires_in * 1000);
+                // Log.logAdvanced(
+                //     Log.Level.INFO,
+                //     "tw.helper",
+                //     `Access token expires at ${format(this.accessTokenTime, Config.getInstance().dateFormat)}`
+                // );
+                return this.accessToken;
             }
         }
 
@@ -598,6 +616,57 @@ export class TwitchHelper {
         if (metadata.message_type == "session_welcome") {
             // subscribe to all subscriptions
         }
+    }
+
+    public static clearAccessToken() {
+        this.axios = undefined;
+        this.accessToken = "";
+        this.accessRefreshToken = "";
+        this.accessTokenUserId = "";
+        this.accessTokenTime = 0;
+    }
+
+    public static async validateOAuth(): Promise<boolean> {
+        const token = TwitchHelper.accessToken;
+        if (TwitchHelper.accessTokenType !== "user") return false;
+        if (!token) {
+            Log.logAdvanced(
+                Log.Level.ERROR,
+                "tw.helper",
+                "No access token set for validation"
+            );
+            return false;
+        }
+
+        let res;
+        try {
+            res = await axios.get<TwitchAuthTokenValidationResponse>("https://id.twitch.tv/oauth2/validate", {
+                headers: {
+                    Authorization: `OAuth ${token}`,
+                },
+            });
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                Log.logAdvanced(Log.Level.ERROR, "tw.helper.validateOAuth", `Failed to validate oauth token: ${error.response?.data?.message}`);
+                console.error(error.response?.data);
+            } else {
+                Log.logAdvanced(Log.Level.ERROR, "tw.helper.validateOAuth", `Failed to validate oauth token: ${(error as Error).message}`, error);
+            }
+            return false;
+        }
+
+        if (res.status === 200) {
+            Log.logAdvanced(Log.Level.INFO, "tw.helper.validateOAuth", "OAuth token is valid");
+            if (res.data.user_id) {
+                TwitchHelper.accessTokenUserId = res.data.user_id;
+            }
+            return true;
+        } else {
+            Log.logAdvanced(Log.Level.ERROR, "tw.helper.validateOAuth", `Failed to validate oauth token: ${res.status} ${res.statusText}`, res.data);
+            TwitchHelper.clearAccessToken();
+            return false;
+        }
+
     }
 
 }

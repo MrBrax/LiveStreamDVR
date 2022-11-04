@@ -56,6 +56,15 @@
             </span>
             {{ status }}
         </div>
+        <hr>
+        <div class="youtube-help">
+            <h3>Suggested configuration:</h3>
+            <ul class="list less-padding">
+                <li>
+                    <strong>Redirect URI:</strong> <code class="uselect">{{ store.appUrl }}/api/v0/twitch/callback</code>
+                </li>
+            </ul>
+        </div>
     </div>
 </template>
 

@@ -77,10 +77,10 @@
             <h3>Suggested configuration:</h3>
             <ul class="list less-padding">
                 <li>
-                    <strong>Authorized JavaScript origins:</strong> {{ store.cfg("app_url") }}
+                    <strong>Authorized JavaScript origins:</strong> <code class="uselect">{{ store.appUrl }}</code>
                 </li>
                 <li>
-                    <strong>Redirect URI:</strong> {{ store.cfg("app_url") }}/api/v0/youtube/callback
+                    <strong>Redirect URI:</strong> <code class="uselect">{{ store.appUrl }}/api/v0/youtube/callback</code>
                 </li>
             </ul>
         </div>
