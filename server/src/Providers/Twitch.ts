@@ -1,6 +1,7 @@
 import axios, { Axios } from "axios";
 import { format } from "date-fns";
 import fs from "node:fs";
+import { WebSocket } from "ws";
 import path from "node:path";
 import { EventSubTypes, Subscription } from "@common/TwitchAPI/Shared";
 import { Subscriptions } from "@common/TwitchAPI/Subscriptions";
@@ -41,6 +42,9 @@ export class TwitchHelper {
     static readonly PHP_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.SSSSSS";
     static readonly TWITCH_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     static readonly TWITCH_DATE_FORMAT_MS = "yyyy-MM-dd'T'HH:mm:ss'.'SSS'Z'";
+
+    static readonly eventWebsocketUrl = "wss://eventsub-beta.wss.twitch.tv/ws";
+    static eventWebsocket: WebSocket | undefined;
 
     /*
     static readonly SUBSTATUS = {
@@ -448,4 +452,85 @@ export class TwitchHelper {
 
         return sub;
     }
+
+    public static eventWebsocketSubscribed = false;
+    /**
+     * Only user access tokens work with this, app access tokens will not work.
+     * Gonna have to think this over if it's worth changing the token type and all the connected stuff
+     */
+    public static connectEventWebsocket() {
+
+        const ws = new WebSocket(this.eventWebsocketUrl);
+
+        ws.on("open", () => {
+            Log.logAdvanced(
+                Log.Level.INFO,
+                "tw.helper",
+                `Connected to event websocket at ${this.eventWebsocketUrl}`
+            );
+        });
+
+        ws.on("message", (data) => {
+            console.debug("tw.helper", `Received event websocket message: ${data}`);
+            let json;
+            try {
+                json = JSON.parse(data.toString());
+            } catch (err) {
+                Log.logAdvanced(
+                    Log.Level.ERROR,
+                    "tw.helper",
+                    `Error parsing event websocket message: ${err}`
+                );
+                return;
+            }
+
+            this.eventWebsocketMessageHandler(json);
+        });
+
+        ws.on("close", () => {
+            Log.logAdvanced(
+                Log.Level.ERROR,
+                "tw.helper",
+                `Disconnected from event websocket at ${this.eventWebsocketUrl}`
+            );
+        });
+    }
+
+    public static eventWebsocketMessageHandler(json: EventSubWebsocketBaseMessage) {
+        const metadata = json.metadata;
+        const payload = json.payload;
+        console.debug(metadata, payload);
+        if (metadata.message_type == "session_welcome") {
+            // subscribe to all subscriptions
+        }
+    }
+
 }
+
+interface EventSubWebsocketBaseMessage {
+    metadata: {
+        message_id: string;
+        message_type: string;
+        message_timestamp: string;
+    };
+    payload: any;
+}
+
+interface EventSubWebsocketSessionMessage extends EventSubWebsocketBaseMessage {
+    metadata: {
+        message_id: string;
+        message_type: "session_welcome";
+        message_timestamp: string;
+    };
+    payload: {
+        session: {
+            id: string;
+            status: string;
+            connected_at: string;
+            keepalive_timeout_seconds: number;
+            reconnect_url: string | null;
+        }
+    };
+}
+
+// TwitchHelper.connectEventWebsocket();
