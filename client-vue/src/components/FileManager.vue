@@ -382,8 +382,8 @@ library.add(faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode, fa
 const props = defineProps<{
     path: string;
     web: string;
-    defaultSortBy: string;
-    defaultSortOrder: string;
+    defaultSortBy?: string;
+    defaultSortOrder?: string;
 }>();
 
 // setup   
