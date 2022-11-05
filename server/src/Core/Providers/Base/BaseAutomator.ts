@@ -41,6 +41,7 @@ export class BaseAutomator {
     public broadcaster_user_login = "";
     public broadcaster_user_name = "";
 
+    /** @deprecated */
     payload_headers: IncomingHttpHeaders | undefined;
 
     /** @deprecated */

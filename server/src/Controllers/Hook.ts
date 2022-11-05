@@ -10,7 +10,7 @@ import { ChallengeResponse } from "@common/TwitchAPI/Challenge";
 import {  Log } from "../Core/Log";
 import { KeyValue } from "../Core/KeyValue";
 import { SubStatus } from "@common/Defs";
-import { TwitchAutomator } from "../Core/Providers/Twitch/TwitchAutomator";
+import { AutomatorMetadata, TwitchAutomator } from "../Core/Providers/Twitch/TwitchAutomator";
 import { XMLParser } from "fast-xml-parser";
 
 const verifyTwitchSignature = (request: express.Request): boolean => {
@@ -181,8 +181,23 @@ export async function HookTwitch(req: express.Request, res: express.Response): P
 
         if ("event" in data_json) {
             Log.logAdvanced(Log.Level.DEBUG, "hook", `Signature checked, no challenge, retry ${messageRetry}. Run handle...`);
+
+            if (messageType !== "notification") {
+                Log.logAdvanced(Log.Level.ERROR, "hook", `Invalid message type ${messageType}!`, debugMeta);
+            }
+
+            const metadata_proxy: AutomatorMetadata = {
+                message_id: messageId as string,
+                message_retry: parseInt(messageRetry as string || "0"),
+                message_type: "notification",
+                message_signature: messageSignature as string,
+                message_timestamp: messageTimestamp as string,
+                subscription_type: subscriptionType as string,
+                subscription_version: subscriptionVersion as string,
+            };
+
             const TA = new TwitchAutomator();
-            /* await */ TA.handle(data_json, req).catch(error => {
+            /* await */ TA.handle(data_json, metadata_proxy).catch(error => {
                 Log.logAdvanced(Log.Level.FATAL, "hook", `Automator returned error: ${error.message}`);
             });
             res.status(200).send("");

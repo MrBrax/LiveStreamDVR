@@ -251,7 +251,7 @@ describe("channels", () => {
         // TwitchChannel.channels_config = [];
 
         expect(spy1).toHaveBeenCalled();
-        expect(TwitchChannel.subscribeToId).toHaveBeenCalled();
+        expect(TwitchChannel.subscribeToIdWithWebhook).toHaveBeenCalled();
 
         Config.getInstance().setConfig("app_url", "");
         Config.getInstance().setConfig("isolated_mode", false);
@@ -293,7 +293,7 @@ describe("channels", () => {
         expect(res.body.message).toContain("'test' deleted");
         expect(res.body.status).toBe("OK");
         expect(res.status).toBe(200);
-        expect(TwitchChannel.unsubscribeFromId).toHaveBeenCalled();
+        expect(TwitchChannel.unsubscribeFromIdWithWebhook).toHaveBeenCalled();
     });
 
 });

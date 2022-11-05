@@ -309,6 +309,7 @@ export class LiveStreamDVR {
         let timeout: NodeJS.Timeout | undefined = undefined;
         // introduced in node 18.2
         if ("closeAllConnections" in this.server) {
+            console.log("closeAllConnections is available, using it");
             (this.server as any).closeAllConnections();
         } else {
             // bad workaround
@@ -342,6 +343,7 @@ export class LiveStreamDVR {
             }
             ClientBroker.wss = undefined;
             Config.getInstance().stopWatchingConfig();
+            TwitchHelper.disconnectEventWebsocket();
             if (timeout !== undefined) clearTimeout(timeout);
             console.log(chalk.red("Finished tasks, bye bye."));
         });
@@ -502,5 +504,9 @@ export class LiveStreamDVR {
 
         return errors;
     }
+
+    // public subscribeToAllSubscriptions() {
+    //     console.debug("Subscribing to all subscriptions");
+    // }
 
 }

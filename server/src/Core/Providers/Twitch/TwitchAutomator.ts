@@ -17,6 +17,16 @@ import { ChannelUpdateEvent } from "@common/TwitchAPI/EventSub/ChannelUpdate";
 import { ChapterUpdateData } from "@common/Webhook";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 
+export interface AutomatorMetadata {
+    message_id: string;
+    message_retry: number;
+    message_type: "notification"; // TODO: only one supported?
+    message_signature: string;
+    message_timestamp: string;
+    subscription_type: string;
+    subscription_version: string;
+}
+
 export class TwitchAutomator extends BaseAutomator {
     vod: TwitchVOD | undefined;
     channel: TwitchChannel | undefined;
@@ -28,23 +38,23 @@ export class TwitchAutomator extends BaseAutomator {
     /**
      * Entrypoint for stream capture, this is where all Twitch EventSub (webhooks) end up.
      */
-    public async handle(data: EventSubResponse, request: express.Request): Promise<boolean> {
+    public async handle(data: EventSubResponse, metadata: AutomatorMetadata): Promise<boolean> {
         Log.logAdvanced(Log.Level.DEBUG, "automator.handle", "Handle called, proceed to parsing.");
 
-        if (!request.header("Twitch-Eventsub-Message-Id")) {
+        if (!metadata.message_id) {
             Log.logAdvanced(Log.Level.ERROR, "automator.handle", "No twitch message id supplied to handle");
             return false;
         }
 
-        const messageId             = request.header("Twitch-Eventsub-Message-Id");
-        const messageRetry          = request.header("Twitch-Eventsub-Message-Retry");
-        const messageType           = request.header("Twitch-Eventsub-Message-Type");
-        const messageSignature      = request.header("Twitch-Eventsub-Message-Signature");
-        const messageTimestamp      = request.header("Twitch-Eventsub-Message-Timestamp");
-        const subscriptionType      = request.header("Twitch-Eventsub-Subscription-Type");
-        const subscriptionVersion   = request.header("Twitch-Eventsub-Subscription-Version");
+        const messageId             = metadata.message_id;
+        const messageRetry          = metadata.message_retry;
+        const messageType           = metadata.message_type;
+        const messageSignature      = metadata.message_signature;
+        const messageTimestamp      = metadata.message_timestamp;
+        const subscriptionType      = metadata.subscription_type;
+        const subscriptionVersion   = metadata.subscription_version;
 
-        if (messageRetry !== undefined && parseInt(messageRetry) > 0) {
+        if (messageRetry !== undefined && messageRetry > 0) {
             Log.logAdvanced(Log.Level.WARNING, "automator.handle", `Message ${messageId} is a retry (${messageRetry})`);
             if (Config.getInstance().cfg("capture.retry_on_error", true)) {
                 Log.logAdvanced(Log.Level.INFO, "automator.handle", `Retrying message ${messageId}`);
@@ -61,11 +71,11 @@ export class TwitchAutomator extends BaseAutomator {
         } catch (error) {
             Log.logAdvanced(Log.Level.WARNING, "automator.handle", `Failed to set eventsub message ${messageId} KeyValues: ${(error as Error).message}`);
         }
-        
+
         // const message_retry = request.header("Twitch-Eventsub-Message-Retry") || null;
 
         this.payload_eventsub = data;
-        this.payload_headers = request.headers;
+        // this.payload_headers = request.headers;
 
         const subscription = data.subscription;
         const subscription_type = subscription.type;

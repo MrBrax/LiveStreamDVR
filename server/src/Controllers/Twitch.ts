@@ -4,7 +4,7 @@ import { Log } from "../Core/Log";
 import fs from "node:fs";
 import { formatDistanceToNow, formatISO9075 } from "date-fns";
 import { Config } from "../Core/Config";
-import { TwitchChannel } from "Core/Providers/Twitch/TwitchChannel";
+import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import type { TwitchAuthUserTokenResponse } from "@common/TwitchAPI/Auth";
 import axios from "axios";
 
@@ -158,7 +158,7 @@ export async function Status(req: express.Request, res: express.Response): Promi
         if (TwitchHelper.accessTokenTime > 0) {
             res.send({
                 status: "OK",
-                message: `Twitch authenticated with user: ${data.login}, expires in ${expires_in} (${formatISO9075(end_date)})`,
+                message: `Twitch authenticated with user: ${data.login}, expires in ${expires_in} (${formatISO9075(end_date)}), ${TwitchHelper.eventWebsocketSubscriptions.length} websocket subscriptions of which ${TwitchHelper.eventWebsocketSubscriptions.filter((s) => s.status === "enabled").length} are active.`,
             });
         } else {
             res.send({

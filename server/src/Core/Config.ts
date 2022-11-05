@@ -120,9 +120,11 @@ export class Config {
         { "key": "capture.retry_on_error", "group": "Capture", "text": "Retry on error", "type": "boolean", "default": true, "help": "Retry on any kind of error. If an eventsub message is missed, it will be retried." },
 
         // { "key": "sub_lease", "group": "Advanced", "text": "Subscription lease", "type": "number", "default": 604800 },
-        { "key": "api_client_id", "group": "Basic", "text": "Twitch client ID", "type": "string", "required": true },
-        { "key": "api_secret", "group": "Basic", "text": "Twitch secret", "type": "string", "secret": true, "required": true, "help": "Keep blank to not change" },
-        { "key": "twitchapi.auth_type", "group": "Basic", "text": "Twitch auth type", "type": "array", "default": "app", "choices": { "user": "User", "app": "App" } },
+        { "key": "api_client_id", "group": "Twitch", "text": "Twitch client ID", "type": "string", "required": true },
+        { "key": "api_secret", "group": "Twitch", "text": "Twitch secret", "type": "string", "secret": true, "required": true, "help": "Keep blank to not change" },
+        { "key": "twitchapi.auth_type", "group": "Twitch", "text": "Twitch auth type", "type": "array", "default": "app", "choices": { "user": "User", "app": "App" } },
+        { "key": "twitchapi.eventsub_type", "group": "Twitch", "text": "Twitch eventsub type", "type": "array", "default": "webhook", "choices": { "webhook": "Webhook", "websocket": "Websocket" } },
+        { "key": "twitchapi.eventsub_unsub_on_start", "group": "Twitch", "text": "Unsubscribe from all eventsubs on websocket start", "type": "boolean", "default": false },
 
         { "key": "youtube.client_id", "group": "YouTube", "text": "YouTube client ID", "type": "string" },
         { "key": "youtube.client_secret", "group": "YouTube", "text": "YouTube secret", "type": "string", "secret": true },
@@ -157,7 +159,7 @@ export class Config {
 
         // { "key": "ca_path", "group": "Advanced", "text": "Path to certificate PEM file", "type": "string" },
 
-        { "key": "api_metadata", "group": "Basic", "text": "Get extra metadata when updating chapter (viewer count).", "type": "boolean", "help": "Makes extra API requests." },
+        { "key": "api_metadata", "group": "Twitch", "text": "Get extra metadata when updating chapter (viewer count).", "type": "boolean", "help": "Makes extra API requests." },
 
         // { "key": "error_handler", "group": "Advanced", "text": "Use app logging to catch PHP errors", "type": "boolean" },
 
@@ -166,7 +168,7 @@ export class Config {
         { "key": "file_chown_uid", "group": "Advanced", "text": "File chown uid", "type": "number", "default": 100 },
         { "key": "file_chown_gid", "group": "Advanced", "text": "File chown gid", "type": "number", "default": 100 },
 
-        { "key": "checkmute_method", "group": "Basic", "text": "Method to use when checking for muted vods", "type": "array", "default": "streamlink", "choices": ["api", "streamlink"], "help": "Bugged as of 2022-03-29: https://github.com/twitchdev/issues/issues/501" },
+        { "key": "checkmute_method", "group": "Twitch", "text": "Method to use when checking for muted vods", "type": "array", "default": "streamlink", "choices": ["api", "streamlink"], "help": "Bugged as of 2022-03-29: https://github.com/twitchdev/issues/issues/501" },
 
         // telegram
         { "key": "telegram_enabled", "group": "Notifications (Telegram)", "text": "Enable Telegram notifications", "type": "boolean", "default": false },
@@ -407,11 +409,11 @@ export class Config {
             }
             const field = Config.getSettingField(key);
             if (field && field.type === "number") {
-                return <T><unknown>parseInt(val);
+                return <T>parseInt(val);
             } else if (field && field.type === "boolean") {
-                return <T><unknown>(val === "true" || val === "1");
+                return <T>(val === "true" || val === "1");
             } else {
-                return <T><unknown>val;
+                return <T>val;
             }
         }
 
@@ -421,13 +423,13 @@ export class Config {
             if (defaultValue !== undefined) {
                 return defaultValue; // user defined default
             } else if (field && field.default !== undefined) {
-                return <T><unknown>field.default; // field default value
+                return <T>field.default; // field default value
             } else {
-                return <T><unknown>undefined; // last resort
+                return <T>undefined; // TODO: should this be undefined or 0/""/false?
             }
         }
 
-        return <T><unknown>this.config[key]; // return value
+        return <T>this.config[key]; // return value
 
     }
 
@@ -620,61 +622,17 @@ export class Config {
 
     }
 
-    postSaveConfig() {
-        this.setupAxios();
+    async postSaveConfig() {
+        await TwitchHelper.setupAxios();
         Scheduler.restartScheduler();
-        YouTubeHelper.setupClient();
+        await YouTubeHelper.setupClient();
+        await TwitchHelper.setupWebsocket();
     }
 
     backupConfig() {
         if (fs.existsSync(BaseConfigPath.config)) {
             fs.copyFileSync(BaseConfigPath.config, `${BaseConfigPath.config}.${Date.now()}.bak`);
         }
-    }
-
-    async setupAxios() {
-
-        console.log(chalk.blue("Setting up axios..."));
-
-        if (!this.cfg("api_client_id")) {
-            console.error(chalk.red("API client id not set, can't setup axios"));
-            return;
-        }
-
-        let token;
-        try {
-            token = await TwitchHelper.getAccessToken();
-        } catch (error) {
-            console.error(chalk.red(`Failed to get access token: ${error}`));
-            return;
-        }
-
-        if (!token) {
-            Log.logAdvanced(Log.Level.FATAL, "config", "Could not get access token!");
-            throw new Error("Could not get access token!");
-        }
-
-        if (TwitchHelper.accessTokenType === "user") {
-            const validateResult = await TwitchHelper.validateOAuth();
-            if (!validateResult) {
-                Log.logAdvanced(Log.Level.FATAL, "config", "Could not validate access token!");
-                throw new Error("Could not validate access token!");
-            } else {
-                Log.logAdvanced(Log.Level.SUCCESS, "config", "Access token validated!");
-            }
-        }
-
-        TwitchHelper.axios = axios.create({
-            baseURL: "https://api.twitch.tv",
-            headers: {
-                "Client-ID": this.cfg("api_client_id"),
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
-            },
-        });
-
-        console.log(chalk.green("✔ Axios setup."));
-
     }
 
     static createFolders() {
@@ -877,7 +835,7 @@ export class Config {
 
         Config.getInstance().generateEventSubSecret();
 
-        await Config.getInstance().setupAxios();
+        await TwitchHelper.setupAxios();
 
         Log.readTodaysLog();
 
@@ -903,6 +861,8 @@ export class Config {
         Config.getInstance().startWatchingConfig();
 
         Scheduler.defaultJobs();
+
+        await TwitchHelper.setupWebsocket();
 
         // monitor for program exit
         // let saidGoobye = false;

@@ -1,4 +1,4 @@
-import { Condition, EventSubTypes, Pagination, Subscription, Transport } from "./Shared";
+import { Condition, EventSubTypes, Pagination, Subscription, TransportWebhook, TransportWebsocket, TransportWebsocketRequest } from "./Shared";
 
 export interface Subscriptions {
     data: Subscription[];
@@ -14,7 +14,7 @@ export interface SubscriptionRequest {
     type: EventSubTypes,
     version: string,
     condition: Condition;
-    transport: Transport;
+    transport: TransportWebhook | TransportWebsocketRequest;
 }
 
 export interface SubscriptionResponse {

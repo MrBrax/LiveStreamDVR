@@ -2,11 +2,24 @@ export interface Condition {
     broadcaster_user_id: string;
 }
 
-export interface Transport {
+export interface TransportWebhook {
     method: "webhook";
     callback: string;
     secret?: string;
 }
+
+export interface TransportWebsocket {
+    method: "websocket";
+    session_id: string;
+    connected_at: string;
+    disconnected_at: string;
+}
+
+export interface TransportWebsocketRequest {
+    method: "websocket";
+    session_id: string;
+}
+
 
 export interface Subscription {
     id: string;
@@ -15,7 +28,7 @@ export interface Subscription {
     status: EventSubStatus;
     cost: number;
     condition: Condition;
-    transport: Transport;
+    transport: TransportWebhook | TransportWebsocket;
     created_at: string;
 }
 
@@ -35,7 +48,8 @@ export type EventSubStatus =
     "webhook_callback_verification_failed" |
     "notification_failures_exceeded" |
     "authorization_revoked" |
-    "user_removed"
+    "user_removed" |
+    "websocket_disconnected" // new since 2022-11-01
 ;
 
 export type EventSubTypes = "channel.update" | "stream.offline" | "stream.online";

@@ -1575,7 +1575,11 @@ export class TwitchChannel extends BaseChannel {
     }
 
     public async subscribe(force = false): Promise<boolean> {
-        return await TwitchChannel.subscribeToId(this.internalId, force);
+        if (Config.getInstance().cfg("twitchapi.eventsub_type") === "webhook") {
+            return await TwitchChannel.subscribeToIdWithWebhook(this.internalId, force);
+        } else {
+            return await TwitchChannel.subscribeToIdWithWebsocket(this.internalId, force);
+        }
     }
 
     /**
@@ -1583,7 +1587,7 @@ export class TwitchChannel extends BaseChannel {
      * @param channel_id
      * @param force
      */
-    public static async subscribeToId(channel_id: string, force = false): Promise<boolean> {
+    public static async subscribeToIdWithWebhook(channel_id: string, force = false): Promise<boolean> {
 
         if (!Config.getInstance().cfg("app_url")) {
             throw new Error("app_url is not set");
@@ -1693,7 +1697,7 @@ export class TwitchChannel extends BaseChannel {
      * @test disable
      * @param channel_id
      */
-    public static async unsubscribeFromId(channel_id: string): Promise<boolean> {
+    public static async unsubscribeFromIdWithWebhook(channel_id: string): Promise<boolean> {
 
         const subscriptions = await TwitchHelper.getSubsList();
 
@@ -1727,11 +1731,117 @@ export class TwitchChannel extends BaseChannel {
 
     }
 
+    /**
+     * @test disable
+     * @param channel_id
+     * @param force
+     */
+    public static async subscribeToIdWithWebsocket(channel_id: string, force = false): Promise<boolean> {
+
+        if (!TwitchHelper.eventSubSessionId) {
+            throw new Error("EventSub session ID is not set");
+        }
+
+        const streamer_login = await TwitchChannel.channelLoginFromId(channel_id);
+
+        for (const sub_type of TwitchHelper.CHANNEL_SUB_TYPES) {
+
+            // if (KeyValue.getInstance().get(`${channel_id}.sub.${sub_type}`) && !force) {
+            //     Log.logAdvanced(Log.Level.INFO, "channel", `Skip subscription to ${channel_id}:${sub_type} (${streamer_login}), in cache.`);
+            //     continue; // todo: alert
+            // }
+
+            Log.logAdvanced(Log.Level.INFO, "tw.ch.subscribeToIdWithWebsocket", `Subscribe to ${channel_id}:${sub_type} (${streamer_login})`);
+
+            const payload: SubscriptionRequest = {
+                type: sub_type,
+                version: "1",
+                condition: {
+                    broadcaster_user_id: channel_id,
+                },
+                transport: {
+                    method: "websocket",
+                    session_id: TwitchHelper.eventSubSessionId,
+                },
+            };
+
+            if (!TwitchHelper.axios) {
+                throw new Error("Axios is not initialized");
+            }
+
+            let response;
+
+            try {
+                response = await TwitchHelper.axios.post<SubscriptionResponse>("/helix/eventsub/subscriptions", payload);
+            } catch (err) {
+                if (axios.isAxiosError(err)) {
+                    Log.logAdvanced(Log.Level.ERROR, "tw.ch.subscribeToIdWithWebsocket", `Could not subscribe to ${channel_id}:${sub_type}: ${err.message} / ${err.response?.data.message}`);
+
+                    if (err.response?.data.status == 409) { // duplicate
+                        // const sub_id = await TwitchChannel.getSubscriptionId(channel_id, sub_type);
+                        // if (sub_id) {
+                        //     KeyValue.getInstance().set(`${channel_id}.sub.${sub_type}`, sub_id);
+                        //     KeyValue.getInstance().set(`${channel_id}.substatus.${sub_type}`, SubStatus.SUBSCRIBED);
+                        // }
+                        console.error(`Duplicate subscription detected for ${channel_id}:${sub_type}`);
+                        continue;
+                    }
+
+                    continue;
+                }
+
+                Log.logAdvanced(Log.Level.ERROR, "tw.ch.subscribeToIdWithWebsocket", `Subscription request for ${channel_id} exceptioned: ${err}`);
+                console.log(err);
+                continue;
+            }
+
+            const json = response.data;
+            const http_code = response.status;
+
+            KeyValue.getInstance().setInt("twitch.max_total_cost", json.max_total_cost);
+            KeyValue.getInstance().setInt("twitch.total_cost", json.total_cost);
+            KeyValue.getInstance().setInt("twitch.total", json.total);
+
+            if (http_code == 202) {
+
+                // if (json.data[0].status !== "webhook_callback_verification_pending") {
+                //     Log.logAdvanced(Log.Level.ERROR, "tw.ch.subscribeToIdWithWebsocket", `Got 202 return for subscription request for ${channel_id}:${sub_type} but did not get callback verification.`);
+                //     return false;
+                //     // continue;
+                // }
+
+                // KeyValue.getInstance().set(`${channel_id}.sub.${sub_type}`, json.data[0].id);
+                // KeyValue.getInstance().set(`${channel_id}.substatus.${sub_type}`, SubStatus.WAITING);
+
+                // Log.logAdvanced(Log.Level.SUCCESS, "tw.ch.subscribeToIdWithWebsocket", `Subscribe for ${channel_id}:${sub_type} (${streamer_login}) sent. Check logs for a 'subscription active' message.`);
+
+                Log.logAdvanced(
+                    Log.Level.INFO,
+                    "tw.ch.subscribeToIdWithWebsocket",
+                    `Subscribe for ${channel_id}:${sub_type} (${streamer_login}) sent, response: ${json.data[0].status}`
+                );
+
+                TwitchHelper.eventWebsocketSubscriptions.push(json.data[0]);
+
+            } else if (http_code == 409) {
+                Log.logAdvanced(Log.Level.ERROR, "tw.ch.subscribeToIdWithWebsocket", `Duplicate sub for ${channel_id}:${sub_type} detected.`);
+            } else {
+                Log.logAdvanced(Log.Level.ERROR, "tw.ch.subscribeToIdWithWebsocket", `Failed to send subscription request for ${channel_id}:${sub_type}: ${json}, HTTP ${http_code})`);
+                return false;
+                // continue;
+            }
+
+        }
+
+        return true;
+
+    }
+
     public async unsubscribe(): Promise<boolean> {
         if (Config.getInstance().cfg("app_url") === "debug") {
             return false;
         }
-        return await TwitchChannel.unsubscribeFromId(this.internalId);
+        return await TwitchChannel.unsubscribeFromIdWithWebhook(this.internalId);
     }
 
     public static async getSubscriptionId(channel_id: string, sub_type: EventSubTypes): Promise<string | false> {
@@ -1830,6 +1940,15 @@ export class TwitchChannel extends BaseChannel {
             }
         }
         return this.channel_data?.profile_image_url || "";
+    }
+
+    public static async subscribeToAllChannels() {
+        console.debug("Subscribing to all channels");
+        for (const channel of TwitchChannel.getChannels()) {
+            console.debug(`Subscribing to ${channel.internalName}`);
+            await channel.subscribe();
+            break; // TODO: remove
+        }
     }
 
 }

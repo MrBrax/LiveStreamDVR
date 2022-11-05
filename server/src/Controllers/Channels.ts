@@ -16,7 +16,7 @@ import { Config } from "../Core/Config";
 import { KeyValue } from "../Core/KeyValue";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { Log } from "../Core/Log";
-import { TwitchAutomator } from "../Core/Providers/Twitch/TwitchAutomator";
+import { AutomatorMetadata, TwitchAutomator } from "../Core/Providers/Twitch/TwitchAutomator";
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 import { YouTubeAutomator } from "../Core/Providers/YouTube/YouTubeAutomator";
@@ -889,9 +889,19 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
                     },
                 };
 
-                req.headers["twitch-eventsub-message-id"] = "fake";
-                req.headers["twitch-eventsub-signature"] = "fake";
-                req.headers["twitch-eventsub-message-retry"] = "0";
+                // req.headers["twitch-eventsub-message-id"] = "fake";
+                // req.headers["twitch-eventsub-signature"] = "fake";
+                // req.headers["twitch-eventsub-message-retry"] = "0";
+
+                const metadata_proxy: AutomatorMetadata = {
+                    message_id: "fake",
+                    message_retry: 0,
+                    message_type: "notification",
+                    message_signature: "fake",
+                    message_timestamp: new Date().toISOString(),
+                    subscription_type: "stream.online",
+                    subscription_version: "1",
+                };
 
                 const chapter_data = {
                     started_at: JSON.stringify(parseJSON(stream.started_at)),
@@ -907,7 +917,7 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
                 Log.logAdvanced(Log.Level.INFO, "route.channels.force_record", `Forcing record for ${channel.internalName}`);
 
                 const TA = new TwitchAutomator();
-                TA.handle(mock_data, req);
+                TA.handle(mock_data, metadata_proxy);
 
                 res.send({
                     status: "OK",

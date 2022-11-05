@@ -1,18 +1,22 @@
+import { TwitchCommentDumpTD } from "@common/Comments";
+import { SubStatus } from "@common/Defs";
+import type { TwitchAuthAppTokenResponse, TwitchAuthTokenValidationResponse, TwitchAuthUserTokenResponse } from "@common/TwitchAPI/Auth";
+import { EventSubWebsocketMessage, EventSubWebsocketNotificationMessage } from "@common/TwitchAPI/EventSub/Websocket";
+import { ErrorResponse, EventSubTypes, Subscription } from "@common/TwitchAPI/Shared";
+import { Subscriptions } from "@common/TwitchAPI/Subscriptions";
 import axios, { Axios } from "axios";
+import chalk from "chalk";
 import { format, parseJSON } from "date-fns";
 import fs from "node:fs";
-import { WebSocket } from "ws";
 import path from "node:path";
-import { EventSubTypes, Subscription, ErrorResponse } from "@common/TwitchAPI/Shared";
-import type { TwitchAuthAppTokenResponse, TwitchAuthTokenValidationResponse, TwitchAuthUserTokenResponse } from "@common/TwitchAPI/Auth";
-import { Subscriptions } from "@common/TwitchAPI/Subscriptions";
+import { WebSocket } from "ws";
 import { BaseConfigCacheFolder } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
-import { Log } from "../Core/Log";
-import { TwitchCommentDumpTD } from "@common/Comments";
-import { KeyValue } from "../Core/KeyValue";
-import { SubStatus } from "@common/Defs";
 import { Helper } from "../Core/Helper";
+import { KeyValue } from "../Core/KeyValue";
+import { Log } from "../Core/Log";
+import { AutomatorMetadata, TwitchAutomator } from "../Core/Providers/Twitch/TwitchAutomator";
+import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 
 export interface ExecReturn {
     stdout: string[];
@@ -35,6 +39,7 @@ export class TwitchHelper {
     static accessTokenTime = 0;
     static userRefreshToken = "";
     static userTokenUserId = "";
+    static eventSubSessionId = "";
 
     static readonly accessTokenAppFileLegacy = path.join(
         BaseConfigCacheFolder.cache,
@@ -72,6 +77,7 @@ export class TwitchHelper {
 
     static readonly eventWebsocketUrl = "wss://eventsub-beta.wss.twitch.tv/ws";
     static eventWebsocket: WebSocket | undefined;
+    static eventWebsocketReconnectUrl?: string;
 
     /*
     static readonly SUBSTATUS = {
@@ -105,10 +111,7 @@ export class TwitchHelper {
                 Log.logAdvanced(
                     Log.Level.INFO,
                     "tw.helper.getAccessTokenApp",
-                    `Deleting old access token, too old: ${format(
-                        fs.statSync(this.accessTokenAppFile).mtimeMs,
-                        this.PHP_DATE_FORMAT
-                    )}`
+                    `Deleting old access token, too old: ${format(expire, this.PHP_DATE_FORMAT)}`
                 );
                 fs.unlinkSync(this.accessTokenAppFile);
             } else if (!force) {
@@ -251,6 +254,8 @@ export class TwitchHelper {
 
         this.accessTokenType = "app";
 
+        this.updateAxiosToken();
+
         return access_token;
     }
 
@@ -259,6 +264,11 @@ export class TwitchHelper {
         const expire = fs.existsSync(this.accessTokenExpireFile) ? parseJSON(fs.readFileSync(this.accessTokenExpireFile, "utf8")).getTime() : 0;
 
         this.accessTokenType = "user";
+
+        if (Date.now() < expire && !force && this.accessToken && this.accessTokenType == "user") {
+            console.debug("Fetched user access token from memory");
+            return this.accessToken;
+        }
 
         if (fs.existsSync(this.accessTokenUserFile)) {
 
@@ -312,6 +322,7 @@ export class TwitchHelper {
 
         const refresh = await this.refreshUserAccessToken();
         if (refresh) {
+            this.updateAxiosToken();
             return this.accessToken;
         }
 
@@ -641,6 +652,8 @@ export class TwitchHelper {
             `${subscriptions.length} subscriptions`
         );
 
+        TwitchHelper.eventWebsocketSubscriptions = [];
+
         if (subscriptions) {
             subscriptions.forEach((sub) => {
                 KeyValue.getInstance().set(
@@ -653,6 +666,14 @@ export class TwitchHelper {
                         ? SubStatus.SUBSCRIBED
                         : SubStatus.NONE
                 );
+
+                if (sub.transport.method == "websocket") {
+                    TwitchHelper.eventWebsocketSubscriptions.push(sub);
+                    if (sub.status == "websocket_disconnected") {
+                        console.debug(chalk.red(`Sub ${sub.id} (websocket) is disconnected`));
+                        // this.eventSubUnsubscribe(sub.id); // TODO: should we unsubscribe? would cause a lot of requests
+                    }
+                }
             });
         }
 
@@ -698,14 +719,142 @@ export class TwitchHelper {
         return sub;
     }
 
+    static async setupAxios() {
+
+        console.log(chalk.blue("Setting up axios..."));
+
+        if (!Config.getInstance().cfg("api_client_id")) {
+            console.error(chalk.red("API client id not set, can't setup axios"));
+            return;
+        }
+
+        let token;
+        try {
+            token = await TwitchHelper.getAccessToken();
+        } catch (error) {
+            console.error(chalk.red(`Failed to get access token: ${error}`));
+            return;
+        }
+
+        if (!token) {
+            Log.logAdvanced(Log.Level.FATAL, "tw.helper.setupAxios", "Could not get access token!");
+            throw new Error("Could not get access token!");
+        }
+
+        if (TwitchHelper.accessTokenType === "user") {
+            const validateResult = await TwitchHelper.validateOAuth();
+            if (!validateResult) {
+                Log.logAdvanced(Log.Level.FATAL, "tw.helper.setupAxios", "Could not validate access token!");
+                throw new Error("Could not validate access token!");
+            } else {
+                Log.logAdvanced(Log.Level.SUCCESS, "tw.helper.setupAxios", "Access token validated!");
+            }
+        }
+
+        TwitchHelper.axios = axios.create({
+            baseURL: "https://api.twitch.tv",
+            headers: {
+                "Client-ID": Config.getInstance().cfg("api_client_id"),
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+        });
+
+        console.log(chalk.green(`✔ Axios setup with ${TwitchHelper.accessTokenType} token.`));
+
+    }
+
+    public static updateAxiosToken(): boolean {
+        if (!TwitchHelper.axios) {
+            Log.logAdvanced(Log.Level.ERROR, "config", "Axios not initialized, can't update token");
+            return false;
+        }
+        TwitchHelper.axios.defaults.headers.common["Authorization"] = `Bearer ${TwitchHelper.accessToken}`;
+        console.log(chalk.green(`✔ Axios token updated with ${TwitchHelper.accessTokenType} token.`));
+        return true;
+    }
+
+    public static async setupWebsocket() {
+        if (Config.getInstance().cfg("twitchapi.eventsub_type") == "websocket") {
+            this.disconnectEventWebsocket();
+            await this.getSubsList();
+            if (this.eventWebsocketSubscriptions.length > 0) {
+                for (const sub of this.eventWebsocketSubscriptions) {
+                    if (sub.status == "websocket_disconnected") {
+                        // this.eventSubUnsubscribe(sub.id);
+                        if (Config.getInstance().cfg("twitchapi.eventsub_unsub_on_start")) {
+                            console.debug(chalk.red(`Sub ${sub.id} (websocket) is disconnected and unsub_on_start is enabled, unsubscribing...`));
+                            await this.eventSubUnsubscribe(sub.id); // just make it a config option
+                        }
+                    }
+                }
+            }
+            this.connectEventWebsocket();
+        } else {
+            Log.logAdvanced(
+                Log.Level.INFO,
+                "tw.helper",
+                "Eventsub is not using websocket"
+            );
+        }
+    }
+
+    public static disconnectEventWebsocket(): boolean {
+        if (this.eventWebsocketTimeoutCheck) {
+            clearTimeout(this.eventWebsocketTimeoutCheck);
+        }
+        if (this.eventWebsocket) {
+            this.eventWebsocket.close();
+            this.eventWebsocket = undefined;
+            return true;
+        } else {
+            Log.logAdvanced(
+                Log.Level.INFO,
+                "tw.helper",
+                "Eventsub websocket is not connected"
+            );
+            return false;
+        }
+    }
+
     public static eventWebsocketSubscribed = false;
+    public static eventWebsocketLastKeepalive?: Date;
+    public static eventWebsocketSubscriptions: Subscription[] = [];
+    public static eventWebsocketTimeoutCheck?: NodeJS.Timeout;
+    public static eventWebsocketConnectedAt?: Date;
     /**
      * Only user access tokens work with this, app access tokens will not work.
      * Gonna have to think this over if it's worth changing the token type and all the connected stuff
      */
     public static connectEventWebsocket() {
 
-        const ws = new WebSocket(this.eventWebsocketUrl);
+        if (TwitchHelper.accessTokenType !== "user") {
+            Log.logAdvanced(
+                Log.Level.ERROR,
+                "tw.helper",
+                "Eventsub websocket requires user access token"
+            );
+            return;
+        }
+
+        if (this.eventWebsocket) {
+            Log.logAdvanced(
+                Log.Level.ERROR,
+                "tw.helper",
+                "Eventsub websocket already exists"
+            );
+            return;
+        }
+
+        if (this.eventWebsocketReconnectUrl) {
+            Log.logAdvanced(
+                Log.Level.INFO,
+                "tw.helper",
+                `Eventsub websocket using reconnect url: ${this.eventWebsocketReconnectUrl}`
+            );
+        }
+
+        const ws = new WebSocket(this.eventWebsocketReconnectUrl || this.eventWebsocketUrl);
 
         ws.on("open", () => {
             Log.logAdvanced(
@@ -716,7 +865,7 @@ export class TwitchHelper {
         });
 
         ws.on("message", (data) => {
-            console.debug("tw.helper", `Received event websocket message: ${data}`);
+            // console.debug("tw.helper", `Received event websocket message: ${data}`);
             let json;
             try {
                 json = JSON.parse(data.toString());
@@ -729,28 +878,144 @@ export class TwitchHelper {
                 return;
             }
 
+            if (json.metadata && json.metadata.message_type) json._type = json.metadata.message_type; // hack for discriminated unions
+
             this.eventWebsocketMessageHandler(json);
         });
 
-        ws.on("close", () => {
+        ws.on("close", (code) => {
+
+            /*
+            4000 	Internal server error 	        Indicates a problem with the server (similar to an HTTP 500 status code).
+            4001 	Client sent inbound traffic 	Sending outgoing messages to the server is prohibited with the exception of pong messages.
+            4002 	Client failed ping-pong 	    You must respond to ping messages with a pong message. See Ping message.
+            4003 	Connection unused 	            When you connect to the server, you must create a subscription within 10 seconds or the connection is closed. The time limit is subject to change.
+            4004 	Reconnect grace time expired 	When you receive a session_reconnect message, you have 30 seconds to reconnect to the server and close the old connection. See Reconnect message.
+            4005 	Network timeout 	            Transient network timeout.
+            4006 	Network error 	                Transient network error.
+            4007 	Invalid reconnect 	            The reconnect URL is invalid.
+            */
+
+            if (code === 4003) {
+                Log.logAdvanced(
+                    Log.Level.ERROR,
+                    "tw.helper",
+                    `Disconnected from event websocket at ${this.eventWebsocketUrl} (code ${code} - connection unused, not subscribed)`
+                );
+            } else if (code === 4004) {
+                Log.logAdvanced(
+                    Log.Level.ERROR,
+                    "tw.helper",
+                    `Disconnected from event websocket at ${this.eventWebsocketUrl} (code ${code} - didn't disconnect from old connection in time or didn't reconnect)`
+                );
+            } else {
+                Log.logAdvanced(
+                    Log.Level.ERROR,
+                    "tw.helper",
+                    `Disconnected from event websocket at ${this.eventWebsocketUrl} (code ${code})`
+                );
+            }
+            /*else {
+                Log.logAdvanced(
+                    Log.Level.ERROR,
+                    "tw.helper",
+                    `Disconnected from event websocket at ${this.eventWebsocketUrl} (code ${code}), reconnecting in 5 seconds`
+                );
+                setTimeout(() => {
+                    this.disconnectEventWebsocket();
+                    this.connectEventWebsocket();
+                }, 5000);
+            }*/
+        });
+        ws.on("error", (err) => {
             Log.logAdvanced(
                 Log.Level.ERROR,
                 "tw.helper",
-                `Disconnected from event websocket at ${this.eventWebsocketUrl}`
+                `Error on event websocket: ${err}`,
+                err
             );
         });
+
+        if (this.eventWebsocketTimeoutCheck) {
+            clearTimeout(this.eventWebsocketTimeoutCheck);
+        }
+
+        this.eventWebsocketTimeoutCheck = setTimeout(() => {
+            if (this.eventWebsocketLastKeepalive) {
+                const diff = new Date().getTime() - this.eventWebsocketLastKeepalive.getTime();
+                if (diff > 60000) {
+                    Log.logAdvanced(
+                        Log.Level.ERROR,
+                        "tw.helper",
+                        `Event websocket hasn't received a keepalive in ${diff}ms`
+                    );
+                }
+            }
+        }, 60000);
+
+        this.eventWebsocket = ws;
     }
 
-    public static eventWebsocketMessageHandler(json: EventSubWebsocketBaseMessage) {
-        const metadata = json.metadata;
-        const payload = json.payload;
-        console.debug(metadata, payload);
-        if (metadata.message_type == "session_welcome") {
+    public static handleWebsocketReconnect(url: string) {
+        Log.logAdvanced(
+            Log.Level.INFO,
+            "tw.helper",
+            `Received event websocket reconnect, url: ${url}`
+        );
+        this.disconnectEventWebsocket();
+        this.eventWebsocketReconnectUrl = url;
+        this.connectEventWebsocket();
+    }
+
+    public static eventWebsocketMessageHandler(json: EventSubWebsocketMessage): void {
+
+        if (json._type === "session_welcome") {
+            this.eventSubSessionId = json.payload.session.id;
+            console.debug("tw.helper", `Event websocket session id: ${this.eventSubSessionId}`);
+            console.debug("tw.helper", `Event websocket keepalive: ${json.payload.session.keepalive_timeout_seconds}`);
+            console.debug("tw.helper", `Event websocket status: ${json.payload.session.status}`);
+            console.debug("tw.helper", `Event websocket reconnect url: ${json.payload.session.reconnect_url}`);
             // subscribe to all subscriptions
+            TwitchChannel.subscribeToAllChannels();
+
+            this.eventWebsocketConnectedAt = new Date(json.payload.session.connected_at);
+
+        } else if (json._type === "session_keepalive") {
+            this.eventWebsocketLastKeepalive = parseJSON(json.metadata.message_timestamp);
+            // console.debug("tw.helper", `Event websocket keepalive at ${this.eventWebsocketLastKeepalive}`);
+            // this is a keepalive, do nothing. it spams the console every 10 seconds
+
+        } else if (json._type === "notification") {
+            console.debug("tw.helper", "Event websocket notification", json);
+            this.eventSubNotificationHandler(json);
+
+        } else if (json._type === "session_reconnect") {
+            console.debug("tw.helper", "Event websocket reconnect", json);
+            console.debug("tw.helper", `Event websocket reconnect new url: ${json.payload.session.reconnect_url}`);
+            this.handleWebsocketReconnect(json.payload.session.reconnect_url);
+
+        } else if (json._type === "revocation") {
+            console.debug("tw.helper", "Event websocket revocation", json);
+            // json.payload.subscription
+            const index = this.eventWebsocketSubscriptions.findIndex((s) => s.id === json.payload.subscription.id);
+            if (index > -1) {
+                this.eventWebsocketSubscriptions.splice(index, 1);
+                console.debug("tw.helper", `Event websocket revocation removed subscription ${json.payload.subscription.id}`);
+            } else {
+                console.debug("tw.helper", `Event websocket revocation subscription ${json.payload.subscription.id} not found`);
+            }
+        } else {
+            console.debug("tw.helper", "Event websocket unknown message", json);
+
         }
     }
 
     public static clearAccessToken() {
+        Log.logAdvanced(
+            Log.Level.INFO,
+            "tw.helper",
+            "Clearing access token from memory"
+        );
         this.axios = undefined;
         this.accessToken = "";
         this.userRefreshToken = "";
@@ -792,6 +1057,10 @@ export class TwitchHelper {
                 TwitchHelper.userTokenUserId = res.data.user_id;
                 TwitchHelper.accessTokenTime = Date.now() + (res.data.expires_in * 1000);
                 Log.logAdvanced(Log.Level.INFO, "tw.helper.validateOAuth", `OAuth token is valid until ${new Date(TwitchHelper.accessTokenTime).toLocaleString()}`);
+                fs.writeFileSync(
+                    this.accessTokenExpireFile,
+                    JSON.stringify(new Date(this.accessTokenTime))
+                );
                 return true;
             } else {
                 Log.logAdvanced(Log.Level.ERROR, "tw.helper.validateOAuth", "OAuth token is not valid");
@@ -805,32 +1074,29 @@ export class TwitchHelper {
 
     }
 
+
+    public static eventSubNotificationHandler(message: EventSubWebsocketNotificationMessage): void {
+
+        const metadata_proxy: AutomatorMetadata = {
+            message_id: message.metadata.message_id,
+            message_retry: 0, // not supported with websockets
+            message_type: message.metadata.message_type,
+            message_signature: "", // not supported with websockets
+            message_timestamp: message.metadata.message_timestamp,
+            subscription_type: message.metadata.subscription_type,
+            subscription_version: message.metadata.subscription_version,
+        };
+
+        const TA = new TwitchAutomator();
+
+        /* await */ TA.handle(message.payload, metadata_proxy).catch(error => {
+            Log.logAdvanced(Log.Level.FATAL, "hook", `Automator returned error: ${error.message}`);
+        });
+
+    }
+
 }
 
-interface EventSubWebsocketBaseMessage {
-    metadata: {
-        message_id: string;
-        message_type: string;
-        message_timestamp: string;
-    };
-    payload: any;
-}
 
-interface EventSubWebsocketSessionMessage extends EventSubWebsocketBaseMessage {
-    metadata: {
-        message_id: string;
-        message_type: "session_welcome";
-        message_timestamp: string;
-    };
-    payload: {
-        session: {
-            id: string;
-            status: string;
-            connected_at: string;
-            keepalive_timeout_seconds: number;
-            reconnect_url: string | null;
-        }
-    };
-}
 
 // TwitchHelper.connectEventWebsocket();

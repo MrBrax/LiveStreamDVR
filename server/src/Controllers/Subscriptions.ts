@@ -56,8 +56,8 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
                 id: sub.id,
                 username: username || "",
                 user_id: sub.condition.broadcaster_user_id,
-                callback: sub.transport.callback,
-                instance_match: sub.transport.callback == callback,
+                callback: sub.transport.method == "webhook" ? sub.transport.callback : sub.transport.session_id,
+                instance_match: sub.transport.method == "webhook" ? sub.transport.callback == callback : sub.transport.session_id == TwitchHelper.eventSubSessionId,
                 status: sub.status,
                 created_at: sub.created_at,
             };

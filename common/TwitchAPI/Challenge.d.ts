@@ -1,4 +1,4 @@
-import { Condition, EventSubTypes, Transport } from "./Shared";
+import { Condition, EventSubTypes, TransportWebhook, TransportWebsocket } from "./Shared";
 
 interface Subscription {
     id: string;
@@ -7,7 +7,7 @@ interface Subscription {
     version: string;
     cost: number;
     condition: Condition;
-    transport: Transport;
+    transport: TransportWebhook | TransportWebsocket;
     created_at: Date;
 }
 
@@ -26,5 +26,5 @@ export interface ChallengeRequest {
     type: EventSubTypes,
     version: string,
     condition: Condition;
-    transport: Transport;
+    transport: TransportWebhook | TransportWebsocket;
 }

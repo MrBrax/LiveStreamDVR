@@ -1,20 +1,18 @@
+import { formatString } from "@common/Format";
+import { ClipBasenameTemplate } from "@common/Replacements";
 import cron from "cron";
-import { Sleep } from "../Helpers/Sleep";
-import path from "node:path";
+import { format, parseJSON } from "date-fns";
 import fs from "node:fs";
+import path from "node:path";
+import { TwitchHelper } from "../Providers/Twitch";
+import sanitize from "sanitize-filename";
 import * as CronController from "../Controllers/Cron";
+import { Sleep } from "../Helpers/Sleep";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "./BaseConfig";
 import { Config } from "./Config";
 import { Log } from "./Log";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
-import { format, parseJSON } from "date-fns";
-import { ClipBasenameTemplate } from "@common/Replacements";
-import sanitize from "sanitize-filename";
-import { formatString } from "@common/Format";
-import { TwitchHelper } from "Providers/Twitch";
-import axios from "axios";
-import { TwitchAuthTokenValidationResponse } from "@common/TwitchAPI/Auth";
 
 export class Scheduler {
 
@@ -91,6 +89,7 @@ export class Scheduler {
 
     public static removeJob(name: string) {
         if (this.hasJob(name)) {
+            console.log(`Scheduler: remove job '${name}'`);
             this.jobs[name].stop();
             delete this.jobs[name];
         }
