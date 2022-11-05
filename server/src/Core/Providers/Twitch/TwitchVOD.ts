@@ -1957,7 +1957,7 @@ export class TwitchVOD extends BaseVOD {
         let response;
 
         try {
-            response = await TwitchHelper.axios.get<VideosResponse>(`/helix/videos/?id=${video_id}`);
+            response = await TwitchHelper.getRequest<VideosResponse>(`/helix/videos/?id=${video_id}`);
         } catch (err) {
             Log.logAdvanced(Log.Level.ERROR, "vod.getVideo", `Tried to get video id ${video_id} but got error ${(err as Error).message}`);
             if (axios.isAxiosError(err)) {
@@ -1990,7 +1990,7 @@ export class TwitchVOD extends BaseVOD {
         let response;
 
         try {
-            response = await TwitchHelper.axios.get<VideosResponse>(`/helix/videos?user_id=${channel_id}`);
+            response = await TwitchHelper.getRequest<VideosResponse>(`/helix/videos?user_id=${channel_id}`);
         } catch (e) {
             Log.logAdvanced(Log.Level.ERROR, "vod.getVideos", `Tried to get videos for channel id ${channel_id} but got error ${e}`);
             return false;
@@ -2016,7 +2016,7 @@ export class TwitchVOD extends BaseVOD {
         let response;
 
         try {
-            response = await TwitchHelper.axios.get<VideosResponse>(`/helix/videos?user_id=${channel_id}`);
+            response = await TwitchHelper.getRequest<VideosResponse>(`/helix/videos?user_id=${channel_id}`);
         } catch (e) {
             Log.logAdvanced(Log.Level.ERROR, "vod.getVideosProxy", `Tried to get videos for channel id ${channel_id} but got error ${e}`);
             return false;
@@ -2055,7 +2055,7 @@ export class TwitchVOD extends BaseVOD {
         let response;
 
         try {
-            response = await TwitchHelper.axios.get<VideosResponse>(`/helix/videos/?id=${video_id}`);
+            response = await TwitchHelper.getRequest<VideosResponse>(`/helix/videos/?id=${video_id}`);
         } catch (err) {
             Log.logAdvanced(Log.Level.ERROR, "vod.getVideoProxy", `Tried to get video id ${video_id} but got error ${(err as Error).message}`);
             if (axios.isAxiosError(err)) {
@@ -2128,7 +2128,7 @@ export class TwitchVOD extends BaseVOD {
             if (cursor) params.set("after", cursor);
 
             try {
-                response = await TwitchHelper.axios.get<ClipsResponse>("/helix/clips", {
+                response = await TwitchHelper.getRequest<ClipsResponse>("/helix/clips", {
                     params: params,
                 });
             } catch (e) {

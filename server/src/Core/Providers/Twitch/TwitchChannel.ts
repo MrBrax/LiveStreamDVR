@@ -1231,7 +1231,7 @@ export class TwitchChannel extends BaseChannel {
         }
 
         try {
-            response = await TwitchHelper.axios.get<StreamsResponse>(`/helix/streams?user_id=${streamer_id}`);
+            response = await TwitchHelper.getRequest<StreamsResponse>(`/helix/streams?user_id=${streamer_id}`);
         } catch (error) {
             Log.logAdvanced(Log.Level.ERROR, "channel", `Could not get streams for ${streamer_id}: ${error}`);
             return false;
@@ -1339,12 +1339,14 @@ export class TwitchChannel extends BaseChannel {
             }
         }
 
+        /*
         const access_token = await TwitchHelper.getAccessToken();
 
         if (!access_token) {
             Log.logAdvanced(Log.Level.ERROR, "channel", "Could not get access token, aborting.");
             throw new Error("Could not get access token, aborting.");
         }
+        */
 
         if (!TwitchHelper.axios) {
             throw new Error("Axios is not initialized");
@@ -1353,7 +1355,7 @@ export class TwitchChannel extends BaseChannel {
         let response;
 
         try {
-            response = await TwitchHelper.axios.get<UsersResponse | ErrorResponse>(`/helix/users?${method}=${identifier}`);
+            response = await TwitchHelper.getRequest<UsersResponse | ErrorResponse>(`/helix/users?${method}=${identifier}`);
         } catch (err) {
             if (axios.isAxiosError(err)) {
                 // Log.logAdvanced(Log.Level.ERROR, "channel", `Could not get channel data for ${method} ${identifier}: ${err.message} / ${err.response?.data.message}`, err);
@@ -1500,12 +1502,14 @@ export class TwitchChannel extends BaseChannel {
 
         Log.logAdvanced(Log.Level.DEBUG, "channel", `Fetching channel data for ${broadcaster_id}`);
 
+        /*
         const access_token = await TwitchHelper.getAccessToken();
 
         if (!access_token) {
             Log.logAdvanced(Log.Level.ERROR, "channel", "Could not get access token, aborting.");
             throw new Error("Could not get access token, aborting.");
         }
+        */
 
         if (!TwitchHelper.axios) {
             throw new Error("Axios is not initialized");
@@ -1514,7 +1518,7 @@ export class TwitchChannel extends BaseChannel {
         let response;
 
         try {
-            response = await TwitchHelper.axios.get<ChannelsResponse | ErrorResponse>(`/helix/channels?broadcaster_id=${broadcaster_id}`);
+            response = await TwitchHelper.getRequest<ChannelsResponse | ErrorResponse>(`/helix/channels?broadcaster_id=${broadcaster_id}`);
         } catch (err) {
             if (axios.isAxiosError(err)) {
                 // Log.logAdvanced(Log.Level.ERROR, "channel", `Could not get channel data for ${method} ${identifier}: ${err.message} / ${err.response?.data.message}`, err);
@@ -1638,7 +1642,7 @@ export class TwitchChannel extends BaseChannel {
             let response;
 
             try {
-                response = await TwitchHelper.axios.post<SubscriptionResponse>("/helix/eventsub/subscriptions", payload);
+                response = await TwitchHelper.postRequest<SubscriptionResponse>("/helix/eventsub/subscriptions", payload);
             } catch (err) {
                 if (axios.isAxiosError(err)) {
                     Log.logAdvanced(Log.Level.ERROR, "channel", `Could not subscribe to ${channel_id}:${sub_type}: ${err.message} / ${err.response?.data.message}`);
@@ -1772,7 +1776,7 @@ export class TwitchChannel extends BaseChannel {
             let response;
 
             try {
-                response = await TwitchHelper.axios.post<SubscriptionResponse>("/helix/eventsub/subscriptions", payload);
+                response = await TwitchHelper.postRequest<SubscriptionResponse>("/helix/eventsub/subscriptions", payload);
             } catch (err) {
                 if (axios.isAxiosError(err)) {
                     Log.logAdvanced(Log.Level.ERROR, "tw.ch.subscribeToIdWithWebsocket", `Could not subscribe to ${channel_id}:${sub_type}: ${err.message} / ${err.response?.data.message}`);

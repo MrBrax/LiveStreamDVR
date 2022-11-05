@@ -4,7 +4,7 @@ import type { TwitchAuthAppTokenResponse, TwitchAuthTokenValidationResponse, Twi
 import { EventSubWebsocketMessage, EventSubWebsocketNotificationMessage } from "@common/TwitchAPI/EventSub/Websocket";
 import { ErrorResponse, EventSubTypes, Subscription } from "@common/TwitchAPI/Shared";
 import { Subscriptions } from "@common/TwitchAPI/Subscriptions";
-import axios, { Axios } from "axios";
+import axios, { Axios, AxiosRequestConfig, AxiosResponse } from "axios";
 import chalk from "chalk";
 import { format, parseJSON } from "date-fns";
 import fs from "node:fs";
@@ -71,6 +71,7 @@ export class TwitchHelper {
     /** @deprecated */
     static readonly accessTokenRefresh = 60 * 60 * 24 * 30 * 1000; // 30 days
 
+    /** @deprecated */
     static readonly PHP_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.SSSSSS";
     static readonly TWITCH_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     static readonly TWITCH_DATE_FORMAT_MS = "yyyy-MM-dd'T'HH:mm:ss'.'SSS'Z'";
@@ -111,7 +112,7 @@ export class TwitchHelper {
                 Log.logAdvanced(
                     Log.Level.INFO,
                     "tw.helper.getAccessTokenApp",
-                    `Deleting old access token, too old: ${format(expire, this.PHP_DATE_FORMAT)}`
+                    `Deleting old access token, too old: ${new Date(expire).toLocaleString()}`
                 );
                 fs.unlinkSync(this.accessTokenAppFile);
             } else if (!force) {
@@ -284,10 +285,7 @@ export class TwitchHelper {
                 Log.logAdvanced(
                     Log.Level.INFO,
                     "tw.helper",
-                    `Deleting old access token, too old: ${format(
-                        fs.statSync(this.accessTokenUserFile).mtimeMs,
-                        this.PHP_DATE_FORMAT
-                    )}`
+                    `Deleting old access token, too old: ${new Date(expire).toLocaleString()}`
                 );
                 // fs.unlinkSync(this.accessTokenUserFile);
             } else if (!force) {
@@ -336,7 +334,7 @@ export class TwitchHelper {
     //         const data: TwitchAuthUserTokenRefreshResponse = JSON.parse(
 
     static async refreshUserAccessToken(): Promise<boolean> {
-        if (this.accessTokenType != "user") {
+        if (this.accessTokenType !== "user") {
             Log.logAdvanced(
                 Log.Level.ERROR,
                 "tw.helper.refreshUserAccessToken",
@@ -481,7 +479,7 @@ export class TwitchHelper {
 
         try {
             // $response = $this->$guzzler->request("DELETE", "/helix/eventsub/subscriptions?id={$subscription_id}");
-            response = await this.axios.delete(
+            response = await this.deleteRequest(
                 `/helix/eventsub/subscriptions?id=${subscription_id}`
             );
         } catch (th) {
@@ -558,9 +556,7 @@ export class TwitchHelper {
         return fs.existsSync(output) && fs.statSync(output).size > 0;
     }
 
-    /**
-     * @deprecated use getSubsList instead
-     */
+    /*
     public static async getSubs(): Promise<Subscriptions | false> {
         Log.logAdvanced(
             Log.Level.INFO,
@@ -595,6 +591,7 @@ export class TwitchHelper {
 
         return json;
     }
+    */
 
     public static async getSubsList(): Promise<Subscription[] | false> {
         Log.logAdvanced(
@@ -622,7 +619,7 @@ export class TwitchHelper {
             let response;
 
             try {
-                response = await this.axios.get<Subscriptions>(
+                response = await this.getRequest<Subscriptions>(
                     "/helix/eventsub/subscriptions",
                     {
                         params: {
@@ -772,6 +769,90 @@ export class TwitchHelper {
         TwitchHelper.axios.defaults.headers.common["Authorization"] = `Bearer ${TwitchHelper.accessToken}`;
         console.log(chalk.green(`✔ Axios token updated with ${TwitchHelper.accessTokenType} token.`));
         return true;
+    }
+
+    public static async getRequest<T>(url: string, config: AxiosRequestConfig = {}, retried = false): Promise<AxiosResponse<T>> {
+
+        if (!TwitchHelper.axios) {
+            throw new Error("Axios is not initialized");
+        }
+
+        Log.logAdvanced(Log.Level.DEBUG, "tw.helper.getRequest", `Requesting GET ${url} with config ${JSON.stringify(config)}, retried: ${retried}`);
+
+        let response;
+        try {
+            response = await TwitchHelper.axios.get<T>(url, config);
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.status === 401 && !retried) { // 401 Unauthorized, don't retry if already retried
+                Log.logAdvanced(Log.Level.WARNING, "tw.helper", "Access token expired, during get request");
+                if (this.accessTokenType === "user") {
+                    await TwitchHelper.refreshUserAccessToken();
+                } else {
+                    // TwitchHelper.refreshAppAccessToken();
+                    await TwitchHelper.getAccessToken(true);
+                }
+                return TwitchHelper.getRequest(url, config, true);
+            }
+            throw error;
+        }
+
+        return response;
+    }
+
+    public static async postRequest<T>(url: string, data: any, config: AxiosRequestConfig = {}, retried = false): Promise<AxiosResponse<T>> {
+
+        if (!TwitchHelper.axios) {
+            throw new Error("Axios is not initialized");
+        }
+
+        Log.logAdvanced(Log.Level.DEBUG, "tw.helper.postRequest", `Requesting POST ${url} with data ${JSON.stringify(data)} and config ${JSON.stringify(config)}, retried: ${retried}`);
+
+        let response;
+        try {
+            response = await TwitchHelper.axios.post<T>(url, data, config);
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.status === 401 && !retried) { // 401 Unauthorized, don't retry if already retried
+                Log.logAdvanced(Log.Level.WARNING, "tw.helper", "Access token expired, during post request");
+                if (this.accessTokenType === "user") {
+                    await TwitchHelper.refreshUserAccessToken();
+                } else {
+                    // TwitchHelper.refreshAppAccessToken();
+                    await TwitchHelper.getAccessToken(true);
+                }
+                return TwitchHelper.postRequest(url, data, config, true);
+            }
+            throw error;
+        }
+
+        return response;
+    }
+
+    public static async deleteRequest<T>(url: string, config: AxiosRequestConfig = {}, retried = false): Promise<AxiosResponse<T>> {
+
+        if (!TwitchHelper.axios) {
+            throw new Error("Axios is not initialized");
+        }
+
+        Log.logAdvanced(Log.Level.DEBUG, "tw.helper.deleteRequest", `Requesting DELETE ${url} with config ${JSON.stringify(config)}, retried: ${retried}`);
+
+        let response;
+        try {
+            response = await TwitchHelper.axios.delete<T>(url, config);
+        } catch (error) {
+            if (axios.isAxiosError(error) && error.status === 401 && !retried) { // 401 Unauthorized, don't retry if already retried
+                Log.logAdvanced(Log.Level.WARNING, "tw.helper", "Access token expired, during delete request");
+                if (this.accessTokenType === "user") {
+                    await TwitchHelper.refreshUserAccessToken();
+                } else {
+                    // TwitchHelper.refreshAppAccessToken();
+                    await TwitchHelper.getAccessToken(true);
+                }
+                return TwitchHelper.deleteRequest(url, config, true);
+            }
+            throw error;
+        }
+
+        return response;
     }
 
     public static async setupWebsocket() {
