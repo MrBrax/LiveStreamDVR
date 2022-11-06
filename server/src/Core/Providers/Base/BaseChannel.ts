@@ -112,6 +112,7 @@ export class BaseChannel {
      */
     public broadcastUpdate(): void {
         // if (process.env.NODE_ENV === "test") return;
+        if (!Config.getInstance().initialised) return; // don't broadcast if the config hasn't been loaded yet
         if (this._updateTimer) {
             clearTimeout(this._updateTimer);
             this._updateTimer = undefined;

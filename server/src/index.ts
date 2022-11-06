@@ -182,6 +182,8 @@ Config.init().then(() => {
 
     const server = app.listen(port, () => {
         console.log(chalk.bgBlue.greenBright(`🥞 ${AppName} listening on port ${port}, mode ${process.env.NODE_ENV}. Base path: ${basepath || "/"} 🥞`));
+        console.log(chalk.yellow(`Local: http://localhost:${port}${basepath}`));
+        console.log(chalk.yellow(`Public: ${Config.getInstance().cfg("app_url")}`));
         if (process.env.npm_lifecycle_script?.includes("index.ts")) {
             console.log(chalk.greenBright("~ Running with TypeScript ~"));
         } else {
