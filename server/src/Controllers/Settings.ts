@@ -22,7 +22,7 @@ export function GetSettings(req: express.Request, res: express.Response): void {
     const websocketQuotas = TwitchHelper.eventWebsockets.map((ws) => {
         return {
             ...ws.quotas,
-            subscriptions: ws.subscriptions.length,
+            subscriptions: ws.getSubscriptions().length,
             id: ws.id,
         };
     });

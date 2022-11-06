@@ -1758,7 +1758,7 @@ export class TwitchChannel extends BaseChannel {
             if (!selectedWebsocket) {
                 // throw new Error("No websocket available for subscription");
                 selectedWebsocket = await TwitchHelper.createNewWebsocket(TwitchHelper.eventWebsocketUrl);
-                Log.logAdvanced(Log.Level.DEBUG, "channel", `Using new websocket ${selectedWebsocket.id} for ${channel_id}:${sub_type} sub (${streamer_login})`);
+                Log.logAdvanced(Log.Level.DEBUG, "channel", `Using new websocket ${selectedWebsocket.id}/${selectedWebsocket.sessionId} for ${channel_id}:${sub_type} sub (${streamer_login})`);
             }
 
             if (!selectedWebsocket) {
@@ -1775,7 +1775,7 @@ export class TwitchChannel extends BaseChannel {
             //     continue; // todo: alert
             // }
 
-            Log.logAdvanced(Log.Level.INFO, "tw.ch.subscribeToIdWithWebsocket", `Subscribe to ${channel_id}:${sub_type} (${streamer_login}) with websocket ${selectedWebsocket.id}`);
+            Log.logAdvanced(Log.Level.INFO, "tw.ch.subscribeToIdWithWebsocket", `Subscribe to ${channel_id}:${sub_type} (${streamer_login}) with websocket ${selectedWebsocket.id}/${selectedWebsocket.sessionId}`);
 
             const payload: SubscriptionRequest = {
                 type: sub_type,
@@ -1825,9 +1825,9 @@ export class TwitchChannel extends BaseChannel {
             const json = response.data;
             const http_code = response.status;
 
-            // KeyValue.getInstance().setInt(`twitch.ws.${selectedWebsocket.sessionId}.max_total_cost`, json.max_total_cost);
-            // KeyValue.getInstance().setInt(`twitch.ws.${selectedWebsocket.sessionId}.total_cost`, json.total_cost);
-            // KeyValue.getInstance().setInt(`twitch.ws.${selectedWebsocket.sessionId}.total`, json.total);
+            KeyValue.getInstance().setInt("twitch.ws.max_total_cost", json.max_total_cost);
+            KeyValue.getInstance().setInt("twitch.ws.total_cost", json.total_cost);
+            KeyValue.getInstance().setInt("twitch.ws.total", json.total);
 
             selectedWebsocket.quotas = {
                 max_total_cost: json.max_total_cost,
@@ -1868,11 +1868,55 @@ export class TwitchChannel extends BaseChannel {
 
     }
 
-    public async unsubscribe(): Promise<boolean> {
-        if (Config.getInstance().cfg("app_url") === "debug") {
+    public static async unsubscribeFromIdWithWebsocket(channel_id: string): Promise<boolean> {
+
+        const subscriptions = await TwitchHelper.getSubsList();
+
+        if (!subscriptions) {
             return false;
         }
-        return await TwitchChannel.unsubscribeFromIdWithWebhook(this.internalId);
+
+        const streamer_login = await TwitchChannel.channelLoginFromId(channel_id);
+
+        let unsubbed = 0;
+        for (const sub of subscriptions) {
+
+            if (sub.condition.broadcaster_user_id !== channel_id) {
+                continue;
+            }
+
+            const unsub = await TwitchHelper.eventSubUnsubscribe(sub.id);
+
+            if (unsub) {
+                Log.logAdvanced(Log.Level.SUCCESS, "channel", `Unsubscribed from ${channel_id}:${sub.type} (${streamer_login})`);
+                unsubbed++;
+                // KeyValue.getInstance().delete(`${channel_id}.sub.${sub.type}`);
+                // KeyValue.getInstance().delete(`${channel_id}.substatus.${sub.type}`);
+                const ws = TwitchHelper.findWebsocketSubscriptionBearer(channel_id, sub.type);
+                if (ws) {
+                    ws.removeSubscription(sub.id);
+                }
+            } else {
+                Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to unsubscribe from ${channel_id}:${sub.type} (${streamer_login})`);
+            }
+
+        }
+
+        return unsubbed === subscriptions.length;
+
+    }
+
+
+    public async unsubscribe(): Promise<boolean> {
+        // if (Config.getInstance().cfg("app_url") === "debug") {
+        //     return false;
+        // }
+        // return await TwitchChannel.unsubscribeFromIdWithWebhook(this.internalId);
+        if (Config.getInstance().cfg("twitchapi.eventsub_type") === "webhook") {
+            return await TwitchChannel.unsubscribeFromIdWithWebhook(this.internalId);
+        } else {
+            return await TwitchChannel.unsubscribeFromIdWithWebsocket(this.internalId);
+        }
     }
 
     public static async getSubscriptionId(channel_id: string, sub_type: EventSubTypes): Promise<string | false> {

@@ -146,7 +146,7 @@ export class TwitchHelper {
                 Log.logAdvanced(
                     Log.Level.INFO,
                     "tw.helper.getAccessTokenApp",
-                    `Access token expires at ${format(this.accessTokenTime, Config.getInstance().dateFormat)}`
+                    `Access token expires at ${new Date(this.accessTokenTime).toLocaleString()}`
                 );
                 return this.accessToken;
             }
@@ -665,7 +665,7 @@ export class TwitchHelper {
 
         // TwitchHelper.eventWebsocketSubscriptions = [];
         TwitchHelper.eventWebsockets.forEach((ws) => {
-            ws.subscriptions = [];
+            ws.removeSubscriptions();
         });
 
         if (subscriptions) {
@@ -882,8 +882,8 @@ export class TwitchHelper {
     }
 
     public static async setupWebsocket() {
-        if (Config.getInstance().cfg("twitchapi.eventsub_type") == "websocket") {
-            this.removeAllEventWebsockets();
+        this.removeAllEventWebsockets();
+        if (Config.getInstance().cfg("twitchapi.eventsub_type") == "websocket") {    
             const subs = await this.getSubsList();
             if (subs && subs.length > 0) {
                 // let promiseList: Promise<boolean>[] = [];
@@ -1065,11 +1065,11 @@ export class TwitchHelper {
     }
     */
 
-    public static async createNewWebsocket(url: string, autoSubscribe = false): Promise<EventWebsocket> {
+    public static createNewWebsocket(url: string, autoSubscribe = false): Promise<EventWebsocket> {
 
         return new Promise<EventWebsocket>((resolve, reject) => {
 
-            const randomId = randomUUID();
+            const randomId = randomUUID().substring(0, 8);
 
             if (this.eventWebsockets.length >= this.eventWebsocketMaxWebsockets) {
                 Log.logAdvanced(
@@ -1119,6 +1119,14 @@ export class TwitchHelper {
         this.createNewWebsocket(newUrl);
     }
 
+    public static findWebsocketSubscriptionBearer(user_id: string, sub_type: EventSubTypes): EventWebsocket | false {
+        const ws = this.eventWebsockets.find((w) => w.getSubscriptions().find((s) => s.condition.broadcaster_user_id === user_id && s.type === sub_type));
+        if (ws) {
+            return ws;
+        }
+        return false;
+    }
+
     public static printWebsockets() {
         if (LiveStreamDVR.shutting_down) return;
         console.log(chalk.yellow(`Current websockets: ${this.eventWebsockets.length}`));
@@ -1131,8 +1139,12 @@ export class TwitchHelper {
             } else {
                 console.log("\t\tNo quotas");
             }
+            console.log(`\t\tSession ID: ${ws.sessionId}`);
             console.log(`\t\tLast keepalive: ${ws.lastKeepalive}`);
-            console.log(`\t\tSubscriptions: ${ws.subscriptions.length}`);
+            console.log(`\t\tSubscriptions: ${ws.getSubscriptions().length}`);
+            ws.getSubscriptions().forEach((s) => {
+                console.log(`\t\t\ttype: ${s.type} - user: ${s.condition.broadcaster_user_id} - status: ${s.status} - created: ${s.created_at} - cost: ${s.cost}`);
+            });
             console.log(`\t\tIs available: ${ws.isAvailable(TwitchHelper.CHANNEL_SUB_TYPES.length)}`);
             console.log("");
         });
@@ -1228,7 +1240,7 @@ export class EventWebsocket {
     public timeoutCheck?: NodeJS.Timeout;
     public connectedAt?: Date;
     public disconnectedAt?: Date;
-    public subscriptions: Subscription[];
+    private subscriptions: Subscription[];
     public autoSubscribe = false;
 
     public onValidated?: (sessionId: string, success: boolean) => void;
@@ -1392,6 +1404,7 @@ export class EventWebsocket {
 
         if (json._type === "session_welcome") {
             this.sessionId = json.payload.session.id;
+            console.debug("tw.helper.ew", `Received session_welcome event websocket message for ${this.id}: ${this.sessionId}`);
             console.debug("tw.helper.ew", `Event websocket session id: ${this.sessionId}`);
             console.debug("tw.helper.ew", `Event websocket keepalive: ${json.payload.session.keepalive_timeout_seconds}`);
             console.debug("tw.helper.ew", `Event websocket status: ${json.payload.session.status}`);
@@ -1426,6 +1439,7 @@ export class EventWebsocket {
         } else if (json._type === "revocation") {
             console.debug("tw.helper.ew", "Event websocket revocation", json);
             // json.payload.subscription
+            /*
             const index = this.subscriptions.findIndex((s) => s.id === json.payload.subscription.id);
             if (index > -1) {
                 this.subscriptions.splice(index, 1);
@@ -1433,6 +1447,13 @@ export class EventWebsocket {
             } else {
                 console.debug("tw.helper.ew", `Event websocket revocation subscription ${json.payload.subscription.id} not found`);
             }
+            */
+            Log.logAdvanced(
+                Log.Level.ERROR,
+                "tw.helper.ew",
+                `Event websocket revocation: ${json.payload.subscription.id}`
+            );
+            this.removeSubscription(json.payload.subscription.id);
         } else {
             console.debug("tw.helper.ew", "Event websocket unknown message", json);
 
@@ -1495,9 +1516,40 @@ export class EventWebsocket {
             Log.logAdvanced(
                 Log.Level.DEBUG,
                 "tw.helper.ew",
-                `Added subscription ${subscription.id} to event websocket ${this.id}, now ${this.subscriptions.length} subscriptions`
+                `Added subscription ${subscription.id} to event websocket ${this.id}, now ${this.subscriptions.length} subscriptions (quota ${this.quotas?.total_cost}/${this.quotas?.max_total_cost})`
             );
         }
+    }
+
+    public removeSubscription(id: string): boolean {
+        const index = this.subscriptions.findIndex((s) => s.id === id);
+        if (index > -1) {
+            this.subscriptions.splice(index, 1);
+            Log.logAdvanced(
+                Log.Level.INFO,
+                "tw.helper.ew",
+                `Removed subscription ${id} from event websocket ${this.id}, now ${this.subscriptions.length} subscriptions`
+            );
+            if (this.subscriptions.length === 0) {
+                this.disconnectAndRemove();
+            }
+            return true;
+        } else {
+            Log.logAdvanced(
+                Log.Level.ERROR,
+                "tw.helper.ew",
+                `Failed to remove subscription ${id} from event websocket ${this.id}, not found`
+            );
+            return false;
+        }
+    }
+
+    public getSubscriptions(): Subscription[] {
+        return this.subscriptions;
+    }
+
+    public removeSubscriptions() {
+        this.subscriptions = [];
     }
 
     public isAvailable(amountWanted: number): boolean {
