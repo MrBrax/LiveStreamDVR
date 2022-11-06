@@ -328,6 +328,7 @@ export class TwitchAutomator extends BaseAutomator {
             // fwrite($fp, json_encode($chapter) . "\n");
             // fclose($fp);
 
+            /*
             if (Config.debug) {
                 setTimeout(async () => {
                     const isLive = await this.channel?.isLiveApi();
@@ -338,6 +339,7 @@ export class TwitchAutomator extends BaseAutomator {
                     }
                 }, 30 * 1000); // remove in future, just for testing
             }
+            */
 
             if (!this.channel?.no_capture && is_live && !this.channel?.is_capturing) {
                 if (!this.getVodID()) {

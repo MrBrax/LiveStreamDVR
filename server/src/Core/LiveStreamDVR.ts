@@ -6,7 +6,7 @@ import { Server } from "node:http";
 import minimist from "minimist";
 // import { version } from "node:os";
 import path from "node:path";
-import { WebSocketServer } from "ws";
+import { WebSocketServer, WebSocket } from "ws";
 import { ChannelConfig } from "@common/Config";
 import { SubStatus } from "@common/Defs";
 import { version } from "../../package.json";
@@ -306,11 +306,20 @@ export class LiveStreamDVR {
         this.shutting_down = true;
         console.log(chalk.red(`[${new Date().toISOString()}] Shutting down (${reason})...`));
 
+        if (this.websocketServer) {
+            this.websocketServer.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    console.log("Closing websocket client connection");
+                    client.close();
+                }
+            });
+        }
+
         let timeout: NodeJS.Timeout | undefined = undefined;
         // introduced in node 18.2
         if ("closeAllConnections" in this.server) {
             console.log("closeAllConnections is available, using it");
-            (this.server as any).closeAllConnections();
+            this.server.closeAllConnections();
         } else {
             // bad workaround
             timeout = setTimeout(() => {
@@ -346,6 +355,7 @@ export class LiveStreamDVR {
             TwitchHelper.removeAllEventWebsockets();
             if (timeout !== undefined) clearTimeout(timeout);
             console.log(chalk.red("Finished tasks, bye bye."));
+            // process.exit(0);
         });
     }
 

@@ -6,17 +6,16 @@ import { ErrorResponse, EventSubTypes, Subscription } from "@common/TwitchAPI/Sh
 import { Subscriptions } from "@common/TwitchAPI/Subscriptions";
 import axios, { Axios, AxiosRequestConfig, AxiosResponse } from "axios";
 import chalk from "chalk";
-import { LiveStreamDVR } from "Core/LiveStreamDVR";
 import { format, parseJSON } from "date-fns";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { json } from "stream/consumers";
 import { WebSocket } from "ws";
-import { BaseConfigCacheFolder } from "../Core/BaseConfig";
+import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
 import { Helper } from "../Core/Helper";
 import { KeyValue } from "../Core/KeyValue";
+import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { Log } from "../Core/Log";
 import { AutomatorMetadata, TwitchAutomator } from "../Core/Providers/Twitch/TwitchAutomator";
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
@@ -440,6 +439,8 @@ export class TwitchHelper {
             `Refreshed user access token, expires at ${new Date(this.accessTokenTime).toISOString()}`
         );
 
+        this.updateAxiosToken();
+
         return true;
 
     }
@@ -690,7 +691,7 @@ export class TwitchHelper {
                         // }
                     }
                     if (sub.status == "websocket_disconnected") {
-                        console.debug(chalk.red(`Sub ${sub.id} (websocket) is disconnected`));
+                        // console.debug(chalk.red(`Sub ${sub.id} (websocket) is disconnected`));
                         // this.eventSubUnsubscribe(sub.id); // TODO: should we unsubscribe? would cause a lot of requests
                     }
                 }
@@ -807,7 +808,7 @@ export class TwitchHelper {
             response = await TwitchHelper.axios.get<T>(url, config);
         } catch (error) {
             if (axios.isAxiosError(error) && error.response?.status === 401 && !retried) { // 401 Unauthorized, don't retry if already retried
-                Log.logAdvanced(Log.Level.WARNING, "tw.helper", "Access token expired, during get request");
+                Log.logAdvanced(Log.Level.WARNING, "tw.helper", "Access token expired during get request");
                 if (this.accessTokenType === "user") {
                     await TwitchHelper.refreshUserAccessToken();
                 } else {
@@ -815,6 +816,8 @@ export class TwitchHelper {
                     await TwitchHelper.getAccessToken(true);
                 }
                 return TwitchHelper.getRequest(url, config, true);
+            } else {
+                Log.logAdvanced(Log.Level.DEBUG, "tw.helper", `Error during get request: ${error}`, error);
             }
             throw error;
         }
@@ -891,7 +894,7 @@ export class TwitchHelper {
                          * This unsubscribe call is mostly for the case where the server is restarted or for development purposes.
                          */
                         if (Config.getInstance().cfg("twitchapi.eventsub_unsub_on_start")) {
-                            console.debug(chalk.red(`Sub ${sub.id} (websocket) is disconnected and unsub_on_start is enabled, unsubscribing...`));
+                            // console.debug(chalk.red(`Sub ${sub.id} (websocket) is disconnected and unsub_on_start is enabled, unsubscribing...`));
                             await this.eventSubUnsubscribe(sub.id); // just make it a config option
                             // promiseList.push(this.eventSubUnsubscribe(sub.id));
                         }
@@ -1130,7 +1133,7 @@ export class TwitchHelper {
             }
             console.log(`\t\tLast keepalive: ${ws.lastKeepalive}`);
             console.log(`\t\tSubscriptions: ${ws.subscriptions.length}`);
-            console.log(`\t\tIs available: ${ws.isAvailable()}`);
+            console.log(`\t\tIs available: ${ws.isAvailable(TwitchHelper.CHANNEL_SUB_TYPES.length)}`);
             console.log("");
         });
     }
@@ -1438,6 +1441,22 @@ export class EventWebsocket {
 
     public eventSubNotificationHandler(message: EventSubWebsocketNotificationMessage): void {
 
+        if (Config.debug || Config.getInstance().cfg<boolean>("dump_payloads")) {
+            let payload_filename = `tw_ew_${new Date().toISOString().replaceAll(/[-:.]/g, "_")}`;
+            if (message.payload.subscription.type) payload_filename += `_${message.payload.subscription.type}`;
+            payload_filename += ".json";
+            const payload_filepath = path.join(BaseConfigDataFolder.payloads, payload_filename);
+            Log.logAdvanced(Log.Level.INFO, "hook", `Dumping debug hook payload to ${payload_filepath}`);
+            try {
+                fs.writeFileSync(payload_filepath, JSON.stringify({
+                    body: message,
+                }, null, 4));
+            } catch (error) {
+                Log.logAdvanced(Log.Level.ERROR, "hook", `Failed to dump payload to ${payload_filepath}`, error);
+            }
+
+        }
+
         const metadata_proxy: AutomatorMetadata = {
             message_id: message.metadata.message_id,
             message_retry: 0, // not supported with websockets
@@ -1481,13 +1500,13 @@ export class EventWebsocket {
         }
     }
 
-    public isAvailable(): boolean {
-        if ((this.subscriptions.length + TwitchHelper.CHANNEL_SUB_TYPES.length) > TwitchHelper.eventWebsocketMaxSubscriptions) return false;
+    public isAvailable(amountWanted: number): boolean {
+        if ((this.subscriptions.length + amountWanted) > TwitchHelper.eventWebsocketMaxSubscriptions) return false;
         if (
             this.quotas &&
             this.quotas.total_cost &&
             this.quotas.max_total_cost &&
-            this.quotas.total_cost + TwitchHelper.CHANNEL_SUB_TYPES.length > this.quotas.max_total_cost
+            this.quotas.total_cost + amountWanted > this.quotas.max_total_cost
         ) return false;
         return true;
     }

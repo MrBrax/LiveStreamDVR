@@ -1742,40 +1742,40 @@ export class TwitchChannel extends BaseChannel {
      */
     public static async subscribeToIdWithWebsocket(channel_id: string, force = false): Promise<boolean> {
 
-        let selectedWebsocket: EventWebsocket | undefined = undefined;
-        for (const ws of TwitchHelper.eventWebsockets) {
-            if (ws.isAvailable()) {
-                Log.logAdvanced(Log.Level.DEBUG, "channel", `Using websocket ${ws.id} for ${channel_id} subscription`);
-                selectedWebsocket = ws;
-                break;
-            }
-        }
-
-        if (!selectedWebsocket) {
-            // throw new Error("No websocket available for subscription");
-            selectedWebsocket = await TwitchHelper.createNewWebsocket(TwitchHelper.eventWebsocketUrl);
-            Log.logAdvanced(Log.Level.DEBUG, "channel", `Using new websocket ${selectedWebsocket.id} for ${channel_id} subscription`);
-        }
-
-        if (!selectedWebsocket) {
-            Log.logAdvanced(Log.Level.ERROR, "channel", `Could not create websocket for ${channel_id} subscription, aborting`);
-            throw new Error("Could not create websocket for subscription");
-        }
-
-        if (!selectedWebsocket.sessionId) {
-            throw new Error(`EventSub session ID is not set on websocket ${selectedWebsocket.id}`);
-        }
-
         const streamer_login = await TwitchChannel.channelLoginFromId(channel_id);
 
         for (const sub_type of TwitchHelper.CHANNEL_SUB_TYPES) {
+
+            let selectedWebsocket: EventWebsocket | undefined = undefined;
+            for (const ws of TwitchHelper.eventWebsockets) {
+                if (ws.isAvailable(1)) { // estimated cost
+                    Log.logAdvanced(Log.Level.DEBUG, "channel", `Using existing websocket ${ws.id} for ${channel_id}:${sub_type} sub (${streamer_login})`);
+                    selectedWebsocket = ws;
+                    break;
+                }
+            }
+
+            if (!selectedWebsocket) {
+                // throw new Error("No websocket available for subscription");
+                selectedWebsocket = await TwitchHelper.createNewWebsocket(TwitchHelper.eventWebsocketUrl);
+                Log.logAdvanced(Log.Level.DEBUG, "channel", `Using new websocket ${selectedWebsocket.id} for ${channel_id}:${sub_type} sub (${streamer_login})`);
+            }
+
+            if (!selectedWebsocket) {
+                Log.logAdvanced(Log.Level.ERROR, "channel", `Could not create websocket for ${channel_id}:${sub_type} subscription, aborting`);
+                throw new Error("Could not create websocket for subscription");
+            }
+
+            if (!selectedWebsocket.sessionId) {
+                throw new Error(`EventSub session ID is not set on websocket ${selectedWebsocket.id}`);
+            }
 
             // if (KeyValue.getInstance().get(`${channel_id}.sub.${sub_type}`) && !force) {
             //     Log.logAdvanced(Log.Level.INFO, "channel", `Skip subscription to ${channel_id}:${sub_type} (${streamer_login}), in cache.`);
             //     continue; // todo: alert
             // }
 
-            Log.logAdvanced(Log.Level.INFO, "tw.ch.subscribeToIdWithWebsocket", `Subscribe to ${channel_id}:${sub_type} (${streamer_login})`);
+            Log.logAdvanced(Log.Level.INFO, "tw.ch.subscribeToIdWithWebsocket", `Subscribe to ${channel_id}:${sub_type} (${streamer_login}) with websocket ${selectedWebsocket.id}`);
 
             const payload: SubscriptionRequest = {
                 type: sub_type,
@@ -1809,6 +1809,9 @@ export class TwitchChannel extends BaseChannel {
                         // }
                         console.error(`Duplicate subscription detected for ${channel_id}:${sub_type}`);
                         continue;
+                    } else if (err.response?.status == 429) { // rate limit
+                        Log.logAdvanced(Log.Level.ERROR, "tw.ch.subscribeToIdWithWebsocket", `Rate limit hit for ${channel_id}:${sub_type}, skipping`);
+                        continue;
                     }
 
                     continue;
@@ -1822,9 +1825,9 @@ export class TwitchChannel extends BaseChannel {
             const json = response.data;
             const http_code = response.status;
 
-            KeyValue.getInstance().setInt(`twitch.ws.${selectedWebsocket.sessionId}.max_total_cost`, json.max_total_cost);
-            KeyValue.getInstance().setInt(`twitch.ws.${selectedWebsocket.sessionId}.total_cost`, json.total_cost);
-            KeyValue.getInstance().setInt(`twitch.ws.${selectedWebsocket.sessionId}.total`, json.total);
+            // KeyValue.getInstance().setInt(`twitch.ws.${selectedWebsocket.sessionId}.max_total_cost`, json.max_total_cost);
+            // KeyValue.getInstance().setInt(`twitch.ws.${selectedWebsocket.sessionId}.total_cost`, json.total_cost);
+            // KeyValue.getInstance().setInt(`twitch.ws.${selectedWebsocket.sessionId}.total`, json.total);
 
             selectedWebsocket.quotas = {
                 max_total_cost: json.max_total_cost,
@@ -1834,35 +1837,29 @@ export class TwitchChannel extends BaseChannel {
 
             if (http_code == 202) {
 
-                // if (json.data[0].status !== "webhook_callback_verification_pending") {
-                //     Log.logAdvanced(Log.Level.ERROR, "tw.ch.subscribeToIdWithWebsocket", `Got 202 return for subscription request for ${channel_id}:${sub_type} but did not get callback verification.`);
-                //     return false;
-                //     // continue;
-                // }
+                if (json.data[0].status === "enabled") {
+                    Log.logAdvanced(
+                        Log.Level.SUCCESS,
+                        "tw.ch.subscribeToIdWithWebsocket",
+                        `Subscribe for ${channel_id}:${sub_type} (${streamer_login}) successful.`
+                    );
 
-                // KeyValue.getInstance().set(`${channel_id}.sub.${sub_type}`, json.data[0].id);
-                // KeyValue.getInstance().set(`${channel_id}.substatus.${sub_type}`, SubStatus.WAITING);
-
-                // Log.logAdvanced(Log.Level.SUCCESS, "tw.ch.subscribeToIdWithWebsocket", `Subscribe for ${channel_id}:${sub_type} (${streamer_login}) sent. Check logs for a 'subscription active' message.`);
-
-                Log.logAdvanced(
-                    Log.Level.INFO,
-                    "tw.ch.subscribeToIdWithWebsocket",
-                    `Subscribe for ${channel_id}:${sub_type} (${streamer_login}) sent, response: ${json.data[0].status}`
-                );
-
-                if (selectedWebsocket) {
-                    selectedWebsocket.addSubscription(json.data[0]);
+                    if (selectedWebsocket) {
+                        selectedWebsocket.addSubscription(json.data[0]);
+                    } else {
+                        Log.logAdvanced(Log.Level.ERROR, "tw.ch.subscribeToIdWithWebsocket", `Could not find websocket for ${channel_id}:${sub_type}`);
+                    }
                 } else {
-                    Log.logAdvanced(Log.Level.ERROR, "tw.ch.subscribeToIdWithWebsocket", `Could not find websocket for ${channel_id}:${sub_type}`);
+                    Log.logAdvanced(Log.Level.ERROR, "tw.ch.subscribeToIdWithWebsocket", `Subscribe for ${channel_id}:${sub_type} (${streamer_login}) failed: ${json.data[0].status}`);
                 }
 
             } else if (http_code == 409) {
                 Log.logAdvanced(Log.Level.ERROR, "tw.ch.subscribeToIdWithWebsocket", `Duplicate sub for ${channel_id}:${sub_type} detected.`);
+
             } else {
                 Log.logAdvanced(Log.Level.ERROR, "tw.ch.subscribeToIdWithWebsocket", `Failed to send subscription request for ${channel_id}:${sub_type}: ${json}, HTTP ${http_code})`);
                 return false;
-                // continue;
+
             }
 
         }
