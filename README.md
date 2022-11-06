@@ -103,17 +103,19 @@ If you want the public webapp to have a custom base folder, you must provide `BA
 
 ### Steps
 
-1. Place the downloaded files in a folder with good permissions.
-2. Enter the root folder and run `pip install -r requirements.txt`
-3. Build the packages (yarn pnp is now used, so `yarn install` might not be required)
+1. Clone the repository with submodules `git clone --recurse-submodules https://github.com/MrBrax/LiveStreamDVR.git` (zip download doesn't include submodules, [Git help](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository?tool=webui)
+    - If anyone knows how to make an automatic zip release with all the packages using GitHub Actions, please let me know.
+2. Place the downloaded files in a folder with good permissions.
+3. Enter the root folder and run `pip install -r requirements.txt`
+4. Build the packages (yarn pnp is now used, so `yarn install` might not be required)
     - Enter the `/client-vue` folder and run `yarn install` and `yarn run build`.
     - Enter the `/server` folder and run `yarn install` and `yarn run build`.
     - Enter the `/twitch-chat-dumper` folder and run `yarn install` and `yarn run build`.
     - Enter the `/twitch-vod-chat` folder and run `yarn install` and `yarn run build --base=/vodplayer`.
-4. In the `/server` folder, run `yarn run start` to start the server in production mode.
-5. Go to the settings page and set up basic stuff, get api key from twitch dev site.
-6. Check the About page for subscription status.
-7. Check stored vods in the `/data/storage` directory. Permissions might be an issue.
+5. In the `/server` folder, run `yarn run start` to start the server in production mode.
+6. Go to the settings page and set up basic stuff, get api key from twitch dev site.
+7. Check the About page for subscription status.
+8. Check stored vods in the `/data/storage` directory. Permissions might be an issue.
 
 Follow this guide to hackjob nginx: https://serversforhackers.com/c/nginx-php-in-subdirectory
 
