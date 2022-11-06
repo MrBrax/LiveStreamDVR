@@ -6,7 +6,7 @@ import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { Config } from "../Core/Config";
 import { TwitchHelper } from "../Providers/Twitch";
 import {  Log } from "../Core/Log";
-import { EventSubTypes } from "@common/TwitchAPI/Shared";
+import { EventSubTypes, TransportWebsocket } from "@common/TwitchAPI/Shared";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 
 interface ChannelSub {
@@ -51,16 +51,36 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
                 continue;
             }
 
-            const entry: ChannelSub = {
-                type: sub.type,
-                id: sub.id,
-                username: username || "",
-                user_id: sub.condition.broadcaster_user_id,
-                callback: sub.transport.method == "webhook" ? sub.transport.callback : sub.transport.session_id,
-                instance_match: sub.transport.method == "webhook" ? sub.transport.callback == callback : sub.transport.session_id == TwitchHelper.eventSubSessionId,
-                status: sub.status,
-                created_at: sub.created_at,
-            };
+            let entry: ChannelSub;
+
+            // if (Config.getInstance().cfg("twitchapi.eventsub_type") === "websocket") {
+            if (sub.transport.method === "websocket") {
+
+                const wsFound = TwitchHelper.eventWebsockets.some((w) => w.sessionId === (sub.transport as TransportWebsocket).session_id);
+
+                entry = {
+                    type: sub.type,
+                    id: sub.id,
+                    username: username || "",
+                    user_id: sub.condition.broadcaster_user_id,
+                    callback: sub.transport.session_id,
+                    instance_match: wsFound,
+                    status: sub.status,
+                    created_at: sub.created_at,
+                };
+
+            } else {
+                entry = {
+                    type: sub.type,
+                    id: sub.id,
+                    username: username || "",
+                    user_id: sub.condition.broadcaster_user_id,
+                    callback: sub.transport.callback,
+                    instance_match: sub.transport.callback == callback,
+                    status: sub.status,
+                    created_at: sub.created_at,
+                };
+            }
 
             if (!KeyValue.getInstance().has(`${entry.user_id}.sub.${entry.type}`) || !KeyValue.getInstance().has(`${entry.user_id}.substatus.${entry.type}`)) {
                 KeyValue.getInstance().set(`${entry.user_id}.sub.${entry.type}`, entry.id);

@@ -1055,8 +1055,11 @@ export class TwitchVOD extends BaseVOD {
         // streamlink is used instead, until this is fixed in the api
 
         // return TwitchConfig.getInstance().cfg("checkmute_method", "api") == "api" ? await this.checkMutedVodAPI(save, force) : await this.checkMutedVodStreamlink(save, force);
-        return await this.checkMutedVodStreamlink(save);
-
+        if (TwitchHelper.accessTokenType === "user") {
+            return await this.checkMutedVodAPI(save);
+        } else {
+            return await this.checkMutedVodStreamlink(save);
+        }
     }
 
     private async checkMutedVodAPI(save = false): Promise<MuteStatus> {
@@ -1074,7 +1077,7 @@ export class TwitchVOD extends BaseVOD {
         } else {
             if (data.muted_segments && data.muted_segments.length > 0) {
                 this.twitch_vod_muted = MuteStatus.MUTED;
-                Log.logAdvanced(Log.Level.WARNING, "vod.checkMutedVodAPI", `VOD ${this.basename} is muted!`, data);
+                Log.logAdvanced(Log.Level.WARNING, "vod.checkMutedVodAPI", `VOD ${this.basename} is muted! (${data.muted_segments.length} segments)`);
                 if (previous !== this.twitch_vod_muted && save) {
                     await this.saveJSON("vod mute true");
                 }

@@ -1,5 +1,5 @@
 import { ApiJob, ApiLogLine, ApiChannels, ApiVods } from "@common/Api/Client";
-import { ApiResponse, ApiAuthResponse, ApiLoginResponse, ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiJobsResponse, ApiSettingsResponse, ApiVodResponse } from "@common/Api/Api";
+import { ApiResponse, ApiLoginResponse, ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiJobsResponse, ApiSettingsResponse, ApiVodResponse, ApiQuotas } from "@common/Api/Api";
 import axios from "axios";
 import { defineStore } from "pinia";
 import { ClientSettings, SidemenuShow } from "@/twitchautomator";
@@ -39,6 +39,13 @@ interface StoreType {
     serverGitHash?: string;
     serverGitBranch?: string;
     visibleVod: string;
+    quotas?: ApiQuotas;
+    websocket_quotas?: {
+        id: string;
+        max_total_cost: number;
+        total_cost: number;
+        total: number;
+    }[];
 }
 
 export const useStore = defineStore("twitchAutomator", {
@@ -66,6 +73,7 @@ export const useStore = defineStore("twitchAutomator", {
             serverGitHash: "",
             serverGitBranch: "",
             visibleVod: "",
+            quotas: undefined,
         };
     },
     actions: {
@@ -119,6 +127,8 @@ export const useStore = defineStore("twitchAutomator", {
             this.app_name = data.data.app_name;
             this.serverGitHash = data.data.server_git_hash;
             this.serverGitBranch = data.data.server_git_branch;
+            this.quotas = data.data.quotas;
+            this.websocket_quotas = data.data.websocket_quotas;
 
             await this.fetchAndUpdateStreamerList();
             await this.fetchAndUpdateJobs();

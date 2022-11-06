@@ -20,7 +20,7 @@ import type { BroadcasterType, UsersResponse } from "@common/TwitchAPI/Users";
 import type { UserData } from "@common/User";
 import { Helper } from "../../Helper";
 import { isTwitchChannel } from "../../../Helpers/Types";
-import { TwitchHelper } from "../../../Providers/Twitch";
+import { EventWebsocket, TwitchHelper } from "../../../Providers/Twitch";
 import { TwitchVODChapterJSON } from "../../../Storage/JSON";
 import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
@@ -1742,8 +1742,28 @@ export class TwitchChannel extends BaseChannel {
      */
     public static async subscribeToIdWithWebsocket(channel_id: string, force = false): Promise<boolean> {
 
-        if (!TwitchHelper.eventSubSessionId) {
-            throw new Error("EventSub session ID is not set");
+        let selectedWebsocket: EventWebsocket | undefined = undefined;
+        for (const ws of TwitchHelper.eventWebsockets) {
+            if (ws.isAvailable()) {
+                Log.logAdvanced(Log.Level.DEBUG, "channel", `Using websocket ${ws.id} for ${channel_id} subscription`);
+                selectedWebsocket = ws;
+                break;
+            }
+        }
+
+        if (!selectedWebsocket) {
+            // throw new Error("No websocket available for subscription");
+            selectedWebsocket = await TwitchHelper.createNewWebsocket(TwitchHelper.eventWebsocketUrl);
+            Log.logAdvanced(Log.Level.DEBUG, "channel", `Using new websocket ${selectedWebsocket.id} for ${channel_id} subscription`);
+        }
+
+        if (!selectedWebsocket) {
+            Log.logAdvanced(Log.Level.ERROR, "channel", `Could not create websocket for ${channel_id} subscription, aborting`);
+            throw new Error("Could not create websocket for subscription");
+        }
+
+        if (!selectedWebsocket.sessionId) {
+            throw new Error(`EventSub session ID is not set on websocket ${selectedWebsocket.id}`);
         }
 
         const streamer_login = await TwitchChannel.channelLoginFromId(channel_id);
@@ -1765,7 +1785,7 @@ export class TwitchChannel extends BaseChannel {
                 },
                 transport: {
                     method: "websocket",
-                    session_id: TwitchHelper.eventSubSessionId,
+                    session_id: selectedWebsocket.sessionId,
                 },
             };
 
@@ -1781,7 +1801,7 @@ export class TwitchChannel extends BaseChannel {
                 if (axios.isAxiosError(err)) {
                     Log.logAdvanced(Log.Level.ERROR, "tw.ch.subscribeToIdWithWebsocket", `Could not subscribe to ${channel_id}:${sub_type}: ${err.message} / ${err.response?.data.message}`);
 
-                    if (err.response?.data.status == 409) { // duplicate
+                    if (err.response?.status == 409) { // duplicate
                         // const sub_id = await TwitchChannel.getSubscriptionId(channel_id, sub_type);
                         // if (sub_id) {
                         //     KeyValue.getInstance().set(`${channel_id}.sub.${sub_type}`, sub_id);
@@ -1802,9 +1822,15 @@ export class TwitchChannel extends BaseChannel {
             const json = response.data;
             const http_code = response.status;
 
-            KeyValue.getInstance().setInt("twitch.max_total_cost", json.max_total_cost);
-            KeyValue.getInstance().setInt("twitch.total_cost", json.total_cost);
-            KeyValue.getInstance().setInt("twitch.total", json.total);
+            KeyValue.getInstance().setInt(`twitch.ws.${selectedWebsocket.sessionId}.max_total_cost`, json.max_total_cost);
+            KeyValue.getInstance().setInt(`twitch.ws.${selectedWebsocket.sessionId}.total_cost`, json.total_cost);
+            KeyValue.getInstance().setInt(`twitch.ws.${selectedWebsocket.sessionId}.total`, json.total);
+
+            selectedWebsocket.quotas = {
+                max_total_cost: json.max_total_cost,
+                total_cost: json.total_cost,
+                total: json.total,
+            };
 
             if (http_code == 202) {
 
@@ -1825,7 +1851,11 @@ export class TwitchChannel extends BaseChannel {
                     `Subscribe for ${channel_id}:${sub_type} (${streamer_login}) sent, response: ${json.data[0].status}`
                 );
 
-                TwitchHelper.eventWebsocketSubscriptions.push(json.data[0]);
+                if (selectedWebsocket) {
+                    selectedWebsocket.addSubscription(json.data[0]);
+                } else {
+                    Log.logAdvanced(Log.Level.ERROR, "tw.ch.subscribeToIdWithWebsocket", `Could not find websocket for ${channel_id}:${sub_type}`);
+                }
 
             } else if (http_code == 409) {
                 Log.logAdvanced(Log.Level.ERROR, "tw.ch.subscribeToIdWithWebsocket", `Duplicate sub for ${channel_id}:${sub_type} detected.`);
@@ -1951,7 +1981,7 @@ export class TwitchChannel extends BaseChannel {
         for (const channel of TwitchChannel.getChannels()) {
             console.debug(`Subscribing to ${channel.internalName}`);
             await channel.subscribe();
-            break; // TODO: remove
+            // break; // TODO: remove
         }
     }
 

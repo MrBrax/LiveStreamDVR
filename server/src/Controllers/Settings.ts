@@ -19,6 +19,14 @@ export function GetSettings(req: express.Request, res: express.Response): void {
         config[field.key] = Config.getInstance().cfg(field.key);
     }
 
+    const websocketQuotas = TwitchHelper.eventWebsockets.map((ws) => {
+        return {
+            ...ws.quotas,
+            subscriptions: ws.subscriptions.length,
+            id: ws.id,
+        };
+    });
+
     res.send({
         data: {
             app_name: AppName,
@@ -32,6 +40,7 @@ export function GetSettings(req: express.Request, res: express.Response): void {
             errors: LiveStreamDVR.getErrors(),
             server_git_hash: Config.getInstance().gitHash,
             server_git_branch: Config.getInstance().gitBranch,
+            guest: is_guest,
             quotas: {
                 twitch: {
                     max_total_cost: KeyValue.getInstance().getInt("twitch.max_total_cost"),
@@ -39,6 +48,7 @@ export function GetSettings(req: express.Request, res: express.Response): void {
                     total: KeyValue.getInstance().getInt("twitch.total"),
                 },
             },
+            websocket_quotas: websocketQuotas,
             // guest: is_guest,
         },
         status: "OK",

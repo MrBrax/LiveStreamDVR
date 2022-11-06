@@ -68,6 +68,46 @@
                     </p>
                 </div>
 
+                <!-- quotas -->
+                <div
+                    v-if="store.quotas"
+                    class="block"
+                >
+                    <h3>Quotas</h3>
+                    <ul class="list">
+                        <li
+                            v-for="(v, k) in store.quotas"
+                            :key="k"
+                        >
+                            {{ k }}
+                            <ul class="list">
+                                <li
+                                    v-for="(v2, k2) in v"
+                                    :key="k2"
+                                >
+                                    {{ k2 }}: {{ v2 }}
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <ul class="list">
+                        <li
+                            v-for="(v, k) in store.websocket_quotas"
+                            :key="k"
+                        >
+                            Websocket {{ v.id }}
+                            <ul class="list">
+                                <li
+                                    v-for="(v2, k2) in v"
+                                    :key="k2"
+                                >
+                                    {{ k2 }}: {{ v2 }}
+                                </li>
+                            </ul>
+                        </li>
+                    </ul>
+                </div>
+
                 <!-- software -->
                 <div class="block">
                     <h3>{{ t('about.software') }}</h3>

@@ -18,7 +18,13 @@ interface ApiQuotas {
         max_total_cost: number;
         total_cost: number;
         total: number;
-    }
+    };
+    websockets: {
+        id: string;
+        max_total_cost: number;
+        total_cost: number;
+        total: number;
+    }[];
 }
 
 export interface ApiSettingsResponse extends ApiResponse {
@@ -38,6 +44,13 @@ export interface ApiSettingsResponse extends ApiResponse {
         server_git_hash?: string;
         server_git_branch?: string;
         quotas: ApiQuotas;
+        websocket_quotas: {
+            id: string;
+            max_total_cost: number;
+            total_cost: number;
+            total: number;
+            subscriptions: number;
+        }[];
     };
 }
 

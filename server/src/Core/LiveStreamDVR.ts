@@ -343,7 +343,7 @@ export class LiveStreamDVR {
             }
             ClientBroker.wss = undefined;
             Config.getInstance().stopWatchingConfig();
-            TwitchHelper.disconnectEventWebsocket();
+            TwitchHelper.removeAllEventWebsockets();
             if (timeout !== undefined) clearTimeout(timeout);
             console.log(chalk.red("Finished tasks, bye bye."));
         });
