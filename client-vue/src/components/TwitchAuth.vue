@@ -1,57 +1,41 @@
 <template>
     <div class="youtube-auth">
-        <h3><span class="icon"><font-awesome-icon :icon="['fab', 'youtube']" /></span> YouTube authentication</h3>
-        <div class="youtube-help">
-            Follow the guide here and set up the API keys in the config tab:
-            <a
-                href="https://developers.google.com/youtube/v3/getting-started"
-                target="_blank"
-                rel="noreferrer"
-            >
-                https://developers.google.com/youtube/v3/getting-started
-            </a>
-        </div>
+        <h3><span class="icon"><font-awesome-icon :icon="['fab', 'twitch']" /></span> Twitch authentication</h3>
         <div class="buttons">
             <button
                 class="button is-confirm"
                 :disabled="loading"
                 type="button"
-                @click="doCheckYouTubeStatus"
+                @click="doCheckTwitchStatus"
             >
                 <span class="icon"><font-awesome-icon icon="sync" /></span>
                 <span>{{ t("buttons.checkstatus") }}</span>
             </button>
             <button
-                class="icon-button"
-                style="padding-top: 2px"
-                title="Authenticate with YouTube using method 1"
+                class="button is-confirm"
+                title="Authenticate with Twitch using method 1"
                 :disabled="loading"
                 type="button"
-                @click="doAuthenticateYouTubeMethod1"
+                @click="doAuthenticateTwitchMethod1"
             >
-                <img
-                    src="../assets/google/btn_google_signin_dark_normal_web.png"
-                    height="36"
-                >
+                <span class="icon"><font-awesome-icon icon="sign-in-alt" /></span>
+                <span>{{ t("buttons.authmethod1") }}</span>
             </button>
             <button
-                class="icon-button"
-                style="padding-top: 2px"
-                title="Authenticate with YouTube using method 2"
+                class="button is-confirm"
+                title="Authenticate with Twitch using method 2"
                 :disabled="loading"
                 type="button"
-                @click="doAuthenticateYouTubeMethod2"
+                @click="doAuthenticateTwitchMethod2"
             >
-                <img
-                    src="../assets/google/btn_google_signin_light_normal_web.png"
-                    height="36"
-                >
+                <span class="icon"><font-awesome-icon icon="sign-in-alt" /></span>
+                <span>{{ t("buttons.authmethod2") }}</span>
             </button>
             <button
                 class="button is-danger"
                 :disabled="loading"
                 type="button"
-                @click="doDestroyYouTube"
+                @click="doDestroyTwitch"
             >
                 <span class="icon"><font-awesome-icon icon="right-from-bracket" /></span>
                 <span>{{ t("buttons.destroy-session") }}</span>
@@ -77,10 +61,7 @@
             <h3>Suggested configuration:</h3>
             <ul class="list less-padding">
                 <li>
-                    <strong>Authorized JavaScript origins:</strong> <code class="uselect">{{ store.appUrl }}</code>
-                </li>
-                <li>
-                    <strong>Redirect URI:</strong> <code class="uselect">{{ store.appUrl }}/api/v0/youtube/callback</code>
+                    <strong>Redirect URI:</strong> <code class="uselect">{{ store.appUrl }}/api/v0/twitch/callback</code>
                 </li>
             </ul>
         </div>
@@ -89,7 +70,7 @@
 
 <script lang="ts" setup>
 import { ref } from "vue";
-import { ApiResponse } from "@common/Api/Api";
+import { ApiResponse, ApiErrorResponse } from "@common/Api/Api";
 import { useStore } from "@/store";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
@@ -97,58 +78,66 @@ import {
     faSpinner,
 } from "@fortawesome/free-solid-svg-icons";
 import {
-    faYoutube
+    faTwitch
 } from "@fortawesome/free-brands-svg-icons";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import { useI18n } from "vue-i18n";
-library.add(faRightFromBracket, faYoutube, faSpinner);
+library.add(faRightFromBracket, faTwitch, faSpinner);
 
 const store = useStore();
 const { t } = useI18n();
 
 const status = ref("");
 const loading = ref(false);
-    
-function doCheckYouTubeStatus(): void {
-    status.value = "Checking YouTube status...";
+
+function doCheckTwitchStatus(): void {
+    status.value = "Checking Twitch status...";
     loading.value = true;
-    axios.get<ApiResponse>(`/api/v0/youtube/status`).then((response) => {
+    axios.get<ApiResponse>(`/api/v0/twitch/status`).then((response) => {
         const json = response.data;
         if (json.message) status.value = json.message;
         console.log(json);
-    }).catch((err) => {
-        console.error("youtube check error", err.response);
-        if (err.response.data && err.response.data.message) status.value = err.response.data.message;
+    }).catch((err: Error | AxiosError) => {
+        console.error("twitch check error", err);
+        if (axios.isAxiosError<ApiErrorResponse>(err)) {
+            if (err.response && err.response.data && err.response.data.message) {
+                status.value = err.response.data.message;
+            } else {
+                status.value = err.message;
+            }
+        } else {
+            status.value = `Error checking Twitch status (${err.message})`;
+        }
     }).finally(() => {
         loading.value = false;
     });
 }
 
-async function doAuthenticateYouTubeMethod1(): Promise<void> {
-    const url = `${store.cfg<string>("basepath", "")}/api/v0/youtube/authenticate`;
+async function doAuthenticateTwitchMethod1(): Promise<void> {
+    const url = `${store.cfg<string>("basepath", "")}/api/v0/twitch/authenticate`;
     const width = 600;
     const height = 600;
     const left = (screen.width / 2) - (width / 2);
     const top = (screen.height / 2) - (height / 2);
-    console.debug("youtube auth url", url);
+    console.debug("twitch auth url", url);
     window.open(url, "_blank", `width=${width},height=${height},top=${top},left=${left}`);
 }
 
-async function doAuthenticateYouTubeMethod2(): Promise<void> {
+async function doAuthenticateTwitchMethod2(): Promise<void> {
 
-    status.value = "Fetching YouTube authentication URL...";
+    status.value = "Fetching Twitch authentication URL...";
     loading.value = true;
-    
+
     let res;
     try {
-        res = await axios.get<ApiResponse>(`/api/v0/youtube/authenticate?rawurl=true`);
+        res = await axios.get<ApiResponse>(`/api/v0/twitch/authenticate?rawurl=true`);
     } catch (error) {
         if (axios.isAxiosError(error)) {
-            console.error("youtube auth error", error.response);
+            console.error("twitch auth error", error.response);
             if (error.response && error.response.data && error.response.data.message) status.value = error.response.data.message;
         }
         loading.value = false;
-        return;                    
+        return;
     }
     loading.value = false;
     const url = res.data.data;
@@ -156,19 +145,19 @@ async function doAuthenticateYouTubeMethod2(): Promise<void> {
     const height = 600;
     const left = (screen.width / 2) - (width / 2);
     const top = (screen.height / 2) - (height / 2);
-    console.debug("youtube auth url", url);
+    console.debug("twitch auth url", url);
     window.open(url, "_blank", `width=${width},height=${height},top=${top},left=${left}`);
 }
 
-function doDestroyYouTube(): void {
-    status.value = "Destroying YouTube session...";
+function doDestroyTwitch(): void {
+    status.value = "Destroying Twitch session...";
     loading.value = true;
-    axios.get<ApiResponse>(`/api/v0/youtube/destroy`).then((response) => {
+    axios.get<ApiResponse>(`/api/v0/twitch/destroy`).then((response) => {
         const json = response.data;
         if (json.message) status.value = json.message;
         console.log(json);
     }).catch((err) => {
-        console.error("youtube destroy error", err.response);
+        console.error("twitch destroy error", err.response);
         if (err.response.data && err.response.data.message) status.value = err.response.data.message;
     }).finally(() => {
         loading.value = false;
@@ -179,6 +168,6 @@ function doDestroyYouTube(): void {
 
 <style lang="scss" scoped>
     h3 {
-        margin: 0;
+        margin: 0 0 0.5rem 0;
     }
 </style>

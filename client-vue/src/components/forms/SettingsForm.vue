@@ -238,7 +238,10 @@
         /></span> {{ t("messages.loading") }}
     </div>
     <hr>
-    <youtube-auth />
+    <div class="auths">
+        <youtube-auth />
+        <twitch-auth />
+    </div>
 </template>
 
 <script lang="ts">
@@ -249,6 +252,7 @@ import axios, { AxiosError } from "axios";
 import { defineComponent } from "vue";
 import { formatString } from "@common/Format";
 import YoutubeAuth from "@/components/YoutubeAuth.vue";
+import TwitchAuth from "@/components/TwitchAuth.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGlobe, faSave } from "@fortawesome/free-solid-svg-icons";
@@ -264,6 +268,7 @@ export default defineComponent({
     name: "SettingsForm",
     components: {
         YoutubeAuth,
+        TwitchAuth,
     },
     emits: ["formSuccess"],
     setup() {
@@ -467,10 +472,16 @@ export default defineComponent({
 </script>
 
 <style lang="scss" scoped>
-    .deprecated {
-        background-color: #c13e3e;
-        &:hover {
-            background-color: #d44949;
-        }
+.deprecated {
+    background-color: #c13e3e;
+    &:hover {
+        background-color: #d44949;
     }
+}
+
+.auths {
+    display: flex;
+    flex-direction: column;
+    gap: 1em;
+}
 </style>

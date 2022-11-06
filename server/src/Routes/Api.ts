@@ -20,6 +20,7 @@ import * as Tools from "../Controllers/Tools";
 import * as TwitchAPI from "../Controllers/TwitchAPI";
 import * as Vod from "../Controllers/Vod";
 import * as YouTube from "../Controllers/YouTube";
+import * as Twitch from "../Controllers/Twitch";
 import * as YouTubeAPI from "../Controllers/YouTubeAPI";
 import { Config } from "../Core/Config";
 import { AuthAdmin, AuthCore, AuthGuest } from "../Helpers/Auth";
@@ -149,6 +150,10 @@ router.get("/youtube/status", AuthAdmin, YouTube.Status);
 router.get("/youtube/destroy", AuthAdmin, YouTube.DestroySession);
 router.get("/youtube/playlists", AuthAdmin, YouTube.GetPlaylists);
 router.post("/youtube/playlists", AuthAdmin, YouTube.CreatePlaylist);
+
+router.get("/twitch/authenticate", AuthAdmin, Twitch.Authenticate);
+router.get("/twitch/callback", AuthAdmin, Twitch.Callback);
+router.get("/twitch/status", AuthAdmin, Twitch.Status);
 
 router.post("/auth/login", Auth.Login);
 router.post("/auth/logout", Auth.Logout);

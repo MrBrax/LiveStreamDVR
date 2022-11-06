@@ -89,6 +89,9 @@ export class YouTubeHelper {
             } catch (error) {
                 Log.logAdvanced(Log.Level.ERROR, "YouTubeHelper", `Failed to fetch username: ${(error as Error).message}`);
             }
+        } else {
+            Log.logAdvanced(Log.Level.INFO, "YouTubeHelper", "No stored token found.");
+            return;
         }
 
         this.loadRefreshToken();

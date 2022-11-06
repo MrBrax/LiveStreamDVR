@@ -225,3 +225,11 @@ svg[data-icon] {
 .has-text-bold {
     font-weight: bold;
 }
+
+code.uselect {
+    // user-select: all;
+    font-family: "Consolas", monospace;
+    padding: 1px;
+    display: block;
+    
+}

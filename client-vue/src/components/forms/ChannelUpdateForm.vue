@@ -509,7 +509,10 @@ export default defineComponent({
         },
         subscribeChannel() {
 
-            if (!this.store.cfg("app_url") || this.store.cfg("app_url") == "debug") {
+            if (
+                (!this.store.cfg("app_url") || this.store.cfg("app_url") == "debug") &&
+                this.store.cfg("twitchapi.twitchapi.eventsub_type") === "webhook"
+            ){
                 alert("Please set the app url in the settings");
                 return;
             }

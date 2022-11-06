@@ -96,7 +96,7 @@ export class KeyValue extends EventEmitter {
 
         key = key.replaceAll("/", "");
 
-        if (Config.debug) console.debug(`Setting key-value pair: ${key} = ${value}`);
+        if (Config.debug) console.debug(`[debug] Setting key-value pair: ${key} = ${value}`);
         this.data[key] = value;
         this.emit("set", key, value);
 

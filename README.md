@@ -105,11 +105,11 @@ If you want the public webapp to have a custom base folder, you must provide `BA
 
 1. Place the downloaded files in a folder with good permissions.
 2. Enter the root folder and run `pip install -r requirements.txt`
-3. Build the packages
+3. Build the packages (yarn pnp is now used, so `yarn install` might not be required)
     - Enter the `/client-vue` folder and run `yarn install` and `yarn run build`.
     - Enter the `/server` folder and run `yarn install` and `yarn run build`.
     - Enter the `/twitch-chat-dumper` folder and run `yarn install` and `yarn run build`.
-    - Enter the `/twitch-vod-chat` folder and run `yarn install` and `yarn run build`.
+    - Enter the `/twitch-vod-chat` folder and run `yarn install` and `yarn run build --base=/vodplayer`.
 4. In the `/server` folder, run `yarn run start` to start the server in production mode.
 5. Go to the settings page and set up basic stuff, get api key from twitch dev site.
 6. Check the About page for subscription status.

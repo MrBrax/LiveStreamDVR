@@ -302,7 +302,7 @@ export class ClientBroker {
         if (Config.getInstance().cfg("discord_enabled") && ClientBroker.getNotificationSettingForProvider(category, NotificationProvider.DISCORD)) {
             axios.post(Config.getInstance().cfg("discord_webhook"), {
                 content: `**${title}**\n${body}${url ? `\n\n${url}` : ""}`,
-                avatar_url: icon,
+                avatar_url: icon && icon.startsWith("https") ? icon : undefined, // only allow https
                 tts: tts,
             } as DiscordSendMessagePayload).then((res) => {
                 Log.logAdvanced(Log.Level.DEBUG, "notify", "Discord response", res.data);
