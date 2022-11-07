@@ -127,7 +127,7 @@ export default defineConfig({
             './src/views/Settings/SettingsClientSettings.vue',
             './src/views/Settings/SettingsConfig.vue',
             './src/views/Settings/SettingsFavourites.vue',
-            './src/views/Settings/SettingsKeyValue.vue',
+            './src/views/Settings/SettingsKeyvalue.vue',
             './src/views/Settings/SettingsNotifications.vue',
           ],
         }
