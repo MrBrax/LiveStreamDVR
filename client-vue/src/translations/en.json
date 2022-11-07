@@ -200,7 +200,8 @@
       "id": "ID",
       "uuid": "UUID",
       "id_help": "ID can be retrieved from external services. It is NOT the one in the URL of the channel.",
-      "url": "URL"
+      "url": "URL",
+      "uses-default-settings-defined-in-the-settings": "Uses default settings defined in the settings"
     },
     "config": {
       "validate-external-url": "Validate external URL"

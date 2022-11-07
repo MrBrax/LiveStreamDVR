@@ -174,7 +174,7 @@
                     {{ t('forms.channel.burn-chat') }}
                 </label>
                 <p class="input-help">
-                    Currently disabled
+                    {{ t('forms.channel.uses-default-settings-defined-in-the-settings') }}
                 </p>
             </div>
 
