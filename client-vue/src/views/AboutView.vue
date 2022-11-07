@@ -253,151 +253,143 @@
     </div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import { useStore } from "@/store";
 import { ApiSubscription } from "@common/Api/Client";
 import { AboutData } from "@common/Api/About";
-import { defineComponent } from "vue";
-import { ApiResponse, ApiAboutResponse } from "@common/Api/Api";
+import { ref, computed, onMounted } from "vue";
+import { ApiResponse, ApiAboutResponse, IApiResponse } from "@common/Api/Api";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faRss, faBan } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from "vue-i18n";
 import axios from "axios";
 library.add(faRss, faBan);
 
-// import licenses from "../../LICENSES.txt";
 
-export default defineComponent({
-    name: "AboutView",
-    title: "About",
-    setup() {
-        const store = useStore();
-        const { t } = useI18n();
-        return { store, t };
-    },
-    data(): {
-        aboutData: AboutData | null;
-        // envs: any;
-        subscriptions: ApiSubscription[];
-        subscriptionsLoading: boolean;
-    } {
-        return {
-            aboutData: null,
-            // envs: {},
-            subscriptions: [],
-            subscriptionsLoading: false,
-        };
-    },
-    computed: {
-        clientVersion(): string {
-            return import.meta.env.VITE_APP_VERSION; // injected
-        },
-        clientMode(): string {
-            return import.meta.env.MODE; // injected
-        },
-        verboseClientVersion(): string {
-            return `${import.meta.env.VITE_APP_VERSION} (${import.meta.env.VITE_APP_BUILDDATE} / ${import.meta.env.VITE_APP_GIT_HASH})`; // injected
-        },
-        pipKeys(): string {
-            if (!this.aboutData) {
-                return "";
-            }
-            return Object.keys(this.aboutData.pip).join(" ");
-        },
-        licenseUrl(): string {
-            // return this.store.cfg("basepath") + "/LICENSES.txt";
-            return new URL("../../LICENSES.txt", import.meta.url).href;
-        },
-    },
-    created() {
-        this.fetchData();
-    },
-    methods: {
-        fetchData() {
-            this.aboutData = null;
+const store = useStore();
+const { t } = useI18n();
 
-            axios
-                .get<ApiAboutResponse>(`/api/v0/about`)
-                .then((response) => {
-                    const json = response.data;
-                    const about = json.data;
-                    console.debug("aboutData", about);
-                    this.aboutData = about;
-                })
-                .catch((err) => {
-                    console.error("about error", err.response);
-                });
+const aboutData = ref<AboutData>();
+const subscriptions = ref<ApiSubscription[]>([]);
+const subscriptionsLoading = ref<boolean>(false);
 
-            /*
-            fetch(`api/v0/about`)
-            .then((response) => response.json())
-            .then((json) => {
-                const about = json.data;
-                console.log("aboutData", about);
-                this.aboutData = about;
-            });
-            */
-        },
-        fetchSubscriptions() {
-            this.subscriptionsLoading = true;
-            axios
-                .get<ApiResponse>(`/api/v0/subscriptions`)
-                .then((response) => {
-                    const json = response.data;
-                    console.log("subscriptions", json);
-                    this.subscriptions = json.data.channels as ApiSubscription[];
-                    this.subscriptionsLoading = false;
-                    // TODO: handle when there are 0 subscriptions
-                })
-                .catch((err) => {
-                    console.error("fetchSubscriptions error", err.response);
-                    this.subscriptionsLoading = false;
-                });
-        },
-        unsubscribe(id: string) {
-            this.subscriptionsLoading = true;
-            axios
-                .delete(`/api/v0/subscriptions/${id}`)
-                .then((response) => {
-                    const json = response.data;
-                    console.debug("unsubscribe", json);
-                    this.subscriptionsLoading = false;
-                    this.fetchSubscriptions();
-                })
-                .catch((err) => {
-                    console.error("about error", err.response);
-                });
-        },
-        subscribeAll() {
-            this.subscriptionsLoading = true;
-            axios
-                .post<ApiResponse>(`/api/v0/subscriptions`)
-                .then((response) => {
-                    const json = response.data;
-                    console.debug("subscribeAll", json);
-                    this.subscriptionsLoading = false;
-                    this.fetchSubscriptions();
-                })
-                .catch((err) => {
-                    console.error("about error", err.response);
-                });
-        },
-        /*
-        unsubscribeAll() {
-            this.subscriptionsLoading = true;
-            axios
-                .delete(`/api/v0/subscriptions`)
-                .then((response) => {
-                    const json = response.data;
-                    console.debug("unsubscribeAll", json);
-                    this.subscriptionsLoading = false;
-                    this.fetchSubscriptions();
-                })
-                .catch((err) => {
-                    console.error("about error", err.response);
-                });
-        },
-        */
-    },
+
+const clientVersion = computed((): string => {
+    return import.meta.env.VITE_APP_VERSION; // injected
 });
+
+const clientMode = computed((): string => {
+    return import.meta.env.MODE; // injected
+});
+
+const verboseClientVersion = computed((): string => {
+    return `${import.meta.env.VITE_APP_VERSION} (${import.meta.env.VITE_APP_BUILDDATE} / ${import.meta.env.VITE_APP_GIT_HASH})`; // injected
+});
+
+const pipKeys = computed((): string => {
+    if (!aboutData.value) {
+        return "";
+    }
+    return Object.keys(aboutData.value.pip).join(" ");
+});
+
+const licenseUrl = computed((): string => {
+    // return this.store.cfg("basepath") + "/LICENSES.txt";
+    return new URL("../../LICENSES.txt", import.meta.url).href;
+});
+
+onMounted(() => {
+    fetchData();
+});
+
+function fetchData() {
+    aboutData.value = undefined;
+
+    axios
+        .get<ApiAboutResponse>(`/api/v0/about`)
+        .then((response) => {
+            const json = response.data;
+            const about = json.data;
+            console.debug("aboutData", about);
+            aboutData.value = about;
+        })
+        .catch((err) => {
+            console.error("about error", err.response);
+        });
+
+    /*
+    fetch(`api/v0/about`)
+    .then((response) => response.json())
+    .then((json) => {
+        const about = json.data;
+        console.log("aboutData", about);
+        aboutData.value = about;
+    });
+    */
+}
+
+function fetchSubscriptions() {
+    subscriptionsLoading.value = true;
+    axios
+        .get<IApiResponse<{ channels: ApiSubscription[] }>>(`/api/v0/subscriptions`)
+        .then((response) => {
+            const json = response.data;
+            console.log("subscriptions", json);
+            subscriptions.value = json.data.channels;
+            subscriptionsLoading.value = false;
+            // TODO: handle when there are 0 subscriptions
+        })
+        .catch((err) => {
+            console.error("fetchSubscriptions error", err.response);
+            subscriptionsLoading.value = false;
+        });
+}
+
+function unsubscribe(id: string) {
+    subscriptionsLoading.value = true;
+    axios
+        .delete(`/api/v0/subscriptions/${id}`)
+        .then((response) => {
+            const json = response.data;
+            console.debug("unsubscribe", json);
+            subscriptionsLoading.value = false;
+            fetchSubscriptions();
+        })
+        .catch((err) => {
+            console.error("about error", err.response);
+        });
+}
+
+function subscribeAll() {
+    subscriptionsLoading.value = true;
+    axios
+        .post<ApiResponse>(`/api/v0/subscriptions`)
+        .then((response) => {
+            const json = response.data;
+            console.debug("subscribeAll", json);
+            subscriptionsLoading.value = false;
+            fetchSubscriptions();
+        })
+        .catch((err) => {
+            console.error("about error", err.response);
+        });
+}
+
+/*
+unsubscribeAll() {
+    subscriptionsLoading.value = true;
+    axios
+        .delete(`/api/v0/subscriptions`)
+        .then((response) => {
+            const json = response.data;
+            console.debug("unsubscribeAll", json);
+            subscriptionsLoading.value = false;
+            this.fetchSubscriptions();
+        })
+        .catch((err) => {
+            console.error("about error", err.response);
+        });
+},
+*/
+
 </script>

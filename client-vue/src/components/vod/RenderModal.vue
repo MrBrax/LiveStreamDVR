@@ -6,13 +6,13 @@
                 v-if="vod.video_metadata"
                 class="list"
             >
-                <li>
+                <li v-if="vod.video_metadata.type == 'video'">
                     <strong>{{ t('metadata.format') }}</strong>
                     {{ vod.video_metadata.width }}x{{ vod.video_metadata.height }}@
                     {{ vod.video_metadata.fps }}
                 </li>
 
-                <li>
+                <li v-if="vod.video_metadata.type == 'video'">
                     <strong>{{ t('metadata.video') }}</strong>
                     {{ vod.video_metadata.video_codec }}
                     {{ vod.video_metadata.video_bitrate_mode }}
@@ -101,7 +101,7 @@
                             class="input"
                             type="range"
                             min="1"
-                            :max="vod.video_metadata.width"
+                            :max="vod.video_metadata && vod.video_metadata.type == 'video' ? vod.video_metadata.width : undefined"
                         >
                         <br><input
                             v-model="burnSettings.chatWidth"
@@ -122,7 +122,7 @@
                             class="input"
                             type="range"
                             min="1"
-                            :max="vod.video_metadata.height"
+                            :max="vod.video_metadata && vod.video_metadata.type == 'video' ? vod.video_metadata.height : undefined"
                         >
                         <br><input
                             v-model="burnSettings.chatHeight"
@@ -356,128 +356,116 @@
     </div>
 </template>
 
-<script lang="ts">
-import { useStore } from '@/store';
+<script lang="ts" setup>
+import { useStore, VODTypes } from '@/store';
 import { ApiResponse } from '@common/Api/Api';
 import { ApiJob } from '@common/Api/Client';
 import axios from 'axios';
-import { defineComponent } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useI18n } from 'vue-i18n';
 import { formatBytes } from "@/mixins/newhelpers";
 
-export default defineComponent({
-    name: 'BurnWizard',
-    props: {
-        vod: {
-            type: Object,
-            required: true,
-        },
-    },
-    emits: ['refresh'],
-    setup() {
-        const store = useStore();
-        const { t } = useI18n();
-        return {
-            store,
-            t,
-            formatBytes,
-        };
-    },
-    data() {
-        return {
-            burnLoading: false,
-            burnSettings: {
-                renderChat: false,
-                burnChat: false,
-                renderTest: false,
-                burnTest: false,
-                chatWidth: 300,
-                chatHeight: 300,
-                vodSource: "captured",
-                chatSource: "captured",
-                chatFont: "Inter",
-                chatFontSize: 12,
-                burnHorizontal: "left",
-                burnVertical: "top",
-                ffmpegPreset: "slow",
-                ffmpegCrf: 26,
-                burnOffset: 0,
-                testDuration: false,
-            },
-        };
-    },
-    computed: {
-        burnPreviewChat(): Record<string, string> {
-            if (!this.vod || !this.vod.video_metadata || this.vod.video_metadata.type == 'audio') return {};
-            return {
-                width: `${(this.burnSettings.chatWidth / this.vod.video_metadata.width) * 100}%`,
-                height: `${(this.burnSettings.chatHeight / this.vod.video_metadata.height) * 100}%`,
-                left: this.burnSettings.burnHorizontal == "left" ? "0" : "",
-                right: this.burnSettings.burnHorizontal == "right" ? "0" : "",
-                top: this.burnSettings.burnVertical == "top" ? "0" : "",
-                bottom: this.burnSettings.burnVertical == "bottom" ? "0" : "",
-                fontSize: `${this.burnSettings.chatFontSize * 0.35}px`,
-                fontFamily: this.burnSettings.chatFont,
-            };
-        },
-        burnJobs(): ApiJob[] {
-            if (!this.store.jobList) return [];
-            const jobs: ApiJob[] = [];
-            for (const job of this.store.jobList) {
-                if (job.name == `tdrender_${this.vod?.basename}` || job.name == `burnchat_${this.vod?.basename}`) {
-                    jobs.push(job);
-                }
-            }
-            return jobs;
-        },
-    },
-    mounted() {
+const props = defineProps<{
+    vod: VODTypes,
+}>();
+
+const emit = defineEmits<{
+    (event: 'refresh'): void
+}>();
+
+const store = useStore();
+const { t } = useI18n();
+
+const burnLoading = ref<boolean>(false);
+const burnSettings = ref({
+    renderChat: false,
+    burnChat: false,
+    renderTest: false,
+    burnTest: false,
+    chatWidth: 300,
+    chatHeight: 300,
+    vodSource: "captured",
+    chatSource: "captured",
+    chatFont: "Inter",
+    chatFontSize: 12,
+    burnHorizontal: "left",
+    burnVertical: "top",
+    ffmpegPreset: "slow",
+    ffmpegCrf: 26,
+    burnOffset: 0,
+    testDuration: false,
+});
+
+const burnPreviewChat = computed((): Record<string, string> => {
+    if (!props.vod || !props.vod.video_metadata || props.vod.video_metadata.type == 'audio') return {};
+    return {
+        width: `${(burnSettings.value.chatWidth / props.vod.video_metadata.width) * 100}%`,
+        height: `${(burnSettings.value.chatHeight / props.vod.video_metadata.height) * 100}%`,
+        left: burnSettings.value.burnHorizontal == "left" ? "0" : "",
+        right: burnSettings.value.burnHorizontal == "right" ? "0" : "",
+        top: burnSettings.value.burnVertical == "top" ? "0" : "",
+        bottom: burnSettings.value.burnVertical == "bottom" ? "0" : "",
+        fontSize: `${burnSettings.value.chatFontSize * 0.35}px`,
+        fontFamily: burnSettings.value.chatFont,
+    };
+});
+
+const burnJobs = computed((): ApiJob[] => {
+    if (!store.jobList) return [];
+    const jobs: ApiJob[] = [];
+    for (const job of store.jobList) {
+        if (job.name == `tdrender_${props.vod?.basename}` || job.name == `burnchat_${props.vod?.basename}`) {
+            jobs.push(job);
+        }
+    }
+    return jobs;
+});
+
+onMounted(() => {
         const chatHeight: number = 
-            this.vod && 
-            this.vod.video_metadata && 
-            this.vod.video_metadata.type !== 'audio' && 
-            this.store.cfg<boolean>("chatburn.default.auto_chat_height")
+            props.vod && 
+            props.vod.video_metadata && 
+            props.vod.video_metadata.type !== 'audio' && 
+            store.cfg<boolean>("chatburn.default.auto_chat_height")
             ?
-            this.vod.video_metadata.height
+            props.vod.video_metadata.height
             :
-            this.store.cfg<number>("chatburn.default.chat_height")
+            store.cfg<number>("chatburn.default.chat_height")
         ;
 
-        this.burnSettings = {
-            ...this.burnSettings,
-            chatWidth: this.store.cfg<number>("chatburn.default.chat_width"),
+        burnSettings.value = {
+            ...burnSettings.value,
+            chatWidth: store.cfg<number>("chatburn.default.chat_width"),
             chatHeight: chatHeight,
-            chatFont: this.store.cfg<string>("chatburn.default.chat_font"),
-            chatFontSize: this.store.cfg<number>("chatburn.default.chat_font_size"),
-            burnHorizontal: this.store.cfg<string>("chatburn.default.horizontal"),
-            burnVertical: this.store.cfg<string>("chatburn.default.vertical"),
-            ffmpegPreset: this.store.cfg<string>("chatburn.default.preset"),
-            ffmpegCrf: this.store.cfg<number>("chatburn.default.crf"),
+            chatFont: store.cfg<string>("chatburn.default.chat_font"),
+            chatFontSize: store.cfg<number>("chatburn.default.chat_font_size"),
+            burnHorizontal: store.cfg<string>("chatburn.default.horizontal"),
+            burnVertical: store.cfg<string>("chatburn.default.vertical"),
+            ffmpegPreset: store.cfg<string>("chatburn.default.preset"),
+            ffmpegCrf: store.cfg<number>("chatburn.default.crf"),
         };
-    },
-    methods: {
-        doRenderWizard() {
-            if (!this.vod) return;
-            this.burnLoading = true;
-            console.debug("doRenderWizard", this.burnSettings);
-            axios
-                .post<ApiResponse>(`/api/v0/vod/${this.vod.uuid}/renderwizard`, this.burnSettings)
-                .then((response) => {
-                    const json: ApiResponse = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                    this.$emit("refresh");
-                })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                    if (err.response.data && err.response.data.message) alert(err.response.data.message);
-                })
-                .finally(() => {
-                    this.burnLoading = false;
-                });
-        },
-    }
 });
+
+function doRenderWizard() {
+    if (!props.vod) return;
+    burnLoading.value = true;
+    console.debug("doRenderWizard", burnSettings.value);
+    axios
+        .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/renderwizard`, burnSettings.value)
+        .then((response) => {
+            const json: ApiResponse = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            emit("refresh");
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data && err.response.data.message) alert(err.response.data.message);
+        })
+        .finally(() => {
+            burnLoading.value = false;
+        });
+} 
 
 </script>
 
