@@ -325,10 +325,9 @@
     </form>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script lang="ts" setup>
+import { computed, ref } from "vue";
 import { VideoQualityArray } from "../../../../common/Defs";
-
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import axios, { AxiosError } from "axios";
@@ -338,195 +337,175 @@ import { ApiResponse, ApiErrorResponse, IApiResponse } from "@common/Api/Api";
 import { useI18n } from "vue-i18n";
 library.add(faUserPlus);
 
-export default defineComponent({
-    name: "ChannelAddForm",
-    emits: ["formSuccess"],
-    setup() {
-        const { t } = useI18n();
-        return { VideoQualityArray, t };
-    },
-    data(): {
-        formStatusText: string;
-        formStatus: string;
-        formData: {
-            provider: string;
-            login: string;
-            channel_id: string;
-            quality: string;
-            match: string;
-            download_chat: boolean;
-            live_chat: boolean;
-            burn_chat: boolean;
-            no_capture: boolean;
-            no_cleanup: boolean;
-            max_storage: number;
-            max_vods: number;
-            download_vod_at_end: boolean;
-            download_vod_at_end_quality: VideoQuality;
-        },
-        channelData: UserData | undefined;
-        userExists: boolean | undefined;
-        channelUrl: string;
-        fetchingUrl: boolean;
-    } {
-        return {
-            formStatusText: "Ready",
-            formStatus: "",
-            formData: {
-                provider: "twitch",
-                login: "",
-                channel_id: "",
-                quality: "",
-                match: "",
-                download_chat: false,
-                live_chat: false,
-                burn_chat: false,
-                no_capture: false,
-                no_cleanup: false,
-                max_storage: 0,
-                max_vods: 0,
-                download_vod_at_end: false,
-                download_vod_at_end_quality: "best",
-            },
-            channelData: undefined,
-            userExists: undefined,
-            channelUrl: "",
-            fetchingUrl: false,
-        };
-    },
-    computed: {
-        formStatusClass(): Record<string, boolean> {
-            return {
-                "form-status": true,
-                "is-error": this.formStatus == "ERROR",
-                "is-success": this.formStatus == "OK",
-            };
-        },
-        qualityWarning(): boolean {
-            return this.formData.quality.includes("best") || this.formData.quality.includes("worst");
-        }
-    },
-    methods: {
-        submitForm(event: Event) {
+// emit
+const emit = defineEmits(["formSuccess"]);
 
-            console.log("submitForm", this.formData);
-
-            this.formStatusText = this.t("messages.loading");
-            this.formStatus = "";
-
-            axios
-                .post<ApiResponse>(`/api/v0/channels`, this.formData)
-                .then((response) => {
-                    const json = response.data;
-                    this.formStatusText = json.message || "No message";
-                    this.formStatus = json.status;
-                    if (json.status == "OK") {
-                        this.$emit("formSuccess", json);
-                        this.resetForm();
-                    }
-                })
-                .catch((err: Error | AxiosError) => {
-                    console.error("form error", err);
-                    if (axios.isAxiosError<ApiErrorResponse>(err) && err.response) {
-                        this.formStatusText = err.response.data.message;
-                        this.formStatus = err.response.data.status;
-                    }
-                });
-
-            event.preventDefault();
-            return false;
-        },
-        resetForm() {
-            this.formData = {
-                provider: "twitch",
-                login: "",
-                channel_id: "",
-                quality: "",
-                match: "",
-                download_chat: false,
-                live_chat: false,
-                burn_chat: false,
-                no_capture: false,
-                no_cleanup: false,
-                max_storage: 0,
-                max_vods: 0,
-                download_vod_at_end: false,
-                download_vod_at_end_quality: "best",
-            };
-        },
-        checkLogin() {
-            const match = this.formData.login.match(/^https?:\/\/www.twitch.tv\/(\w+)/);
-            if (match) {
-                this.formData.login = match[1];
-            }
-            this.userExists = undefined;
-        },
-        /*
-        validateQuality() {
-            const input = this.formData.quality.split(" ");
-            const valid = input.every((quality) => VideoQualityArray.includes(quality));
-            const field = this.$refs.quality as HTMLInputElement;
-            if (!valid) {
-                field.setCustomValidity("Invalid quality");
-                field.reportValidity();
-            } else {
-                if (input.includes("audio_only") && input.length > 1) {
-                    field.setCustomValidity("Audio only cannot be combined with other qualities");
-                    field.reportValidity();
-                } else {
-                    field.setCustomValidity("");
-                }
-            }
-        },
-        */
-        fetchLogin() {
-            axios.get<IApiResponse<UserData>>(`/api/v0/twitchapi/user/${this.formData.login}`).then((response) => {
-                const json = response.data;
-                const field = this.$refs.login as HTMLInputElement;
-                if (!field) {
-                    return;
-                }
-                if (json.status == "OK") {
-                    this.channelData = json.data;
-                    if (this.channelData && this.channelData.login !== this.formData.login) {
-                        alert(this.t('messages.login-mismatch-fixing'));
-                        this.formData.login = this.channelData.login;
-                    }
-                    field.setCustomValidity("");
-                    field.reportValidity();
-                    this.userExists = true;
-                } else {
-                    this.channelData = undefined;
-                    field.setCustomValidity(json.message || "");
-                    field.reportValidity();
-                    this.userExists = false;
-                }
-            }).catch((err: Error | AxiosError) => {
-                console.error("form error", err);
-                const field = this.$refs.login as HTMLInputElement;
-                if (field && axios.isAxiosError<ApiErrorResponse>(err) && err.response && err.response.data && err.response.data.message) {
-                    field.setCustomValidity(err.response.data.message);
-                    field.reportValidity();
-                    this.userExists = false;
-                } else {
-                    console.error("no field or no response", field, err);
-                }
-            });
-        },
-        getChannelId() {
-            this.fetchingUrl = true;
-            axios.post<ApiResponse>(`/api/v0/youtubeapi/channelid`, { url: this.channelUrl } ).then((response) => {
-                const json = response.data;
-                if (json.status == "OK") {
-                    this.formData.channel_id = json.data;
-                }
-                console.log("channel id", json);
-            }).catch((err: AxiosError) => {
-                console.error("channel id error", err.response);
-            }).finally(() => {
-                this.fetchingUrl = false;
-            });
-        },
-    },
+// setup
+const { t } = useI18n();
+        
+// data
+const formStatusText = ref<string>("Ready");
+const formStatus = ref<string>("");
+const formData = ref({
+    provider: "twitch",
+    login: "",
+    channel_id: "",
+    quality: "",
+    match: "",
+    download_chat: false,
+    live_chat: false,
+    burn_chat: false,
+    no_capture: false,
+    no_cleanup: false,
+    max_storage: 0,
+    max_vods: 0,
+    download_vod_at_end: false,
+    download_vod_at_end_quality: "best",
 });
+const channelData = ref<UserData>();
+const userExists = ref<boolean>();
+const channelUrl = ref<string>("");
+const fetchingUrl = ref<boolean>(false);
+const login = ref<HTMLInputElement | null>();
+
+// computed
+const formStatusClass = computed((): Record<string, boolean> => {
+    return {
+        "form-status": true,
+        "is-error": formStatus.value == "ERROR",
+        "is-success": formStatus.value == "OK",
+    };
+});
+
+const qualityWarning = computed((): boolean => {
+    return formData.value.quality.includes("best") || formData.value.quality.includes("worst");
+});
+
+// methods
+function submitForm(event: Event) {
+
+    console.log("submitForm", formData.value);
+
+    formStatusText.value = t("messages.loading");
+    formStatus.value = "";
+
+    axios
+        .post<ApiResponse>(`/api/v0/channels`, formData.value)
+        .then((response) => {
+            const json = response.data;
+            formStatusText.value = json.message || "No message";
+            formStatus.value = json.status;
+            if (json.status == "OK") {
+                emit("formSuccess", json);
+                resetForm();
+            }
+        })
+        .catch((err: Error | AxiosError) => {
+            console.error("form error", err);
+            if (axios.isAxiosError<ApiErrorResponse>(err) && err.response) {
+                formStatusText.value = err.response.data.message;
+                formStatus.value = err.response.data.status;
+            }
+        });
+
+    event.preventDefault();
+    return false;
+}
+
+function resetForm() {
+    formData.value = {
+        provider: "twitch",
+        login: "",
+        channel_id: "",
+        quality: "",
+        match: "",
+        download_chat: false,
+        live_chat: false,
+        burn_chat: false,
+        no_capture: false,
+        no_cleanup: false,
+        max_storage: 0,
+        max_vods: 0,
+        download_vod_at_end: false,
+        download_vod_at_end_quality: "best",
+    };
+}
+
+function checkLogin() {
+    const match = formData.value.login.match(/^https?:\/\/www.twitch.tv\/(\w+)/);
+    if (match) {
+        formData.value.login = match[1];
+    }
+    userExists.value = undefined;
+}
+
+/*
+validateQuality() {
+    const input = formData.value.quality.split(" ");
+    const valid = input.every((quality) => VideoQualityArray.includes(quality));
+    const field = this.$refs.quality as HTMLInputElement;
+    if (!valid) {
+        field.setCustomValidity("Invalid quality");
+        field.reportValidity();
+    } else {
+        if (input.includes("audio_only") && input.length > 1) {
+            field.setCustomValidity("Audio only cannot be combined with other qualities");
+            field.reportValidity();
+        } else {
+            field.setCustomValidity("");
+        }
+    }
+},
+*/
+function fetchLogin() {
+    axios.get<IApiResponse<UserData>>(`/api/v0/twitchapi/user/${formData.value.login}`).then((response) => {
+        const json = response.data;
+        const field = login.value;
+        if (!field) {
+            return;
+        }
+        if (json.status == "OK") {
+            channelData.value = json.data;
+            if (channelData.value && channelData.value.login !== formData.value.login) {
+                alert(t('messages.login-mismatch-fixing'));
+                formData.value.login = channelData.value.login;
+            }
+            field.setCustomValidity("");
+            field.reportValidity();
+            userExists.value = true;
+        } else {
+            channelData.value = undefined;
+            field.setCustomValidity(json.message || "");
+            field.reportValidity();
+            userExists.value = false;
+        }
+    }).catch((err: Error | AxiosError) => {
+        console.error("form error", err);
+        const field = login.value;
+        if (field && axios.isAxiosError<ApiErrorResponse>(err) && err.response && err.response.data && err.response.data.message) {
+            field.setCustomValidity(err.response.data.message);
+            field.reportValidity();
+            userExists.value = false;
+        } else {
+            console.error("no field or no response", field, err);
+        }
+    });
+}
+
+function getChannelId() {
+    fetchingUrl.value = true;
+    axios.post<ApiResponse>(`/api/v0/youtubeapi/channelid`, { url: channelUrl.value } ).then((response) => {
+        const json = response.data;
+        if (json.status == "OK") {
+            formData.value.channel_id = json.data;
+        }
+        console.log("channel id", json);
+    }).catch((err: AxiosError) => {
+        console.error("channel id error", err.response);
+    }).finally(() => {
+        fetchingUrl.value = false;
+    });
+}
+
+
 </script>

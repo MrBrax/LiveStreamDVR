@@ -1,5 +1,5 @@
 <template>
-    <span>{{ timeString }}</span>
+    <span class="duration-display" :data-date="startDate">{{ timeString }}</span>
 </template>
 
 <script lang="ts" setup>
@@ -19,12 +19,14 @@ watch(() => props.startDate, (a, b) => {
     refreshTime();
 });
 
-
 onMounted(() => {
     refreshTime();
-    interval.value = window.setInterval(() => {
-        refreshTime();
-    }, 1000);
+    // start the interval on a rounded second
+    const now = new Date();
+    const delay = 1000 - now.getMilliseconds();
+    setTimeout(() => {
+        interval.value = window.setInterval(refreshTime, 1000);
+    }, delay);
 });
 
 onUnmounted(() => {

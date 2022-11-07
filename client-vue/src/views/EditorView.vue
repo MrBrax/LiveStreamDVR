@@ -232,7 +232,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, defineComponent, onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import { useStore, VODTypes } from "@/store";
 import { ApiResponse, ApiVodResponse } from "@common/Api/Api";

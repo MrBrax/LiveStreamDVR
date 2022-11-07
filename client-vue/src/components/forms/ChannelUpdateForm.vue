@@ -347,278 +347,279 @@
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script lang="ts" setup>
+import { computed, onMounted, ref, watch } from "vue";
 import { VideoQualityArray } from "@common/Defs";
 import { HistoryEntry, HistoryEntryOnline } from "@common/History";
 import { ApiResponse } from "@common/Api/Api";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faSave, faList, faTrash, faVideoSlash } from "@fortawesome/free-solid-svg-icons";
+import { faSave, faList, faTrash, faVideoSlash, faPencil } from "@fortawesome/free-solid-svg-icons";
 import { ApiChannelConfig } from "@common/Api/Client";
 import axios, { AxiosError } from "axios";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
 import { formatDate } from "@/mixins/newhelpers";
-library.add(faSave, faList, faTrash, faVideoSlash);
+library.add(faSave, faList, faTrash, faVideoSlash, faPencil);
 
-export default defineComponent({
-    name: "ChannelUpdateForm",
-    props: {
-        channel: {
-            type: Object as () => ApiChannelConfig,
-            required: true,
-        },
-    },
-    emits: ["formSuccess"],
-    setup() {
-        const store = useStore();
-        const { t } = useI18n();
-        return { VideoQualityArray, store, t, formatDate };
-    },
-    data() {
-        return {
-            formStatusText: "Ready",
-            formStatus: "",
-            formData: {
-                quality: "",
-                match: "",
-                download_chat: false,
-                live_chat: false,
-                burn_chat: false,
-                no_capture: false,
-                no_cleanup: false,
-                max_storage: 0,
-                max_vods: 0,
-                download_vod_at_end: false,
-                download_vod_at_end_quality: "best",
-            },
-            history: [] as HistoryEntry[],
-        };
-    },
-    computed: {
-        formStatusClass(): Record<string, boolean> {
-            return {
-                "form-status": true,
-                "is-error": this.formStatus == "ERROR",
-                "is-success": this.formStatus == "OK",
-            };
-        },
-        qualityWarning(): boolean {
-            return this.formData.quality.includes("best") || this.formData.quality.includes("worst");
-        },
-        averageOnlineStartTime(): string {
-            const startTimes = this.history
-                .filter<HistoryEntryOnline>((h): h is HistoryEntryOnline => "action" in h && h.action == "online")
-                .map((h) => new Date(h.time).getHours() * 60 + new Date(h.time).getMinutes() + new Date(h.time).getSeconds() / 60);
-            const average = startTimes.reduce((a, b) => a + b, 0) / startTimes.length;
-            const hours = Math.floor(average / 60);
-            const minutes = Math.floor(average % 60);
-            return `${hours}:${minutes}`;
-        },
-    },
-    watch: {
-        channel: {
-            immediate: true,
-            handler() {
-                this.resetForm();
-            },
-        },
-    },
-    mounted() {
-        this.resetForm();
-    },
-    methods: {
-        resetForm() {
-            console.debug("Resetting form", JSON.stringify(this.channel));
-            this.formStatus = "";
-            this.formStatusText = "Ready";
+// props
+const props = defineProps<{
+    channel: ApiChannelConfig;
+}>();
 
-            this.formData = {
-                quality: this.channel.quality ? this.channel.quality.join(" ") : "",
-                match: this.channel.match ? this.channel.match.join(",") : "",
-                download_chat: this.channel.download_chat || false,
-                live_chat: this.channel.live_chat || false,
-                burn_chat: this.channel.burn_chat || false,
-                no_capture: this.channel.no_capture || false,
-                no_cleanup: this.channel.no_cleanup || false,
-                max_storage: this.channel.max_storage || 0,
-                max_vods: this.channel.max_vods || 0,
-                download_vod_at_end: this.channel.download_vod_at_end || false,
-                download_vod_at_end_quality: this.channel.download_vod_at_end_quality || "best",
-            };
+// emit
+const emit = defineEmits(["formSuccess"]);
 
-            console.debug("Form data", JSON.stringify(this.formData));
-        },
-        submitForm(event: Event) {
-
-            this.formStatusText = this.t('messages.loading');
-            this.formStatus = "";
-
-            axios
-                .put(`/api/v0/channels/${this.channel.uuid}`, this.formData)
-                .then((response) => {
-                    const json = response.data;
-                    this.formStatusText = json.message;
-                    this.formStatus = json.status;
-                    if (json.status == "OK") {
-                        this.$emit("formSuccess", json);
-                        this.store.fetchAndUpdateStreamerList();
-                    }
-                })
-                .catch((err: Error | AxiosError) => {
-                    if (axios.isAxiosError(err) && err.response) {
-                        console.error("channel update form error", err.response);
-                        this.formStatusText = err.response.data.message;
-                        this.formStatus = err.response.data.status;
-                    } else {
-                        console.error("channel update form error", err);
-                        alert(`Error: ${err.message}`);
-                    }
-                });
-
-            event.preventDefault();
-            return false;
-        },
-        deleteChannel() {
-            if (!confirm(`Do you want to delete "${this.channel.login}"? This cannot be undone.`)) return;
-
-            const deleteVodsToo = confirm(
-                `Do you also want to delete all VODs for "${this.channel.login}"? OK to delete all VODs and channel, Cancel to delete only the channel.`
-            );
-
-            axios
-                .delete(`/api/v0/channels/${this.channel.uuid}`,
-                    {
-                        params: {
-                            deletevods: deleteVodsToo ? "1" : "0",
-                        },
-                    })
-                .then((response) => {
-                    const json = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                    this.$emit("formSuccess", json);
-                    this.store.fetchAndUpdateStreamerList();
-                })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                    if (err.response.data && err.response.data.message) {
-                        alert(err.response.data.message);
-                    }
-                });
-        },
-        subscribeChannel() {
-
-            if (
-                (!this.store.cfg("app_url") || this.store.cfg("app_url") == "debug") &&
-                this.store.cfg("twitchapi.twitchapi.eventsub_type") === "webhook"
-            ){
-                alert("Please set the app url in the settings");
-                return;
-            }
-
-            axios
-                .post<ApiResponse>(`/api/v0/channels/${this.channel.uuid}/subscribe`)
-                .then((response) => {
-                    const json = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                    this.$emit("formSuccess", json);
-                })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                    if (err.response.data && err.response.data.message) {
-                        alert(err.response.data.message);
-                    }
-                });
-        },
-        checkSubscriptions() {
-            axios
-                .get<ApiResponse>(`/api/v0/channels/${this.channel.uuid}/checksubscriptions`)
-                .then((response) => {
-                    const json = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                    if (err.response.data && err.response.data.message) {
-                        alert(err.response.data.message);
-                    }
-                });
-        },
-        /*
-        validateQuality() {
-            const input = this.formData.quality.split(" ");
-            const valid = input.every((quality) => VideoQualityArray.includes(quality));
-            const field = this.$refs.quality as HTMLInputElement;
-            if (!valid) {
-                field.setCustomValidity("Invalid quality");
-                field.reportValidity();
-            } else {
-                if (input.includes("audio_only") && input.length > 1) {
-                    field.setCustomValidity("Audio only cannot be combined with other qualities");
-                    field.reportValidity();
-                } else {
-                    field.setCustomValidity("");
-                }
-            }
-        },
-        */
-        renameChannel() {
-            const newLogin = prompt("Enter new channel login. If channel has not changed login, this will fail in the future.\n", this.channel.login);
-            if (!newLogin || newLogin == this.channel.login) return;
-            axios
-                .post<ApiResponse>(`/api/v0/channels/${this.channel.uuid}/rename`, {
-                    new_login: newLogin,
-                })
-                .then((response) => {
-                    const json = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                    this.$emit("formSuccess", json);
-                    this.store.fetchAndUpdateStreamerList();
-                })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                    if (err.response.data && err.response.data.message) {
-                        alert(err.response.data.message);
-                    }
-                });
-        },
-        deleteAllVods() {
-            if (!confirm(`Do you want to delete all VODs for "${this.channel.uuid}"? This cannot be undone.`)) return;
-            axios
-                .post<ApiResponse>(`/api/v0/channels/${this.channel.uuid}/deleteallvods`)
-                .then((response) => {
-                    const json = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                    this.$emit("formSuccess", json);
-                    this.store.fetchAndUpdateStreamerList();
-                })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                    if (err.response.data && err.response.data.message) {
-                        alert(err.response.data.message);
-                    }
-                });
-        },
-        fetchHistory() {
-            axios
-                .get<ApiResponse>(`/api/v0/channels/${this.channel.uuid}/history`)
-                .then((response) => {
-                    const json = response.data;
-                    if (json.message) alert(json.message);
-                    this.history = json.data;
-                })
-                .catch((err) => {
-                    console.error("history fetch error", err.response);
-                    if (err.response.data && err.response.data.message) {
-                        alert(err.response.data.message);
-                    }
-                });
-        },
-    },
+// setup
+const store = useStore();
+const { t } = useI18n();
+        
+// data
+const formStatusText = ref<string>("Ready");
+const formStatus = ref<string>("");
+const formData = ref({ // ref or reactive?
+    quality: "",
+    match: "",
+    download_chat: false,
+    live_chat: false,
+    burn_chat: false,
+    no_capture: false,
+    no_cleanup: false,
+    max_storage: 0,
+    max_vods: 0,
+    download_vod_at_end: false,
+    download_vod_at_end_quality: "best",
 });
+const history = ref<HistoryEntry[]>([]);
+
+// computed
+const formStatusClass = computed((): Record<string, boolean> => {
+    return {
+        "form-status": true,
+        "is-error": formStatus.value == "ERROR",
+        "is-success": formStatus.value == "OK",
+    };
+});
+
+const qualityWarning = computed((): boolean => {
+    return formData.value.quality.includes("best") || formData.value.quality.includes("worst");
+});
+
+const averageOnlineStartTime = computed((): string => {
+    const startTimes = history.value
+        .filter<HistoryEntryOnline>((h): h is HistoryEntryOnline => "action" in h && h.action == "online")
+        .map((h) => new Date(h.time).getHours() * 60 + new Date(h.time).getMinutes() + new Date(h.time).getSeconds() / 60);
+    const average = startTimes.reduce((a, b) => a + b, 0) / startTimes.length;
+    const hours = Math.floor(average / 60);
+    const minutes = Math.floor(average % 60);
+    return `${hours}:${minutes}`;
+});
+
+// watch
+watch(() => props.channel, resetForm, { immediate: true });
+
+// mounted
+onMounted(() => {
+    resetForm();
+});
+
+// methods
+function resetForm() {
+    // console.debug("Resetting form", JSON.stringify(this.channel));
+    formStatus.value = "";
+    formStatusText.value = "Ready";
+
+    formData.value = {
+        quality: props.channel.quality ? props.channel.quality.join(" ") : "",
+        match: props.channel.match ? props.channel.match.join(",") : "",
+        download_chat: props.channel.download_chat || false,
+        live_chat: props.channel.live_chat || false,
+        burn_chat: props.channel.burn_chat || false,
+        no_capture: props.channel.no_capture || false,
+        no_cleanup: props.channel.no_cleanup || false,
+        max_storage: props.channel.max_storage || 0,
+        max_vods: props.channel.max_vods || 0,
+        download_vod_at_end: props.channel.download_vod_at_end || false,
+        download_vod_at_end_quality: props.channel.download_vod_at_end_quality || "best",
+    };
+
+    // console.debug("Form data", JSON.stringify(formData.value));
+}
+
+function submitForm(event: Event) {
+
+    formStatusText.value = t('messages.loading');
+    formStatus.value = "";
+
+    axios
+        .put(`/api/v0/channels/${props.channel.uuid}`, formData.value)
+        .then((response) => {
+            const json = response.data;
+            formStatusText.value = json.message;
+            formStatus.value = json.status;
+            if (json.status == "OK") {
+                emit("formSuccess", json);
+                store.fetchAndUpdateStreamerList();
+            }
+        })
+        .catch((err: Error | AxiosError) => {
+            if (axios.isAxiosError(err) && err.response) {
+                console.error("channel update form error", err.response);
+                formStatusText.value = err.response.data.message;
+                formStatus.value = err.response.data.status;
+            } else {
+                console.error("channel update form error", err);
+                alert(`Error: ${err.message}`);
+            }
+        });
+
+    event.preventDefault();
+    return false;
+}
+
+function deleteChannel() {
+    if (!confirm(`Do you want to delete "${props.channel.login}"? This cannot be undone.`)) return;
+
+    const deleteVodsToo = confirm(
+        `Do you also want to delete all VODs for "${props.channel.login}"? OK to delete all VODs and channel, Cancel to delete only the channel.`
+    );
+
+    axios
+        .delete(`/api/v0/channels/${props.channel.uuid}`,
+            {
+                params: {
+                    deletevods: deleteVodsToo ? "1" : "0",
+                },
+            })
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            emit("formSuccess", json);
+            store.fetchAndUpdateStreamerList();
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data && err.response.data.message) {
+                alert(err.response.data.message);
+            }
+        });
+}
+
+function subscribeChannel() {
+
+    if (
+        (!store.cfg("app_url") || store.cfg("app_url") == "debug") &&
+        store.cfg("twitchapi.twitchapi.eventsub_type") === "webhook"
+    ){
+        alert("Please set the app url in the settings");
+        return;
+    }
+
+    axios
+        .post<ApiResponse>(`/api/v0/channels/${props.channel.uuid}/subscribe`)
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            emit("formSuccess", json);
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data && err.response.data.message) {
+                alert(err.response.data.message);
+            }
+        });
+}
+
+function checkSubscriptions() {
+    axios
+        .get<ApiResponse>(`/api/v0/channels/${props.channel.uuid}/checksubscriptions`)
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data && err.response.data.message) {
+                alert(err.response.data.message);
+            }
+        });
+}
+
+/*
+validateQuality() {
+    const input = formData.value.quality.split(" ");
+    const valid = input.every((quality) => VideoQualityArray.includes(quality));
+    const field = this.$refs.quality as HTMLInputElement;
+    if (!valid) {
+        field.setCustomValidity("Invalid quality");
+        field.reportValidity();
+    } else {
+        if (input.includes("audio_only") && input.length > 1) {
+            field.setCustomValidity("Audio only cannot be combined with other qualities");
+            field.reportValidity();
+        } else {
+            field.setCustomValidity("");
+        }
+    }
+},
+*/
+function renameChannel() {
+    const newLogin = prompt("Enter new channel login. If channel has not changed login, this will fail in the future.\n", props.channel.login);
+    if (!newLogin || newLogin == props.channel.login) return;
+    axios
+        .post<ApiResponse>(`/api/v0/channels/${props.channel.uuid}/rename`, {
+            new_login: newLogin,
+        })
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            emit("formSuccess", json);
+            store.fetchAndUpdateStreamerList();
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data && err.response.data.message) {
+                alert(err.response.data.message);
+            }
+        });
+}
+
+function deleteAllVods() {
+    if (!confirm(`Do you want to delete all VODs for "${props.channel.uuid}"? This cannot be undone.`)) return;
+    axios
+        .post<ApiResponse>(`/api/v0/channels/${props.channel.uuid}/deleteallvods`)
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            emit("formSuccess", json);
+            store.fetchAndUpdateStreamerList();
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data && err.response.data.message) {
+                alert(err.response.data.message);
+            }
+        });
+}
+
+function fetchHistory() {
+    axios
+        .get<ApiResponse>(`/api/v0/channels/${props.channel.uuid}/history`)
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            history.value = json.data;
+        })
+        .catch((err) => {
+            console.error("history fetch error", err.response);
+            if (err.response.data && err.response.data.message) {
+                alert(err.response.data.message);
+            }
+        });
+}
+
 </script>
