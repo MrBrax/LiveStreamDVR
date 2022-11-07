@@ -180,6 +180,10 @@ function expandLog(lineNumber: number) {
     }
 }
 
+defineExpose({
+    scrollLog
+});
+
 </script>
 
 <style lang="scss" scoped>
