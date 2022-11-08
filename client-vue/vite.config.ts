@@ -109,6 +109,13 @@ export default defineConfig({
         manualChunks: {
           // 'axios': ['axios'],
           // 'date-fns': ['date-fns'],
+          'vue': [
+            'vue',
+            'vue-router',
+            'pinia',
+            'vue-i18n',
+            'vue-observe-visibility',
+          ],
           'fonts': [
             '@fontsource/poppins',
             '@fontsource/roboto',
