@@ -131,6 +131,14 @@
                                     target="_blank"
                                 >Twitch</a>
                             </li>
+                            <li>
+                                <strong>Rewind:</strong> <a
+                                    :href="predictedFirstSegmentUrl"
+                                    rel="noreferrer"
+                                    target="_blank"
+                                    @click.prevent="store.playMedia(predictedFirstSegmentUrl)"
+                                >{{ vod.basename }}</a> (copy link and paste into desktop video player)
+                            </li>
                         </ul>
                         <!--<button class="button is-small is-danger" @click="unbreak">Unbreak</button>-->
                     </div>
@@ -651,6 +659,11 @@ const renameVodTemplatePreview = computed(() => {
     };
     const replaced_string = formatString(renameVodSettings.value.template, replacements);
     return replaced_string;
+});
+
+const predictedFirstSegmentUrl = computed(() => {
+    if (!props.vod) return "";
+    return `${props.vod.webpath}/${props.vod.basename}.ts`;
 });
 
 /*  
