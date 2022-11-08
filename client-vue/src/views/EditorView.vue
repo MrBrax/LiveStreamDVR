@@ -104,7 +104,7 @@
             </div>
 
             <div>
-                <ul class="list">
+                <ul class="list chapter-list">
                     <li
                         v-for="(chapter, i) in vodData.chapters"
                         :key="i"
@@ -113,7 +113,14 @@
                             v-if="chapter.offset !== undefined && chapter.duration !== undefined"
                             @click="scrub(chapter.offset || 0, chapter.duration || 0)"
                         >
-                            {{ formatDuration(chapter.offset) }} - {{ formatDuration(chapter.offset + chapter.duration) }}: {{ chapter.title }}
+                            <div class="chapter-time">
+                                {{ formatDuration(chapter.offset) }} - {{ formatDuration(chapter.offset + chapter.duration) }} ({{ formatDuration(chapter.duration) }})
+                            </div> 
+                            <div class="chapter-game">
+                                <img :src="chapter.image_url" height="20" />
+                                {{ chapter.game_name }}
+                            </div>
+                            <div class="chapter-title text-overflow">{{ chapter.title }}</div>
                         </a> 
                     </li>
                 </ul>
@@ -147,6 +154,10 @@
                                 v-model="secondsIn"
                                 class="input"
                                 placeholder="In timestamp"
+                                type="number"
+                                step="1"
+                                min="0"
+                                :max="videoDuration"
                             >
                             <p class="input-help">
                                 Timestamp in seconds
@@ -165,6 +176,10 @@
                                 v-model="secondsOut"
                                 class="input"
                                 placeholder="Out timestamp"
+                                type="number"
+                                step="1"
+                                min="0"
+                                :max="videoDuration"
                             >
                             <p class="input-help">
                                 Timestamp in seconds
@@ -238,13 +253,13 @@ import { useStore, VODTypes } from "@/store";
 import { ApiResponse, ApiVodResponse } from "@common/Api/Api";
 import { formatDuration, humanDuration, formatBytes } from "@/mixins/newhelpers";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faPause, faBookmark, faFastBackward, faFastForward } from "@fortawesome/free-solid-svg-icons";
+import { faPlay, faPause, faBookmark, faFastBackward, faFastForward } from "@fortawesome/free-solid-svg-icons";
 import { BaseVODChapter } from "@/core/Providers/Base/BaseVODChapter";
 import { useI18n } from "vue-i18n";
 import axios from "axios";
 import { useRoute } from "vue-router";
 import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
-library.add(faPause, faBookmark, faFastBackward, faFastForward);
+library.add(faPlay, faPause, faBookmark, faFastBackward, faFastForward);
 
 const props = defineProps<{
     uuid: string;
@@ -552,6 +567,33 @@ function addBookmark() {
 .videoplayer-time {
     font-size: 120%;
     padding: 0.5em;
+}
+
+.chapter-list li {
+    &:not(:last-child) {
+        margin-bottom: 0.75em;
+    }
+}
+
+.chapter-list a {
+    display: block;
+    padding: 0.5em;
+    &:hover {
+        background-color: rgba(128, 128, 128, 0.1);
+    }
+}
+
+.chapter-time {
+    font-weight: 700;
+}
+
+.chapter-list span {
+    display: inline-block;
+    margin-right: 0.3em;
+}
+
+.chapter-game img {
+    vertical-align: middle;
 }
 
 </style>
