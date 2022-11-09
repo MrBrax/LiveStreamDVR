@@ -265,6 +265,11 @@ export class TwitchHelper {
             `Fetched new access token, expires at ${format(this.accessTokenTime, Config.getInstance().dateFormat)}`
         );
 
+        fs.writeFileSync(
+            this.accessTokenExpireFile,
+            JSON.stringify(this.accessTokenTime)
+        );
+
         this.accessTokenType = "app";
 
         this.updateAxiosToken();
