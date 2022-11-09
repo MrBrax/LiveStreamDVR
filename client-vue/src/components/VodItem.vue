@@ -9,6 +9,7 @@
             'is-finalized': vod.is_finalized,
             'is-favourite': vod.provider == 'twitch' && vod.hasFavouriteGame(),
         }"
+        :aria-label="vod.basename"
     >
         <div
             :id="'vod_' + vod.uuid"
@@ -19,6 +20,12 @@
         <div
             class="video-title"
             @click="emit('toggleMinimize')"
+            @keydown.prevent.enter="emit('toggleMinimize')"
+            @keydown.prevent.space="emit('toggleMinimize')"
+            aria-label="Video title"
+            :aria-pressed="!minimized"
+            tabindex="0"
+            role="button"
         >
             <div class="video-title-text">
                 <h3>

@@ -34,6 +34,16 @@ hr {
         margin: 0;
         text-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
     }
+
+    &.is-expandable {
+        &:hover {
+            background: var(--section-title-hover-background-color);
+        }
+        &:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px #fff, 0 0 0 4px #5098f7;
+        }
+    }
 }
 
 .section-content {

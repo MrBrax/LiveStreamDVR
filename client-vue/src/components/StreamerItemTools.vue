@@ -1,5 +1,5 @@
 <template>
-    <span class="streamer-title-tools">
+    <span class="streamer-title-tools" aria-label="Streamer tools">
         <!-- edit -->
         <router-link
             class="icon-button white"
@@ -66,12 +66,13 @@
                     :title="t('streamer.tools.more')"
                     @click="trigger.open"
                     ref="moreMenuTrigger"
+                    aria-haspopup="true"
                 >
                     <span class="icon"><font-awesome-icon icon="ellipsis-h" /></span>
                 </button>
             </template>
             <template v-slot:entries>
-                <ul>
+                <ul aria-label="Context menu">
                     <li class="context-menu-header">
                         {{ streamer.displayName }}
                     </li>

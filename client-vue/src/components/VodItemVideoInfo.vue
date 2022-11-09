@@ -3,8 +3,9 @@
     <div
         v-if="vod.is_finalized"
         class="info-columns"
+        aria-label="Video info"
     >
-        <div class="info-column">
+        <article class="info-column">
             <h4>{{ t('vod.video-info.general') }}</h4>
             <ul class="video-info">
                 <li>
@@ -111,9 +112,9 @@
                     {{ vod.is_chat_burned ? t('boolean.yes') : t('boolean.no') }}
                 </li>
             </ul>
-        </div>
+        </article>
 
-        <div class="info-column">
+        <article class="info-column">
             <h4>{{ t('vod.video-info.capture') }}</h4>
             <ul class="video-info">
                 <li v-if="vod.getDuration()">
@@ -164,10 +165,10 @@
                     </li>
                 </template>
             </ul>
-        </div>
+        </article>
 
         <!-- Twitch VOD -->
-        <div
+        <article
             v-if="vod.provider == 'twitch'"
             class="info-column"
         >
@@ -288,10 +289,10 @@
                     {{ vod.is_vod_downloaded ? t('boolean.yes') : t('boolean.no') }}
                 </li>
             </ul>
-        </div>
+        </article>
 
         <!-- Export Data -->
-        <div
+        <article
             v-if="vod.exportData && Object.keys(vod.exportData).length > 0"
             class="info-column"
         >
@@ -314,7 +315,7 @@
                     <a :href="youtubePlaylistLink(vod.exportData.youtube_playlist_id)" target="_blank">{{ vod.exportData.youtube_playlist_id }}</a>
                 </li>
             </ul>
-        </div>
+        </article>
     </div>
 </template>
 

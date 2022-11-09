@@ -8,6 +8,7 @@
                 <router-link
                     to="/dashboard"
                     class="link"
+                    aria-label="Go to dashboard"
                 >
                     <img
                         src="../assets/logo.png"

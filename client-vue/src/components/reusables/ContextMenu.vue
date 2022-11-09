@@ -1,9 +1,22 @@
 <template>
     <slot name="trigger" ref="trigger" :open="open" />
     <Teleport to="body">
-        <div class="context-menu-blackout" v-if="showMenu" @click="close" />
+        <div
+            v-if="showMenu"
+            class="context-menu-blackout"
+            @click="close"
+            tabindex="0"
+            aria-label="Close context menu"
+            role="button"
+        />
         <Transition name="blinds">
-            <div class="context-menu" ref="context" :style="contextStyle" v-if="showMenu">
+            <div
+            v-if="showMenu"
+                class="context-menu"
+                ref="context"
+                :style="contextStyle"
+                role="menu"
+            >
                 <slot name="entries" />
             </div>
         </Transition>
@@ -37,17 +50,6 @@ function open(event: MouseEvent) {
             }
         });
     } else {
-        document.removeEventListener("keydown", keyDown);
-        nextTick(() => {
-            const buttons = context.value?.querySelectorAll("button");
-            if (buttons) {
-                buttons.forEach((button) => {
-                    button.removeEventListener("click", close);
-                });
-            } else {
-                console.error("no buttons to remove");
-            }
-        });
         
     }
     // if (!slots.trigger) return;
@@ -57,6 +59,15 @@ function open(event: MouseEvent) {
 
 function close() {
     showMenu.value = false;
+    document.removeEventListener("keydown", keyDown);
+    const buttons = context.value?.querySelectorAll("button");
+    if (buttons) {
+        buttons.forEach((button) => {
+            button.removeEventListener("click", close);
+        });
+    } else {
+        console.error("no buttons to remove");
+    }
 }
 
 function positionMenu(event: MouseEvent) {
@@ -86,6 +97,7 @@ function positionMenu(event: MouseEvent) {
 }
 
 function keyDown(event: KeyboardEvent) {
+    console.debug("keyDown", event);
     const buttons = context.value?.querySelectorAll("button");
     if (event.key === "Escape") {
         close();
@@ -127,6 +139,14 @@ function keyDown(event: KeyboardEvent) {
         } else {
             buttons[index + 1]?.focus();
         }
+    } else if (event.key == "Home") {
+        event.preventDefault();
+        if (!buttons) return;
+        buttons[0].focus();
+    } else if (event.key == "End") {
+        event.preventDefault();
+        if (!buttons) return;
+        buttons[buttons.length - 1].focus();
     }
 }
 
@@ -137,7 +157,7 @@ const contextStyle = computed(() => {
     };
 });
 
-defineExpose({ open });
+defineExpose({ open, showMenu });
 
 </script>
 

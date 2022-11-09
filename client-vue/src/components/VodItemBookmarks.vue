@@ -3,6 +3,7 @@
     <div
         v-if="vod.provider == 'twitch'"
         class="video-bookmarks"
+        aria-label="Bookmarks"
     >
         <strong>{{ t('vod.bookmarks') }}</strong>
         <ul class="list-segments">

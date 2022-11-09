@@ -3,6 +3,7 @@
     <div
         v-if="streamer.video_list && streamer.video_list.length > 0"
         class="local-videos"
+        aria-label="Videos"
     >
         <div class="local-videos-title">
             <h3>{{ t("messages.local-videos") }}</h3>

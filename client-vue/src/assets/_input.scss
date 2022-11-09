@@ -165,33 +165,6 @@
 	*/
 }
 
-.icon-button {
-    border: none;
-    background: none;
-    cursor: pointer;
-    color: inherit;
-    padding: 0;
-    margin: 0;
-
-    &:hover {
-        color: #6598f8;
-    }
-
-    &.white {
-        color: #fff;
-
-        &:hover {
-            color: #ccc;
-            // color: #2f6d68;
-        }
-    }
-
-    &.icon-button-big {
-        font-size: 1.2em;
-        padding: 0.5em 0.8em;
-    }
-}
-
 .favourite-button {
     color: #999;
 
