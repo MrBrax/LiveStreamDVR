@@ -307,7 +307,7 @@ export class YouTubeChannel extends BaseChannel {
             throw new Error("app_url is set to debug, no subscriptions possible");
         }
 
-        let hook_callback = `${Config.getInstance().cfg("app_url")}/api/v0/hook/twitch`;
+        let hook_callback = `${Config.getInstance().cfg("app_url")}/api/v0/hook/youtube`;
 
         if (Config.getInstance().cfg("instance_id")) {
             hook_callback += "?instance=" + Config.getInstance().cfg("instance_id");

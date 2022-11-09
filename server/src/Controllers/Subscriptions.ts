@@ -18,6 +18,7 @@ interface ChannelSub {
     instance_match: boolean;
     status: string;
     created_at: string;
+    transport_method: string;
 }
 
 export async function ListSubscriptions(req: express.Request, res: express.Response): Promise<void> {
@@ -26,14 +27,15 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
 
     if (subs && subs.length > 0) {
 
-        const payload_data: { channels: ChannelSub[]; total: number; all_usernames: Set<string>; } = {
+        let callback = `${Config.getInstance().cfg("app_url")}/api/v0/hook/twitch`;
+        if (Config.getInstance().cfg("instance_id")) callback += "?instance=" + Config.getInstance().cfg("instance_id");
+
+        const payload_data: { channels: ChannelSub[]; total: number; all_usernames: Set<string>; callback: string; } = {
             channels: [],
             total: subs.length,
             all_usernames: new Set(),
+            callback: callback,
         };
-
-        let callback = `${Config.getInstance().cfg("app_url")}/api/v0/hook`;
-        if (Config.getInstance().cfg("instance_id")) callback += "?instance=" + Config.getInstance().cfg("instance_id");
 
         for (const sub of subs) {
 
@@ -67,6 +69,7 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
                     instance_match: wsFound,
                     status: sub.status,
                     created_at: sub.created_at,
+                    transport_method: sub.transport.method,
                 };
 
             } else {
@@ -79,6 +82,7 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
                     instance_match: sub.transport.callback == callback,
                     status: sub.status,
                     created_at: sub.created_at,
+                    transport_method: sub.transport.method,
                 };
             }
 
