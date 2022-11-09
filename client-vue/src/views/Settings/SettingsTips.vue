@@ -63,9 +63,12 @@
     line-height: 1.4em;
     // letter-spacing: 0.01em;
     max-width: 800px;
-    margin: 1em auto;
+    margin: 2em auto;
     text-align: justify;
     font-size: 14px;
+    background-color: #fff;
+    border-radius: 1em;
+    box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.03);
 }
 article:not(:last-child) {
     margin-bottom: 2em;
@@ -90,9 +93,10 @@ p {
 
 footer {
     margin-top: 2em;
+    padding-bottom: 1em;
     text-align: center;
     font-size: 2em;
-    color: #006aff;
+    color: #3684f1;
 }
 
 </style>
