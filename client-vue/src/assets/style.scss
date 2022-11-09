@@ -59,6 +59,16 @@ h3 {
     color: #ccc;
 }
 
+.code-small {
+    font-family: "Source Code Pro", "Cascadia Code", "Consolas", monospace;
+    font-size: 0.95em;
+    padding: 2px 5px;
+    margin: 2px 0;
+    background: #444;
+    color: #ddd;
+    border-radius: 4px;
+}
+
 a {
     cursor: pointer;
     color: var(--link-color);
