@@ -55,95 +55,89 @@
     </form>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import axios from "axios";
 import { ApiResponse } from "@common/Api/Api";
-import { defineComponent } from "vue";
+import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
+import { useStore } from "@/store";
 
-export default defineComponent({
-    name: "ToolsVodDownloadForm",
-    emits: ["formSuccess"],
-    setup() {
-        const { t } = useI18n();
-        return { t };
-    },
-    data() {
-        return {
-            formStatusText: "Ready",
-            formStatus: "",
-            formData: {
-                url: "",
-                method: "td",
-            },
-            fileLink: "",
-        };
-    },
-    computed: {
-        formStatusClass(): Record<string, boolean> {
-            return {
-                "form-status": true,
-                "is-error": this.formStatus == "ERROR",
-                "is-success": this.formStatus == "OK",
-            };
-        },
-    },
-    methods: {
-        submitForm(event: Event) {
-            this.formStatusText = this.t("messages.loading");
-            this.formStatus = "";
+// emit
+const emit = defineEmits(["formSuccess"]);
 
-            axios
-                .post<ApiResponse>(`/api/v0/tools/chat_download`, this.formData)
-                .then((response) => {
-                    const json = response.data;
-                    this.formStatusText = json.message || "No message";
-                    this.formStatus = json.status;
-                    if (json.status == "OK") {
-                        this.$emit("formSuccess", json);
-                    }
-                    if (json.data && json.data.web_path) {
-                        this.fileLink = json.data.web_path;
-                    }
-                })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                    if (axios.isAxiosError(err) && err.response) {
-                        if (err.response.data.status == "ERROR") {
-                            this.formStatusText = err.response.data.message;
-                            this.formStatus = err.response.data.status;
-                        } else {
-                            this.formStatusText = err.response.data;
-                            this.formStatus = "ERROR";
-                        }
-                    }
-                });
+// setup
+const store = useStore();
+const { t, te } = useI18n();
 
-            /*
-            fetch(`api/v0/tools/chatdownload`, {
-                method: 'POST',
-                body: inputs
-            })
-            .then((response) => response.json())
-            .then((json) => {
-                this.formStatusText = json.message;
-                this.formStatus = json.status;
-                if(json.status == 'OK'){
-                    this.$emit('formSuccess', json);
-                }
-                if(json.data && json.data.web_path){
-                    this.fileLink = json.data.web_path;
-                }
-            }).catch((err) => {
-                console.error("Error burn form", err);
-                this.formStatusText = err;
-                this.formStatus = 'ERROR';
-            });
-            */
+// data
+const formStatusText = ref<string>("Ready");
+const formStatus = ref<string>("");
+const formData = ref<{ url: string, method: string }>({ url: "", method: "td" });
+const fileLink = ref<string>("");
 
-            event.preventDefault();
-            return false;
-        },
-    },
+// computed
+const formStatusClass = computed((): Record<string, boolean> => {
+    return {
+        "form-status": true,
+        "is-error": formStatus.value == "ERROR",
+        "is-success": formStatus.value == "OK",
+    };
 });
+
+function submitForm(event: Event) {
+    formStatusText.value = t("messages.loading");
+    formStatus.value = "";
+
+    axios
+        .post<ApiResponse>(`/api/v0/tools/chat_download`, formData.value)
+        .then((response) => {
+            const json = response.data;
+            formStatusText.value = json.message || "No message";
+            formStatus.value = json.status;
+            if (json.status == "OK") {
+                emit("formSuccess", json);
+            }
+            if (json.data && json.data.web_path) {
+                fileLink.value = json.data.web_path;
+            }
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (axios.isAxiosError(err) && err.response) {
+                if (err.response.data.status == "ERROR") {
+                    formStatusText.value = err.response.data.message;
+                    formStatus.value = err.response.data.status;
+                } else {
+                    formStatusText.value = err.response.data;
+                    formStatus.value = "ERROR";
+                }
+            }
+        });
+
+    /*
+    fetch(`api/v0/tools/chatdownload`, {
+        method: 'POST',
+        body: inputs
+    })
+    .then((response) => response.json())
+    .then((json) => {
+        formStatusText.value = json.message;
+        formStatus.value = json.status;
+        if(json.status == 'OK'){
+            this.$emit('formSuccess', json);
+        }
+        if(json.data && json.data.web_path){
+            fileLink.value = json.data.web_path;
+        }
+    }).catch((err) => {
+        console.error("Error burn form", err);
+        formStatusText.value = err;
+        formStatus.value = 'ERROR';
+    });
+    */
+
+    event.preventDefault();
+    return false;
+}
+
 </script>

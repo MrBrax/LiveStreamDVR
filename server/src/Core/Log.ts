@@ -172,7 +172,7 @@ export class Log {
         this.lines.push(log_data);
 
         // send over websocket, probably extremely slow
-        if (Config.getInstance().cfg<boolean>("websocket_log")) {
+        if (Config.getInstance().cfg<boolean>("websocket_log") && Config.getInstance().initialised) {
 
             this.websocket_buffer.push(log_data);
 

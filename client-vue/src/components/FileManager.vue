@@ -364,7 +364,7 @@
 <script lang="ts" setup>
 import { useStore } from "@/store";
 import axios, { AxiosError } from "axios";
-import { computed, defineComponent, onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import ModalBox from "./ModalBox.vue";
 import YoutubeAuth from "./YoutubeAuth.vue";
 import { YouTubeCategories } from "@common/YouTube";

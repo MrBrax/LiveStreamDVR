@@ -244,12 +244,12 @@
     </div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import { useStore } from "@/store";
 import { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
 import { SettingField } from "@common/Config";
 import axios, { AxiosError } from "axios";
-import { defineComponent } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { formatString } from "@common/Format";
 import YoutubeAuth from "@/components/YoutubeAuth.vue";
 import TwitchAuth from "@/components/TwitchAuth.vue";
@@ -264,211 +264,200 @@ interface SettingsGroup {
     fields: SettingField<string | number | boolean>[];
 }
 
-export default defineComponent({
-    name: "SettingsForm",
-    components: {
-        YoutubeAuth,
-        TwitchAuth,
-    },
-    emits: ["formSuccess"],
-    setup() {
-        const store = useStore();
-        const { t, te } = useI18n();
-        return { store, t, te };
-    },
-    data(): {
-        formStatusText: string;
-        formStatus: string;
-        formData: {
-            config: Record<string, string | number | boolean>;
-        },
-        settingsFields: SettingField<string | number | boolean>[];
-        loading: boolean;
-        searchText: string;
-    } {
-        return {
-            formStatusText: "Ready",
-            formStatus: "",
-            formData: {
-                config: {},
-            },
-            settingsFields: [],
-            loading: false,
-            searchText: "",
-        };
-    },
-    computed: {
-        settingsGroups(): SettingsGroup[] {
-            if (!this.settingsFields) return [];
-            const groups: Record<string, SettingsGroup> = {};
-            for (const field of this.settingsFields) {
-                if (!field.group) continue;
-                if (this.searchText) {
-                    if (
-                        !field.key.toLowerCase().includes(this.searchText.toLowerCase()) &&
-                        !field.help?.toLowerCase().includes(this.searchText.toLowerCase()) &&
-                        !field.text?.toLowerCase().includes(this.searchText.toLowerCase())
-                    ) continue;
-                }
-                if (!groups[field.group]) groups[field.group] = { name: field.group, fields: [] };
-                groups[field.group].fields.push(field);
-            }
-           return Object.values(groups).filter((group) => group.fields.length > 0);
+// emit
+const emit = defineEmits(["formSuccess"]);
 
-           /*
-           return Object.values(groups).filter((group) => {
-                if (!this.searchText) return true;
-                return group.fields.some((field) => {
-                    return field.key.toLowerCase().includes(this.searchText.toLowerCase());
-                });
-            });
-            */
-        },
-        /*
-        settingsGroups(): Record<string, ApiSettingsField[]> {
-            if (!this.settingsFields) return {};
-            let data: Record<string, ApiSettingsField[]> = {};
+// setup
+const store = useStore();
+const { t, te } = useI18n();
 
-            for (const key in this.settingsFields) {
-                const field = this.settingsFields[key];
-                if (!data[field.group]) data[field.group] = [];
-                data[field.group].push(field);
-            }
-            console.log("settingsGroups", data);
+// data
+const formStatusText = ref<string>("Ready");
+const formStatus = ref<string>("");
+const formData = ref<{ config: Record<string, string | number | boolean> }>({ config: {} });
+const settingsFields = ref<SettingField<string | number | boolean>[]>([]);
+const loading = ref<boolean>(false);
+const searchText = ref<string>("");
 
-            data = Object.keys(data)
-                .sort()
-                .reduce((obj: any, key) => {
-                    obj[key] = data[key];
-                    return obj;
-                }, {});
+// computed
+const settingsGroups = computed((): SettingsGroup[] => {
+    if (!settingsFields.value) return [];
+    const groups: Record<string, SettingsGroup> = {};
+    for (const field of settingsFields.value) {
+        if (!field.group) continue;
+        if (searchText.value) {
+            if (
+                !field.key.toLowerCase().includes(searchText.value.toLowerCase()) &&
+                !field.help?.toLowerCase().includes(searchText.value.toLowerCase()) &&
+                !field.text?.toLowerCase().includes(searchText.value.toLowerCase())
+            ) continue;
+        }
+        if (!groups[field.group]) groups[field.group] = { name: field.group, fields: [] };
+        groups[field.group].fields.push(field);
+    }
+    return Object.values(groups).filter((group) => group.fields.length > 0);
 
-            console.log("settingsGroups sort", data);
-            return data;
-        },
-        */
-        formStatusClass(): Record<string, boolean> {
-            return {
-                "form-status": true,
-                "is-error": this.formStatus == "ERROR",
-                "is-success": this.formStatus == "OK",
-            };
-        },
-    },
-    mounted(): void {
-        this.fetchData();
-    },
     /*
-    created: {
-        this.formData = this.settingsData;
-    },
+    return Object.values(groups).filter((group) => {
+        if (!searchText.value) return true;
+        return group.fields.some((field) => {
+            return field.key.toLowerCase().includes(searchText.value.toLowerCase());
+        });
+    });
     */
-    methods: {
-        fetchData(): void {
-            this.loading = true;
-            axios.get<ApiSettingsResponse>("/api/v0/settings").then((response) => {
-                const data = response.data;
-                this.formData.config = data.data.config;
-                this.settingsFields = data.data.fields;
-
-                // set defaults
-                for (const field of this.settingsFields) {
-                    if (field.default !== undefined && this.formData.config[field.key] === undefined) {
-                        this.formData.config[field.key] = field.default;
-                    }
-                }
-
-            }).finally(() => {
-                this.loading = false;
-            });
-        },
-        submitForm(event: Event) {
-
-            this.formStatusText = this.t("messages.loading");
-            this.formStatus = "";
-
-            axios
-                .put<ApiResponse>(`/api/v0/settings`, this.formData)
-                .then((response) => {
-                    const json: ApiResponse = response.data;
-                    this.formStatusText = json.message || "No message";
-                    this.formStatus = json.status;
-                    if (json.message) alert(json.message);
-                    if (json.status == "OK") {
-                        this.$emit("formSuccess", json);
-                        window.location.reload();
-                    }
-                    console.debug("settings save response", response);
-                })
-                .catch((err: AxiosError<ApiResponse>) => {
-                    console.error("form error", err.response);
-                    this.formStatusText = err.response?.data ? ( err.response.data.message || "Unknown error" ) : "Fatal error";
-                    // this.formStatusText = err.response.message ? err.response.message : "Fatal error";
-                    this.formStatus = "ERROR";
-                });
-
-            event.preventDefault();
-            return false;
-        },
-        configValue(key: string): string | number | boolean | undefined {
-            if (!this.formData) return undefined;
-            // const k: keyof ApiConfig = key as keyof ApiConfig;
-            // return this.formData[k] as unknown as T;
-            return this.formData.config[key];
-        },
-        doValidateExternalURL() {
-            axios
-                .post<ApiResponse>(`/api/v0/settings/validate_url`)
-                .then((response) => {
-                    const json: ApiResponse = response.data;
-                    if (json.message) alert(json.message);
-                })
-                .catch((err: AxiosError<ApiResponse>) => {
-                    console.error("form error", err.response);
-                    if (err.response?.data) {
-                        alert(err.response.data.message);
-                    } else {
-                        alert("Fatal error");
-                    }
-                });
-        },
-        templatePreview(data: SettingField<any>, template: string): string {
-            // console.debug("templatePreview", data, template);
-            if (!data.replacements) return "";
-            const replaced_string = formatString(template, Object.fromEntries(Object.entries(data.replacements).map(([key, value]) => [key, value.display])));
-            if (data.context) {
-                // return data.context.replace(/{template}/g, replaced_string);
-                return formatString(data.context, Object.fromEntries(Object.entries(data.replacements).map(([key, value]) => [key, value.display]))).replace(/{template}/g, replaced_string);
-            } else {
-                return replaced_string;
-            }
-        },
-        insertReplacement(key: string, value: string) {
-            const input = document.getElementById(`input_${key}`) as HTMLInputElement;
-            if (input) {
-                const caret = input.selectionStart;
-                if (caret !== null) {
-                    const rep = `{${value}}`;
-                    // input.value = input.value.substring(0, caret) + rep + input.value.substring(caret);
-                    const newValue = input.value.substring(0, caret) + rep + input.value.substring(caret);
-                    this.formData.config[key] = newValue;
-                    // console.debug("insertReplacement", newValue, this.formData[key]);
-                    input.selectionStart = caret + rep.length;
-                    input.selectionEnd = caret + rep.length;
-                    input.focus();
-                    // console.debug("insertReplacement", "caret", caret, key, value, input.value);
-                } else {
-                    this.formData.config[key] = this.formData.config[key] + `{${value}}`;
-                    // console.debug("insertReplacement", "no caret", key, value, input.value);
-                }
-                // const text = input.value;
-                // input.value = text.substring(0, caret) + value + text.substring(caret);
-            } else {
-                console.error("input not found", key);
-            }
-        },
-    },
 });
+
+const formStatusClass = computed((): Record<string, boolean> => {
+    return {
+        "form-status": true,
+        "is-error": formStatus.value == "ERROR",
+        "is-success": formStatus.value == "OK",
+    };
+});
+  
+/*
+settingsGroups(): Record<string, ApiSettingsField[]> {
+    if (!settingsFields.value) return {};
+    let data: Record<string, ApiSettingsField[]> = {};
+
+    for (const key in settingsFields.value) {
+        const field = settingsFields.value[key];
+        if (!data[field.group]) data[field.group] = [];
+        data[field.group].push(field);
+    }
+    console.log("settingsGroups", data);
+
+    data = Object.keys(data)
+        .sort()
+        .reduce((obj: any, key) => {
+            obj[key] = data[key];
+            return obj;
+        }, {});
+
+    console.log("settingsGroups sort", data);
+    return data;
+},
+*/
+
+onMounted(() => {
+    fetchData();
+});
+/*
+created: {
+    formData.value = this.settingsData;
+},
+*/
+// methods
+function fetchData(): void {
+    loading.value = true;
+    axios.get<ApiSettingsResponse>("/api/v0/settings").then((response) => {
+        const data = response.data;
+        formData.value.config = data.data.config;
+        settingsFields.value = data.data.fields;
+
+        // set defaults
+        for (const field of settingsFields.value) {
+            if (field.default !== undefined && formData.value.config[field.key] === undefined) {
+                formData.value.config[field.key] = field.default;
+            }
+        }
+
+    }).finally(() => {
+        loading.value = false;
+    });
+}
+
+function submitForm(event: Event) {
+
+    formStatusText.value = t("messages.loading");
+    formStatus.value = "";
+
+    axios
+        .put<ApiResponse>(`/api/v0/settings`, formData.value)
+        .then((response) => {
+            const json: ApiResponse = response.data;
+            formStatusText.value = json.message || "No message";
+            formStatus.value = json.status;
+            if (json.message) alert(json.message);
+            if (json.status == "OK") {
+                emit("formSuccess", json);
+                window.location.reload();
+            }
+            console.debug("settings save response", response);
+        })
+        .catch((err: AxiosError<ApiResponse>) => {
+            console.error("form error", err.response);
+            formStatusText.value = err.response?.data ? ( err.response.data.message || "Unknown error" ) : "Fatal error";
+            // formStatusText.value = err.response.message ? err.response.message : "Fatal error";
+            formStatus.value = "ERROR";
+        });
+
+    event.preventDefault();
+    return false;
+}
+
+function configValue(key: string): string | number | boolean | undefined {
+    if (!formData.value) return undefined;
+    // const k: keyof ApiConfig = key as keyof ApiConfig;
+    // return formData.value[k] as unknown as T;
+    return formData.value.config[key];
+}
+
+function doValidateExternalURL() {
+    axios
+        .post<ApiResponse>(`/api/v0/settings/validate_url`)
+        .then((response) => {
+            const json: ApiResponse = response.data;
+            if (json.message) alert(json.message);
+        })
+        .catch((err: AxiosError<ApiResponse>) => {
+            console.error("form error", err.response);
+            if (err.response?.data) {
+                alert(err.response.data.message);
+            } else {
+                alert("Fatal error");
+            }
+        });
+}
+
+function templatePreview(data: SettingField<any>, template: string): string {
+    // console.debug("templatePreview", data, template);
+    if (!data.replacements) return "";
+    const replaced_string = formatString(template, Object.fromEntries(Object.entries(data.replacements).map(([key, value]) => [key, value.display])));
+    if (data.context) {
+        // return data.context.replace(/{template}/g, replaced_string);
+        return formatString(data.context, Object.fromEntries(Object.entries(data.replacements).map(([key, value]) => [key, value.display]))).replace(/{template}/g, replaced_string);
+    } else {
+        return replaced_string;
+    }
+}
+
+function insertReplacement(key: string, value: string) {
+    const input = document.getElementById(`input_${key}`) as HTMLInputElement;
+    if (input) {
+        const caret = input.selectionStart;
+        if (caret !== null) {
+            const rep = `{${value}}`;
+            // input.value = input.value.substring(0, caret) + rep + input.value.substring(caret);
+            const newValue = input.value.substring(0, caret) + rep + input.value.substring(caret);
+            formData.value.config[key] = newValue;
+            // console.debug("insertReplacement", newValue, formData.value[key]);
+            input.selectionStart = caret + rep.length;
+            input.selectionEnd = caret + rep.length;
+            input.focus();
+            // console.debug("insertReplacement", "caret", caret, key, value, input.value);
+        } else {
+            formData.value.config[key] = formData.value.config[key] + `{${value}}`;
+            // console.debug("insertReplacement", "no caret", key, value, input.value);
+        }
+        // const text = input.value;
+        // input.value = text.substring(0, caret) + value + text.substring(caret);
+    } else {
+        console.error("input not found", key);
+    }
+}
+    
+
 </script>
 
 <style lang="scss" scoped>

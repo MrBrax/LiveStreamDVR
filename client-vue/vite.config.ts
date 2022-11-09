@@ -109,6 +109,13 @@ export default defineConfig({
         manualChunks: {
           // 'axios': ['axios'],
           // 'date-fns': ['date-fns'],
+          'vue': [
+            'vue',
+            'vue-router',
+            'pinia',
+            'vue-i18n',
+            'vue-observe-visibility',
+          ],
           'fonts': [
             '@fontsource/poppins',
             '@fontsource/roboto',
@@ -119,6 +126,16 @@ export default defineConfig({
             '@fortawesome/free-brands-svg-icons',
             '@fortawesome/vue-fontawesome',
             '@fortawesome/fontawesome-svg-core'
+          ],
+          'settings': [
+            './src/views/SettingsView.vue',
+            './src/views/Settings/SettingsAddChannel.vue',
+            './src/views/Settings/SettingsChannels.vue',
+            './src/views/Settings/SettingsClientSettings.vue',
+            './src/views/Settings/SettingsConfig.vue',
+            './src/views/Settings/SettingsFavourites.vue',
+            './src/views/Settings/SettingsKeyvalue.vue',
+            './src/views/Settings/SettingsNotifications.vue',
           ],
         }
       }

@@ -9,6 +9,7 @@
             'is-finalized': vod.is_finalized,
             'is-favourite': vod.provider == 'twitch' && vod.hasFavouriteGame(),
         }"
+        :aria-label="vod.basename"
     >
         <div
             :id="'vod_' + vod.uuid"
@@ -19,6 +20,12 @@
         <div
             class="video-title"
             @click="emit('toggleMinimize')"
+            @keydown.prevent.enter="emit('toggleMinimize')"
+            @keydown.prevent.space="emit('toggleMinimize')"
+            aria-label="Video title"
+            :aria-pressed="!minimized"
+            tabindex="0"
+            role="button"
         >
             <div class="video-title-text">
                 <h3>
@@ -130,6 +137,14 @@
                                     rel="noreferrer"
                                     target="_blank"
                                 >Twitch</a>
+                            </li>
+                            <li>
+                                <strong>Rewind:</strong> <a
+                                    :href="predictedFirstSegmentUrl"
+                                    rel="noreferrer"
+                                    target="_blank"
+                                    @click.prevent="store.playMedia(predictedFirstSegmentUrl)"
+                                >{{ vod.basename }}</a> (copy link and paste into desktop video player)
                             </li>
                         </ul>
                         <!--<button class="button is-small is-danger" @click="unbreak">Unbreak</button>-->
@@ -651,6 +666,11 @@ const renameVodTemplatePreview = computed(() => {
     };
     const replaced_string = formatString(renameVodSettings.value.template, replacements);
     return replaced_string;
+});
+
+const predictedFirstSegmentUrl = computed(() => {
+    if (!props.vod) return "";
+    return `${props.vod.webpath}/${props.vod.basename}.ts`;
 });
 
 /*  

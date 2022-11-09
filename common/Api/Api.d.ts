@@ -109,6 +109,9 @@ export interface ApiLoginResponse {
     status: "OK" | "ERROR";
 }
 
+/**
+ * Generic API response, use any kind of T data object
+ */
 export interface IApiResponse<T> {
     data: T;
     status: "OK";

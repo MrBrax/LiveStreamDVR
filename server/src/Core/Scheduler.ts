@@ -25,6 +25,7 @@ export class Scheduler {
         const job = new cron.CronJob(cronTime, callback);
         this.jobs[name] = job;
         job.start();
+        Log.logAdvanced(Log.Level.INFO, "scheduler.schedule", `Scheduled job '${name}' with cronTime '${cronTime}'`);
         return job;
     }
 
@@ -39,7 +40,7 @@ export class Scheduler {
         // no blocks in testing
         // if (process.env.NODE_ENV === "test") return;
 
-        console.log("Scheduler: default jobs");
+        Log.logAdvanced(Log.Level.INFO, "scheduler.defaultJobs", "Set up default jobs");
 
         this.schedule("check_muted_vods", "0 */12 * * *", () => {
             if (!Config.getInstance().cfg<boolean>("schedule_muted_vods")) return;

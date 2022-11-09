@@ -1,5 +1,8 @@
 <template>
-    <div class="youtube-auth">
+    <div
+        v-if="store.cfg('twitchapi.auth_type') == 'user'"
+        class="youtube-auth"
+    >
         <h3><span class="icon"><font-awesome-icon :icon="['fab', 'twitch']" /></span> Twitch authentication</h3>
         <div class="buttons">
             <button
@@ -65,6 +68,12 @@
                 </li>
             </ul>
         </div>
+    </div>
+    <div
+        v-else
+        class="youtube-auth"
+    >
+        <font-awesome-icon :icon="['fab', 'twitch']" /> Twitch authentication is disabled because you are using app token authentication.
     </div>
 </template>
 

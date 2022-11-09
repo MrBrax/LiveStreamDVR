@@ -3,6 +3,7 @@
     <div
         v-if="vod.is_finalized"
         class="video-segments"
+        aria-label="Segments"
     >
         <strong>{{ t('vod.segments') }}</strong>
         <ul class="list-segments">

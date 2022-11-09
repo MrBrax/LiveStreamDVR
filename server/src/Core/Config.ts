@@ -482,7 +482,7 @@ export class Config {
 
         let changed = false;
         for (const setting of Config.settingsFields) {
-            if (config[setting.key] === undefined) {
+            if (config[setting.key] === undefined && setting.default !== undefined) {
                 config[setting.key] = setting.default as any;
                 console.log(chalk.yellow(`Setting '${setting.key}' not configured, using default value '${setting.default}'.`));
                 changed = true;

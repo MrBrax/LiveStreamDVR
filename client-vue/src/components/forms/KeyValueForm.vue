@@ -118,9 +118,9 @@
     </div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import { useStore } from "@/store";
-import { defineComponent } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { ApiResponse } from "@common/Api/Api";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPencil, faSync, faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
@@ -128,122 +128,111 @@ import { useI18n } from "vue-i18n";
 import axios from "axios";
 library.add(faPencil, faSync, faTrash, faPlus);
 
-export default defineComponent({
-    name: "KeyValueForm",
-    emits: ["formSuccess"],
-    setup() {
-        const store = useStore();
-        const { t } = useI18n();
-        return { store, t };
-    },
-    data(): {
-        keyvalue?: Record<string, string>;
-        initialLoad: boolean;
-        searchText: string;
-        addForm: {
-            key: string;
-            value: string;
-        }
-    } {
-        return {
-            keyvalue: undefined,
-            initialLoad: true,
-            searchText: "",
-            addForm: {
-                key: "",
-                value: ""
-            }
-        };
-    },
-    computed: {
-        sortedKeyValues(): Record<string, string> {
-            if (!this.keyvalue) return {};
-            let entries = Object.entries(this.keyvalue);
-            if (this.searchText !== "") entries = entries.filter(e => e[0].includes(this.searchText));
-            return Object.fromEntries(entries.sort());
-        }
-    },
-    mounted(): void {
-        this.fetchData();
-    },
+// emit
+const emit = defineEmits(["formSuccess"]);
 
-    methods: {
-        fetchData(): void {
-            axios
-                .get<ApiResponse>(`/api/v0/keyvalue`)
-                .then((response) => {
-                    const json = response.data;
-                    const kv = json.data;
-                    // console.debug("kv", kv);
-                    this.keyvalue = kv;
-                })
-                .catch((err) => {
-                    console.error("fetch data error", err.response);
-                })
-                .finally(() => {
-                    this.initialLoad = false;
-                });
-        },
-        deleteKeyValue(key: string) {
-            axios
-                .delete(`/api/v0/keyvalue/${key}`)
-                .then((response) => {
-                    const json = response.data;
-                    console.debug("deleteKeyValue", json);
-                    // alert(`Deleted key ${key}`);
-                    this.fetchData();
-                })
-                .catch((err) => {
-                    console.error("delete error", err.response);
-                });
-        },
-        deleteAllKeyValues() {
-            axios
-                .delete(`/api/v0/keyvalue`)
-                .then((response) => {
-                    const json = response.data;
-                    console.debug("deleteAllKeyValues", json);
-                    alert(`Deleted all key values`);
-                    this.fetchData();
-                })
-                .catch((err) => {
-                    console.error("delete all error", err.response);
-                });
-        },
-        editKeyValue(key: string, value: string) {
-            const new_value = prompt(`Edit value for key ${key}`, value);
-            if (!new_value || new_value == value) return;
-            axios
-                .put(`/api/v0/keyvalue/${key}`, { value: new_value })
-                .then((response) => {
-                    const json = response.data;
-                    console.debug("editKeyValue", json);
-                    this.fetchData();
-                })
-                .catch((err) => {
-                    console.error("edit error", err.response);
-                    if (err.response && err.response.data && err.response.data.message) {
-                        alert(err.response.data.message);
-                    }
-                });
-        }, 
-        doAdd() {
-            axios
-                .put(`/api/v0/keyvalue/${this.addForm.key}`, { value: this.addForm.value })
-                .then((response) => {
-                    const json = response.data;
-                    console.debug("doAdd", json);
-                    this.fetchData();
-                    this.addForm.key = "";
-                    this.addForm.value = "";
-                    // this.$emit("formSuccess");
-                }).catch((err) => {
-                    console.error("add error", err.response);
-                    if (err.response && err.response.data && err.response.data.message) {
-                        alert(err.response.data.message);
-                    }
-                });
-        },
-    },
+// setup
+const store = useStore();
+const { t } = useI18n();
+
+// data
+const keyvalue = ref<Record<string, string>>();
+const initialLoad = ref(true);
+const searchText = ref("");
+const addForm = ref<{ key: string; value: string }>({ key: "", value: "" });
+
+// computed
+const sortedKeyValues = computed((): Record<string, string> => {
+    if (!keyvalue.value) return {};
+    let entries = Object.entries(keyvalue.value);
+    if (searchText.value !== "") entries = entries.filter(e => e[0].includes(searchText.value));
+    return Object.fromEntries(entries.sort());
 });
+
+onMounted(() => {
+    fetchData();
+});
+
+    
+function fetchData(): void {
+    axios
+        .get<ApiResponse>(`/api/v0/keyvalue`)
+        .then((response) => {
+            const json = response.data;
+            const kv = json.data;
+            // console.debug("kv", kv);
+            keyvalue.value = kv;
+        })
+        .catch((err) => {
+            console.error("fetch data error", err.response);
+        })
+        .finally(() => {
+            initialLoad.value = false;
+        });
+}
+
+function deleteKeyValue(key: string) {
+    axios
+        .delete(`/api/v0/keyvalue/${key}`)
+        .then((response) => {
+            const json = response.data;
+            console.debug("deleteKeyValue", json);
+            // alert(`Deleted key ${key}`);
+            fetchData();
+        })
+        .catch((err) => {
+            console.error("delete error", err.response);
+        });
+}
+
+function deleteAllKeyValues() {
+    axios
+        .delete(`/api/v0/keyvalue`)
+        .then((response) => {
+            const json = response.data;
+            console.debug("deleteAllKeyValues", json);
+            alert(`Deleted all key values`);
+            fetchData();
+        })
+        .catch((err) => {
+            console.error("delete all error", err.response);
+        });
+}
+
+function editKeyValue(key: string, value: string) {
+    const new_value = prompt(`Edit value for key ${key}`, value);
+    if (!new_value || new_value == value) return;
+    axios
+        .put(`/api/v0/keyvalue/${key}`, { value: new_value })
+        .then((response) => {
+            const json = response.data;
+            console.debug("editKeyValue", json);
+            fetchData();
+        })
+        .catch((err) => {
+            console.error("edit error", err.response);
+            if (err.response && err.response.data && err.response.data.message) {
+                alert(err.response.data.message);
+            }
+        });
+}
+
+function doAdd() {
+    axios
+        .put(`/api/v0/keyvalue/${addForm.value.key}`, { value: addForm.value.value })
+        .then((response) => {
+            const json = response.data;
+            console.debug("doAdd", json);
+            fetchData();
+            addForm.value.key = "";
+            addForm.value.value = "";
+            // this.$emit("formSuccess");
+        }).catch((err) => {
+            console.error("add error", err.response);
+            if (err.response && err.response.data && err.response.data.message) {
+                alert(err.response.data.message);
+            }
+        });
+}
+    
 </script>

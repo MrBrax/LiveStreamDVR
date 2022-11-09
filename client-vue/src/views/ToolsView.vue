@@ -241,8 +241,8 @@
     </div>
 </template>
 
-<script lang="ts">
-import { defineComponent } from "vue";
+<script lang="ts" setup>
+import { ref, computed } from "vue";
 import { ApiResponse } from "@common/Api/Api";
 
 // import ToolsBurnForm from "@/components/forms/ToolsBurnForm.vue";
@@ -269,135 +269,127 @@ interface PayloadDump {
     ip: string;
 }
 
-export default defineComponent({
-    name: "ToolsView",
-    title: "Tools",
-    components: {
-        // ToolsBurnForm,
-        ToolsVodDownloadForm,
-        ToolsChatDownloadForm,
-        ToolsChatDumpForm,
-        ToolsClipDownloadForm,
-        DurationDisplay,
-    },
-    setup() {
-        const store = useStore();
-        const { t } = useI18n();
-        return { store, JobStatus, t, formatDate };
-    },
-    computed: {
-        allJobsDuration(): number {
-            return this.store.jobList.reduce((prev, cur) => (this.store.getJobTimeRemaining(cur.name) || 0) + prev, 0);
-        }
-    },
-    methods: {
-        killJob(name: string, method = "") {
-            if (!confirm(`Kill job "${name}?"`)) return;
 
-            axios
-                .delete(`/api/v0/jobs/${name}`, {
-                    params: {
-                        method: method,
-                    }
-                })
-                .then((response) => {
-                    const json = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                })
-                .catch((err) => {
-                    console.error("tools jobs fetch error", err.response);
-                });
-        },
-        clearJob(name: string) {
-            if (!confirm(`Clear job "${name}? This does not necessarily kill the process."`)) return;
+const store = useStore();
+const { t } = useI18n();
 
-            axios
-                .delete(`/api/v0/jobs/${name}?clear=1`)
-                .then((response) => {
-                    const json = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                })
-                .catch((err) => {
-                    console.error("tools jobs fetch error", err.response);
-                });
-        },
-        sendHookDebug(e: Event) {
-            const target = e.target as HTMLInputElement;
-            if (target.files && target.files.length > 0) {
-                const file = target.files[0];
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const raw = e.target?.result;
-                    if (!raw) {
-                        alert("No data");
-                        return;
-                    }
-                    const data: PayloadDump = JSON.parse(raw.toString());
 
-                    console.log("payload", data);
-
-                    axios
-                        .post<ApiResponse>(`/api/v0/hook`, data.body, {
-                            headers: data.headers,
-                        })
-                        .then((response) => {
-                            const json = response.data;
-                            if (json.message) alert(json.message);
-                            console.log(json);
-                        })
-                        .catch((err) => {
-                            console.error("tools hook debug error", err.response);
-                        });
-                };
-                reader.readAsText(file, "UTF-8");
-            }
-        },
-        resetChannels() {
-            if (!confirm("Reset channels?")) return;
-
-            axios
-                .post<ApiResponse>(`/api/v0/tools/reset_channels`)
-                .then((response) => {
-                    const json = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                })
-                .catch((err) => {
-                    console.error("tools reset channels error", err.response);
-                });
-        },
-        shutdown() {
-            if (!confirm("Shutdown?")) return;
-
-            axios
-                .post<ApiResponse>(`/api/v0/tools/shutdown`)
-                .then((response) => {
-                    const json = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                })
-                .catch((err) => {
-                    console.error("tools shutdown error", err.response);
-                });
-        },
-        buildClient() {
-            if (!confirm("Build client?")) return;
-
-            const basepath = prompt("Base path", "/");
-
-            axios
-                .post<ApiResponse>(`/api/v0/tools/buildclient?basepath=${basepath}`)
-                .then((response) => {
-                    const json = response.data;
-                    if (json.message) alert(json.message);
-                    console.log(json);
-                })
-                .catch((err) => {
-                    console.error("tools build client error", err.response);
-                });
-        },
-    },
+const allJobsDuration = computed((): number => {
+    return store.jobList.reduce((prev, cur) => (store.getJobTimeRemaining(cur.name) || 0) + prev, 0);
 });
+
+    
+function killJob(name: string, method = "") {
+    if (!confirm(`Kill job "${name}?"`)) return;
+
+    axios
+        .delete(`/api/v0/jobs/${name}`, {
+            params: {
+                method: method,
+            }
+        })
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+        })
+        .catch((err) => {
+            console.error("tools jobs fetch error", err.response);
+        });
+}
+
+function clearJob(name: string) {
+    if (!confirm(`Clear job "${name}? This does not necessarily kill the process."`)) return;
+
+    axios
+        .delete(`/api/v0/jobs/${name}?clear=1`)
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+        })
+        .catch((err) => {
+            console.error("tools jobs fetch error", err.response);
+        });
+}
+
+function sendHookDebug(e: Event) {
+    const target = e.target as HTMLInputElement;
+    if (target.files && target.files.length > 0) {
+        const file = target.files[0];
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            const raw = e.target?.result;
+            if (!raw) {
+                alert("No data");
+                return;
+            }
+            const data: PayloadDump = JSON.parse(raw.toString());
+
+            console.log("payload", data);
+
+            axios
+                .post<ApiResponse>(`/api/v0/hook`, data.body, {
+                    headers: data.headers,
+                })
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    console.log(json);
+                })
+                .catch((err) => {
+                    console.error("tools hook debug error", err.response);
+                });
+        };
+        reader.readAsText(file, "UTF-8");
+    }
+}
+
+function resetChannels() {
+    if (!confirm("Reset channels?")) return;
+
+    axios
+        .post<ApiResponse>(`/api/v0/tools/reset_channels`)
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+        })
+        .catch((err) => {
+            console.error("tools reset channels error", err.response);
+        });
+}
+
+function shutdown() {
+    if (!confirm("Shutdown?")) return;
+
+    axios
+        .post<ApiResponse>(`/api/v0/tools/shutdown`)
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+        })
+        .catch((err) => {
+            console.error("tools shutdown error", err.response);
+        });
+}
+
+function buildClient() {
+    if (!confirm("Build client?")) return;
+
+    const basepath = prompt("Base path", "/");
+
+    axios
+        .post<ApiResponse>(`/api/v0/tools/buildclient?basepath=${basepath}`)
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+        })
+        .catch((err) => {
+            console.error("tools build client error", err.response);
+        });
+}
+    
 </script>

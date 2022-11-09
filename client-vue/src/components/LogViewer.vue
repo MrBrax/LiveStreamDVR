@@ -58,135 +58,132 @@
     </div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import { useStore } from "@/store";
 import { ApiLogResponse } from "@common/Api/Api";
 import { ApiLogLine } from "@common/Api/Client";
 import axios from "axios";
 import { format } from "date-fns";
-import { defineComponent } from "vue";
+import { computed, onMounted, onUnmounted, ref } from "vue";
 import { formatDate, formatTimestamp } from "@/mixins/newhelpers";
 
-export default defineComponent({
-    name: "LogViewer",
-    setup() {
-        const store = useStore();
-        return { store, formatDate, formatTimestamp };
-    },
-    data(): {
-        logFilename: string;
-        logFilenames: string[];
-        logFromLine: number;
-        logVisible: boolean;
-        logModule: string;
-        watcher: () => void;
-    } {
-        return {
-            logFilename: "",
-            logFilenames: [],
-            logFromLine: 0,
-            logVisible: false,
-            logModule: "",
-            watcher: () => { console.log("watcher"); },
-        };
-    },
-    computed: {
-        logFiltered(): ApiLogLine[] {
-            return this.logLines.filter(line => {
-                if (this.logModule) {
-                    return line.module === this.logModule;
-                }
-                return true;
-            });
-        },
-        logLines(): ApiLogLine[] {
-            return this.store.log;
-        },
-    },
-    mounted() {
-        this.watcher = this.store.$onAction(({ name, store, args, after, onError }) => {
-            if (!args) return;
-            if (name !== "addLog" && name !== "clearLog") return;
-            after(() => {
-                setTimeout(() => {
-                    this.scrollLog();
-                }, 100);
-            })
-        });
-        this.fetchLog();
-    },
-    unmounted() {
-        if (this.watcher) this.watcher(); // remove listener
-    },
-    methods: {
-        async fetchLog(clear = false) {
+// setup
+const store = useStore();
+        
+// data
+const logFilename = ref<string>("");
+const logFilenames = ref<string[]>([]);
+const logFromLine = ref<number>(0);
+const logVisible = ref<boolean>(false);
+const logModule = ref<string>("");
+const watcher = ref<() => void>(() => { console.log("watcher"); });
+const logViewer = ref<HTMLElement | null>(null);
 
-            // today's log file
-            if (this.logFilename == "") {
-                this.logFilename = format(new Date(), "yyyy-MM-dd");
-            }
-
-            if (clear) {
-                this.logFromLine = 0;
-                this.store.clearLog();
-            }
-
-            let response;
-            try {
-                response = await axios.get<ApiLogResponse>(`/api/v0/log/${this.logFilename}/${this.logFromLine}`);
-            } catch (error) {
-                console.error(error);
-                return;
-            }
-
-            // console.debug("log data", response.data);
-
-            const data = response.data;
-
-            if (!data.data) {
-                console.error("fetchLog invalid data", response.data);
-                return;
-            }
-
-            if (!data.data.lines) return;
-
-            this.logFromLine = data.data.last_line;
-
-            this.logFilenames = data.data.logs;
-
-            // this.logLines = this.logLines.concat(data.data.lines);
-            this.store.addLog(data.data.lines);
-
-            // scroll to bottom
-            setTimeout(() => {
-                this.scrollLog();
-            }, 100);
-        },
-        scrollLog() {
-            const lv = this.$refs.logViewer as HTMLDivElement;
-            if (!lv) return;
-            lv.scrollTop = lv.scrollHeight;
-        },
-        logSetFilter(val: string) {
-            this.logModule = this.logModule ? "" : val;
-            console.log(`Log filter set to ${this.logModule}`);
-        },
-        logLineClass(line: ApiLogLine): Record<string, boolean> {
-            return {
-                "log-line": true,
-                [`log-line-${line.level.toLowerCase()}`]: true,
-                "log-line-interactive": line.metadata !== undefined,
-            };
-        },
-        expandLog(lineNumber: number) {
-            if (!this.store.log[lineNumber]) return;
-            if (this.store.log[lineNumber].metadata) {
-                alert(JSON.stringify(this.store.log[lineNumber].metadata, undefined, 2));
-                console.log(this.store.log[lineNumber].metadata);
-            }
-        },
-    },
+// computed
+const logFiltered = computed((): ApiLogLine[] => {
+    return logLines.value.filter(line => {
+        if (logModule.value) {
+            return line.module === logModule.value;
+        }
+        return true;
+    });
 });
+
+const logLines = computed((): ApiLogLine[] => {
+    return store.log;
+});
+
+onMounted(() => {
+    watcher.value = store.$onAction(({ name, store, args, after, onError }) => {
+        if (!args) return;
+        if (name !== "addLog" && name !== "clearLog") return;
+        after(() => {
+            setTimeout(() => {
+                scrollLog();
+            }, 100);
+        })
+    });
+    fetchLog();
+});
+onUnmounted(() => {
+    if (watcher.value) watcher.value(); // remove listener
+});
+
+async function fetchLog(clear = false) {
+
+    // today's log file
+    if (logFilename.value == "") {
+        logFilename.value = format(new Date(), "yyyy-MM-dd");
+    }
+
+    if (clear) {
+        logFromLine.value = 0;
+        store.clearLog();
+    }
+
+    let response;
+    try {
+        response = await axios.get<ApiLogResponse>(`/api/v0/log/${logFilename.value}/${logFromLine.value}`);
+    } catch (error) {
+        console.error(error);
+        return;
+    }
+
+    // console.debug("log data", response.data);
+
+    const data = response.data;
+
+    if (!data.data) {
+        console.error("fetchLog invalid data", response.data);
+        return;
+    }
+
+    if (!data.data.lines) return;
+
+    logFromLine.value = data.data.last_line;
+
+    logFilenames.value = data.data.logs;
+
+    // this.logLines = this.logLines.concat(data.data.lines);
+    store.addLog(data.data.lines);
+
+    // scroll to bottom
+    setTimeout(() => {
+        scrollLog();
+    }, 100);
+}
+
+function scrollLog() {
+    const lv = logViewer.value;
+    if (!lv) return;
+    lv.scrollTop = lv.scrollHeight;
+}
+
+function logSetFilter(val: string) {
+    logModule.value = logModule.value ? "" : val;
+    console.log(`Log filter set to ${logModule.value}`);
+}
+
+function logLineClass(line: ApiLogLine): Record<string, boolean> {
+    return {
+        "log-line": true,
+        [`log-line-${line.level.toLowerCase()}`]: true,
+        "log-line-interactive": line.metadata !== undefined,
+    };
+}
+
+function expandLog(lineNumber: number) {
+    if (!store.log[lineNumber]) return;
+    if (store.log[lineNumber].metadata) {
+        alert(JSON.stringify(store.log[lineNumber].metadata, undefined, 2));
+        console.log(store.log[lineNumber].metadata);
+    }
+}
+
+defineExpose({
+    scrollLog
+});
+
 </script>
 
 <style lang="scss" scoped>

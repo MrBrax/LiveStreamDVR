@@ -1,5 +1,5 @@
 <template>
-    <span class="streamer-title-tools">
+    <span class="streamer-title-tools" aria-label="Streamer tools">
         <!-- edit -->
         <router-link
             class="icon-button white"
@@ -58,92 +58,104 @@
             <span class="icon"><font-awesome-icon :icon="!toggleAllVodsExpanded ? 'chevron-up' : 'chevron-down'" /></span>
         </button>
 
-        <!-- open more menu -->
-        <button
-            class="icon-button white"
-            :title="t('streamer.tools.more')"
-            @click="openMoreMenu"
-        >
-            <span class="icon"><font-awesome-icon icon="ellipsis-h" /></span>
-        </button>
+        <!-- more menu -->
+        <ContextMenu>
+            <template #trigger="trigger">
+                <button
+                    class="icon-button white"
+                    :title="t('streamer.tools.more')"
+                    @click="trigger.open"
+                    ref="moreMenuTrigger"
+                    aria-haspopup="true"
+                >
+                    <span class="icon"><font-awesome-icon icon="ellipsis-h" /></span>
+                </button>
+            </template>
+            <template v-slot:entries>
+                <ul aria-label="Context menu">
+                    <li class="context-menu-header">
+                        {{ streamer.displayName }}
+                    </li>
+
+                    <!-- refresh channel data -->
+                    <li>
+                        <button
+                            class="context-menu-button white"
+                            :title="t('streamer.tools.refresh-data')"
+                            @click="doChannelRefresh"
+                        >
+                            <span class="icon"><font-awesome-icon icon="sync" /></span>
+                            <span class="text">{{ t('streamer.tools.refresh-data') }}</span>
+                        </button>
+                    </li>
+
+                    <!-- download videos -->
+                    <li>
+                        <button
+                            class="context-menu-button white"
+                            :title="t('streamer.tools.video-download')"
+                            @click="emit('showVideoDownloadMenu')"
+                        >
+                            <span class="icon"><font-awesome-icon icon="download" /></span>
+                            <span>{{ t('streamer.tools.video-download') }}</span>
+                        </button>
+                    </li>
+
+                    <!-- download clips -->
+                    <li>
+                        <button
+                            class="context-menu-button white"
+                            :title="t('streamer.tools.clip-download')"
+                            @click="emit('showClipDownloadMenu')"
+                        >
+                            <span class="icon"><font-awesome-icon icon="download" /></span>
+                            <span>{{ t('streamer.tools.clip-download') }}</span>
+                        </button>
+                    </li>
+
+                    <!-- scan vods -->
+                    <li>
+                        <button
+                            class="context-menu-button white"
+                            :title="t('streamer.tools.scan-for-vods')"
+                            @click="doScanVods"
+                        >
+                            <span class="icon"><font-awesome-icon icon="folder-open" /></span>
+                            <span>{{ t('streamer.tools.scan-for-vods') }}</span>
+                        </button>
+                    </li>
+
+                    <!-- scan local videos -->
+                    <li>
+                        <button
+                            class="context-menu-button white"
+                            :title="t('streamer.tools.scan-for-local-videos')"
+                            @click="doScanLocalVideos"
+                        >
+                            <span class="icon"><font-awesome-icon icon="folder-open" /></span>
+                            <span>{{ t('streamer.tools.scan-for-local-videos') }}</span>
+                        </button>
+                    </li>
+
+                    <!-- export vods -->
+                    <li>
+                        <button
+                            class="context-menu-button white"
+                            :title="t('streamer.tools.export-vods')"
+                            @click="doExportVods"
+                        >
+                            <span class="icon"><font-awesome-icon icon="upload" /></span>
+                            <span>{{ t('streamer.tools.export-vods') }}</span>
+                        </button>
+                    </li>
+                </ul>
+            </template>
+        </ContextMenu>
     </span>
-    <Teleport to="body">
-        <Transition name="blinds">
-            <div
-                v-show="showMoreMenu"
-                ref="moreMenu"
-                class="expand-menu"
-                @mouseout="closeMoreMenu"
-            >
-                <div class="expand-menu-header">
-                    {{ streamer.displayName }}
-                </div>
-
-                <!-- refresh channel data -->
-                <button
-                    class="expand-menu-button white"
-                    :title="t('streamer.tools.refresh-data')"
-                    @click="doChannelRefresh"
-                >
-                    <span class="icon"><font-awesome-icon icon="sync" /></span>
-                    <span class="text">{{ t('streamer.tools.refresh-data') }}</span>
-                </button>
-
-                <!-- download videos -->
-                <button
-                    class="expand-menu-button white"
-                    :title="t('streamer.tools.video-download')"
-                    @click="emit('showVideoDownloadMenu')"
-                >
-                    <span class="icon"><font-awesome-icon icon="download" /></span>
-                    <span>{{ t('streamer.tools.video-download') }}</span>
-                </button>
-
-                <!-- download clips -->
-                <button
-                    class="expand-menu-button white"
-                    :title="t('streamer.tools.clip-download')"
-                    @click="emit('showClipDownloadMenu')"
-                >
-                    <span class="icon"><font-awesome-icon icon="download" /></span>
-                    <span>{{ t('streamer.tools.clip-download') }}</span>
-                </button>
-
-                <!-- scan vods -->
-                <button
-                    class="expand-menu-button white"
-                    :title="t('streamer.tools.scan-for-vods')"
-                    @click="doScanVods"
-                >
-                    <span class="icon"><font-awesome-icon icon="folder-open" /></span>
-                    <span>{{ t('streamer.tools.scan-for-vods') }}</span>
-                </button>
-
-                <!-- scan local videos -->
-                <button
-                    class="expand-menu-button white"
-                    :title="t('streamer.tools.scan-for-local-videos')"
-                    @click="doScanLocalVideos"
-                >
-                    <span class="icon"><font-awesome-icon icon="folder-open" /></span>
-                    <span>{{ t('streamer.tools.scan-for-local-videos') }}</span>
-                </button>
-
-                <!-- export vods -->
-                <button
-                    class="expand-menu-button white"
-                    :title="t('streamer.tools.export-vods')"
-                    @click="doExportVods"
-                >
-                    <span class="icon"><font-awesome-icon icon="upload" /></span>
-                    <span>{{ t('streamer.tools.export-vods') }}</span>
-                </button>
-            </div>
-        </Transition>
-    </Teleport>
 </template>
 
 <script lang="ts" setup>
+import ContextMenu from "@/components/reusables/ContextMenu.vue";
 import { ChannelTypes, useStore, VODTypes } from '@/store';
 import { ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
@@ -405,84 +417,6 @@ function doExportVods() {
 .streamer-title-tools {
     .icon-button {
         margin-left: 0.3em;
-    }
-}
-.expand-menu {
-    position: absolute;
-    background-color: #222;
-    border: 1px solid #000;
-    color: #fff;
-    left: var(--expand-menu-left);
-    top: var(--expand-menu-top);
-    width: 200px;
-    z-index: 99;
-    overflow: hidden;
-    box-shadow: 0 5px 10px 0 rgba(0, 0, 0, 0.5);
-    border-radius: 5px;
-
-    &::before {
-        content: "";
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: #000;
-        opacity: 0.2;
-        z-index: -1;
-    }
-}
-.expand-menu-button {
-    display: block;
-    width: 100%;
-    text-align: left;
-    padding: 0.5em;
-    background: transparent;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-    .icon {
-        transition: margin-right 0.1s ease-in-out;
-        margin-right: 0.5em;
-    }
-    &:not(:last-child) {
-        margin-bottom: 0.2em;
-    }
-    &:hover {
-        background-color: #333;
-        color: #ff0;
-        .icon {
-            margin-right: 0.6em;
-        }
-    }
-}
-
-.expand-menu-header {
-    display: none;
-}
-
-@media screen and (orientation: portrait) {
-    .expand-menu {
-        position: fixed;
-        left: 1em;
-        right: 1em;
-        bottom: 4em;
-        top: unset;
-        width: auto;
-        // width: 100%;
-        // height: 100%;
-        border-radius: 0;
-    }
-    .expand-menu-button {
-        padding: 1em;
-    }
-    .expand-menu-header {
-        display: block;
-        padding: 1em;
-        background-color: #252525;
-        color: #fff;
-        border-bottom: 1px solid #000;
-        font-weight: bold;
     }
 }
 </style>

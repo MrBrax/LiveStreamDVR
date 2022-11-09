@@ -3,6 +3,7 @@
         v-if="streamer"
         :id="'streamer_' + streamer.uuid"
         class="streamer-box"
+        :aria-label="streamer.displayName"
     >
         <div :class="{ 'streamer-title': true, 'is-live': streamer.is_live, 'is-capturing': streamer.is_capturing }">
             <div
@@ -28,7 +29,7 @@
                         class="streamer-capturing"
                     >capturing</span>
                 </h2>
-                <span class="streamer-title-subtitle">
+                <span class="streamer-title-subtitle" aria-label="Streamer information">
                     <span
                         class="streamer-vods-quality help"
                         title="Quality"

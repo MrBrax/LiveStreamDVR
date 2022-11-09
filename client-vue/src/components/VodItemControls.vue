@@ -3,6 +3,7 @@
     <div
         v-if="vod.is_finalized"
         class="video-controls buttons"
+        aria-label="Controls"
     >
         <button
             :class="{ 'button': true, 'details-toggle': true, 'is-active': showAdvanced }"

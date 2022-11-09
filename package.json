@@ -10,5 +10,12 @@
     "server",
     "twitch-chat-dumper",
     "twitch-vod-chat"
-  ]
+  ],
+  "packageManager": "yarn@3.2.4",
+  "scripts": {
+    "installall": "yarn workspaces foreach --verbose install",
+    "buildall": "yarn workspaces foreach --verbose run build",
+    "start": "yarn workspace livestreamdvr-server start",
+    "testall": "yarn workspaces foreach --verbose run test"
+  }
 }

@@ -196,7 +196,7 @@
 
 <script lang="ts" setup>
 import { useStore } from "@/store";
-import { computed, defineComponent, onMounted, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { defaultConfig, defaultConfigFields, defaultSidemenuShow } from "@/defs";
 import { ClientSettings, SidemenuShow } from "@/twitchautomator";
 

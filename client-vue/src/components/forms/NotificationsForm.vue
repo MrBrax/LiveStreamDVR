@@ -88,160 +88,150 @@
     </div>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import { useStore } from "@/store";
 import { ApiResponse } from "@common/Api/Api";
 import axios from "axios";
-import { defineComponent } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { NotificationProvider, NotificationProvidersList, NotificationCategories } from "../../../../common/Defs";
+import { NotificationProvidersList, NotificationCategories } from "../../../../common/Defs";
 
-export default defineComponent({
-    name: "NotificationsForm",
-    emits: ["formSuccess"],
-    // props: {},
-    setup() {
-        const store = useStore();
-        const { t } = useI18n();
-        return { store, NotificationProvider, NotificationProvidersList, NotificationCategories, t };
-    },
-    data(): {
-        formStatusText: string;
-        formStatus: string;
-        formData: Record<string, Record<string, boolean>>;
-        test: {
-            provider: string;
-            category: string;
-        };
-    } {
-        return {
-            formStatusText: "Ready",
-            formStatus: "",
-            formData: {},
-            test: {
-                provider: "",
-                category: "",
-            },
-        };
-    },
-    computed: {
-        formStatusClass(): Record<string, boolean> {
-            return {
-                "form-status": true,
-                "is-error": this.formStatus == "ERROR",
-                "is-success": this.formStatus == "OK",
-            };
-        },
-    },
-    mounted(): void {
-        this.resetBitmask();
-        this.fetchData();
-    },
-    methods: {
-        resetBitmask() {
-            for (const cat of this.NotificationCategories) {
-                this.formData[cat.id] = {};
-                for (const provider of NotificationProvidersList) {
-                    this.formData[cat.id][provider.id] = false;
-                }
-            }
-        },
-        getBitmasks() {
-            const bitmasks: Record<string, number> = {};
-            for (const cat in this.formData) {
-                bitmasks[cat] = 0;
-                for (const provider in this.formData[cat]) {
-                    if (this.formData[cat][provider]) {
-                        const providerBit = NotificationProvidersList.find((p) => p.id == parseInt(provider))?.id;
-                        if (providerBit) {
-                            bitmasks[cat] |= providerBit;
-                        }
-                    }
-                }
-            }
-            return bitmasks;
-        },
-        setBitmasks(bitmasks: Record<string, number>) {
-            for (const cat in bitmasks) {
-                for (const provider in this.formData[cat]) {
-                    const providerBit = NotificationProvidersList.find((p) => p.id == parseInt(provider))?.id;
-                    if (providerBit) {
-                        this.formData[cat][provider] = (bitmasks[cat] & providerBit) > 0;
-                    }
-                }
-            }
-        },
-        fetchData() {
-            axios
-                .get<ApiResponse>("/api/v0/notifications")
-                .then((response) => {
-                    const json = response.data;
-                    if (json.status == "OK") {
-                        this.setBitmasks(json.data);
-                    }
-                })
-                .catch((err) => {
-                    console.error("fetch error", err.response);
-                });
-        },
-        submitForm(event: Event) {
-            // convert record to bitmask with enum
-            const bitmasks = this.getBitmasks();
-            console.debug("bitmasks", bitmasks);
+// emit
+const emit = defineEmits(["formSuccess"]);
 
-            axios
-                .put<ApiResponse>(`/api/v0/notifications`, bitmasks)
-                .then((response) => {
-                    const json = response.data;
-                    console.debug("notifications", json);
-                    this.formStatusText = json.message || "Unknown";
-                    this.formStatus = json.status;
-                    if (json.status == "OK") {
-                        this.$emit("formSuccess", json);
-                        this.fetchData();
-                    }
-                })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                    if (err.response.data.status == "ERROR") {
-                        this.formStatusText = err.response.data.message;
-                        this.formStatus = err.response.data.status;
-                    } else {
-                        this.formStatusText = err.response.data;
-                        this.formStatus = "ERROR";
-                    }
-                });
+// setup
+const store = useStore();
+const { t } = useI18n();
 
-            event.preventDefault();
-            return false;
-        },
-        testNotification() {
-            axios
-                .post<ApiResponse>(`/api/v0/notifications/test`, {
-                    provider: this.test.provider,
-                    category: this.test.category,
-                })
-                .then((response) => {
-                    const json = response.data;
-                    console.debug("notifications", json);
-                    this.formStatusText = json.message || "Unknown";
-                    this.formStatus = json.status;
-                    if (json.status == "OK") {
-                        this.$emit("formSuccess", json);
-                        this.fetchData();
-                    }
-                })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                    if (err.response.data.status == "ERROR") {
-                        this.formStatusText = err.response.data.message;
-                        this.formStatus = err.response.data.status;
-                    } else {
-                        this.formStatusText = err.response.data;
-                        this.formStatus = "ERROR";
-                    }
-                });
-        },
-    },
+// data
+const formStatusText = ref<string>("Ready");
+const formStatus = ref<string>("");
+const formData = ref<Record<string, Record<string, boolean>>>({});
+const test = ref<{ provider: string; category: string }>({ provider: "", category: "" });
+
+// computed
+const formStatusClass = computed((): Record<string, boolean> => {
+    return {
+        "form-status": true,
+        "is-error": formStatus.value == "ERROR",
+        "is-success": formStatus.value == "OK",
+    };
 });
+
+onMounted(() => {
+    resetBitmask();
+    fetchData();
+});
+
+    
+function resetBitmask() {
+    for (const cat of NotificationCategories) {
+        formData.value[cat.id] = {};
+        for (const provider of NotificationProvidersList) {
+            formData.value[cat.id][provider.id] = false;
+        }
+    }
+}
+
+function getBitmasks() {
+    const bitmasks: Record<string, number> = {};
+    for (const cat in formData.value) {
+        bitmasks[cat] = 0;
+        for (const provider in formData.value[cat]) {
+            if (formData.value[cat][provider]) {
+                const providerBit = NotificationProvidersList.find((p) => p.id == parseInt(provider))?.id;
+                if (providerBit) {
+                    bitmasks[cat] |= providerBit;
+                }
+            }
+        }
+    }
+    return bitmasks;
+}
+
+function setBitmasks(bitmasks: Record<string, number>) {
+    for (const cat in bitmasks) {
+        for (const provider in formData.value[cat]) {
+            const providerBit = NotificationProvidersList.find((p) => p.id == parseInt(provider))?.id;
+            if (providerBit) {
+                formData.value[cat][provider] = (bitmasks[cat] & providerBit) > 0;
+            }
+        }
+    }
+}
+
+function fetchData() {
+    axios
+        .get<ApiResponse>("/api/v0/notifications")
+        .then((response) => {
+            const json = response.data;
+            if (json.status == "OK") {
+                setBitmasks(json.data);
+            }
+        })
+        .catch((err) => {
+            console.error("fetch error", err.response);
+        });
+}
+
+function submitForm(event: Event) {
+    // convert record to bitmask with enum
+    const bitmasks = getBitmasks();
+    console.debug("bitmasks", bitmasks);
+
+    axios
+        .put<ApiResponse>(`/api/v0/notifications`, bitmasks)
+        .then((response) => {
+            const json = response.data;
+            console.debug("notifications", json);
+            formStatusText.value = json.message || "Unknown";
+            formStatus.value = json.status;
+            if (json.status == "OK") {
+                emit("formSuccess", json);
+                fetchData();
+            }
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data.status == "ERROR") {
+                formStatusText.value = err.response.data.message;
+                formStatus.value = err.response.data.status;
+            } else {
+                formStatusText.value = err.response.data;
+                formStatus.value = "ERROR";
+            }
+        });
+
+    event.preventDefault();
+    return false;
+}
+
+function testNotification() {
+    axios
+        .post<ApiResponse>(`/api/v0/notifications/test`, {
+            provider: test.value.provider,
+            category: test.value.category,
+        })
+        .then((response) => {
+            const json = response.data;
+            console.debug("notifications", json);
+            formStatusText.value = json.message || "Unknown";
+            formStatus.value = json.status;
+            if (json.status == "OK") {
+                emit("formSuccess", json);
+                fetchData();
+            }
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data.status == "ERROR") {
+                formStatusText.value = err.response.data.message;
+                formStatus.value = err.response.data.status;
+            } else {
+                formStatusText.value = err.response.data;
+                formStatus.value = "ERROR";
+            }
+        });
+}
+    
 </script>

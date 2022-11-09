@@ -945,8 +945,13 @@ export class Helper {
 
         const output_image = path.join(BaseConfigCacheFolder.public_cache_thumbs, `${filenameHash}.${thumbnail_format}`);
 
-        if (fs.existsSync(output_image)) {
+        if (fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
             return path.basename(output_image);
+        }
+
+        if (fs.statSync(output_image).size === 0) {
+            console.debug("Existing thumbnail filesize is 0, removing file");
+            fs.unlinkSync(output_image); // remove empty file
         }
 
         const ffmpeg_path = Helper.path_ffmpeg();

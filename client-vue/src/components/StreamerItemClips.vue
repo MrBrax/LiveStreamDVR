@@ -3,6 +3,7 @@
     <div
         v-if="streamer.clips_list && streamer.clips_list.length > 0"
         class="streamer-clips"
+        aria-label="Clips"
     >
         <div class="streamer-clips-title">
             <h3>{{ t("messages.clips") }}</h3>

@@ -83,137 +83,122 @@
     </form>
 </template>
 
-<script lang="ts">
+<script lang="ts" setup>
 import { useStore } from "@/store";
 import { ApiGamesResponse, ApiSettingsResponse, ApiResponse } from "@common/Api/Api";
 import { ApiGame } from "@common/Api/Client";
 import axios from "axios";
-import { defineComponent } from "vue";
+import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { formatDate } from "@/mixins/newhelpers";
 
-export default defineComponent({
-    name: "FavouritesForm",
-    emits: ["formSuccess"],
-    setup() {
-        const store = useStore();
-        const { t } = useI18n();
-        return { store, t, formatDate };
-    },
-    data(): {
-        loading: boolean;
-        formStatusText: string;
-        formStatus: string;
-        formData: {
-            games: string[];
-        },
-        favouritesData: string[];
-        gamesData: Record<string, ApiGame>;
-        isGrid: boolean;
-    } {
-        return {
-            loading: false,
-            formStatusText: "Ready",
-            formStatus: "",
-            formData: {
-                games: [],
-            },
-            favouritesData: [],
-            gamesData: {},
-            isGrid: false,
-        };
-    },
+// emit
+const emit = defineEmits(["formSuccess"]);
 
-    computed: {
-        formStatusClass(): Record<string, boolean> {
-            return {
-                "form-status": true,
-                "is-error": this.formStatus == "ERROR",
-                "is-success": this.formStatus == "OK",
-            };
-        },
-        sortedGames(): ApiGame[] {
-            if (!this.gamesData) return [];
-            return Object.values(this.gamesData).sort((a, b) => a.name.localeCompare(b.name));
-        },
-    },
-    mounted() {
-        // this.formData.games = this.favouritesData ? [...this.favouritesData] : [];
-        console.debug("FavouritesForm mounted", this.favouritesData, this.formData);
-        this.fetchData();
-    },
-    methods: {
-        submitForm(event: Event) {
-            this.formStatusText = this.t("messages.loading");
-            this.formStatus = "";
+// setup
+const store = useStore();
+const { t } = useI18n();
+        
+// data
+const loading = ref<boolean>(false);
+const formStatusText = ref<string>("Ready");
+const formStatus = ref<string>("");
+const formData = ref<{ games: string[] }>({ games: [] });
+const favouritesData = ref<string[]>([]);
+const gamesData = ref<Record<string, ApiGame>>({});
+const isGrid = ref<boolean>(false);
 
-            axios
-                .put(`/api/v0/favourites`, this.formData)
-                .then((response) => {
-                    const json = response.data;
-                    this.formStatusText = json.message;
-                    this.formStatus = json.status;
-                    // if (json.message) alert(json.message);
-                    if (json.status == "OK") {
-                        this.$emit("formSuccess", json);
-                        this.fetchData();
-                    }
-                })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                });
-
-            event.preventDefault();
-            return false;
-        },
-        fetchData() {
-            console.debug("FavouritesForm fetchData");
-            axios.all([
-                axios.get<ApiGamesResponse>(`api/v0/games`)
-                .then((response) => {
-                    const json = response.data;
-                    if (json.message) alert(json.message);
-                    const games = json.data;
-                    this.gamesData = games;
-                })
-                .catch((err) => {
-                    console.error("settings fetch error", err.response);
-                }).finally(() => {
-                    this.loading = false;
-                }),
-                axios
-                    .get<ApiSettingsResponse>(`api/v0/settings`)
-                    .then((response) => {
-                        const json = response.data;
-                        if (json.message) alert(json.message);
-                        const favourites = json.data.favourite_games;
-                        this.favouritesData = favourites;
-                        this.formData.games = favourites;
-                        this.store.updateFavouriteGames(favourites);
-                    })
-                    .catch((err) => {
-                        console.error("settings fetch error", err.response);
-                    }),
-            ]).finally(() => {
-                this.loading = false;
-            });
-        },
-        refreshGame(id: string) {
-            axios
-                .get<ApiResponse>(`/api/v0/games/${id}/refresh`)
-                .then((response) => {
-                    const json = response.data;
-                    if (json.message) alert(json.message);
-                    if (json.status == "OK") {
-                        this.fetchData();
-                    }
-                })
-                .catch((err) => {
-                    console.error("form error", err.response);
-                });
-        },
-    },
+const formStatusClass = computed((): Record<string, boolean> => {
+    return {
+        "form-status": true,
+        "is-error": formStatus.value == "ERROR",
+        "is-success": formStatus.value == "OK",
+    };
 });
+
+const sortedGames = computed((): ApiGame[] => {
+    if (!gamesData.value) return [];
+    return Object.values(gamesData.value).sort((a, b) => a.name.localeCompare(b.name));
+});
+
+onMounted(() => {
+    // formData.value.games = favouritesData.value ? [...favouritesData.value] : [];
+    console.debug("FavouritesForm mounted", favouritesData.value, formData.value);
+    fetchData();
+});
+    
+function submitForm(event: Event) {
+    formStatusText.value = t("messages.loading");
+    formStatus.value = "";
+
+    axios
+        .put(`/api/v0/favourites`, formData.value)
+        .then((response) => {
+            const json = response.data;
+            formStatusText.value = json.message;
+            formStatus.value = json.status;
+            // if (json.message) alert(json.message);
+            if (json.status == "OK") {
+                emit("formSuccess", json);
+                fetchData();
+            }
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+        });
+
+    event.preventDefault();
+    return false;
+}
+
+function fetchData() {
+    console.debug("FavouritesForm fetchData");
+    axios.all([
+        axios.get<ApiGamesResponse>(`api/v0/games`)
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            const games = json.data;
+            gamesData.value = games;
+        })
+        .catch((err) => {
+            console.error("settings fetch error", err.response);
+        }).finally(() => {
+            loading.value = false;
+        }),
+        axios
+            .get<ApiSettingsResponse>(`api/v0/settings`)
+            .then((response) => {
+                const json = response.data;
+                if (json.message) alert(json.message);
+                const favourites = json.data.favourite_games;
+                favouritesData.value = favourites;
+                formData.value.games = favourites;
+                store.updateFavouriteGames(favourites);
+            })
+            .catch((err) => {
+                console.error("settings fetch error", err.response);
+            }),
+    ]).finally(() => {
+        loading.value = false;
+    });
+}
+
+function refreshGame(id: string) {
+    axios
+        .get<ApiResponse>(`/api/v0/games/${id}/refresh`)
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            if (json.status == "OK") {
+                fetchData();
+            }
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+        });
+}
+    
 </script>
 
 <style lang="scss" scoped>
