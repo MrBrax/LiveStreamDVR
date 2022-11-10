@@ -95,6 +95,7 @@ function clipLink(clip: LocalClip): string {
             font-size: 1.2em;
             margin: 0;
             padding: 0;
+            color: #fff;
         }
     }
     ul {
