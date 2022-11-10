@@ -57,10 +57,5 @@
   "packageManager": "yarn@3.2.4",
   "engines": {
     "node": ">=15"
-  },
-  "dependenciesMeta": {
-    "vue@3.2.41": {
-      "unplugged": true
-    }
   }
 }

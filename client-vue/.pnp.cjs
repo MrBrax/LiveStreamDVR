@@ -8527,7 +8527,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
       ]],\
       ["vue", [\
         ["npm:3.2.41", {\
-          "packageLocation": "./.yarn/unplugged/vue-npm-3.2.41-cb73e74f4c/node_modules/vue/",\
+          "packageLocation": "./.yarn/cache/vue-npm-3.2.41-cb73e74f4c-5328bf14c6.zip/node_modules/vue/",\
           "packageDependencies": [\
             ["vue", "npm:3.2.41"],\
             ["@vue/compiler-dom", "npm:3.2.41"],\
