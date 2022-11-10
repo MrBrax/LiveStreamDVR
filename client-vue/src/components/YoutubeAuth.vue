@@ -77,10 +77,10 @@
             <h3>Suggested configuration:</h3>
             <ul class="list less-padding">
                 <li>
-                    <strong>Authorized JavaScript origins:</strong> <code class="uselect">{{ store.appUrl }}</code>
+                    <strong>Authorized JavaScript origins:</strong> <CodeBox>{{ store.appUrl }}</CodeBox>
                 </li>
                 <li>
-                    <strong>Redirect URI:</strong> <code class="uselect">{{ store.appUrl }}/api/v0/youtube/callback</code>
+                    <strong>Redirect URI:</strong> <CodeBox>{{ store.appUrl }}/api/v0/youtube/callback</CodeBox>
                 </li>
             </ul>
         </div>
@@ -91,6 +91,7 @@
 import { ref } from "vue";
 import { ApiResponse } from "@common/Api/Api";
 import { useStore } from "@/store";
+import CodeBox from "@/components/reusables/CodeBox.vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
     faRightFromBracket,

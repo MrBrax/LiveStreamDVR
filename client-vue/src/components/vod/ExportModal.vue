@@ -44,7 +44,7 @@
         </p>
         <p v-if="exporter == 'rclone'">
             RClone is a multi-protocol file management program.<br>
-            Generate a config file with <code>rclone config</code> and place <code>rclone.conf</code> in the <code>config</code> directory.<br>
+            Generate a config file with <CodeBox>rclone config</CodeBox> and place <code>rclone.conf</code> in the <code>config</code> directory.<br>
             Read more at <a
                 href="https://rclone.org/"
                 rel="noreferrer"
@@ -374,6 +374,7 @@ import { YouTubeCategories } from "@common/YouTube";
 import axios from 'axios';
 import { ApiResponse } from '@common/Api/Api';
 import YoutubeAuth from "@/components/YoutubeAuth.vue";
+import CodeBox from "@/components/reusables/CodeBox.vue";
 import { ExporterOptions } from "@common/Exporter";
 import { useI18n } from 'vue-i18n';
 

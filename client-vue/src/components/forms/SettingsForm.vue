@@ -76,7 +76,7 @@
                         v-if="data.multiline"
                         :id="'input_' + data.key"
                         v-model="(formData.config[data.key] as string)"
-                        class="textarea"
+                        class="input textarea"
                         :name="data.key"
                         :title="data.help"
                         :pattern="data.pattern"
