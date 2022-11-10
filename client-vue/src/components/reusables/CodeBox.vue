@@ -8,8 +8,12 @@
     >
         <slot />
         <span class="icon">
-            <font-awesome-icon :icon="hasCopied ? 'check' : 'copy'" />
+            <font-awesome-icon :icon="isFlashing ? 'check' : 'copy'" />
         </span>
+        <span 
+            v-if="isFlashing"
+            class="tooltip"
+        >Copied!</span>
     </span>
 </template>
 
@@ -45,18 +49,8 @@ function flashBox() {
 </script>
 
 <style lang="scss" scoped>
-@keyframes flash {
-    0% {
-        background-color: #f5f5f5;
-    }
-    50% {
-        background-color: #4bbd50;
-    }
-    100% {
-        background-color: #f5f5f5;
-    }
-}
 .code-box {
+    position: relative;
     display: inline-block;
     padding: 0.15rem 0.3rem;
     border-radius: 0.25rem;
@@ -82,7 +76,57 @@ function flashBox() {
     }
 
 }
+
+.tooltip {
+    position: absolute;
+    text-align: center;
+    // top: 0;
+    left: calc(50% - 1.5rem);
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    font-size: 0.8em;
+    font-weight: bold;
+    text-transform: uppercase;
+    white-space: nowrap;
+    // opacity: 0;
+    // transition: opacity 0.2s ease-in-out;
+    pointer-events: none;
+    animation: tooltip 1s ease-in-out;
+
+    &.is-visible {
+        opacity: 1;
+    }
+}
 li > .code-box {
     margin: 0.15em 0;
+}
+
+@keyframes flash {
+    0% {
+        background-color: #f5f5f5;
+    }
+    50% {
+        background-color: #4bbd50;
+    }
+    100% {
+        background-color: #f5f5f5;
+    }
+}
+
+@keyframes tooltip {
+    0% {
+        opacity: 0;
+        transform: translateY(0rem);
+    }
+    75% {
+        opacity: 1;
+        transform: translateY(-1rem);
+    }
+    100% {
+        opacity: 0;
+        transform: translateY(-1rem);
+    }
 }
 </style>
