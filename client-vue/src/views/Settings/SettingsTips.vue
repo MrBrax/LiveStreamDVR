@@ -20,6 +20,17 @@
             </p>
         </article>
         <article>
+            <h2>I don't want my server to be exposed to the internet</h2>
+            <p>
+                You can either set a password in the config or set the reverse proxy to only serve these routes:
+                <ul>
+                    <li>/api/v0/hook</li>
+                    <li>/api/v0/hook/twitch</li>
+                    <li>/api/v0/hook/youtube</li>
+                </ul>
+            </p>
+        </article>
+        <article>
             <h2>How authentication and single-page apps work</h2>
             <p>
                 This application is a single-page app, which means that it only loads the index.html file once and then uses JavaScript to navigate between pages. This is done to make the application feel more like a native application.<br>
@@ -66,7 +77,7 @@
     margin: 2em auto;
     text-align: justify;
     font-size: 14px;
-    background-color: #fff;
+    background-color: var(--body-background);
     border-radius: 1em;
     box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.03);
 }
