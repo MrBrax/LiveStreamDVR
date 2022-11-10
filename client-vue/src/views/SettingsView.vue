@@ -39,6 +39,9 @@
         <router-link :to="{ name: 'SettingsClientSettings' }">
             <span class="icon"><font-awesome-icon icon="user-cog" /></span> {{ t('pages.client-settings') }}
         </router-link>
+        <router-link :to="{ name: 'SettingsTips' }">
+            <span class="icon"><font-awesome-icon icon="circle-question" /></span> {{ t('pages.tips') }}
+        </router-link>
     </div>
 
     <div class="container">
@@ -48,10 +51,10 @@
 
 <script lang="ts" setup>
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faUser, faUserPlus, faCalendarCheck, faStar, faBell, faUserCog, faDatabase } from "@fortawesome/free-solid-svg-icons";
+import { faUser, faUserPlus, faCalendarCheck, faStar, faBell, faUserCog, faDatabase, faCircleQuestion } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
 import { useI18n } from "vue-i18n";
-library.add(faUser, faUserPlus, faCalendarCheck, faStar, faBell, faUserCog, faDatabase);
+library.add(faUser, faUserPlus, faCalendarCheck, faStar, faBell, faUserCog, faDatabase, faCircleQuestion);
 
 const store = useStore();
 const { t } = useI18n();

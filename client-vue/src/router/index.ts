@@ -67,6 +67,11 @@ const routes: Array<RouteRecordRaw> = [
                 name: "SettingsClientSettings",
                 component: () => import(/* webpackChunkName: "settingsClientSettings" */ "../views/Settings/SettingsClientSettings.vue"),
             },
+            {
+                path: "/settings/tips",
+                name: "SettingsTips",
+                component: () => import(/* webpackChunkName: "settingsTips" */ "../views/Settings/SettingsTips.vue"),
+            },
         ]
     },
     {

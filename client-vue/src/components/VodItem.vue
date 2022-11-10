@@ -953,6 +953,7 @@ function showModalEv(modal: keyof typeof showModal.value): void {
         padding: 0;
         // text-shadow: 0 2px 0 #1e4599;
         // text-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
+        color: #fff;
     }
 
     .video-title-text {
