@@ -175,14 +175,14 @@
                 @click="downloadClientSettings"
             >
                 <span class="icon"><font-awesome-icon icon="download" /></span>
-                <span>{{ t('buttons.download-config') }}</span>
+                <span>{{ t('buttons.sync-down') }}</span>
             </button>
             <button
                 class="button is-confirm"
                 @click="uploadClientConfig"
             >
                 <span class="icon"><font-awesome-icon icon="upload" /></span>
-                <span>{{ t('buttons.upload-config') }}</span>
+                <span>{{ t('buttons.sync-up') }}</span>
             </button>
             <button
                 class="button is-danger"

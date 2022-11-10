@@ -156,7 +156,9 @@
     "delete-segments": "Delete segments",
     "delete-segment": "Delete segment",
     "download-config": "Download config",
-    "upload-config": "Upload config"
+    "upload-config": "Upload config",
+    "sync-down": "Sync down",
+    "sync-up": "Sync up"
   },
   "pages": {
     "favourite-games": "Favourite games",
