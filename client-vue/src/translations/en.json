@@ -154,7 +154,9 @@
     "check-subscriptions": "Check subscriptions",
     "refresh": "Refresh",
     "delete-segments": "Delete segments",
-    "delete-segment": "Delete segment"
+    "delete-segment": "Delete segment",
+    "download-config": "Download config",
+    "upload-config": "Upload config"
   },
   "pages": {
     "favourite-games": "Favourite games",

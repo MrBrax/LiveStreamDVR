@@ -14,6 +14,7 @@ import * as KeyValue from "../Controllers/KeyValue";
 import * as Log from "../Controllers/Log";
 import * as Notifications from "../Controllers/Notifications";
 import * as Settings from "../Controllers/Settings";
+import * as ClientSettings from "../Controllers/ClientSettings";
 import * as Subscriptions from "../Controllers/Subscriptions";
 import * as Telemetry from "../Controllers/Telemetry";
 import * as Tools from "../Controllers/Tools";
@@ -35,6 +36,9 @@ router.get("/settings", AuthGuest, Settings.GetSettings);
 router.put("/settings", AuthAdmin, Settings.SaveSettings);
 router.post("/settings/validate_url", AuthAdmin, Settings.ValidateExternalURL);
 router.get("/settings/debug", AuthAdmin, Settings.SetDebug);
+
+router.get("/clientsettings", AuthGuest, ClientSettings.GetClientSettings);
+router.put("/clientsettings", AuthAdmin, ClientSettings.SaveClientSettings);
 
 router.get("/channels", AuthGuest, Channels.ListChannels);
 router.post("/channels", AuthAdmin, Channels.AddChannel);

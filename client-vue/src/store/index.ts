@@ -1,16 +1,18 @@
-import { ApiJob, ApiLogLine, ApiChannels, ApiVods } from "@common/Api/Client";
-import { ApiResponse, ApiLoginResponse, ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiJobsResponse, ApiSettingsResponse, ApiVodResponse, ApiQuotas } from "@common/Api/Api";
-import axios from "axios";
-import { defineStore } from "pinia";
-import { ClientSettings, SidemenuShow } from "@/twitchautomator";
+import { BaseVODChapter } from "@/core/Providers/Base/BaseVODChapter";
 import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
-import { defaultConfig, defaultSidemenuShow } from "@/defs";
+import { TwitchVODChapter } from "@/core/Providers/Twitch/TwitchVODChapter";
 import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
 import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
-import { TwitchVODChapter } from "@/core/Providers/Twitch/TwitchVODChapter";
-import { BaseVODChapter } from "@/core/Providers/Base/BaseVODChapter";
+import { defaultSidemenuShow } from "@/defs";
+import { SidemenuShow } from "@/twitchautomator";
+import { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiJobsResponse, ApiLoginResponse, ApiQuotas, ApiResponse, ApiSettingsResponse, ApiVodResponse } from "@common/Api/Api";
+import { ApiChannels, ApiJob, ApiLogLine, ApiVods } from "@common/Api/Client";
+import { defaultConfig } from "@common/ClientSettings";
+import { ClientSettings } from "@common/ClientSettings.d";
+import axios from "axios";
 import { parseJSON } from "date-fns";
+import { defineStore } from "pinia";
 
 export type ChannelTypes = TwitchChannel | YouTubeChannel;
 export type VODTypes = TwitchVOD | YouTubeVOD;
@@ -558,6 +560,12 @@ export const useStore = defineStore("twitchAutomator", {
             const channel = this.streamerList.find(c => c.uuid === uuid);
             if (!channel) return "";
             return channel.internalName;
+        },
+        validateClientConfig(config: any ): boolean {
+            if (!config) return false;
+            if (typeof config !== "object") return false;
+            if (config === null) return false;
+            return true; // TODO: actual validation from the same function the server uses
         }
     },
     getters: {

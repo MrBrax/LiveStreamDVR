@@ -113,4 +113,5 @@ export const BaseConfigPath = {
     streamerYouTubeCache: path.join(BaseConfigDataFolder.cache, "streamers_youtube.json"),
     keyvalue: path.join(BaseConfigDataFolder.keyvalue, "kv.json"),
     notifications: path.join(BaseConfigDataFolder.config, "notifications.json"),
+    clientSettings: path.join(BaseConfigDataFolder.config, "client_settings.json"),
 };
