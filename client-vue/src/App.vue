@@ -30,10 +30,12 @@
                 <div class="container">
                     <section class="section">
                         <div class="section-content">
-                            <span class="icon"><fa
-                                icon="sync"
-                                spin
-                            /></span> {{ t("messages.loading") }}
+                            <div class="loading">
+                                <span class="icon"><fa
+                                    icon="sync"
+                                    spin
+                                /></span> {{ t("messages.loading") }}
+                            </div>
                         </div>
                     </section>
                 </div>

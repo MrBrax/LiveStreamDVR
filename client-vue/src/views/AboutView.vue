@@ -146,7 +146,10 @@
                         </button>
                     </p>
                     <!--<button class="button is-confirm is-small" @click="unsubscribeAll" :disabled="subscriptionsLoading">Unsubscribe</button>-->
-                    <span v-if="subscriptionsLoading">
+                    <div
+                        v-if="subscriptionsLoading"
+                        class="loading"
+                    >
                         <span class="icon">
                             <font-awesome-icon
                                 icon="spinner"
@@ -154,7 +157,7 @@
                             />
                         </span>
                         {{ t("messages.loading") }}
-                    </span>
+                    </div>
                     <table class="table is-fullwidth is-striped">
                         <thead>
                             <tr>
@@ -252,10 +255,12 @@
                 v-else
                 class="section-content"
             >
-                <span class="icon"><fa
-                    icon="sync"
-                    spin
-                /></span> {{ t("messages.loading") }}
+                <div class="loading">
+                    <span class="icon"><fa
+                        icon="sync"
+                        spin
+                    /></span> {{ t("messages.loading") }}
+                </div>
             </div>
         </section>
     </div>

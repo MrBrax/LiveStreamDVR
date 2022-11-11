@@ -19,7 +19,7 @@
                 </li>
             </ul>
             <hr>
-            <div v-if="formChannel">
+            <div v-if="formChannel && !loading">
                 <h1>{{ store.channelUUIDToInternalName(formChannel.uuid) || formChannel.login || "<<unknown>>" }}</h1>
                 <channel-update-form
                     :key="formChannel.uuid"
@@ -27,15 +27,26 @@
                     @form-success="updateAll"
                 />
             </div>
-            <span v-if="(!formChannels || formChannels.length == 0) && store.authElement">
+            <span v-if="(!formChannels || formChannels.length == 0) && store.authElement && !loading">
                 No channels added. Use the tab "New channel" above.</span>
             <div
-                v-else-if="!store.authElement"
+                v-else-if="!store.authElement && !loading"
                 class="section-content"
             >
                 <span class="icon">
                     <font-awesome-icon icon="sign-in-alt" />
                 </span> {{ t("messages.login") }}
+            </div>
+            <div
+                v-else-if="loading"
+                class="loading"
+            >
+                <span class="icon">
+                    <font-awesome-icon
+                        icon="spinner"
+                        spin
+                    />
+                </span> {{ t("messages.loading") }}
             </div>
         </div>
     </section>
@@ -45,7 +56,7 @@
 import ChannelUpdateForm from "@/components/forms/ChannelUpdateForm.vue";
 import type { ApiSettingsResponse, ApiErrorResponse } from "@common/Api/Api";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faUser, faCalendarCheck, faStar, faBell, faUserCog, faDatabase } from "@fortawesome/free-solid-svg-icons";
+import { faUser, faCalendarCheck, faStar, faBell, faUserCog, faDatabase, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { faTwitch, faYoutube } from "@fortawesome/free-brands-svg-icons";
 import { useStore } from "@/store";
 import { ApiChannelConfig } from "@common/Api/Client";
@@ -53,7 +64,7 @@ import { useI18n } from "vue-i18n";
 import axios from "axios";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-library.add(faUser, faCalendarCheck, faStar, faBell, faUserCog, faDatabase, faTwitch, faYoutube);
+library.add(faUser, faCalendarCheck, faStar, faBell, faUserCog, faDatabase, faTwitch, faYoutube, faSpinner);
 
 const store = useStore();
 const { t } = useI18n();

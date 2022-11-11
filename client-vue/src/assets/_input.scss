@@ -33,13 +33,6 @@
         outline: none;
     }
 
-    &:read-only {
-        background-color: var(--input-readonly-background-color);
-        &:hover {
-            border-color: var(--input-border-color);
-        }
-    }
-
     &[type="text"],
     &[type="number"],
     &[type="password"] {
@@ -80,8 +73,16 @@
     }
 
     &.textarea {
-        font-family: inherit;
+        font-family:x inherit;
         width: 100%;
+    }
+
+    &:read-only, &[readonly], &[disabled] {
+        background-color: var(--input-readonly-background-color);
+        box-shadow: none;
+        &:hover {
+            border-color: var(--input-border-color);
+        }
     }
 
     /*

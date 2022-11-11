@@ -231,7 +231,10 @@
             </button>
         </div>
     </form>
-    <div v-if="loading">
+    <div
+        v-if="loading"
+        class="loading"
+    >
         <span class="icon"><fa
             icon="sync"
             spin

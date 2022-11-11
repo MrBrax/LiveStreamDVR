@@ -92,21 +92,22 @@ export default defineConfig({
     globals: true,
     environment: 'jsdom',
   },
-  optimizeDeps: {
-    include: [
-      'vue',
-      'vue-router',
-      'pinia',
-      // 'vue-axios',
-    ],
-    link: [
-      'vue',
-      'vue-router',
-      'pinia',
-      // 'vue-axios',
-    ],
-  },
+  // optimizeDeps: {
+  //   include: [
+  //     'vue',
+  //     'vue-router',
+  //     'pinia',
+  //     // 'vue-axios',
+  //   ],
+  //   link: [
+  //     'vue',
+  //     'vue-router',
+  //     'pinia',
+  //     // 'vue-axios',
+  //   ],
+  // },
   build: {
+    sourcemap: true,
     rollupOptions: {
       output: {
         manualChunks: {
@@ -139,6 +140,7 @@ export default defineConfig({
             './src/views/Settings/SettingsFavourites.vue',
             './src/views/Settings/SettingsKeyvalue.vue',
             './src/views/Settings/SettingsNotifications.vue',
+            './src/views/Settings/SettingsTips.vue',
           ],
         }
       }

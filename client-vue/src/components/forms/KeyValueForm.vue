@@ -110,7 +110,10 @@
             </div>
         </form>
     </div>
-    <div v-if="initialLoad">
+    <div
+        v-if="initialLoad"
+        class="loading"
+    >
         <span class="icon"><fa
             icon="sync"
             spin

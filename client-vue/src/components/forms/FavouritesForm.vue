@@ -1,5 +1,6 @@
 <template>
     <form
+        v-if="!loading"
         method="POST"
         enctype="multipart/form-data"
         action="#"
@@ -81,6 +82,15 @@
             </div>
         </div>
     </form>
+    <div
+        v-else
+        class="loading"
+    >
+        <span class="icon"><fa
+            icon="sync"
+            spin
+        /></span> {{ t("messages.loading") }}
+    </div>
 </template>
 
 <script lang="ts" setup>
@@ -153,6 +163,7 @@ function submitForm(event: Event) {
 
 function fetchData() {
     console.debug("FavouritesForm fetchData");
+    loading.value = true;
     axios.all([
         axios.get<ApiGamesResponse>(`api/v0/games`)
         .then((response) => {
@@ -163,8 +174,6 @@ function fetchData() {
         })
         .catch((err) => {
             console.error("settings fetch error", err.response);
-        }).finally(() => {
-            loading.value = false;
         }),
         axios
             .get<ApiSettingsResponse>(`api/v0/settings`)

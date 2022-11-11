@@ -340,6 +340,15 @@
                     </tr>
                 </tbody>
             </table>
+            <div
+                v-if="loadingHistory"
+                class="loading"
+            >
+                <span class="icon">
+                    <font-awesome-icon icon="spinner" spin />
+                </span>
+                {{ t("messages.loading") }}
+            </div>
             <div v-if="history.length">
                 <strong>Average start time:</strong> {{ averageOnlineStartTime }}
             </div>
@@ -390,6 +399,7 @@ const formData = ref({ // ref or reactive?
     download_vod_at_end_quality: "best",
 });
 const history = ref<HistoryEntry[]>([]);
+const loadingHistory = ref<boolean>(false);
 
 // computed
 const formStatusClass = computed((): Record<string, boolean> => {
@@ -607,6 +617,7 @@ function deleteAllVods() {
 }
 
 function fetchHistory() {
+    loadingHistory.value = true;
     axios
         .get<ApiResponse>(`/api/v0/channels/${props.channel.uuid}/history`)
         .then((response) => {
@@ -619,6 +630,8 @@ function fetchHistory() {
             if (err.response.data && err.response.data.message) {
                 alert(err.response.data.message);
             }
+        }).finally(() => {
+            loadingHistory.value = false;
         });
 }
 

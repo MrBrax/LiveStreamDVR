@@ -26,7 +26,7 @@
                             <span
                                 class="githash"
                                 @click="copyDebugStuff"
-                            >{{ store.serverGitHash?.substring(0, 6) }}/{{ clientHash.substring(0, 6) }}</span>
+                            >{{ debugVersionString }}</span>
                         </template>
                         <template v-else>
                             <span>S{{ store.version }}</span>/<span :class="{ dev: isDev }">C{{ clientVersion }}</span>
@@ -241,6 +241,16 @@ const homepageLink = computed(() => {
 
 const isDev = computed(() => {
     return import.meta.env.DEV; // injected
+});
+
+const debugVersionString = computed(() => {
+    const sgh = store.serverGitHash?.substring(0, 6);
+    const cgh = clientHash.substring(0, 6);
+    if (sgh === cgh) {
+        return sgh;
+    } else {
+        return `${sgh}/${cgh}`;
+    }
 });
 
 
@@ -505,6 +515,7 @@ function copyDebugStuff(e: Event) {
 .githash {
     font-weight: 100;
     font-size: 0.8rem;
+    font-family: 'Courier New', Courier, monospace;
     &:hover {
         color: #ff0;
     }
