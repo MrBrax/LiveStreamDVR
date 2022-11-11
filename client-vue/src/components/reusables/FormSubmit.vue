@@ -52,15 +52,23 @@ const formStatusIcon = computed(() => {
 .form-submit {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    // justify-content: space-between;
+    justify-content: flex-start;
+    align-items: stretch;
+    align-content: stretch;
     .form-status {
         flex-grow: 1;
-        // padding-left: 1em;
+        display: flex;
+        align-items: center;
+        
         background-color: #eee;
-        padding: 0.53em;
-        // border: 1px solid #ccc;
+        padding: 0.3rem 0.5rem;
+        
         margin-left: 0.5em;
         border-radius: 0.3em;
+        .icon {
+            margin-right: 0.3em;
+        }
         &.is-success {
             background-color: #e6ffed;
             border-color: #a3f7bf;
