@@ -1332,6 +1332,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@fontsource/montserrat@npm:^4.5.13":
+  version: 4.5.13
+  resolution: "@fontsource/montserrat@npm:4.5.13"
+  checksum: 89bbb4d82ee54ba66538c266a44076603963e5dd9ce514a9ffb664b69902fbe521fe15e2d45d13767032ac5962535a2205ba70b3b479c71de249d6d6e9521d75
+  languageName: node
+  linkType: hard
+
 "@fontsource/poppins@npm:^4.5.10":
   version: 4.5.10
   resolution: "@fontsource/poppins@npm:4.5.10"
@@ -4810,6 +4817,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "livestreamdvr-client@workspace:."
   dependencies:
+    "@fontsource/montserrat": ^4.5.13
     "@fontsource/poppins": ^4.5.10
     "@fontsource/roboto": ^4.5.8
     "@fontsource/roboto-condensed": ^4.5.9

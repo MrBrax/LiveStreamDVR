@@ -28,6 +28,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         [null, {\
           "packageLocation": "./",\
           "packageDependencies": [\
+            ["@fontsource/montserrat", "npm:4.5.13"],\
             ["@fontsource/poppins", "npm:4.5.10"],\
             ["@fontsource/roboto", "npm:4.5.8"],\
             ["@fontsource/roboto-condensed", "npm:4.5.9"],\
@@ -2299,6 +2300,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["js-yaml", "npm:4.1.0"],\
             ["minimatch", "npm:3.1.2"],\
             ["strip-json-comments", "npm:3.1.1"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["@fontsource/montserrat", [\
+        ["npm:4.5.13", {\
+          "packageLocation": "./.yarn/cache/@fontsource-montserrat-npm-4.5.13-e7019edb0d-89bbb4d82e.zip/node_modules/@fontsource/montserrat/",\
+          "packageDependencies": [\
+            ["@fontsource/montserrat", "npm:4.5.13"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -6540,6 +6550,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./",\
           "packageDependencies": [\
             ["livestreamdvr-client", "workspace:."],\
+            ["@fontsource/montserrat", "npm:4.5.13"],\
             ["@fontsource/poppins", "npm:4.5.10"],\
             ["@fontsource/roboto", "npm:4.5.8"],\
             ["@fontsource/roboto-condensed", "npm:4.5.9"],\

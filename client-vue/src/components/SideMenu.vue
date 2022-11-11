@@ -18,7 +18,7 @@
                         :alt="store.cfg('app_name', 'TA') ?? 'TA'"
                         aria-hidden="true"
                     >
-                    <span
+                    <h1
                         class="title"
                         :title="verboseVersion"
                     >
@@ -36,7 +36,7 @@
                             class="debug-mode"
                             title="Debug"
                         >👽</span>
-                    </span>
+                    </h1>
                 </router-link>
             </div>
         </div>
@@ -421,6 +421,14 @@ function copyDebugStuff(e: Event) {
     &.title {
         font-weight: 700;
 
+        h1 {
+            margin: 0;
+            font-size: 1em;
+            display: inline-block;
+            letter-spacing: -0.05em;
+            transition: all 0.2s ease-in-out;
+        }
+
         .link {
             color: #fff;
             padding: 13px 8px;
@@ -431,8 +439,22 @@ function copyDebugStuff(e: Event) {
         }
 
         // .favicon { animation: 1s speeen linear; }
-        &:hover .favicon {
-            animation: 1s speen linear infinite;
+        &:hover {
+            .favicon {
+                animation: 1s speen linear infinite;
+            }
+
+            h1 {
+                text-shadow: 0 0 10px #fff, 0 0 5px #1598fd;
+                letter-spacing: -0.02em;
+            }
+
+            .link {
+                background-image: url(../assets/3D_TV_static.gif);
+                background-size: cover;
+                background-position: 0 200px;
+                animation: 20s scrollbg ease-in-out infinite;
+            }
         }
 
         span.dev {
@@ -571,6 +593,18 @@ function copyDebugStuff(e: Event) {
 
         }
 
+    }
+}
+
+@keyframes scrollbg {
+    0% {
+        background-position: 0 150px;
+    }
+    50% {
+        background-position: 0 220px;
+    }
+    100% {
+        background-position: 0 150px;
     }
 }
 

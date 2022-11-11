@@ -7,6 +7,8 @@
 @import "@fontsource/poppins";
 @import "@fontsource/poppins/600";
 
+@import "@fontsource/montserrat/latin.css";
+
 // @import "bulma/sass/utilities/_all";
 // @import "bulma/sass/elements/button";
 // @import "bulma/sass/forms/_all";
@@ -39,6 +41,7 @@ h3 {
     padding: 0;
     margin: 0 0 10px 0;
     color: var(--header-color);
+    font-family: var(--header-font);
 }
 
 h1 {

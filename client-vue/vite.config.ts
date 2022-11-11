@@ -14,9 +14,9 @@ process.env.VITE_APP_GIT_HASH = gitDescribeSync(__dirname, {
 
 // https://vitejs.dev/config/
 export default defineConfig({
-    define: {
-        '__VUE_OPTIONS_API__': false,
-    },
+  define: {
+    '__VUE_OPTIONS_API__': false,
+  },
   plugins: [
     vue(),
     VitePWA({
@@ -107,7 +107,7 @@ export default defineConfig({
   //   ],
   // },
   build: {
-    sourcemap: true,
+    // sourcemap: true,
     rollupOptions: {
       output: {
         manualChunks: {
