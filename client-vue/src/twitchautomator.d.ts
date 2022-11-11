@@ -15,4 +15,6 @@ export type SidemenuShow = {
     vod_title: boolean;
 };
 
+export type FormStatus = "IDLE" | "LOADING" | "ERROR" | "OK";
+
 export const phpDateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000

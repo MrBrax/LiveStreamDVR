@@ -308,7 +308,10 @@
         </div>
 
         <p><em>{{ t('forms.channel.live-channels-warning') }}</em></p>
-        <div class="field form-submit">
+        <FormSubmit
+            :form-status="formStatus"
+            :form-status-text="formStatusText"
+        >
             <div class="control">
                 <button
                     class="button is-confirm"
@@ -318,14 +321,12 @@
                     <span>{{ t('forms.channel.add-channel') }}</span>
                 </button>
             </div>
-            <div :class="formStatusClass">
-                {{ formStatusText }}
-            </div>
-        </div>
+        </FormSubmit>
     </form>
 </template>
 
 <script lang="ts" setup>
+import FormSubmit from "@/components/reusables/FormSubmit.vue";
 import { computed, ref } from "vue";
 import { VideoQualityArray } from "../../../../common/Defs";
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -335,6 +336,7 @@ import { UserData } from "@common/User";
 import { VideoQuality } from "@common/Config";
 import { ApiResponse, ApiErrorResponse, IApiResponse } from "@common/Api/Api";
 import { useI18n } from "vue-i18n";
+import { FormStatus } from "@/twitchautomator";
 library.add(faUserPlus);
 
 // emit
@@ -345,7 +347,7 @@ const { t } = useI18n();
         
 // data
 const formStatusText = ref<string>("Ready");
-const formStatus = ref<string>("");
+const formStatus = ref<FormStatus>("IDLE");
 const formData = ref({
     provider: "twitch",
     login: "",
@@ -369,14 +371,6 @@ const fetchingUrl = ref<boolean>(false);
 const login = ref<HTMLInputElement | null>();
 
 // computed
-const formStatusClass = computed((): Record<string, boolean> => {
-    return {
-        "form-status": true,
-        "is-error": formStatus.value == "ERROR",
-        "is-success": formStatus.value == "OK",
-    };
-});
-
 const qualityWarning = computed((): boolean => {
     return formData.value.quality.includes("best") || formData.value.quality.includes("worst");
 });
@@ -387,7 +381,7 @@ function submitForm(event: Event) {
     console.log("submitForm", formData.value);
 
     formStatusText.value = t("messages.loading");
-    formStatus.value = "";
+    formStatus.value = "LOADING";
 
     axios
         .post<ApiResponse>(`/api/v0/channels`, formData.value)

@@ -207,17 +207,22 @@
             </div>
         </details>
 
-        <div class="control">
-            <hr>
-            <button
-                class="button is-confirm"
-                type="submit"
-            >
-                <span class="icon"><font-awesome-icon icon="save" /></span>
-                <span>{{ t('buttons.save') }}</span>
-            </button>
-            <span :class="formStatusClass">{{ formStatusText }}</span>
-        </div>
+        <br>
+
+        <FormSubmit
+            :form-status="formStatus"
+            :form-status-text="formStatusText"
+        >
+            <div class="control">
+                <button
+                    class="button is-confirm"
+                    type="submit"
+                >
+                    <span class="icon"><font-awesome-icon icon="save" /></span>
+                    <span>{{ t('buttons.save') }}</span>
+                </button>
+            </div>
+        </FormSubmit>
 
         <div class="control">
             <hr>
@@ -256,10 +261,12 @@ import { computed, onMounted, ref } from "vue";
 import { formatString } from "@common/Format";
 import YoutubeAuth from "@/components/YoutubeAuth.vue";
 import TwitchAuth from "@/components/TwitchAuth.vue";
+import FormSubmit from "@/components/reusables/FormSubmit.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGlobe, faSave } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from "vue-i18n";
+import { FormStatus } from "@/twitchautomator";
 library.add(faGlobe, faSave);
 
 interface SettingsGroup {
@@ -276,7 +283,7 @@ const { t, te } = useI18n();
 
 // data
 const formStatusText = ref<string>("Ready");
-const formStatus = ref<string>("");
+const formStatus = ref<FormStatus>("IDLE");
 const formData = ref<{ config: Record<string, string | number | boolean> }>({ config: {} });
 const settingsFields = ref<SettingField<string | number | boolean>[]>([]);
 const loading = ref<boolean>(false);
@@ -308,14 +315,6 @@ const settingsGroups = computed((): SettingsGroup[] => {
         });
     });
     */
-});
-
-const formStatusClass = computed((): Record<string, boolean> => {
-    return {
-        "form-status": true,
-        "is-error": formStatus.value == "ERROR",
-        "is-success": formStatus.value == "OK",
-    };
 });
   
 /*
@@ -373,7 +372,7 @@ function fetchData(): void {
 function submitForm(event: Event) {
 
     formStatusText.value = t("messages.loading");
-    formStatus.value = "";
+    formStatus.value = "LOADING";
 
     axios
         .put<ApiResponse>(`/api/v0/settings`, formData.value)

@@ -67,7 +67,10 @@
                 {{ t('forms.favourites.display-as-grid') }}
             </label>
         </div>
-        <div class="field form-submit">
+        <FormSubmit
+            :form-status="formStatus"
+            :form-status-text="formStatusText"
+        >
             <div class="control">
                 <button
                     class="button is-confirm"
@@ -77,10 +80,7 @@
                     <span>{{ t('buttons.save-favourites') }}</span>
                 </button>
             </div>
-            <div :class="formStatusClass">
-                {{ formStatusText }}
-            </div>
-        </div>
+        </FormSubmit>
     </form>
     <div
         v-else
@@ -94,6 +94,7 @@
 </template>
 
 <script lang="ts" setup>
+import FormSubmit from "@/components/reusables/FormSubmit.vue";
 import { useStore } from "@/store";
 import { ApiGamesResponse, ApiSettingsResponse, ApiResponse } from "@common/Api/Api";
 import { ApiGame } from "@common/Api/Client";
@@ -101,6 +102,7 @@ import axios from "axios";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { formatDate } from "@/mixins/newhelpers";
+import { FormStatus } from "@/twitchautomator";
 
 // emit
 const emit = defineEmits(["formSuccess"]);
@@ -112,19 +114,12 @@ const { t } = useI18n();
 // data
 const loading = ref<boolean>(false);
 const formStatusText = ref<string>("Ready");
-const formStatus = ref<string>("");
+const formStatus = ref<FormStatus>("IDLE");
 const formData = ref<{ games: string[] }>({ games: [] });
 const favouritesData = ref<string[]>([]);
 const gamesData = ref<Record<string, ApiGame>>({});
 const isGrid = ref<boolean>(false);
 
-const formStatusClass = computed((): Record<string, boolean> => {
-    return {
-        "form-status": true,
-        "is-error": formStatus.value == "ERROR",
-        "is-success": formStatus.value == "OK",
-    };
-});
 
 const sortedGames = computed((): ApiGame[] => {
     if (!gamesData.value) return [];
@@ -139,7 +134,7 @@ onMounted(() => {
     
 function submitForm(event: Event) {
     formStatusText.value = t("messages.loading");
-    formStatus.value = "";
+    formStatus.value = "LOADING";
 
     axios
         .put(`/api/v0/favourites`, formData.value)
@@ -155,6 +150,14 @@ function submitForm(event: Event) {
         })
         .catch((err) => {
             console.error("form error", err.response);
+            if (axios.isAxiosError(err)) {
+                const response = err.response;
+                if (response) {
+                    const json = response.data;
+                    formStatusText.value = json.message;
+                    formStatus.value = json.status;
+                }
+            }
         });
 
     event.preventDefault();

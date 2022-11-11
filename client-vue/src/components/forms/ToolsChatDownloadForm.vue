@@ -31,7 +31,10 @@
             </div>
         </div>
 
-        <div class="field form-submit">
+        <FormSubmit
+            :form-status="formStatus"
+            :form-status-text="formStatusText"
+        >
             <div class="control">
                 <button
                     class="button is-confirm"
@@ -41,10 +44,7 @@
                     <span>{{ t('buttons.execute') }}</span>
                 </button>
             </div>
-            <div :class="formStatusClass">
-                {{ formStatusText }}
-            </div>
-        </div>
+        </FormSubmit>
 
         <div
             v-if="fileLink"
@@ -56,11 +56,13 @@
 </template>
 
 <script lang="ts" setup>
+import FormSubmit from "@/components/reusables/FormSubmit.vue";
 import axios from "axios";
 import { ApiResponse } from "@common/Api/Api";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useStore } from "@/store";
+import { FormStatus } from "@/twitchautomator";
 
 // emit
 const emit = defineEmits(["formSuccess"]);
@@ -71,22 +73,13 @@ const { t, te } = useI18n();
 
 // data
 const formStatusText = ref<string>("Ready");
-const formStatus = ref<string>("");
+const formStatus = ref<FormStatus>("IDLE");
 const formData = ref<{ url: string, method: string }>({ url: "", method: "td" });
 const fileLink = ref<string>("");
 
-// computed
-const formStatusClass = computed((): Record<string, boolean> => {
-    return {
-        "form-status": true,
-        "is-error": formStatus.value == "ERROR",
-        "is-success": formStatus.value == "OK",
-    };
-});
-
 function submitForm(event: Event) {
     formStatusText.value = t("messages.loading");
-    formStatus.value = "";
+    formStatus.value = "LOADING";
 
     axios
         .post<ApiResponse>(`/api/v0/tools/chat_download`, formData.value)

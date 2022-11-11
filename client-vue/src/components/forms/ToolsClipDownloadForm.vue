@@ -34,7 +34,10 @@
             </div>
         </div>
 
-        <div class="field form-submit">
+        <FormSubmit
+            :form-status="formStatus"
+            :form-status-text="formStatusText"
+        >
             <div class="control">
                 <button
                     class="button is-confirm"
@@ -44,10 +47,7 @@
                     <span>{{ t('buttons.execute') }}</span>
                 </button>
             </div>
-            <div :class="formStatusClass">
-                {{ formStatusText }}
-            </div>
-        </div>
+        </FormSubmit>
 
         <div
             v-if="fileLink"
@@ -59,6 +59,7 @@
 </template>
 
 <script lang="ts" setup>
+import FormSubmit from "@/components/reusables/FormSubmit.vue";
 import { computed, reactive, ref } from "vue";
 import { VideoQualityArray } from "../../../../common/Defs";
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -66,31 +67,24 @@ import { faDownload } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from "vue-i18n";
 import axios from "axios";
 import { ApiResponse } from "@common/Api/Api";
+import { FormStatus } from "@/twitchautomator";
 library.add(faDownload);
 
 const emit = defineEmits(["formSuccess"]);
 const { t } = useI18n();
 
-const formStatusText = ref("Ready");
-const formStatus = ref("");
+const formStatusText = ref<string>("Ready");
+const formStatus = ref<FormStatus>("IDLE");
 const formData = reactive({
     url: "",
     quality: "best",
 });
-const fileLink = ref("");
-
-const formStatusClass = computed((): Record<string, boolean> => {
-    return {
-        "form-status": true,
-        "is-error": formStatus.value == "ERROR",
-        "is-success": formStatus.value == "OK",
-    };
-});
+const fileLink = ref<string>("");
 
     
 function submitForm(event: Event) {
     formStatusText.value = t("messages.loading");
-    formStatus.value = "";
+    formStatus.value = "LOADING";
 
     axios
         .post<ApiResponse>(`/api/v0/tools/clip_download`, formData)
