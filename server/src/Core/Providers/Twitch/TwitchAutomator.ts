@@ -364,7 +364,7 @@ export class TwitchAutomator extends BaseAutomator {
 
         if (fs.existsSync(path.join(BaseConfigDataFolder.config, "twitch_oauth.txt"))) {
             const token = fs.readFileSync(path.join(BaseConfigDataFolder.config, "twitch_oauth.txt"));
-            cmd.push(`--twitch-api-header=Authentication=OAuth ${token}`);
+            cmd.push(`--twitch-api-header=Authorization=OAuth ${token}`);
         }
 
         // enable low latency mode, probably not a good idea without testing
