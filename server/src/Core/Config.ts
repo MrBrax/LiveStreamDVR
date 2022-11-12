@@ -121,6 +121,7 @@ export class Config {
 
         { "key": "capture.viewercount", "group": "Capture", "text": "Capture viewercount", "type": "boolean", "default": false, "help": "Capture viewercount" },
         { "key": "capture.killendedstream", "group": "Capture", "text": "Kill ended stream", "type": "boolean", "default": false, "help": "Kill the capture process when the notification is received that the stream has ended" },
+        { "key": "capture.fallbackcapture", "group": "Capture", "text": "Fallback capture", "type": "boolean", "default": false, "help": "Capture to saved_vods if any of the capture methods fail" },
 
 
         // { "key": "sub_lease", "group": "Advanced", "text": "Subscription lease", "type": "number", "default": 604800 },

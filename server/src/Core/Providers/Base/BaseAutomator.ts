@@ -511,6 +511,7 @@ export class BaseAutomator {
                 "automator.download",
                 `Stream already capturing to ${meta.basename} from ${data_username}, but reached download function regardless!`
             );
+            this.fallbackCapture();
             return false;
         }
 
@@ -548,6 +549,7 @@ export class BaseAutomator {
 
         if (TwitchVOD.hasVod(basename)) {
             Log.logAdvanced(Log.Level.ERROR, "automator.download", `Cancel download of ${basename}, vod already exists`);
+            this.fallbackCapture();
             return false;
         }
 
@@ -558,7 +560,7 @@ export class BaseAutomator {
             Log.logAdvanced(Log.Level.ERROR, "automator.download", `Failed to create vod for ${basename}: ${(error as Error).message}`);
             return false;
         }
-        
+
 
         this.vod.channel_uuid = this.channel.uuid; // to be sure
 
@@ -797,6 +799,166 @@ export class BaseAutomator {
         return [];
     }
 
+    private chunks_missing = 0;
+    public captureTicker(source: "stdout" | "stderr", raw_data: Buffer) {
+
+        const basename = this.vodBasenameTemplate();
+
+        const data = raw_data.toString();
+
+        if (data.includes("bad interpreter: No such file or directory")) {
+            Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", "Fatal error with streamlink, please check logs");
+        }
+
+        // get stream resolution
+        const res_match = data.match(/stream:\s([0-9_a-z]+)\s/);
+        if (res_match) {
+            this.stream_resolution = res_match[1] as VideoQuality;
+            if (this.vod) this.vod.stream_resolution = this.stream_resolution;
+            Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", `Stream resolution for ${basename}: ${this.stream_resolution}`);
+
+            if (this.channel && this.channel.quality) {
+                if (this.channel.quality.includes("best")) {
+                    if (this.stream_resolution !== "1080p60") { // considered best as of 2022
+                        Log.logAdvanced(Log.Level.WARNING, "automator.captureVideo", `Stream resolution ${this.stream_resolution} assumed to not be in channel quality list`);
+                    }
+                } else if (this.channel.quality.includes("worst")) {
+                    if (this.stream_resolution !== "140p") { // considered worst
+                        Log.logAdvanced(Log.Level.WARNING, "automator.captureVideo", `Stream resolution ${this.stream_resolution} assumed to not be in channel quality list`);
+                    }
+                } else {
+                    if (!this.channel.quality.includes(this.stream_resolution)) {
+                        Log.logAdvanced(Log.Level.WARNING, "automator.captureVideo", `Stream resolution ${this.stream_resolution} not in channel quality list`);
+                    }
+                }
+            }
+
+        }
+
+        // stream stop
+        if (data.includes("404 Client Error")) {
+            Log.logAdvanced(Log.Level.WARNING, "automator.captureVideo", `Chunk 404'd for ${basename} (${this.chunks_missing}/100)!`);
+            this.chunks_missing++;
+            if (this.chunks_missing >= 100) {
+                Log.logAdvanced(Log.Level.WARNING, "automator.captureVideo", `Too many 404'd chunks for ${basename}, stopping!`);
+                this.captureJob?.kill();
+            }
+
+            if (
+                KeyValue.getInstance().getBool(`${this.broadcaster_user_login}.offline`) &&
+                Config.getInstance().cfg("capture.killendedstream")
+            ) {
+                Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", `Stream offline for ${basename}, stopping instead of waiting for 404s!`);
+                this.captureJob?.kill();
+            }
+        }
+
+        if (data.includes("Failed to reload playlist")) {
+            Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Failed to reload playlist for ${basename}!`);
+        }
+
+        if (data.includes("Failed to fetch segment")) {
+            Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Failed to fetch segment for ${basename}!`);
+        }
+
+        if (data.includes("Waiting for streams")) {
+            Log.logAdvanced(Log.Level.WARNING, "automator.captureVideo", `No streams found for ${basename}, retrying...`);
+        }
+
+        // stream error
+        if (data.includes("403 Client Error")) {
+            Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Chunk 403'd for ${basename}! Private stream?`);
+        }
+
+        // ad removal
+        if (data.includes("Will skip ad segments")) {
+            Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", `Capturing of ${basename}, will try to remove ads!`);
+            // current_ad_start = new Date();
+        }
+
+        if (data.includes("Writing output to")) {
+            Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", "Streamlink now writing output to container.");
+            if (this.vod) {
+                this.vod.capture_started2 = new Date();
+                this.vod.broadcastUpdate();
+            }
+        }
+
+        if (data.includes("Read timeout, exiting")) {
+            Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Read timeout, exiting for ${basename}!`);
+        }
+
+        if (data.includes("Stream ended")) {
+            Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", `Stream ended for ${basename}!`);
+        }
+
+        if (data.includes("Closing currently open stream...")) {
+            Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", `Closing currently open stream for ${basename}!`);
+        }
+
+        if (data.includes("error: The specified stream(s)")) {
+            Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Capturing of ${basename} failed, selected quality not available!`);
+        }
+
+        if (data.includes("error: No playable streams found on this URL:")) {
+            Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Capturing of ${basename} failed, no streams available!`);
+        }
+
+
+    }
+
+    public captureStreamlinkArguments(stream_url: string): string[] {
+
+        const cmd = [];
+
+        // How many segments from the end to start live HLS streams on.
+        cmd.push("--hls-live-edge", "99999");
+
+        // timeout due to ads
+        cmd.push("--hls-timeout", Config.getInstance().cfg("hls_timeout", 120).toString());
+
+        // timeout due to ads
+        cmd.push("--hls-segment-timeout", Config.getInstance().cfg("hls_timeout", 120).toString());
+
+        // The size of the thread pool used to download HLS segments.
+        cmd.push("--hls-segment-threads", "5");
+
+        // Output container format
+        cmd.push("--ffmpeg-fout", "mpegts"); // default is apparently matroska?
+
+        cmd.push(...this.providerArgs());
+
+        // Retry fetching the list of available streams until streams are found 
+        cmd.push("--retry-streams", "10");
+
+        // stop retrying the fetch after COUNT retry attempt(s).
+        cmd.push("--retry-max", "5");
+
+        // logging level
+        if (Config.debug) {
+            cmd.push("--loglevel", "debug");
+        } else if (Config.getInstance().cfg("app_verbose", false)) {
+            cmd.push("--loglevel", "info");
+        }
+
+        // output file
+        cmd.push("-o", this.capture_filename);
+
+        // twitch url
+        cmd.push("--url", stream_url);
+
+        // twitch quality
+        cmd.push("--default-stream");
+        if (this.channel && this.channel.quality) {
+            cmd.push(this.channel.quality.join(","));
+        } else {
+            cmd.push("best");
+        }
+
+        return cmd;
+
+    }
+
     /**
      * Create process and capture video
      * @throws
@@ -824,51 +986,7 @@ export class BaseAutomator {
                 return;
             }
 
-            const cmd: string[] = [];
-
-            // How many segments from the end to start live HLS streams on.
-            cmd.push("--hls-live-edge", "99999");
-
-            // timeout due to ads
-            cmd.push("--hls-timeout", Config.getInstance().cfg("hls_timeout", 120).toString());
-
-            // timeout due to ads
-            cmd.push("--hls-segment-timeout", Config.getInstance().cfg("hls_timeout", 120).toString());
-
-            // The size of the thread pool used to download HLS segments.
-            cmd.push("--hls-segment-threads", "5");
-
-            // Output container format
-            cmd.push("--ffmpeg-fout", "mpegts"); // default is apparently matroska?
-
-            cmd.push(...this.providerArgs());
-
-            // Retry fetching the list of available streams until streams are found 
-            cmd.push("--retry-streams", "10");
-
-            // stop retrying the fetch after COUNT retry attempt(s).
-            cmd.push("--retry-max", "5");
-
-            // logging level
-            if (Config.debug) {
-                cmd.push("--loglevel", "debug");
-            } else if (Config.getInstance().cfg("app_verbose", false)) {
-                cmd.push("--loglevel", "info");
-            }
-
-            // output file
-            cmd.push("-o", this.capture_filename);
-
-            // twitch url
-            cmd.push("--url", stream_url);
-
-            // twitch quality
-            cmd.push("--default-stream");
-            if (this.channel && this.channel.quality) {
-                cmd.push(this.channel.quality.join(","));
-            } else {
-                cmd.push("best");
-            }
+            const cmd = this.captureStreamlinkArguments(stream_url);
 
             this.vod.capture_started = new Date();
             this.vod.saveJSON("dt_capture_started set");
@@ -959,116 +1077,11 @@ export class BaseAutomator {
 
             });
 
-            let chunks_missing = 0;
-            // let current_ad_start = null;
-
-            const ticker = (source: "stdout" | "stderr", raw_data: Buffer) => {
-
-                const data = raw_data.toString();
-
-                if (data.includes("bad interpreter: No such file or directory")) {
-                    Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", "Fatal error with streamlink, please check logs");
-                }
-
-                // get stream resolution
-                const res_match = data.match(/stream:\s([0-9_a-z]+)\s/);
-                if (res_match) {
-                    this.stream_resolution = res_match[1] as VideoQuality;
-                    if (this.vod) this.vod.stream_resolution = this.stream_resolution;
-                    Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", `Stream resolution for ${basename}: ${this.stream_resolution}`);
-
-                    if (this.channel && this.channel.quality) {
-                        if (this.channel.quality.includes("best")) {
-                            if (this.stream_resolution !== "1080p60") { // considered best as of 2022
-                                Log.logAdvanced(Log.Level.WARNING, "automator.captureVideo", `Stream resolution ${this.stream_resolution} assumed to not be in channel quality list`);
-                            }
-                        } else if (this.channel.quality.includes("worst")) {
-                            if (this.stream_resolution !== "140p") { // considered worst
-                                Log.logAdvanced(Log.Level.WARNING, "automator.captureVideo", `Stream resolution ${this.stream_resolution} assumed to not be in channel quality list`);
-                            }
-                        } else {
-                            if (!this.channel.quality.includes(this.stream_resolution)) {
-                                Log.logAdvanced(Log.Level.WARNING, "automator.captureVideo", `Stream resolution ${this.stream_resolution} not in channel quality list`);
-                            }
-                        }
-                    }
-
-                }
-
-                // stream stop
-                if (data.includes("404 Client Error")) {
-                    Log.logAdvanced(Log.Level.WARNING, "automator.captureVideo", `Chunk 404'd for ${basename} (${chunks_missing}/100)!`);
-                    chunks_missing++;
-                    if (chunks_missing >= 100) {
-                        Log.logAdvanced(Log.Level.WARNING, "automator.captureVideo", `Too many 404'd chunks for ${basename}, stopping!`);
-                        this.captureJob?.kill();
-                    }
-
-                    if (
-                        KeyValue.getInstance().getBool(`${this.broadcaster_user_login}.offline`) &&
-                        Config.getInstance().cfg("capture.killendedstream")
-                    ) {
-                        Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", `Stream offline for ${basename}, stopping instead of waiting for 404s!`);
-                        this.captureJob?.kill();
-                    }
-                }
-
-                if (data.includes("Failed to reload playlist")) {
-                    Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Failed to reload playlist for ${basename}!`);
-                }
-
-                if (data.includes("Failed to fetch segment")) {
-                    Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Failed to fetch segment for ${basename}!`);
-                }
-
-                if (data.includes("Waiting for streams")) {
-                    Log.logAdvanced(Log.Level.WARNING, "automator.captureVideo", `No streams found for ${basename}, retrying...`);
-                }
-
-                // stream error
-                if (data.includes("403 Client Error")) {
-                    Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Chunk 403'd for ${basename}! Private stream?`);
-                }
-
-                // ad removal
-                if (data.includes("Will skip ad segments")) {
-                    Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", `Capturing of ${basename}, will try to remove ads!`);
-                    // current_ad_start = new Date();
-                }
-
-                if (data.includes("Writing output to")) {
-                    Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", "Streamlink now writing output to container.");
-                    if (this.vod) {
-                        this.vod.capture_started2 = new Date();
-                        this.vod.broadcastUpdate();
-                    }
-                }
-
-                if (data.includes("Read timeout, exiting")) {
-                    Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Read timeout, exiting for ${basename}!`);
-                }
-
-                if (data.includes("Stream ended")) {
-                    Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", `Stream ended for ${basename}!`);
-                }
-
-                if (data.includes("Closing currently open stream...")) {
-                    Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", `Closing currently open stream for ${basename}!`);
-                }
-
-                if (data.includes("error: The specified stream(s)")) {
-                    Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Capturing of ${basename} failed, selected quality not available!`);
-                }
-
-                if (data.includes("error: No playable streams found on this URL:")) {
-                    Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Capturing of ${basename} failed, no streams available!`);
-                }
-
-            };
+            this.chunks_missing = 0;
 
             // attach output to parsing
-            capture_process.stdout.on("data", (data) => { ticker("stdout", data); });
-            capture_process.stderr.on("data", (data) => { ticker("stderr", data); });
+            capture_process.stdout.on("data", (data) => { this.captureTicker("stdout", data); });
+            capture_process.stderr.on("data", (data) => { this.captureTicker("stderr", data); });
 
             // check for errors
             capture_process.on("error", (err) => {
@@ -1089,6 +1102,129 @@ export class BaseAutomator {
                 Webhook.dispatch("start_capture", {
                     "vod": vod,
                 });
+            });
+
+        });
+
+    }
+
+    /**
+     * Fallback capture for when you really really want to capture a VOD even if it's a duplicate or whatever
+     */
+    public fallbackCapture() {
+
+        if (!Config.getInstance().cfg("capture.fallbackcapture")) {
+            return;
+        }
+
+        return new Promise((resolve, reject) => {
+
+            const basename = `${this.getVodID()}_${format(new Date(), "yyyy-MM-dd_HH-mm-ss")}`;
+
+            const stream_url = this.streamURL();
+
+            const bin = Helper.path_streamlink();
+
+            const capture_filename = path.join(BaseConfigDataFolder.saved_vods, `${basename}.mp4`);
+
+            if (!bin) {
+                Log.logAdvanced(Log.Level.ERROR, "automator.fallbackCapture", "Streamlink not found");
+                reject(false);
+                return;
+            }
+
+            const cmd = this.captureStreamlinkArguments(stream_url);
+
+            Log.logAdvanced(Log.Level.INFO, "automator.fallbackCapture", `Starting fallback capture with filename ${path.basename(capture_filename)}`);
+
+            // TODO: use TwitchHelper.startJob instead
+
+            // spawn process
+            const capture_process = spawn(bin, cmd, {
+                cwd: path.dirname(capture_filename),
+                windowsHide: true,
+            });
+
+            // make job for capture
+            let capture_job: Job;
+            const jobName = `fbcapture_${this.getLogin()}_${this.getVodID()}`;
+
+            if (capture_process.pid) {
+                Log.logAdvanced(Log.Level.SUCCESS, "automator.fallbackCapture", `Spawned process ${capture_process.pid} for ${jobName}`);
+                capture_job = Job.create(jobName);
+                capture_job.setPid(capture_process.pid);
+                capture_job.setExec(bin, cmd);
+                capture_job.setProcess(capture_process);
+                capture_job.startLog(jobName, `$ ${bin} ${cmd.join(" ")}\n`);
+                capture_job.addMetadata({
+                    "login": this.getLogin(), // TODO: username?
+                    "capture_filename": capture_filename,
+                    "stream_id": this.getVodID(),
+                });
+                if (!capture_job.save()) {
+                    Log.logAdvanced(Log.Level.ERROR, "automator.fallbackCapture", `Failed to save job ${jobName}`);
+                }
+            } else {
+                Log.logAdvanced(Log.Level.FATAL, "automator.fallbackCapture", `Failed to spawn capture process for ${jobName}`);
+                reject(false);
+                return;
+            }
+
+            let lastSize = 0;
+            const keepaliveAlert = () => {
+                if (fs.existsSync(capture_filename)) {
+                    const size = fs.statSync(capture_filename).size;
+                    const bitRate = (size - lastSize) / 120;
+                    lastSize = size;
+                    console.log(
+                        chalk.bgGreen.whiteBright(
+                            `🎥 ${new Date().toISOString()} ${basename} ${this.stream_resolution} ` +
+                            `${Helper.formatBytes(size)} / ${Math.round((bitRate * 8) / 1000)} kbps`
+                        )
+                    );
+                } else {
+                    console.log(chalk.bgRed.whiteBright(`🎥 ${new Date().toISOString()} ${basename} missing`));
+                }
+
+            };
+
+            const keepalive = setInterval(keepaliveAlert, 120 * 1000);
+
+            // critical end
+            capture_process.on("close", (code, signal) => {
+
+                if (code === 0) {
+                    Log.logAdvanced(Log.Level.SUCCESS, "automator.fallbackCapture", `Job ${jobName} exited with code 0, signal ${signal}`);
+                } else {
+                    Log.logAdvanced(Log.Level.ERROR, "automator.fallbackCapture", `Job ${jobName} exited with code ${code}, signal ${signal}`);
+                }
+
+                clearInterval(keepalive);
+
+                if (capture_job) {
+                    capture_job.clear();
+                }
+
+                if (fs.existsSync(capture_filename) && fs.statSync(capture_filename).size > 0) {
+                    resolve(true);
+                } else {
+                    Log.logAdvanced(Log.Level.ERROR, "automator.fallbackCapture", `Capture ${basename} failed`);
+                    reject(false);
+                }
+
+            });
+
+            this.chunks_missing = 0;
+
+            // attach output to parsing
+            capture_process.stdout.on("data", (data) => { this.captureTicker("stdout", data); });
+            capture_process.stderr.on("data", (data) => { this.captureTicker("stderr", data); });
+
+            // check for errors
+            capture_process.on("error", (err) => {
+                clearInterval(keepalive);
+                Log.logAdvanced(Log.Level.ERROR, "automator.fallbackCapture", `Error with streamlink for ${basename}: ${err}`);
+                reject(false);
             });
 
         });

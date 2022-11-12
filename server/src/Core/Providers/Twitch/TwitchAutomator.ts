@@ -150,12 +150,14 @@ export class TwitchAutomator extends BaseAutomator {
 
             if (TwitchVOD.hasVod(basename)) {
                 Log.logAdvanced(Log.Level.INFO, "automator.handle", `Channel ${this.broadcaster_user_login} online, but vod ${basename} already exists, skipping`);
+                this.fallbackCapture();
                 return false;
             }
 
             const capture_vod = TwitchVOD.getVodByCaptureId(event.id);
             if (capture_vod) {
                 Log.logAdvanced(Log.Level.INFO, "automator.handle", `Channel ${this.broadcaster_user_login} online, but vod ${event.id} already exists (${capture_vod.basename}), skipping`);
+                this.fallbackCapture();
                 return false;
             }
 
