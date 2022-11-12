@@ -137,7 +137,8 @@ export const MockApiVODData: ApiTwitchVod = {
     bookmarks: [],
     provider: "twitch",
     uuid: "",
-    channel_uuid: ""
+    channel_uuid: "",
+    viewers: [],
 };
 
 export const MockApiChapterData: ApiVodTwitchChapter = {

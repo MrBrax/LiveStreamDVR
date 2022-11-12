@@ -5,7 +5,7 @@
         class="video-segments"
         aria-label="Segments"
     >
-        <strong>{{ t('vod.segments') }}</strong>
+        <h4>{{ t('vod.segments') }}</h4>
         <ul class="list-segments">
             <li
                 v-for="(segment, i) of vod.segments"
@@ -121,6 +121,7 @@ function doDeleteSegment(index = 0) {
 
 
 <style lang="scss" scoped>
+h4 { margin: 0; }
 .video-segments {
     padding: 1em;
     background-color: var(--video-segments-background-color);

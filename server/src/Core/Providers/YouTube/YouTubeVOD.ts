@@ -112,6 +112,8 @@ export class YouTubeVOD extends BaseVOD {
 
             failed: this.failed,
 
+            viewers: this.viewers.map((v) => { return { timestamp: v.timestamp.toISOString(), amount: v.amount }; }),
+
             // bookmarks: this.bookmarks,
 
             // game_offset: this.game_offset || 0,

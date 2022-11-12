@@ -152,6 +152,21 @@
                 </div>
             </div>
 
+            <div
+                v-if="vod.viewers && vod.viewers.length > 0"
+                class="video-viewers"
+            >
+                <h4>Viewers</h4>
+                <ul>
+                    <li
+                        v-for="entry in vod.viewers"
+                        :key="entry.timestamp.getTime()"
+                    >
+                        <strong>{{ entry.timestamp }}:</strong> {{ entry.amount }}
+                    </li>
+                </ul>
+            </div>
+
             <vod-item-segments :vod="vod" />
 
             <vod-item-bookmarks :vod="vod" />
@@ -970,6 +985,12 @@ function showModalEv(modal: keyof typeof showModal.value): void {
 
 .video-content {
     overflow: hidden;
+}
+
+.video-viewers {
+    padding: 1em;
+    background-color: var(--video-segments-background-color);
+    h4 { margin: 0; }
 }
 
 .video-sxe {

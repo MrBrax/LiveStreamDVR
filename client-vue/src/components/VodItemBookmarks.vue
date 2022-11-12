@@ -5,7 +5,7 @@
         class="video-bookmarks"
         aria-label="Bookmarks"
     >
-        <strong>{{ t('vod.bookmarks') }}</strong>
+        <h4>{{ t('vod.bookmarks') }}</h4>
         <ul class="list-segments">
             <li
                 v-for="(bookmark, i) in vod.bookmarks"
@@ -116,6 +116,7 @@ function doDeleteBookmark(i: number) {
 </script>
 
 <style lang="scss" scoped>
+h4 { margin: 0 }
 .video-bookmarks {
     padding: 1em;
     background-color: var(--video-bookmarks-background-color);

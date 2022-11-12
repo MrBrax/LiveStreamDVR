@@ -57,6 +57,8 @@ export default class BaseVOD {
 
     exportData?: ExportData;
 
+    viewers: { amount: number, timestamp: Date }[] = [];
+
     get current_chapter(): BaseVODChapter | undefined {
         if (this.chapters.length > 0) {
             return this.chapters[this.chapters.length - 1];

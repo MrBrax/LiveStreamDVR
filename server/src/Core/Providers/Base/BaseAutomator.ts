@@ -1,32 +1,32 @@
-import { spawn } from "node:child_process";
+import { VideoQuality } from "@common/Config";
+import { JobStatus, nonGameCategories, NotificationCategory } from "@common/Defs";
+import { ExporterOptions } from "@common/Exporter";
+import { formatString } from "@common/Format";
+import { VodBasenameTemplate } from "@common/Replacements";
+import { ChannelUpdateEvent } from "@common/TwitchAPI/EventSub/ChannelUpdate";
+import chalk from "chalk";
 import { format, formatDistanceToNow, isValid, parseJSON } from "date-fns";
+import { spawn } from "node:child_process";
 import fs from "node:fs";
 import { IncomingHttpHeaders } from "node:http";
 import path from "node:path";
-import { TwitchVODChapterJSON } from "Storage/JSON";
-import { VideoQuality } from "@common/Config";
-import { ChannelUpdateEvent } from "@common/TwitchAPI/EventSub/ChannelUpdate";
-import { BaseConfigDataFolder } from "../../BaseConfig";
-import { KeyValue } from "../../KeyValue";
-import { Job } from "../../Job";
-import { TwitchChannel } from "../Twitch/TwitchChannel";
-import { Config } from "../../Config";
-import { RemuxReturn } from "../../../Providers/Twitch";
-import {  Log } from "../../Log";
-import { TwitchVOD } from "../Twitch/TwitchVOD";
-import { Webhook } from "../../Webhook";
-import { JobStatus, nonGameCategories, NotificationCategory } from "@common/Defs";
-import chalk from "chalk";
-import { Sleep } from "../../../Helpers/Sleep";
-import { ClientBroker } from "../../ClientBroker";
 import sanitize from "sanitize-filename";
-import { formatString } from "@common/Format";
+import { TwitchVODChapterJSON } from "Storage/JSON";
 import { Exporter, GetExporter } from "../../../Controllers/Exporter";
-import { VodBasenameTemplate } from "@common/Replacements";
-import { ChannelTypes, VODTypes } from "../../LiveStreamDVR";
+import { Sleep } from "../../../Helpers/Sleep";
+import { isTwitchVOD, isTwitchVODChapter } from "../../../Helpers/Types";
+import { RemuxReturn } from "../../../Providers/Twitch";
+import { BaseConfigDataFolder } from "../../BaseConfig";
+import { ClientBroker } from "../../ClientBroker";
+import { Config } from "../../Config";
 import { Helper } from "../../Helper";
-import { ExporterOptions } from "@common/Exporter";
-import {isTwitchVODChapter} from "../../../Helpers/Types";
+import { Job } from "../../Job";
+import { KeyValue } from "../../KeyValue";
+import { ChannelTypes, VODTypes } from "../../LiveStreamDVR";
+import { Log } from "../../Log";
+import { Webhook } from "../../Webhook";
+import { TwitchChannel } from "../Twitch/TwitchChannel";
+import { TwitchVOD } from "../Twitch/TwitchVOD";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 
@@ -616,11 +616,18 @@ export class BaseAutomator {
         // capture with streamlink, this is the crucial point in this entire program
         this.startCaptureChat();
 
+        // capture viewer count if enabled
+        if (this.vod && isTwitchVOD(this.vod) && Config.getInstance().cfg("capture.viewercount", false)) {
+            this.vod.startWatchingViewerCount();
+        }
+
         try {
             await this.captureVideo();
         } catch (error) {
             Log.logAdvanced(Log.Level.FATAL, "automator.download", `Failed to capture video: ${error}`);
             this.endCaptureChat();
+            // capture viewer count if enabled
+            if (this.vod && isTwitchVOD(this.vod)) this.vod.stopWatchingViewerCount();
             this.vod.is_capturing = false;
             this.vod.failed = true;
             await this.vod.saveJSON("capture fail");
@@ -629,6 +636,8 @@ export class BaseAutomator {
         }
 
         this.endCaptureChat();
+
+        if (this.vod && isTwitchVOD(this.vod)) this.vod.stopWatchingViewerCount();
 
         const capture_success = fs.existsSync(this.capture_filename) && fs.statSync(this.capture_filename).size > 0;
 

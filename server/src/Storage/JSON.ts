@@ -54,6 +54,8 @@ export interface VODJSON {
 
     export_data?: ExportData;
 
+    viewers?: { amount: number, timestamp: Date }[];
+
 }
 export interface TwitchVODJSON extends VODJSON {
     type: "twitch";
