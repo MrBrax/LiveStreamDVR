@@ -4,6 +4,7 @@
             <div
                 v-if="store.config"
                 class="top-menu-item title"
+                :class="{ fancy: store.clientCfg('animationsEnabled') }"
             >
                 <router-link
                     to="/dashboard"
@@ -427,7 +428,7 @@ function copyDebugStuff(e: Event) {
             font-size: 1em;
             display: inline-block;
             letter-spacing: -0.05em;
-            transition: all 0.2s ease-in-out;
+            color: #fff;
             // z-index: 1;
         }
 
@@ -458,26 +459,35 @@ function copyDebugStuff(e: Event) {
 
         // .favicon { animation: 1s speeen linear; }
         &:hover {
-            .favicon {
-                animation: 1s speen linear infinite;
-            }
-
-            h1 {
-                text-shadow: 0 0 10px #fff, 0 0 5px #1598fd;
-                letter-spacing: -0.02em;
-            }
-
-            .link {
-                background-color: transparent;
-                .bg {
-                    // background-position: 0 200px;
-                    opacity: 1;
-                }
-            }
+            
         }
 
         span.dev {
             color: #ff0;
+        }
+
+        &.fancy {
+            h1 {
+                transition: all 0.2s ease-in-out;
+            }
+            &:hover {
+                h1 {
+                    text-shadow: 0 0 10px #fff, 0 0 5px #1598fd;
+                    letter-spacing: -0.02em;
+                }
+
+                .favicon {
+                    animation: 1s speen linear infinite;
+                }
+
+                .link {
+                    background-color: transparent;
+                    .bg {
+                        // background-position: 0 200px;
+                        opacity: 1;
+                    }
+                }
+            }
         }
     }
 

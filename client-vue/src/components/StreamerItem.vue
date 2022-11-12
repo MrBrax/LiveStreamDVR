@@ -414,10 +414,14 @@ function toggleLimitVods() {
 
     .streamer-live, .streamer-capturing {
         color: #f00;
-        animation: live ease-in-out 1s infinite;
         font-weight: 700;
         display: inline-block;
         margin-left: 5px;
+
+        animation: live ease-in-out 1s infinite;
+        @media (prefers-reduced-motion: reduce) {
+            animation: none !important;
+        }
     }
 
 }
