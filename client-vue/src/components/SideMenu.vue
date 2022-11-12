@@ -10,6 +10,7 @@
                     class="link"
                     aria-label="Go to dashboard"
                 >
+                    <div class="bg" />
                     <img
                         src="../assets/logo.png"
                         class="favicon"
@@ -427,11 +428,28 @@ function copyDebugStuff(e: Event) {
             display: inline-block;
             letter-spacing: -0.05em;
             transition: all 0.2s ease-in-out;
+            // z-index: 1;
         }
 
         .link {
             color: #fff;
             padding: 13px 8px;
+            position: relative;
+            overflow: hidden;
+            .bg {
+                background-image: url(../assets/3D_TV_static.gif);
+                background-size: cover;
+                opacity: 0;
+                transition: opacity 0.5s ease-in-out;
+                display: block;
+                position: absolute;
+                width: 100%;
+                height: 300px;
+                top: 0;
+                left: 0;
+                z-index: -1;
+                animation: 20s scrollbg ease-in-out infinite;
+            }
         }
 
         .favicon {
@@ -450,10 +468,11 @@ function copyDebugStuff(e: Event) {
             }
 
             .link {
-                background-image: url(../assets/3D_TV_static.gif);
-                background-size: cover;
-                background-position: 0 200px;
-                animation: 20s scrollbg ease-in-out infinite;
+                background-color: transparent;
+                .bg {
+                    // background-position: 0 200px;
+                    opacity: 1;
+                }
             }
         }
 
@@ -598,13 +617,16 @@ function copyDebugStuff(e: Event) {
 
 @keyframes scrollbg {
     0% {
-        background-position: 0 150px;
+        // background-position: 0 150px;
+        transform: translateY(-130px);
     }
     50% {
-        background-position: 0 220px;
+        //background-position: 0 220px;
+        transform: translateY(-45px);
     }
     100% {
-        background-position: 0 150px;
+        // background-position: 0 150px;
+        transform: translateY(-130px);
     }
 }
 

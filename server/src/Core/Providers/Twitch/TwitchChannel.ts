@@ -1259,7 +1259,7 @@ export class TwitchChannel extends BaseChannel {
     public static async loadFromLogin(login: string): Promise<TwitchChannel> {
         if (!login) throw new Error("Streamer login is empty");
         if (typeof login !== "string") throw new TypeError("Streamer login is not a string");
-        Log.logAdvanced(Log.Level.DEBUG, "channel", `Load from login ${login}`);
+        Log.logAdvanced(Log.Level.DEBUG, "channel.loadFromLogin", `Load from login ${login}`);
         const channel_id = await this.channelIdFromLogin(login);
         if (!channel_id) throw new Error(`Could not get channel id from login: ${login}`);
         return this.loadAbstract(channel_id); // $channel;

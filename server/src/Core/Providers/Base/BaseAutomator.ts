@@ -322,6 +322,10 @@ export class BaseAutomator {
                 "streamOffline",
                 this.channel.livestreamUrl
             );
+
+            if (!this.channel.is_capturing) {
+                Log.logAdvanced(Log.Level.WARNING, "automator.end", `Stream offline notification for ${this.broadcaster_user_login} but channel is not capturing.`);
+            }
         }
 
         // KeyValue.getInstance().set("${this.broadcaster_user_login}.online", "0");
