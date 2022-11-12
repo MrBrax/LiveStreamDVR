@@ -114,6 +114,8 @@ export class TwitchAutomator extends BaseAutomator {
                 return false;
             }
 
+            KeyValue.getInstance().delete(`${this.broadcaster_user_login}.offline`);
+
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.last.online`, new Date().toISOString());
             Log.logAdvanced(Log.Level.INFO, "automator.handle", `Automator stream.online event for ${this.broadcaster_user_login} (retry ${messageRetry})`);
 
@@ -151,6 +153,12 @@ export class TwitchAutomator extends BaseAutomator {
                 return false;
             }
 
+            const capture_vod = TwitchVOD.getVodByCaptureId(event.id);
+            if (capture_vod) {
+                Log.logAdvanced(Log.Level.INFO, "automator.handle", `Channel ${this.broadcaster_user_login} online, but vod ${event.id} already exists (${capture_vod.basename}), skipping`);
+                return false;
+            }
+
             // notification
             if (this.channel) {
                 let body = "";
@@ -179,7 +187,11 @@ export class TwitchAutomator extends BaseAutomator {
                 Log.logAdvanced(Log.Level.ERROR, "automator.handle", `Download of stream '${this.broadcaster_user_login}' failed: ${(error as Error).message}`);
             }
 
+            return true;
+
         } else if (subscription_type == "stream.offline") {
+
+            KeyValue.getInstance().setBool(`${this.broadcaster_user_login}.offline`, true);
 
             return await this.end();
 

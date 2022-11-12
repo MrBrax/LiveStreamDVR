@@ -461,6 +461,8 @@ export class BaseAutomator {
 
         }
 
+        KeyValue.getInstance().delete(`${this.broadcaster_user_login}.offline`);
+
         return true;
     }
 
@@ -999,6 +1001,14 @@ export class BaseAutomator {
                     chunks_missing++;
                     if (chunks_missing >= 100) {
                         Log.logAdvanced(Log.Level.WARNING, "automator.captureVideo", `Too many 404'd chunks for ${basename}, stopping!`);
+                        this.captureJob?.kill();
+                    }
+
+                    if (
+                        KeyValue.getInstance().getBool(`${this.broadcaster_user_login}.offline`) &&
+                        Config.getInstance().cfg("capture.killendedstream")
+                    ) {
+                        Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", `Stream offline for ${basename}, stopping instead of waiting for 404s!`);
                         this.captureJob?.kill();
                     }
                 }
