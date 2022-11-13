@@ -124,7 +124,7 @@ export async function SubscribeToAllChannels(req: express.Request, res: express.
         const sub = await channel.subscribe();
         const entry = {
             login: channel.internalName,
-            status: sub === true ? "Subscription request sent, check logs for details" : "ERROR",
+            status: sub ? "Subscription request sent, check logs for details" : "ERROR",
         };
         payload_data.channels.push(entry);
     }
@@ -160,7 +160,7 @@ export async function UnsubscribeFromId(req: express.Request, res: express.Respo
 
     const status = await TwitchHelper.eventSubUnsubscribe(sub_id);
 
-    if (status === true) {
+    if (status) {
         res.send({
             status: "OK",
             message: `Unsubscribed from ${sub_id}.`,

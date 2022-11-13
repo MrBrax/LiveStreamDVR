@@ -206,8 +206,12 @@
                         :alt="game.name"
                         :src="game.getBoxArtUrl(140, 190)"
                         loading="lazy"
+                        :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }"
                     >
-                    <span class="boxart-name">{{ game.name }}</span>
+                    <span
+                        class="boxart-name"
+                        :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }"
+                    >{{ game.name }}</span>
                 </div>
             </div>
             <div class="stream-title">

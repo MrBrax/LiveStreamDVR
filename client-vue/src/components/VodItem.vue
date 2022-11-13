@@ -19,13 +19,13 @@
         <!-- title -->
         <div
             class="video-title"
-            @click="emit('toggleMinimize')"
-            @keydown.prevent.enter="emit('toggleMinimize')"
-            @keydown.prevent.space="emit('toggleMinimize')"
             aria-label="Video title"
             :aria-pressed="!minimized"
             tabindex="0"
             role="button"
+            @click="emit('toggleMinimize')"
+            @keydown.prevent.enter="emit('toggleMinimize')"
+            @keydown.prevent.space="emit('toggleMinimize')"
         >
             <div class="video-title-text">
                 <h3>
@@ -70,6 +70,7 @@
                             :alt="game.name"
                             :src="game.image_url"
                             loading="lazy"
+                            :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }"
                         >
                         <span v-else>{{ game.name }}</span>
                     </div>

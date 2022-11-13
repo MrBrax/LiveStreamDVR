@@ -231,6 +231,7 @@
                         <span
                             v-if="vod.twitch_vod_title"
                             class="px-1 text-overflow"
+                            :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }"
                         >
                             {{ vod.twitch_vod_title }}
                         </span>

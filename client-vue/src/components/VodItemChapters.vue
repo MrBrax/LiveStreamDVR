@@ -90,6 +90,7 @@
                             class="boxart"
                             :src="chapter.image_url"
                             :alt="chapter.game_name"
+                            :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }"
                             loading="lazy"
                         >
                         <template v-if="vod?.is_finalized">
@@ -100,6 +101,7 @@
                                     target="_blank"
                                     :href="playerLink(chapter.offset)"
                                     title="Open in player"
+                                    :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }"
                                 >
                                     {{ chapter.game_name ? chapter.game_name : "None" }}
                                 </a>
@@ -149,6 +151,7 @@
                     <!-- title -->
                     <td
                         class="text-overflow text-long"
+                        :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }"
                         data-contents="title"
                     >
                         {{ chapter.title }}

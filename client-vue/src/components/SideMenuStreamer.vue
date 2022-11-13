@@ -54,7 +54,7 @@
                 <template v-if="streamer.is_live && streamer.is_capturing">
                     <template v-if="isTwitch(streamer) && streamer.current_game && streamer.current_game.name != ''">
                         {{ gameVerb }}
-                        <strong>{{ streamer.current_game.name }}</strong>
+                        <strong :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }">{{ streamer.current_game.name }}</strong>
                     </template>
                     <template v-else>Streaming</template>
                     for
@@ -71,7 +71,10 @@
                 </template>
                 <template v-else-if="streamer.is_converting"> Converting... </template>
                 <template v-else-if="streamer.chapter_data && store.clientCfg('showOfflineCategoryInSidebar')">
-                    <span :title="streamer.chapter_data.title">
+                    <span
+                        :title="streamer.chapter_data.title"
+                        :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }"
+                    >
                         <span class="icon is-small"><fa
                             icon="bed"
                             title="Offline category"

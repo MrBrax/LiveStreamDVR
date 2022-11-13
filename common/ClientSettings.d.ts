@@ -21,4 +21,5 @@ export type ClientSettings = {
     expandDashboardVodList: boolean;
     vodsToShowInDashboard: number;
     jobStatusExpandedByDefault: boolean;
+    hideChapterTitlesAndGames: boolean;
 };

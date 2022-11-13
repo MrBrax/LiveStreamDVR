@@ -34,19 +34,15 @@ export function GetExporter(name: string, mode: string, options: ExporterOptions
     try {
         if (name == "file") {
             exporter = new FileExporter();
-            if (exporter instanceof FileExporter) { // why does typescript need this??
-                exporter.setDirectory(output_directory || BaseConfigDataFolder.saved_vods);
-            }
+            exporter.setDirectory(output_directory || BaseConfigDataFolder.saved_vods);
         } else if (name == "sftp") {
             if (!output_directory) throw new Error("No directory set");
             if (!options.host) throw new Error("No host set");
             if (!options.username) throw new Error("No username set");
             exporter = new SFTPExporter();
-            if (exporter instanceof SFTPExporter) { // why does typescript need this??
-                exporter.setDirectory(output_directory);
-                exporter.setHost(options.host);
-                exporter.setUsername(options.username);
-            }
+            exporter.setDirectory(output_directory);
+            exporter.setHost(options.host);
+            exporter.setUsername(options.username);
         } else if (name == "ftp") {
             if (!output_directory) throw new Error("No directory set");
             if (!options.host) throw new Error("No host set");
@@ -63,21 +59,17 @@ export function GetExporter(name: string, mode: string, options: ExporterOptions
             if (!options.category) throw new Error("No category set");
             if (!options.privacy) throw new Error("No privacy level set");
             exporter = new YouTubeExporter();
-            if (exporter instanceof YouTubeExporter) { // why does typescript need this??
-                exporter.setDescription(options.description || "");
-                exporter.setTags(options.tags ? (options.tags as string).split(",").map(tag => tag.trim()) : []);
-                exporter.setCategory(options.category);
-                exporter.setPrivacy(options.privacy);
-                if (options.playlist_id) exporter.setPlaylist(options.playlist_id);
-            }
+            exporter.setDescription(options.description || "");
+            exporter.setTags(options.tags ? (options.tags as string).split(",").map(tag => tag.trim()) : []);
+            exporter.setCategory(options.category);
+            exporter.setPrivacy(options.privacy);
+            if (options.playlist_id) exporter.setPlaylist(options.playlist_id);
         } else if (name == "rclone") {
             if (!output_directory) throw new Error("No directory set");
             if (!options.remote) throw new Error("No remote set");
             exporter = new RCloneExporter();
-            if (exporter instanceof RCloneExporter) { // why does typescript need this??
-                exporter.setDirectory(output_directory);
-                exporter.setRemote(options.remote);
-            }
+            exporter.setDirectory(output_directory);
+            exporter.setRemote(options.remote);
         }
     } catch (error) {
         throw new Error("Exporter creation error: " + (error as Error).message);
@@ -222,7 +214,7 @@ export async function ExportFile(req: express.Request, res: express.Response): P
     if (exporter.vod && verify) {
         exporter.vod.exportData.exported_at = new Date().toISOString();
         exporter.vod.exportData.exporter = input_exporter;
-        exporter.vod.saveJSON("export successful");
+        await exporter.vod.saveJSON("export successful");
     }
 
     res.send({

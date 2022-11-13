@@ -68,4 +68,5 @@ export const defaultConfigFields: Record<keyof ClientSettings, ClientSettingFiel
     expandDashboardVodList: { type: "boolean", default: true, name: "Always expand the VOD list in the dashboard", category: "Dashboard" },
     vodsToShowInDashboard: { type: "number", default: 4, name: "Number of VODs to show in the dashboard", category: "Dashboard" },
     jobStatusExpandedByDefault: { type: "boolean", default: false, name: "Expand the job status by default", category: "Interface" },
+    hideChapterTitlesAndGames: { type: "boolean", default: false, name: "Hide chapter titles and games (spoiler mode)", category: "Interface" },
 };

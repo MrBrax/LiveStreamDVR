@@ -255,3 +255,28 @@ code.uselect {
     display: block;
     
 }
+
+.is-spoiler {
+    // color: #000;
+    // background-color: #000;
+    cursor: pointer;
+    color: transparent !important;
+    text-shadow: 0 0 0.5em #fff;
+    transition: color 2s ease-in-out;
+    transition-property: color, text-shadow;
+    &:hover {
+        background-color: #f00;
+        color: inherit !important;
+        text-shadow: none;
+    }
+}
+
+img.is-spoiler {
+    cursor: pointer;
+    filter: blur(5px);
+    transition: filter 2s ease-in-out;
+    transition-property: filter;
+    &:hover {
+        filter: blur(0px);
+    }
+}
