@@ -541,7 +541,10 @@ export class TwitchVOD extends BaseVOD {
             const video_time = parseJSON(video.created_at);
             if (!video_time) continue;
 
-            if (Math.abs(this.started_at.getTime() - video_time.getTime()) < 1000 * 60 * 5) { // 5 minutes
+            if (
+                Math.abs(this.started_at.getTime() - video_time.getTime()) < 1000 * 60 * 5 || // 5 minutes
+                (video.stream_id && this.capture_id && video.stream_id == this.capture_id)
+            ) {
 
                 Log.logAdvanced(Log.Level.SUCCESS, "vod.matchProviderVod", `Found matching VOD for ${this.basename}`);
 

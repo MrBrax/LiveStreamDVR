@@ -14,6 +14,22 @@
                 :placeholder="t('input.search')"
             >
         </div>
+        <div
+            v-if="newAndInterestingSettings"
+            class="new-and-interesting"
+        >
+            <h3>
+                {{ t('views.settings.new_and_interesting') }}
+            </h3>
+            <ul>
+                <li
+                    v-for="setting in newAndInterestingSettings"
+                    :key="setting.key"
+                >
+                    Under <strong>{{ setting.group }}</strong>: {{ setting.text }} ({{ setting.help }})
+                </li>
+            </ul>
+        </div>
         <details
             v-for="groupData in settingsGroups"
             :key="groupData.name"
@@ -316,7 +332,11 @@ const settingsGroups = computed((): SettingsGroup[] => {
     });
     */
 });
-  
+
+const newAndInterestingSettings = computed((): SettingField<string | number | boolean>[] => {
+    return settingsFields.value.filter((field) => field.new);
+});
+
 /*
 settingsGroups(): Record<string, ApiSettingsField[]> {
     if (!settingsFields.value) return {};
@@ -475,4 +495,16 @@ function insertReplacement(key: string, value: string) {
     flex-direction: column;
     gap: 1em;
 }
+
+.new-and-interesting {
+    background-color: rgba(66, 164, 238, 0.1);
+    padding: 1em;
+    border-radius: 1em;
+    margin-bottom: 1em;
+    ul {
+        margin: 0.5em 0;
+        padding: 0 1.5em;
+    }
+}
+
 </style>

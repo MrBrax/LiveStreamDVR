@@ -257,6 +257,9 @@
       "time-out": "Time Out",
       "filesize": "Filesize",
       "edit-segment": "Edit segment"
+    },
+    "settings": {
+      "new_and_interesting": "New & Interesting"
     }
   },
   "components": {
