@@ -9,12 +9,12 @@ import { LocalClip } from "@common/LocalClip";
 import { LocalVideo } from "@common/LocalVideo";
 import { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
 import { ChannelUpdated } from "@common/Webhook";
-import { BaseConfigDataFolder } from "../../../Core/BaseConfig";
-import { Config } from "../../../Core/Config";
-import { Helper } from "../../../Core/Helper";
-import { KeyValue } from "../../../Core/KeyValue";
-import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
-import { Log } from "../../../Core/Log";
+import { BaseConfigDataFolder } from "../../BaseConfig";
+import { Config } from "../../Config";
+import { Helper } from "../../Helper";
+import { KeyValue } from "../../KeyValue";
+import { LiveStreamDVR } from "../../LiveStreamDVR";
+import { Log } from "../../Log";
 import { BaseVODChapterJSON } from "../../../Storage/JSON";
 import { Webhook } from "../../Webhook";
 import { BaseVOD } from "./BaseVOD";
@@ -283,9 +283,9 @@ export class BaseChannel {
     /**
      * Remove a vod from the channel and the main vods list.
      * It is not deleted from the disk.
-     * 
-     * @param basename 
-     * @returns 
+     *
+     * @returns
+     * @param uuid
      */
     public removeVod(uuid: string): boolean {
 

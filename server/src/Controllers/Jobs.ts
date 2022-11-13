@@ -77,3 +77,24 @@ export async function KillJob(req: express.Request, res: express.Response): Prom
     }
 
 }
+
+export function DetachJobProcess(req: express.Request, res: express.Response): void {
+
+    const job = Job.getJob(req.params.name);
+
+    if (!job) {
+        res.status(400).send({
+            status: "ERROR",
+            message: `Job '${req.params.name}' not found`,
+        } as ApiErrorResponse);
+        return;
+    }
+
+    job.detachProcess();
+
+    res.send({
+        status: "OK",
+        message: `Job ${req.params.name} detached`,
+    });
+
+}

@@ -135,48 +135,63 @@
         <!-- flags -->
         <template v-if="vod.is_finalized">
             <span class="flags">
+                <!-- vod deleted -->
                 <span
                     v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === false"
                     class="icon is-error"
                     title="Deleted from provider"
-                ><font-awesome-icon icon="trash" /></span><!-- vod deleted -->
+                ><font-awesome-icon icon="trash" /></span>
+
+                <!-- vod deleted -->
                 <span
                     v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === true && isRiskOfBeingDeleted(vod)"
                     class="icon is-warning"
                     title="Is risking deletion from provider"
                 >
                     <font-awesome-icon icon="trash-arrow-up" />
-                </span><!-- vod deleted -->
+                </span>
+
+                <!-- vod not checked -->
                 <span
                     v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === null"
                     class="icon is-error"
                     title="Not checked"
-                ><font-awesome-icon icon="question" /></span><!-- vod not checked -->
+                ><font-awesome-icon icon="question" /></span>
+
+                <!-- vod muted -->
                 <span
                     v-if="isTwitchVOD(vod) && vod.twitch_vod_muted === MuteStatus.MUTED"
                     class="icon is-error"
                     title="Muted"
-                ><font-awesome-icon icon="volume-mute" /></span><!-- vod muted -->
+                ><font-awesome-icon icon="volume-mute" /></span>
+
+                <!-- capturing paused -->
                 <span
                     v-if="vod.is_capture_paused"
                     class="icon is-error"
                     title="Paused"
-                ><font-awesome-icon icon="pause" /></span><!-- capturing paused -->
+                ><font-awesome-icon icon="pause" /></span>
+
+                <!-- prevent deletion -->
                 <span
                     v-if="vod.prevent_deletion"
                     class="icon is-success"
                     title="Preventing deletion"
-                ><font-awesome-icon icon="lock" /></span><!-- prevent deletion -->
+                ><font-awesome-icon icon="lock" /></span>
+
+                <!-- deleted segment -->
                 <span
                     v-if="vod.hasDeletedSegment"
                     class="icon is-error"
                     title="Deleted segment"
-                ><font-awesome-icon icon="film" /></span><!-- deleted segment -->
+                ><font-awesome-icon icon="film" /></span>
+
+                <!-- has comment -->
                 <span
                     v-if="vod.comment"
                     class="icon is-success"
                     title="Has comment"
-                ><font-awesome-icon icon="comment" /></span><!-- has comment -->
+                ><font-awesome-icon icon="comment" /></span>
             </span>
         </template>
 

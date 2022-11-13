@@ -425,6 +425,23 @@ export class Job extends EventEmitter {
         */
     }
 
+    public detachProcess(): void {
+        if (!this.process) {
+            throw new Error("process not set");
+        }
+
+        // this.process.stderr.unpipe()
+        // this.process.stderr.destroy()
+        // this.process.stdout.unpipe()
+        // this.process.stdout.destroy()
+        // this.process.stdin.end()
+        // this.process.stdin.destroy()
+
+        this.process.unref();
+
+        this.process = undefined;
+    }
+
     /**
      * Attach metadata
      *

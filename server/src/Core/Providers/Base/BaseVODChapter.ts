@@ -1,4 +1,4 @@
-import { LiveStreamDVR, VODTypes } from "../../../Core/LiveStreamDVR";
+import { LiveStreamDVR, VODTypes } from "../../LiveStreamDVR";
 import { BaseVODChapterJSON } from "Storage/JSON";
 import { ApiVodBaseChapter } from "@common/Api/Client";
 import { Log } from "../../Log";
