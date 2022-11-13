@@ -23,6 +23,7 @@ export const defaultConfig: ClientSettings = {
     expandDashboardVodList: true,
     vodsToShowInDashboard: 4,
     jobStatusExpandedByDefault: false,
+    hideChapterTitlesAndGames: false,
 };
 
 
