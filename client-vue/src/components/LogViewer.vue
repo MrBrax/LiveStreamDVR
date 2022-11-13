@@ -60,8 +60,8 @@
 
 <script lang="ts" setup>
 import { useStore } from "@/store";
-import { ApiLogResponse } from "@common/Api/Api";
-import { ApiLogLine } from "@common/Api/Client";
+import type { ApiLogResponse } from "@common/Api/Api";
+import type { ApiLogLine } from "@common/Api/Client";
 import axios from "axios";
 import { format } from "date-fns";
 import { computed, onMounted, onUnmounted, ref } from "vue";

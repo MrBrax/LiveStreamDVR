@@ -231,6 +231,7 @@
                         <span
                             v-if="vod.twitch_vod_title"
                             class="px-1 text-overflow"
+                            :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }"
                         >
                             {{ vod.twitch_vod_title }}
                         </span>
@@ -320,12 +321,13 @@
 </template>
 
 <script lang="ts" setup>
-import { useStore, VODTypes } from '@/store';
-import { ApiResponse } from '@common/Api/Api';
+import { useStore } from '@/store';
+import type { ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
 import { useI18n } from 'vue-i18n';
 import { MuteStatus } from "../../../common/Defs";
 import { formatDate, humanDuration, formatBytes } from '@/mixins/newhelpers';
+import type { VODTypes } from '@/twitchautomator';
 
 const props = defineProps({
     vod: {

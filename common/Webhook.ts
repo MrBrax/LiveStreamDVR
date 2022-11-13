@@ -1,4 +1,4 @@
-import { ApiTwitchChannel, ApiJob, ApiTwitchVod, ApiVodBaseChapter, ApiVods, ApiChannels } from "./Api/Client";
+import type { ApiJob, ApiTwitchVod, ApiVodBaseChapter, ApiVods, ApiChannels } from "./Api/Client";
 
 export type WebhookAction =
     "chapter_update" |

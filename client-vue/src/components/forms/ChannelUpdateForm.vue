@@ -235,7 +235,10 @@
                 </p>
             </div>
 
-            <div class="field form-submit">
+            <FormSubmit
+                :form-status="formStatus"
+                :form-status-text="formStatusText"
+            >
                 <div class="control">
                     <button
                         class="button is-confirm"
@@ -253,10 +256,7 @@
                         <span>{{ t('buttons.reset') }}</span>
                     </button>
                 </div>
-                <div :class="formStatusClass">
-                    {{ formStatusText }}
-                </div>
-            </div>
+            </FormSubmit>
         </form>
         <hr>
         <div class="buttons">
@@ -340,6 +340,15 @@
                     </tr>
                 </tbody>
             </table>
+            <div
+                v-if="loadingHistory"
+                class="loading"
+            >
+                <span class="icon">
+                    <font-awesome-icon icon="spinner" spin />
+                </span>
+                {{ t("messages.loading") }}
+            </div>
             <div v-if="history.length">
                 <strong>Average start time:</strong> {{ averageOnlineStartTime }}
             </div>
@@ -348,17 +357,19 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref, watch } from "vue";
-import { VideoQualityArray } from "@common/Defs";
-import { HistoryEntry, HistoryEntryOnline } from "@common/History";
-import { ApiResponse } from "@common/Api/Api";
-import { library } from "@fortawesome/fontawesome-svg-core";
-import { faSave, faList, faTrash, faVideoSlash, faPencil } from "@fortawesome/free-solid-svg-icons";
-import { ApiChannelConfig } from "@common/Api/Client";
-import axios, { AxiosError } from "axios";
-import { useStore } from "@/store";
-import { useI18n } from "vue-i18n";
+import FormSubmit from "@/components/reusables/FormSubmit.vue";
 import { formatDate } from "@/mixins/newhelpers";
+import { useStore } from "@/store";
+import type { FormStatus } from "@/twitchautomator";
+import type { ApiResponse } from "@common/Api/Api";
+import type { ApiChannelConfig } from "@common/Api/Client";
+import { VideoQualityArray } from "@common/Defs";
+import type { HistoryEntry, HistoryEntryOnline } from "@common/History";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faList, faPencil, faSave, faTrash, faVideoSlash } from "@fortawesome/free-solid-svg-icons";
+import axios, { AxiosError } from "axios";
+import { computed, onMounted, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 library.add(faSave, faList, faTrash, faVideoSlash, faPencil);
 
 // props
@@ -375,7 +386,7 @@ const { t } = useI18n();
         
 // data
 const formStatusText = ref<string>("Ready");
-const formStatus = ref<string>("");
+const formStatus = ref<FormStatus>("IDLE");
 const formData = ref({ // ref or reactive?
     quality: "",
     match: "",
@@ -390,15 +401,7 @@ const formData = ref({ // ref or reactive?
     download_vod_at_end_quality: "best",
 });
 const history = ref<HistoryEntry[]>([]);
-
-// computed
-const formStatusClass = computed((): Record<string, boolean> => {
-    return {
-        "form-status": true,
-        "is-error": formStatus.value == "ERROR",
-        "is-success": formStatus.value == "OK",
-    };
-});
+const loadingHistory = ref<boolean>(false);
 
 const qualityWarning = computed((): boolean => {
     return formData.value.quality.includes("best") || formData.value.quality.includes("worst");
@@ -425,7 +428,7 @@ onMounted(() => {
 // methods
 function resetForm() {
     // console.debug("Resetting form", JSON.stringify(this.channel));
-    formStatus.value = "";
+    formStatus.value = "IDLE";
     formStatusText.value = "Ready";
 
     formData.value = {
@@ -448,7 +451,7 @@ function resetForm() {
 function submitForm(event: Event) {
 
     formStatusText.value = t('messages.loading');
-    formStatus.value = "";
+    formStatus.value = "LOADING";
 
     axios
         .put(`/api/v0/channels/${props.channel.uuid}`, formData.value)
@@ -607,6 +610,7 @@ function deleteAllVods() {
 }
 
 function fetchHistory() {
+    loadingHistory.value = true;
     axios
         .get<ApiResponse>(`/api/v0/channels/${props.channel.uuid}/history`)
         .then((response) => {
@@ -619,6 +623,8 @@ function fetchHistory() {
             if (err.response.data && err.response.data.message) {
                 alert(err.response.data.message);
             }
+        }).finally(() => {
+            loadingHistory.value = false;
         });
 }
 

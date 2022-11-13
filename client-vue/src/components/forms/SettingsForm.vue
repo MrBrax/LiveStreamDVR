@@ -14,6 +14,22 @@
                 :placeholder="t('input.search')"
             >
         </div>
+        <div
+            v-if="newAndInterestingSettings"
+            class="new-and-interesting"
+        >
+            <h3>
+                {{ t('views.settings.new_and_interesting') }}
+            </h3>
+            <ul>
+                <li
+                    v-for="setting in newAndInterestingSettings"
+                    :key="setting.key"
+                >
+                    Under <strong>{{ setting.group }}</strong>: {{ setting.text }} ({{ setting.help }})
+                </li>
+            </ul>
+        </div>
         <details
             v-for="groupData in settingsGroups"
             :key="groupData.name"
@@ -76,7 +92,7 @@
                         v-if="data.multiline"
                         :id="'input_' + data.key"
                         v-model="(formData.config[data.key] as string)"
-                        class="textarea"
+                        class="input textarea"
                         :name="data.key"
                         :title="data.help"
                         :pattern="data.pattern"
@@ -207,17 +223,22 @@
             </div>
         </details>
 
-        <div class="control">
-            <hr>
-            <button
-                class="button is-confirm"
-                type="submit"
-            >
-                <span class="icon"><font-awesome-icon icon="save" /></span>
-                <span>{{ t('buttons.save') }}</span>
-            </button>
-            <span :class="formStatusClass">{{ formStatusText }}</span>
-        </div>
+        <br>
+
+        <FormSubmit
+            :form-status="formStatus"
+            :form-status-text="formStatusText"
+        >
+            <div class="control">
+                <button
+                    class="button is-confirm"
+                    type="submit"
+                >
+                    <span class="icon"><font-awesome-icon icon="save" /></span>
+                    <span>{{ t('buttons.save') }}</span>
+                </button>
+            </div>
+        </FormSubmit>
 
         <div class="control">
             <hr>
@@ -231,7 +252,10 @@
             </button>
         </div>
     </form>
-    <div v-if="loading">
+    <div
+        v-if="loading"
+        class="loading"
+    >
         <span class="icon"><fa
             icon="sync"
             spin
@@ -246,17 +270,19 @@
 
 <script lang="ts" setup>
 import { useStore } from "@/store";
-import { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
-import { SettingField } from "@common/Config";
+import type { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
+import type { SettingField } from "@common/Config";
 import axios, { AxiosError } from "axios";
 import { computed, onMounted, ref } from "vue";
 import { formatString } from "@common/Format";
 import YoutubeAuth from "@/components/YoutubeAuth.vue";
 import TwitchAuth from "@/components/TwitchAuth.vue";
+import FormSubmit from "@/components/reusables/FormSubmit.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGlobe, faSave } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from "vue-i18n";
+import type { FormStatus } from "@/twitchautomator";
 library.add(faGlobe, faSave);
 
 interface SettingsGroup {
@@ -273,7 +299,7 @@ const { t, te } = useI18n();
 
 // data
 const formStatusText = ref<string>("Ready");
-const formStatus = ref<string>("");
+const formStatus = ref<FormStatus>("IDLE");
 const formData = ref<{ config: Record<string, string | number | boolean> }>({ config: {} });
 const settingsFields = ref<SettingField<string | number | boolean>[]>([]);
 const loading = ref<boolean>(false);
@@ -307,14 +333,10 @@ const settingsGroups = computed((): SettingsGroup[] => {
     */
 });
 
-const formStatusClass = computed((): Record<string, boolean> => {
-    return {
-        "form-status": true,
-        "is-error": formStatus.value == "ERROR",
-        "is-success": formStatus.value == "OK",
-    };
+const newAndInterestingSettings = computed((): SettingField<string | number | boolean>[] => {
+    return settingsFields.value.filter((field) => field.new);
 });
-  
+
 /*
 settingsGroups(): Record<string, ApiSettingsField[]> {
     if (!settingsFields.value) return {};
@@ -370,7 +392,7 @@ function fetchData(): void {
 function submitForm(event: Event) {
 
     formStatusText.value = t("messages.loading");
-    formStatus.value = "";
+    formStatus.value = "LOADING";
 
     axios
         .put<ApiResponse>(`/api/v0/settings`, formData.value)
@@ -473,4 +495,16 @@ function insertReplacement(key: string, value: string) {
     flex-direction: column;
     gap: 1em;
 }
+
+.new-and-interesting {
+    background-color: rgba(66, 164, 238, 0.1);
+    padding: 1em;
+    border-radius: 1em;
+    margin-bottom: 1em;
+    ul {
+        margin: 0.5em 0;
+        padding: 0 1.5em;
+    }
+}
+
 </style>

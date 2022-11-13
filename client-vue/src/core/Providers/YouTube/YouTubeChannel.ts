@@ -1,5 +1,5 @@
-import { ApiYouTubeChannel } from "@common/Api/Client";
-import { BaseVODChapterJSON } from "../../../../../server/src/Storage/JSON";
+import type { ApiYouTubeChannel } from "@common/Api/Client";
+import type { BaseVODChapterJSON } from "../../../../../server/src/Storage/JSON";
 import BaseChannel from "../Base/BaseChannel";
 import YouTubeVOD from "./YouTubeVOD";
 

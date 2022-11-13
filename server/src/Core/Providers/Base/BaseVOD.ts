@@ -125,6 +125,8 @@ export class BaseVOD {
 
     public exportData: ExportData = {};
 
+    public viewers: { amount: number, timestamp: Date }[] = [];
+
     /**
      * Set up date related data
      * Requires JSON to be loaded
@@ -1254,6 +1256,10 @@ export class BaseVOD {
 
         if (this.json.export_data) {
             this.exportData = this.json.export_data;
+        }
+
+        if (this.json.viewers) {
+            this.viewers = this.json.viewers;
         }
 
     }

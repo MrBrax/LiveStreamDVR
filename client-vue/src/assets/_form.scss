@@ -151,22 +151,6 @@
     margin-bottom: 0.2em;
 }
 
-.form-submit {
-    display: flex;
-    align-items: center;
-    .form-status {
-        flex-grow: 1;
-        padding-left: 1em;
-    }
-    .control {
-        button {
-            &:not(:last-child) {
-                margin-right: 0.5em;
-            }
-        }
-    }
-}
-
 ul.radio-list {
     list-style: none;
     list-style-type: none;

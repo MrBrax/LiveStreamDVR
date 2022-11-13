@@ -300,17 +300,18 @@
 </template>
 
 <script lang="ts" setup>
-import { ChapterTypes, useStore, VODTypes } from '@/store';
-import { ApiGamesResponse, ApiResponse } from '@common/Api/Api';
+import { useStore } from '@/store';
+import type { ApiGamesResponse, ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
 import { computed, onMounted, ref } from 'vue';
 
 import { faUndo } from '@fortawesome/free-solid-svg-icons';
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { ApiGame, EditableChapter } from '@common/Api/Client';
+import type { ApiGame, EditableChapter } from '@common/Api/Client';
 import { TwitchVODChapter } from '@/core/Providers/Twitch/TwitchVODChapter';
 import { formatDuration } from '@/mixins/newhelpers';
 import { useI18n } from 'vue-i18n';
+import type { ChapterTypes, VODTypes } from '@/twitchautomator';
 library.add(faUndo);
 
 const store = useStore();

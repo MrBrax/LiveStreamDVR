@@ -20,7 +20,7 @@ export async function ListJobs(req: express.Request, res: express.Response): Pro
 
 export async function KillJob(req: express.Request, res: express.Response): Promise<void> {
 
-    let job: Job | boolean = false;
+    let job: Job | boolean;
 
     if (req.params.name.endsWith("*")) {
         const name = req.params.name.slice(0, -1);

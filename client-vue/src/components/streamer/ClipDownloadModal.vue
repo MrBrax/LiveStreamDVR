@@ -50,14 +50,14 @@
 
 <script lang="ts" setup>
 import { formatDuration, isTwitch, formatNumber } from '@/mixins/newhelpers';
-import { ChannelTypes } from '@/store';
-import { Clip } from '@common/TwitchAPI/Clips';
+import type { Clip } from '@common/TwitchAPI/Clips';
 import axios from 'axios';
 import { ref } from 'vue';
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from 'vue-i18n';
-import { ApiResponse } from "@common/Api/Api";
+import type { ApiResponse } from "@common/Api/Api";
+import type { ChannelTypes } from '@/twitchautomator';
 library.add(faSpinner);
 
 const props = defineProps<{

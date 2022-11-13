@@ -1,13 +1,11 @@
-import type { Config } from "@jest/types";
+// import type { Config } from "jest";
+import type { JestConfigWithTsJest } from 'ts-jest';
+
 // Sync object
-const config: Config.InitialOptions = {
+const config: JestConfigWithTsJest = {
     verbose: true,
     transform: {
         "^.+\\.tsx?$": "ts-jest",
-    },
-    transformIgnorePatterns: [
-        // ignore chalk
-        "node_modules/(?!chalk)",
-    ],
+    }
 };
 export default config;

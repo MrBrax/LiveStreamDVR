@@ -104,6 +104,8 @@ export interface ApiBaseVod {
 
     export_data?: ExportData;
 
+    viewers: { amount: number; timestamp: string }[];
+
 }
 
 export interface ApiTwitchVod extends ApiBaseVod {

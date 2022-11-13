@@ -13,7 +13,7 @@
   "i18n-ally.refactor.templates": [
     {
       "templates": [
-        "req.t(\"{key}\"{args})",
+        "req.t(\"{key}\"{args})"
       ],
       "exclude": [
         "src/config/**"

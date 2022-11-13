@@ -154,7 +154,11 @@
     "check-subscriptions": "Check subscriptions",
     "refresh": "Refresh",
     "delete-segments": "Delete segments",
-    "delete-segment": "Delete segment"
+    "delete-segment": "Delete segment",
+    "download-config": "Download config",
+    "upload-config": "Upload config",
+    "sync-down": "Sync down",
+    "sync-up": "Sync up"
   },
   "pages": {
     "favourite-games": "Favourite games",
@@ -253,6 +257,9 @@
       "time-out": "Time Out",
       "filesize": "Filesize",
       "edit-segment": "Edit segment"
+    },
+    "settings": {
+      "new_and_interesting": "New & Interesting"
     }
   },
   "components": {

@@ -5,7 +5,7 @@ import { BaseVODSegment } from "../Base/BaseVODSegment";
 import BaseVOD from "../Base/BaseVOD";
 import { BaseVODChapter } from "../Base/BaseVODChapter";
 import YouTubeChannel from "./YouTubeChannel";
-import { ApiYouTubeVod } from "@common/Api/Client";
+import type { ApiYouTubeVod } from "@common/Api/Client";
 
 // const store = useStore();
 

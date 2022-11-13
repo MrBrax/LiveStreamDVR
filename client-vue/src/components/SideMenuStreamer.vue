@@ -54,7 +54,7 @@
                 <template v-if="streamer.is_live && streamer.is_capturing">
                     <template v-if="isTwitch(streamer) && streamer.current_game && streamer.current_game.name != ''">
                         {{ gameVerb }}
-                        <strong>{{ streamer.current_game.name }}</strong>
+                        <strong :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }">{{ streamer.current_game.name }}</strong>
                     </template>
                     <template v-else>Streaming</template>
                     for
@@ -71,7 +71,10 @@
                 </template>
                 <template v-else-if="streamer.is_converting"> Converting... </template>
                 <template v-else-if="streamer.chapter_data && store.clientCfg('showOfflineCategoryInSidebar')">
-                    <span :title="streamer.chapter_data.title">
+                    <span
+                        :title="streamer.chapter_data.title"
+                        :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }"
+                    >
                         <span class="icon is-small"><fa
                             icon="bed"
                             title="Offline category"
@@ -134,11 +137,12 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
 import { faFilm, faHeadphones, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faTrashArrowUp, faChevronDown, faChevronUp, faLock, faGamepad, faBed, faComment } from "@fortawesome/free-solid-svg-icons";
 import { faHourglass } from "@fortawesome/free-regular-svg-icons";
-import { ChannelTypes, useStore, VODTypes } from "@/store";
+import { useStore } from "@/store";
 import { nonGameCategories } from "../../../common/Defs";
 import { isTwitch } from "@/mixins/newhelpers";
 import { useRoute } from "vue-router";
-import { formatLogicalDate, humanDate } from "@/mixins/newhelpers";
+import { formatLogicalDate } from "@/mixins/newhelpers";
+import type { ChannelTypes, VODTypes } from "@/twitchautomator";
 library.add(faGithub, faFilm, faHeadphones, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faTrashArrowUp, faChevronDown, faChevronUp, faLock, faGamepad, faBed, faComment);
 
 

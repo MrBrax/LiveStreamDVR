@@ -371,9 +371,9 @@ import { YouTubeCategories } from "@common/YouTube";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode, faFileLines, faDownload, faUpload } from "@fortawesome/free-solid-svg-icons";
-import { ApiResponse, ApiFilesResponse } from "@common/Api/Api";
-import { ApiFile } from "@common/Api/Client";
-import { ExporterOptions } from "@common/Exporter";
+import type { ApiResponse, ApiFilesResponse } from "@common/Api/Api";
+import type { ApiFile } from "@common/Api/Client";
+import type { ExporterOptions } from "@common/Exporter";
 import { useI18n } from "vue-i18n";
 import { formatBytes } from "@/mixins/newhelpers";
 library.add(faSortUp, faSortDown, faFileVideo, faFile, faFileCsv, faFileCode, faFileLines, faDownload, faUpload);

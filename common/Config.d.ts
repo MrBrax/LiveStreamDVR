@@ -43,6 +43,9 @@ export interface SettingField<T> {
 
     multiline?: boolean;
 
+    /** highlight the setting on the config page */
+    new?: boolean;
+
 }
 
 export interface BaseChannelConfig {

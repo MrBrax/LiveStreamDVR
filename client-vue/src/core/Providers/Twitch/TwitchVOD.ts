@@ -1,14 +1,14 @@
 import { useStore } from "../../../store";
 import { MuteStatus } from "../../../../../common/Defs";
-import TwitchChannel from "./TwitchChannel";
+import type TwitchChannel from "./TwitchChannel";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 // import { useStore } from "../store";
-import { TwitchGame } from "./TwitchGame";
+import type { TwitchGame } from "./TwitchGame";
 import { TwitchHelper } from "../../helper";
 import { BaseVODSegment } from "../Base/BaseVODSegment";
-import { TwitchVODBookmark } from "@common/Bookmark";
+import type { TwitchVODBookmark } from "@common/Bookmark";
 import BaseVOD from "../Base/BaseVOD";
-import { ApiTwitchVod } from "@common/Api/Client";
+import type { ApiTwitchVod } from "@common/Api/Client";
 
 // const store = useStore();
 
@@ -87,6 +87,7 @@ export default class TwitchVOD extends BaseVOD {
         vod.bookmarks = apiResponse.bookmarks || [];
         vod.cloud_storage = apiResponse.cloud_storage || false;
         vod.exportData = apiResponse.export_data || {};
+        vod.viewers = apiResponse.viewers ? apiResponse.viewers.map(entry => { return { timestamp: new Date(entry.timestamp), amount: entry.amount } }) : [];
         return vod;
     }
 

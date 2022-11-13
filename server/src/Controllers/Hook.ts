@@ -92,7 +92,7 @@ export async function HookTwitch(req: express.Request, res: express.Response): P
 
     if (Config.getInstance().cfg("instance_id")) {
         if (!req.query.instance || req.query.instance != Config.getInstance().cfg("instance_id")) {
-            Log.logAdvanced(Log.Level.ERROR, "hook", `Hook called with the wrong instance (${req.query.instance})`);
+            Log.logAdvanced(Log.Level.ERROR, "hook", `Hook called with the wrong instance (${req.query.instance} != ${Config.getInstance().cfg("instance_id")})`, debugMeta);
             res.send("Invalid instance");
             return;
         }

@@ -2,7 +2,7 @@ import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
 import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
-import { ChannelTypes, VODTypes } from "@/store";
+import type { ChannelTypes, VODTypes } from "@/twitchautomator";
 import { format, formatDistance, formatDistanceToNow, parseISO, parseJSON, isDate } from "date-fns";
 // const dateFormat = "yyyy-MM-dd HH:mm:ss.SSSSSS"; // 2020-11-03 02:48:01.000000
 

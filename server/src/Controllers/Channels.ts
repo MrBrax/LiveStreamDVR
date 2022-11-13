@@ -723,7 +723,7 @@ export async function SubscribeToChannel(req: express.Request, res: express.Resp
     res.send({
         data: {
             login: channel.login,
-            status: sub === true ? "Subscription request sent, check logs for details" : "ERROR",
+            status: sub ? "Subscription request sent, check logs for details" : "ERROR",
         },
         status: "OK",
     });
@@ -1297,7 +1297,7 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
                     if (exporter.vod && status) {
                         exporter.vod.exportData.exported_at = new Date().toISOString();
                         exporter.vod.exportData.exporter = exporter_name;
-                        exporter.vod.saveJSON("export successful");
+                        await exporter.vod.saveJSON("export successful");
                     }
                     completedVods++;
                     job.setProgress((completedVods + failedVods) / totalVods);

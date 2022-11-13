@@ -1,4 +1,4 @@
-import { ComponentOptionsMixin } from "vue";
+import type { ComponentOptionsMixin } from "vue";
 import { useStore } from "../store";
 
 function getTitle(vm: ComponentOptionsMixin) {

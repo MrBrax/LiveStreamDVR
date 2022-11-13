@@ -119,6 +119,11 @@ export class Config {
         { "key": "capture.use_cache", "group": "Capture", "text": "Use cache", "type": "boolean", "default": false, "help": "Use cache directory for in-progress captures" },
         { "key": "capture.retry_on_error", "group": "Capture", "text": "Retry on error", "type": "boolean", "default": true, "help": "Retry on any kind of error. If an eventsub message is missed, it will be retried." },
 
+        { "key": "capture.viewercount", "group": "Capture", "text": "Capture viewercount", "type": "boolean", "default": false, "help": "Capture viewercount", new: true },
+        { "key": "capture.killendedstream", "group": "Capture", "text": "Kill ended stream", "type": "boolean", "default": false, "help": "Kill the capture process when the notification is received that the stream has ended", new: true },
+        { "key": "capture.fallbackcapture", "group": "Capture", "text": "Fallback capture", "type": "boolean", "default": false, "help": "Capture to saved_vods if any of the capture methods fail", new: true },
+
+
         // { "key": "sub_lease", "group": "Advanced", "text": "Subscription lease", "type": "number", "default": 604800 },
         { "key": "api_client_id", "group": "Twitch", "text": "Twitch client ID", "type": "string", "required": true },
         { "key": "api_secret", "group": "Twitch", "text": "Twitch secret", "type": "string", "secret": true, "required": true, "help": "Keep blank to not change" },

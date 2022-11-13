@@ -178,10 +178,11 @@ import VideoDownloadModal from "./streamer/VideoDownloadModal.vue";
 import ClipDownloadModal from "./streamer/ClipDownloadModal.vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen, faTrash } from "@fortawesome/free-solid-svg-icons";
-import { ChannelTypes, useStore, VODTypes } from "@/store";
+import { useStore } from "@/store";
 import { useRoute } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { formatBytes } from "@/mixins/newhelpers";
+import type { ChannelTypes, VODTypes } from "@/twitchautomator";
 library.add(faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen, faTrash);
 
 const props = defineProps<{
@@ -414,10 +415,14 @@ function toggleLimitVods() {
 
     .streamer-live, .streamer-capturing {
         color: #f00;
-        animation: live ease-in-out 1s infinite;
         font-weight: 700;
         display: inline-block;
         margin-left: 5px;
+
+        animation: live ease-in-out 1s infinite;
+        @media (prefers-reduced-motion: reduce) {
+            animation: none !important;
+        }
     }
 
 }

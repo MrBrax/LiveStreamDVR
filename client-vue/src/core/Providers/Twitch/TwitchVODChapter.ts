@@ -1,4 +1,4 @@
-import { ApiVodTwitchChapter } from "@common/Api/Client";
+import type { ApiVodTwitchChapter } from "@common/Api/Client";
 import { BaseVODChapter } from "../Base/BaseVODChapter";
 import { TwitchGame } from "./TwitchGame";
 

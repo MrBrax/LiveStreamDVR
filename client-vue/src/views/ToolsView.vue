@@ -243,7 +243,7 @@
 
 <script lang="ts" setup>
 import { ref, computed } from "vue";
-import { ApiResponse } from "@common/Api/Api";
+import type { ApiResponse } from "@common/Api/Api";
 
 // import ToolsBurnForm from "@/components/forms/ToolsBurnForm.vue";
 import ToolsVodDownloadForm from "@/components/forms/ToolsVodDownloadForm.vue";

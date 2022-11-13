@@ -206,8 +206,12 @@
                         :alt="game.name"
                         :src="game.getBoxArtUrl(140, 190)"
                         loading="lazy"
+                        :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }"
                     >
-                    <span class="boxart-name">{{ game.name }}</span>
+                    <span
+                        class="boxart-name"
+                        :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }"
+                    >{{ game.name }}</span>
                 </div>
             </div>
             <div class="stream-title">
@@ -219,8 +223,8 @@
 
 <script lang="ts" setup>
 // import { ref } from "vue";
-import { ChannelTypes, useStore, VODTypes } from "@/store";
-import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
+import { useStore } from "@/store";
+import type TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import { MuteStatus, TwitchVodAge } from "../../../common/Defs";
 import DurationDisplay from "./DurationDisplay.vue";
 import { isTwitchVOD } from "@/mixins/newhelpers";
@@ -228,6 +232,7 @@ import { formatDate, formatBytes, humanDuration, niceDuration, humanDate } from 
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faTrash, faVolumeMute } from "@fortawesome/free-solid-svg-icons";
+import type { ChannelTypes, VODTypes } from "@/twitchautomator";
 library.add(faTrash, faVolumeMute);
 
 const store = useStore();

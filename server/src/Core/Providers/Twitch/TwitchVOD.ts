@@ -541,7 +541,10 @@ export class TwitchVOD extends BaseVOD {
             const video_time = parseJSON(video.created_at);
             if (!video_time) continue;
 
-            if (Math.abs(this.started_at.getTime() - video_time.getTime()) < 1000 * 60 * 5) { // 5 minutes
+            if (
+                Math.abs(this.started_at.getTime() - video_time.getTime()) < 1000 * 60 * 5 || // 5 minutes
+                (video.stream_id && this.capture_id && video.stream_id == this.capture_id)
+            ) {
 
                 Log.logAdvanced(Log.Level.SUCCESS, "vod.matchProviderVod", `Found matching VOD for ${this.basename}`);
 
@@ -794,11 +797,13 @@ export class TwitchVOD extends BaseVOD {
 
             export_data: this.exportData,
 
+            viewers: this.viewers.map((v) => { return { timestamp: v.timestamp.toISOString(), amount: v.amount }; }),
+
             // game_offset: this.game_offset || 0,
             // twitch_vod_url: this.twitch_vod_url,
             // twitch_vod_exists: this.twitch_vod_exists,
             // twitch_vod_attempted: this.twitch_vod_attempted,
-            // twitch_vod_neversaved: this.twitch_vod_neversaved,            
+            // twitch_vod_neversaved: this.twitch_vod_neversaved,
             // video_fail2: this.video_fail2,
             // json_hash: this.json_hash,
             // created: this.created,
@@ -901,6 +906,8 @@ export class TwitchVOD extends BaseVOD {
         generated.cloud_storage = this.cloud_storage;
 
         generated.export_data = this.exportData;
+
+        generated.viewers = this.viewers;
 
         // generated.twitch_vod_status = this.twitch_vod_status;
 
@@ -2314,6 +2321,44 @@ export class TwitchVOD extends BaseVOD {
 
         });
 
+    }
+
+    private watchViewerCountInterval?: NodeJS.Timeout;
+    private watchViewerCountTimeBetweenChecks: number = 1000 * 60 * 5; // 5 minutes
+    public startWatchingViewerCount() {
+        if (this.watchViewerCountInterval) {
+            throw new Error("Already watching");
+        }
+        Log.logAdvanced(Log.Level.INFO, "vod.startWatchingViewerCount", `Watching viewer count for ${this.basename}`);
+        this.watchViewerCountInterval = setInterval(() => {
+            this.addViewerCount();
+        }, this.watchViewerCountTimeBetweenChecks);
+    }
+
+    public stopWatchingViewerCount() {
+        if (this.watchViewerCountInterval) {
+            clearInterval(this.watchViewerCountInterval);
+            this.watchViewerCountInterval = undefined;
+        }
+    }
+
+    public async addViewerCount() {
+        if (!LiveStreamDVR.getInstance().getVodByUUID(this.uuid)) {
+            Log.logAdvanced(Log.Level.WARNING, "vod.addViewerCount", `VOD ${this.basename} was removed without stopping watching viewer count`);
+            this.stopWatchingViewerCount();
+            return;
+        }
+        const streams = await TwitchChannel.getStreams(this.getChannel().internalId);
+        if (!streams || streams.length == 0) {
+            return;
+        }
+        const stream = streams[0];
+        this.viewers.push({
+            amount: stream.viewer_count,
+            timestamp: new Date(),
+        });
+        Log.logAdvanced(Log.Level.INFO, "vod.addViewerCount", `Added viewer count for ${this.basename} (${stream.viewer_count})`);
+        this.saveJSON("add viewer count");
     }
 
 }

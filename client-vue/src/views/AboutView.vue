@@ -146,7 +146,18 @@
                         </button>
                     </p>
                     <!--<button class="button is-confirm is-small" @click="unsubscribeAll" :disabled="subscriptionsLoading">Unsubscribe</button>-->
-                    <span v-if="subscriptionsLoading">{{ t("messages.loading") }}</span>
+                    <div
+                        v-if="subscriptionsLoading"
+                        class="loading"
+                    >
+                        <span class="icon">
+                            <font-awesome-icon
+                                icon="spinner"
+                                spin
+                            />
+                        </span>
+                        {{ t("messages.loading") }}
+                    </div>
                     <table class="table is-fullwidth is-striped">
                         <thead>
                             <tr>
@@ -195,7 +206,7 @@
                     class="block"
                 >
                     <h3>Pip update</h3>
-                    <code class="code">pip install --user --upgrade {{ pipKeys }}</code>
+                    <CodeBox>pip install --user --upgrade {{ pipKeys }}</CodeBox><br>
                     <br>You might want to install without the --user switch depending on environment.
                 </div>
                 <div class="block">
@@ -244,10 +255,12 @@
                 v-else
                 class="section-content"
             >
-                <span class="icon"><fa
-                    icon="sync"
-                    spin
-                /></span> {{ t("messages.loading") }}
+                <div class="loading">
+                    <span class="icon"><fa
+                        icon="sync"
+                        spin
+                    /></span> {{ t("messages.loading") }}
+                </div>
             </div>
         </section>
     </div>
@@ -255,15 +268,16 @@
 
 <script lang="ts" setup>
 import { useStore } from "@/store";
-import { ApiSubscription } from "@common/Api/Client";
-import { AboutData } from "@common/Api/About";
+import type { ApiSubscription } from "@common/Api/Client";
+import type { AboutData } from "@common/Api/About";
 import { ref, computed, onMounted } from "vue";
-import { ApiResponse, ApiAboutResponse, IApiResponse } from "@common/Api/Api";
+import type { ApiResponse, ApiAboutResponse, IApiResponse } from "@common/Api/Api";
+import CodeBox from "@/components/reusables/CodeBox.vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faRss, faBan } from "@fortawesome/free-solid-svg-icons";
+import { faRss, faBan, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from "vue-i18n";
 import axios from "axios";
-library.add(faRss, faBan);
+library.add(faRss, faBan, faSpinner);
 
 
 const store = useStore();

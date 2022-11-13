@@ -4,12 +4,14 @@
             <div
                 v-if="store.config"
                 class="top-menu-item title"
+                :class="{ fancy: store.clientCfg('animationsEnabled') }"
             >
                 <router-link
                     to="/dashboard"
                     class="link"
                     aria-label="Go to dashboard"
                 >
+                    <div class="bg" />
                     <img
                         src="../assets/logo.png"
                         class="favicon"
@@ -18,7 +20,7 @@
                         :alt="store.cfg('app_name', 'TA') ?? 'TA'"
                         aria-hidden="true"
                     >
-                    <span
+                    <h1
                         class="title"
                         :title="verboseVersion"
                     >
@@ -26,7 +28,7 @@
                             <span
                                 class="githash"
                                 @click="copyDebugStuff"
-                            >{{ store.serverGitHash?.substring(0, 6) }}/{{ clientHash.substring(0, 6) }}</span>
+                            >{{ debugVersionString }}</span>
                         </template>
                         <template v-else>
                             <span>S{{ store.version }}</span>/<span :class="{ dev: isDev }">C{{ clientVersion }}</span>
@@ -36,7 +38,7 @@
                             class="debug-mode"
                             title="Debug"
                         >👽</span>
-                    </span>
+                    </h1>
                 </router-link>
             </div>
         </div>
@@ -243,6 +245,16 @@ const isDev = computed(() => {
     return import.meta.env.DEV; // injected
 });
 
+const debugVersionString = computed(() => {
+    const sgh = store.serverGitHash?.substring(0, 6);
+    const cgh = clientHash.substring(0, 6);
+    if (sgh === cgh) {
+        return sgh;
+    } else {
+        return `${sgh}/${cgh}`;
+    }
+});
+
 
 onMounted(() => {
     keySub.value = store.$onAction(({ name, args }) => {
@@ -411,9 +423,34 @@ function copyDebugStuff(e: Event) {
     &.title {
         font-weight: 700;
 
+        h1 {
+            margin: 0;
+            font-size: 1em;
+            display: inline-block;
+            letter-spacing: -0.05em;
+            color: #fff;
+            // z-index: 1;
+        }
+
         .link {
             color: #fff;
             padding: 13px 8px;
+            position: relative;
+            overflow: hidden;
+            .bg {
+                background-image: url(../assets/3D_TV_static.gif);
+                background-size: cover;
+                opacity: 0;
+                transition: opacity 0.5s ease-in-out;
+                display: block;
+                position: absolute;
+                width: 100%;
+                height: 300px;
+                top: 0;
+                left: 0;
+                z-index: -1;
+                animation: 20s scrollbg ease-in-out infinite;
+            }
         }
 
         .favicon {
@@ -421,12 +458,36 @@ function copyDebugStuff(e: Event) {
         }
 
         // .favicon { animation: 1s speeen linear; }
-        &:hover .favicon {
-            animation: 1s speen linear infinite;
+        &:hover {
+            
         }
 
         span.dev {
             color: #ff0;
+        }
+
+        &.fancy {
+            h1 {
+                transition: all 0.2s ease-in-out;
+            }
+            &:hover {
+                h1 {
+                    text-shadow: 0 0 10px #fff, 0 0 5px #1598fd;
+                    letter-spacing: -0.02em;
+                }
+
+                .favicon {
+                    animation: 1s speen linear infinite;
+                }
+
+                .link {
+                    background-color: transparent;
+                    .bg {
+                        // background-position: 0 200px;
+                        opacity: 1;
+                    }
+                }
+            }
         }
     }
 
@@ -505,6 +566,7 @@ function copyDebugStuff(e: Event) {
 .githash {
     font-weight: 100;
     font-size: 0.8rem;
+    font-family: 'Courier New', Courier, monospace;
     &:hover {
         color: #ff0;
     }
@@ -560,6 +622,21 @@ function copyDebugStuff(e: Event) {
 
         }
 
+    }
+}
+
+@keyframes scrollbg {
+    0% {
+        // background-position: 0 150px;
+        transform: translateY(-130px);
+    }
+    50% {
+        //background-position: 0 220px;
+        transform: translateY(-45px);
+    }
+    100% {
+        // background-position: 0 150px;
+        transform: translateY(-130px);
     }
 }
 

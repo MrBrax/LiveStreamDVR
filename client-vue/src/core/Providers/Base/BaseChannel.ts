@@ -1,12 +1,12 @@
-import { ApiBaseChannel } from "@common/Api/Client";
-import { VideoQuality } from "@common/Config";
-import { BroadcasterType } from "@common/TwitchAPI/Users";
-import { BaseVODChapterJSON } from "../../../../../server/src/Storage/JSON";
-import { LocalVideo } from "@common/LocalVideo";
-import { LocalClip } from "@common/LocalClip";
-import { BaseVODChapter } from "./BaseVODChapter";
-import BaseVOD from "./BaseVOD";
-import { Providers } from "@common/Defs";
+import type { ApiBaseChannel } from "@common/Api/Client";
+import type { VideoQuality } from "@common/Config";
+import type { BroadcasterType } from "@common/TwitchAPI/Users";
+import type { BaseVODChapterJSON } from "../../../../../server/src/Storage/JSON";
+import type { LocalVideo } from "@common/LocalVideo";
+import type { LocalClip } from "@common/LocalClip";
+import type { BaseVODChapter } from "./BaseVODChapter";
+import type BaseVOD from "./BaseVOD";
+import type { Providers } from "@common/Defs";
 
 export default class BaseChannel {
 

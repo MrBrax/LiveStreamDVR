@@ -357,13 +357,14 @@
 </template>
 
 <script lang="ts" setup>
-import { useStore, VODTypes } from '@/store';
-import { ApiResponse } from '@common/Api/Api';
-import { ApiJob } from '@common/Api/Client';
-import axios from 'axios';
-import { ref, computed, onMounted } from 'vue';
-import { useI18n } from 'vue-i18n';
 import { formatBytes } from "@/mixins/newhelpers";
+import { useStore } from '@/store';
+import type { VODTypes } from '@/twitchautomator';
+import type { ApiResponse } from '@common/Api/Api';
+import type { ApiJob } from '@common/Api/Client';
+import axios from 'axios';
+import { computed, onMounted, ref } from 'vue';
+import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{
     vod: VODTypes,

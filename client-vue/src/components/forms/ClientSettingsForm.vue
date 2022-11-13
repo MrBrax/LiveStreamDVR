@@ -5,7 +5,7 @@
             v-show="!value.hidden"
             :key="key"
             class="field"
-            :title="key"
+            :title="key.toString()"
         >
             <label
                 v-if="value.type != 'boolean'"
@@ -162,13 +162,34 @@
                 </label>
             </div>
         </div>
-        <div class="field">
+        <div class="field buttons">
             <button
                 class="button is-confirm"
                 @click="saveClientConfig"
             >
                 <span class="icon"><font-awesome-icon icon="save" /></span>
                 <span>{{ t('buttons.save') }}</span>
+            </button>
+            <button
+                class="button is-confirm"
+                @click="downloadClientSettings"
+            >
+                <span class="icon"><font-awesome-icon icon="download" /></span>
+                <span>{{ t('buttons.sync-down') }}</span>
+            </button>
+            <button
+                class="button is-confirm"
+                @click="uploadClientConfig"
+            >
+                <span class="icon"><font-awesome-icon icon="upload" /></span>
+                <span>{{ t('buttons.sync-up') }}</span>
+            </button>
+            <button
+                class="button is-danger"
+                @click="resetClientConfig"
+            >
+                <span class="icon"><font-awesome-icon icon="undo" /></span>
+                <span>{{ t('buttons.reset') }}</span>
             </button>
         </div>
         <br>
@@ -197,13 +218,17 @@
 <script lang="ts" setup>
 import { useStore } from "@/store";
 import { computed, onMounted, ref } from "vue";
-import { defaultConfig, defaultConfigFields, defaultSidemenuShow } from "@/defs";
-import { ClientSettings, SidemenuShow } from "@/twitchautomator";
+import { defaultConfig, defaultConfigFields } from "@common/ClientSettings";
+import { defaultSidemenuShow } from "@/defs";
+import type { SidemenuShow } from "@/twitchautomator";
+import type { ClientSettings } from "@common/ClientSettings.d";
+import type { ApiResponse} from "@common/Api/Api";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faBell, faArrowRightFromBracket, faSave } from "@fortawesome/free-solid-svg-icons";
+import { faBell, faArrowRightFromBracket, faSave, faDownload, faUpload, faUndo } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from "vue-i18n";
-library.add(faBell, faArrowRightFromBracket, faSave);
+import axios from "axios";
+library.add(faBell, faArrowRightFromBracket, faSave, faDownload, faUpload, faUndo);
 
 const store = useStore();
 const { t, te, availableLocales, locale } = useI18n();
@@ -211,7 +236,7 @@ const { t, te, availableLocales, locale } = useI18n();
 const currentConfig = ref<ClientSettings>({...defaultConfig});
 const updateConfig = ref<ClientSettings>({...defaultConfig});
 const sideMenuShow = ref<SidemenuShow>({...defaultSidemenuShow});
-    
+
 const locales = computed((): Record<string, string> => {
     const names = new Intl.DisplayNames(["en"], { type: "language" });
     const all: Record<string, string> = {};
@@ -220,7 +245,7 @@ const locales = computed((): Record<string, string> => {
     }
     return all;
 });
-    
+
 onMounted(() => {
     if (!store.clientConfig) return;
     // const crConf = {...defaultConfig};
@@ -256,6 +281,53 @@ function requestNotifications() {
             }
         });
     }
+}
+
+function downloadClientSettings() {
+    axios.get<ApiResponse>("/api/v0/clientsettings").then((response) => {
+        const json = response.data;
+        if (json.message) alert(json.message);
+        console.log(json);
+        console.log("data", json.data);
+        if (json.data) {
+            if (store.validateClientConfig(json.data)){
+                store.updateClientConfig(json.data);
+                store.saveClientConfig();
+                alert("Settings downloaded:\n" + Object.entries(json.data).map(([k, v]) => `${k}: ${v}`).join("\n"));
+                window.location.reload();
+            } else {
+                alert("Invalid config");
+            }
+        } else {
+            alert("Error: no data");
+        }
+    }).catch((error) => {
+        console.error(error);
+        alert("Error: " + error);
+    });
+}
+
+function uploadClientConfig() {
+    axios.put<ApiResponse>("/api/v0/clientsettings", store.clientConfig).then((response) => {
+        const json = response.data;
+        if (json.message) alert(json.message);
+        console.log(json);
+    }).catch((error) => {
+        console.log(error);
+        if (axios.isAxiosError(error)) {
+            console.error("error", error.response);
+            if (error.response && error.response.data && error.response.data.message) {
+                alert(error.response.data.message);
+            }
+        }
+    });
+}
+
+function resetClientConfig() {
+    store.updateClientConfig({...defaultConfig});
+    store.saveClientConfig();
+    alert("Settings reset, reloading...");
+    window.location.reload();
 }
 
 function logout() {

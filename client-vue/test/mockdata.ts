@@ -1,5 +1,5 @@
-import { ApiTwitchChannel, ApiGame, ApiVodSegment, ApiTwitchVod, ApiVodTwitchChapter } from "@common/Api/Client";
-import { UserData } from "@common/User";
+import type { ApiTwitchChannel, ApiGame, ApiVodSegment, ApiTwitchVod, ApiVodTwitchChapter } from "@common/Api/Client";
+import type { UserData } from "@common/User";
 import { JobStatus } from "@common/Defs";
 
 export const MockApiGameData = {
@@ -137,7 +137,8 @@ export const MockApiVODData: ApiTwitchVod = {
     bookmarks: [],
     provider: "twitch",
     uuid: "",
-    channel_uuid: ""
+    channel_uuid: "",
+    viewers: [],
 };
 
 export const MockApiChapterData: ApiVodTwitchChapter = {

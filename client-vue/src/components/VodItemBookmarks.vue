@@ -5,7 +5,7 @@
         class="video-bookmarks"
         aria-label="Bookmarks"
     >
-        <strong>{{ t('vod.bookmarks') }}</strong>
+        <h4>{{ t('vod.bookmarks') }}</h4>
         <ul class="list-segments">
             <li
                 v-for="(bookmark, i) in vod.bookmarks"
@@ -62,12 +62,13 @@
 </template>
 
 <script lang="ts" setup>
-import { useStore, VODTypes } from '@/store';
-import { ApiResponse } from '@common/Api/Api';
+import { useStore } from '@/store';
+import type { ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
 import { formatDuration } from "@/mixins/newhelpers";
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import type { VODTypes } from '@/twitchautomator';
 
 const props = defineProps({
     vod: {
@@ -116,6 +117,7 @@ function doDeleteBookmark(i: number) {
 </script>
 
 <style lang="scss" scoped>
+h4 { margin: 0 }
 .video-bookmarks {
     padding: 1em;
     background-color: var(--video-bookmarks-background-color);

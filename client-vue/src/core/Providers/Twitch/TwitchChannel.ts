@@ -1,10 +1,10 @@
-import { ApiTwitchChannel } from "@common/Api/Client";
-import { UserData } from "@common/User";
-import { VideoQuality } from "@common/Config";
-import { BroadcasterType } from "@common/TwitchAPI/Users";
-import { TwitchGame } from "./TwitchGame";
+import type { ApiTwitchChannel } from "@common/Api/Client";
+import type { UserData } from "@common/User";
+import type { VideoQuality } from "@common/Config";
+import type { BroadcasterType } from "@common/TwitchAPI/Users";
+import type { TwitchGame } from "./TwitchGame";
 import TwitchVOD from "./TwitchVOD";
-import { TwitchVODChapterJSON } from "../../../../../server/src/Storage/JSON";
+import type { TwitchVODChapterJSON } from "../../../../../server/src/Storage/JSON";
 import BaseChannel from "../Base/BaseChannel";
 
 export default class TwitchChannel extends BaseChannel {

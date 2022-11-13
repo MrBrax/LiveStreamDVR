@@ -37,7 +37,10 @@
             </table>
         </div>
 
-        <div class="field form-submit">
+        <FormSubmit
+            :form-status="formStatus"
+            :form-status-text="formStatusText"
+        >
             <div class="control">
                 <button
                     class="button is-confirm"
@@ -47,10 +50,7 @@
                     <span>{{ t('buttons.save') }}</span>
                 </button>
             </div>
-            <div :class="formStatusClass">
-                {{ formStatusText }}
-            </div>
-        </div>
+        </FormSubmit>
     </form>
     <hr>
     <div>
@@ -89,12 +89,17 @@
 </template>
 
 <script lang="ts" setup>
+import FormSubmit from "@/components/reusables/FormSubmit.vue";
 import { useStore } from "@/store";
-import { ApiResponse } from "@common/Api/Api";
+import type { FormStatus } from "@/twitchautomator";
+import type { ApiResponse } from "@common/Api/Api";
 import axios from "axios";
-import { computed, onMounted, ref } from "vue";
+import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { NotificationProvidersList, NotificationCategories } from "../../../../common/Defs";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faSave } from "@fortawesome/free-solid-svg-icons";
+library.add(faSave);
 
 // emit
 const emit = defineEmits(["formSuccess"]);
@@ -105,18 +110,10 @@ const { t } = useI18n();
 
 // data
 const formStatusText = ref<string>("Ready");
-const formStatus = ref<string>("");
+const formStatus = ref<FormStatus>("IDLE");
 const formData = ref<Record<string, Record<string, boolean>>>({});
 const test = ref<{ provider: string; category: string }>({ provider: "", category: "" });
 
-// computed
-const formStatusClass = computed((): Record<string, boolean> => {
-    return {
-        "form-status": true,
-        "is-error": formStatus.value == "ERROR",
-        "is-success": formStatus.value == "OK",
-    };
-});
 
 onMounted(() => {
     resetBitmask();
@@ -175,9 +172,10 @@ function fetchData() {
 }
 
 function submitForm(event: Event) {
-    // convert record to bitmask with enum
     const bitmasks = getBitmasks();
-    console.debug("bitmasks", bitmasks);
+
+    formStatus.value = "LOADING";
+    formStatusText.value = t("messages.loading");
 
     axios
         .put<ApiResponse>(`/api/v0/notifications`, bitmasks)

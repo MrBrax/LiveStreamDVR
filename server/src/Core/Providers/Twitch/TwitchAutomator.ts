@@ -114,6 +114,8 @@ export class TwitchAutomator extends BaseAutomator {
                 return false;
             }
 
+            KeyValue.getInstance().delete(`${this.broadcaster_user_login}.offline`);
+
             KeyValue.getInstance().set(`${this.broadcaster_user_login}.last.online`, new Date().toISOString());
             Log.logAdvanced(Log.Level.INFO, "automator.handle", `Automator stream.online event for ${this.broadcaster_user_login} (retry ${messageRetry})`);
 
@@ -148,6 +150,14 @@ export class TwitchAutomator extends BaseAutomator {
 
             if (TwitchVOD.hasVod(basename)) {
                 Log.logAdvanced(Log.Level.INFO, "automator.handle", `Channel ${this.broadcaster_user_login} online, but vod ${basename} already exists, skipping`);
+                this.fallbackCapture();
+                return false;
+            }
+
+            const capture_vod = TwitchVOD.getVodByCaptureId(event.id);
+            if (capture_vod) {
+                Log.logAdvanced(Log.Level.INFO, "automator.handle", `Channel ${this.broadcaster_user_login} online, but vod ${event.id} already exists (${capture_vod.basename}), skipping`);
+                this.fallbackCapture();
                 return false;
             }
 
@@ -179,7 +189,11 @@ export class TwitchAutomator extends BaseAutomator {
                 Log.logAdvanced(Log.Level.ERROR, "automator.handle", `Download of stream '${this.broadcaster_user_login}' failed: ${(error as Error).message}`);
             }
 
+            return true;
+
         } else if (subscription_type == "stream.offline") {
+
+            KeyValue.getInstance().setBool(`${this.broadcaster_user_login}.offline`, true);
 
             return await this.end();
 
@@ -364,7 +378,7 @@ export class TwitchAutomator extends BaseAutomator {
 
         if (fs.existsSync(path.join(BaseConfigDataFolder.config, "twitch_oauth.txt"))) {
             const token = fs.readFileSync(path.join(BaseConfigDataFolder.config, "twitch_oauth.txt"));
-            cmd.push(`--twitch-api-header=Authentication=OAuth ${token}`);
+            cmd.push(`--twitch-api-header=Authorization=OAuth ${token}`);
         }
 
         // enable low latency mode, probably not a good idea without testing

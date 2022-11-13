@@ -7,6 +7,8 @@
 @import "@fontsource/poppins";
 @import "@fontsource/poppins/600";
 
+@import "@fontsource/montserrat/latin.css";
+
 // @import "bulma/sass/utilities/_all";
 // @import "bulma/sass/elements/button";
 // @import "bulma/sass/forms/_all";
@@ -39,6 +41,7 @@ h3 {
     padding: 0;
     margin: 0 0 10px 0;
     color: var(--header-color);
+    font-family: var(--header-font);
 }
 
 h1 {
@@ -61,13 +64,21 @@ h3 {
 }
 
 .code-small {
-    font-family: "Source Code Pro", "Cascadia Code", "Consolas", monospace;
+    // font-family: "Source Code Pro", "Cascadia Code", "Consolas", monospace;
+    // font-size: 0.95em;
+    // padding: 2px 5px;
+    // margin: 2px 0;
+    // background: #444;
+    // color: #ddd;
+    // border-radius: 4px;
+    display: inline-block;
+    padding: 0em 0.3em;
+    border-radius: 0.25rem;
+    background-color: #f5f5f5;
+    font-family: monospace;
     font-size: 0.95em;
-    padding: 2px 5px;
-    margin: 2px 0;
-    background: #444;
-    color: #ddd;
-    border-radius: 4px;
+    transition: background-color 0.2s ease-in-out;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 a {
@@ -243,4 +254,29 @@ code.uselect {
     padding: 1px;
     display: block;
     
+}
+
+.is-spoiler {
+    // color: #000;
+    // background-color: #000;
+    cursor: pointer;
+    color: transparent !important;
+    text-shadow: 0 0 0.5em #fff;
+    transition: color 2s ease-in-out;
+    transition-property: color, text-shadow;
+    &:hover {
+        background-color: #f00;
+        color: inherit !important;
+        text-shadow: none;
+    }
+}
+
+img.is-spoiler {
+    cursor: pointer;
+    filter: blur(5px);
+    transition: filter 2s ease-in-out;
+    transition-property: filter;
+    &:hover {
+        filter: blur(0px);
+    }
 }
