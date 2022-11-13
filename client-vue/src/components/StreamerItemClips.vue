@@ -50,11 +50,12 @@
 </template>
 
 <script lang="ts" setup>
-import { ChannelTypes, useStore } from "@/store";
-import { LocalClip } from "@common/LocalClip";
+import { useStore } from "@/store";
+import type { LocalClip } from "@common/LocalClip";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { formatBytes, formatDuration, formatDate } from "@/mixins/newhelpers";
+import type { ChannelTypes } from "@/twitchautomator";
 
 const store = useStore();
 const { t } = useI18n();

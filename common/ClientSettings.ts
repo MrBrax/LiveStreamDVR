@@ -1,4 +1,4 @@
-import { ClientSettings } from "./ClientSettings.d";
+import type { ClientSettings } from "./ClientSettings.d";
 
 export const defaultConfig: ClientSettings = {
     useSpeech: false,

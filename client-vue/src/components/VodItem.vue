@@ -556,7 +556,7 @@ import {
     faUpload,
     faKey,
 } from "@fortawesome/free-solid-svg-icons";
-import { useStore, VODTypes } from "@/store";
+import { useStore } from "@/store";
 import ModalBox from "./ModalBox.vue";
 import VodItemSegments from "./VodItemSegments.vue";
 import VodItemBookmarks from "./VodItemBookmarks.vue";
@@ -565,7 +565,7 @@ import RenderModal from "./vod/RenderModal.vue";
 import ExportModal from "./vod/ExportModal.vue";
 import EditModal from "./vod/EditModal.vue";
 import { MuteStatus, VideoQualityArray } from "../../../common/Defs";
-import { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
+import type { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
 import { formatString } from "@common/Format";
 import { format } from "date-fns";
 import axios from "axios";
@@ -574,6 +574,7 @@ import { isTwitchVOD } from "@/mixins/newhelpers";
 import VodItemVideoInfo from "./VodItemVideoInfo.vue";
 import VodItemControls from "./VodItemControls.vue";
 import { formatDate, humanDate, humanDuration, formatBytes } from "@/mixins/newhelpers";
+import type { VODTypes } from "@/twitchautomator";
 library.add(
     faFileVideo,
     faCut,

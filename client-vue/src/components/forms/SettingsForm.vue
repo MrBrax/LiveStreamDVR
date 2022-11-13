@@ -270,8 +270,8 @@
 
 <script lang="ts" setup>
 import { useStore } from "@/store";
-import { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
-import { SettingField } from "@common/Config";
+import type { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
+import type { SettingField } from "@common/Config";
 import axios, { AxiosError } from "axios";
 import { computed, onMounted, ref } from "vue";
 import { formatString } from "@common/Format";
@@ -282,7 +282,7 @@ import FormSubmit from "@/components/reusables/FormSubmit.vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGlobe, faSave } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from "vue-i18n";
-import { FormStatus } from "@/twitchautomator";
+import type { FormStatus } from "@/twitchautomator";
 library.add(faGlobe, faSave);
 
 interface SettingsGroup {

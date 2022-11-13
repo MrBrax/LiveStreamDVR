@@ -1,6 +1,5 @@
-import { ApiTwitchChannel } from '@common/Api/Client';
 import { MockApiChannelData, MockApiChapterData, MockApiGameData, MockApiVODData, MockApiVODSegmentData } from '@/../test/mockdata';
-import { assert, describe, expect, it, test, vitest } from 'vitest'
+import { expect, test } from 'vitest'
 import TwitchChannel from "./Providers/Twitch/TwitchChannel";
 import TwitchVOD from './Providers/Twitch/TwitchVOD';
 import { TwitchGame } from './Providers/Twitch/TwitchGame';

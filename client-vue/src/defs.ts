@@ -1,4 +1,4 @@
-import { SidemenuShow } from "./twitchautomator";
+import type { SidemenuShow } from "./twitchautomator";
 
 export const defaultSidemenuShow: SidemenuShow = {
     vod_date: true,

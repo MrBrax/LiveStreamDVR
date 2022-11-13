@@ -80,11 +80,12 @@
 
 <script lang="ts" setup>
 import { isTwitchVOD } from '@/mixins/newhelpers';
-import { useStore, VODTypes } from '@/store';
-import { ApiResponse } from '@common/Api/Api';
+import { useStore } from '@/store';
+import type { ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
 import { useI18n } from 'vue-i18n';
 import { formatBytes } from '@/mixins/newhelpers';
+import type { VODTypes } from '@/twitchautomator';
 
 const props = defineProps({
     vod: {

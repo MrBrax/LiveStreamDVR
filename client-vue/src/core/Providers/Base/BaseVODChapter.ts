@@ -1,4 +1,4 @@
-import { ApiVodBaseChapter } from "@common/Api/Client";
+import type { ApiVodBaseChapter } from "@common/Api/Client";
 
 export class BaseVODChapter {
     // public raw_chapter: TwitchVODChapterJSON | undefined;

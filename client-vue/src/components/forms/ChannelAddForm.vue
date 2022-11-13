@@ -332,11 +332,10 @@ import { VideoQualityArray } from "../../../../common/Defs";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
 import axios, { AxiosError } from "axios";
-import { UserData } from "@common/User";
-import { VideoQuality } from "@common/Config";
-import { ApiResponse, ApiErrorResponse, IApiResponse } from "@common/Api/Api";
+import type { UserData } from "@common/User";
+import type { ApiResponse, ApiErrorResponse, IApiResponse } from "@common/Api/Api";
 import { useI18n } from "vue-i18n";
-import { FormStatus } from "@/twitchautomator";
+import type { FormStatus } from "@/twitchautomator";
 library.add(faUserPlus);
 
 // emit

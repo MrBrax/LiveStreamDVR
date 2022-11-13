@@ -220,9 +220,9 @@ import { useStore } from "@/store";
 import { computed, onMounted, ref } from "vue";
 import { defaultConfig, defaultConfigFields } from "@common/ClientSettings";
 import { defaultSidemenuShow } from "@/defs";
-import { SidemenuShow } from "@/twitchautomator";
-import { ClientSettings } from "@common/ClientSettings.d";
-import { ApiResponse} from "@common/Api/Api";
+import type { SidemenuShow } from "@/twitchautomator";
+import type { ClientSettings } from "@common/ClientSettings.d";
+import type { ApiResponse} from "@common/Api/Api";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faBell, faArrowRightFromBracket, faSave, faDownload, faUpload, faUndo } from "@fortawesome/free-solid-svg-icons";

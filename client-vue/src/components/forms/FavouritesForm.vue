@@ -96,13 +96,13 @@
 <script lang="ts" setup>
 import FormSubmit from "@/components/reusables/FormSubmit.vue";
 import { useStore } from "@/store";
-import { ApiGamesResponse, ApiSettingsResponse, ApiResponse } from "@common/Api/Api";
-import { ApiGame } from "@common/Api/Client";
+import type { ApiGamesResponse, ApiSettingsResponse, ApiResponse } from "@common/Api/Api";
+import type { ApiGame } from "@common/Api/Client";
 import axios from "axios";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { formatDate } from "@/mixins/newhelpers";
-import { FormStatus } from "@/twitchautomator";
+import type { FormStatus } from "@/twitchautomator";
 
 // emit
 const emit = defineEmits(["formSuccess"]);

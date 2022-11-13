@@ -17,7 +17,7 @@
 import { computed } from 'vue';
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCheck, faExclamationTriangle, faFile, faSpinner } from "@fortawesome/free-solid-svg-icons";
-import { FormStatus } from '@/twitchautomator';
+import type { FormStatus } from '@/twitchautomator';
 library.add(faCheck, faExclamationTriangle, faFile, faSpinner);
 
 const props = defineProps<{

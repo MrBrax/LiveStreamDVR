@@ -94,11 +94,11 @@ import { onMounted, onUnmounted, ref, watch } from "vue";
 import SideMenu from "@/components/SideMenu.vue";
 import { useStore } from "./store";
 import JobStatus from "./components/JobStatus.vue";
-import { ChannelUpdated, ChapterUpdateData, EndCaptureData, EndConvertData, JobClear, JobProgress, JobSave, NotifyData, VodRemoved, VodUpdated, WebhookAction } from "@common/Webhook";
-import { ApiLogLine } from "@common/Api/Client";
-import { ApiResponse, ApiAuthResponse } from "@common/Api/Api";
+import type { ChannelUpdated, ChapterUpdateData, EndCaptureData, EndConvertData, JobClear, JobProgress, JobSave, NotifyData, VodRemoved, VodUpdated, WebhookAction } from "@common/Webhook";
+import type { ApiLogLine } from "@common/Api/Client";
+import type { ApiResponse, ApiAuthResponse } from "@common/Api/Api";
 import { parseISO } from "date-fns";
-import { WebsocketJSON } from "./websocket";
+import type { WebsocketJSON } from "./websocket";
 import WebsocketStatus from "./components/WebsocketStatus.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";

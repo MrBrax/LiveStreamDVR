@@ -66,8 +66,8 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faDownload } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from "vue-i18n";
 import axios from "axios";
-import { ApiResponse } from "@common/Api/Api";
-import { FormStatus } from "@/twitchautomator";
+import type { ApiResponse } from "@common/Api/Api";
+import type { FormStatus } from "@/twitchautomator";
 library.add(faDownload);
 
 const emit = defineEmits(["formSuccess"]);

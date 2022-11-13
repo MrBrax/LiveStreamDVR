@@ -213,13 +213,14 @@
 <script lang="ts" setup>
 import { TwitchVODChapter } from '@/core/Providers/Twitch/TwitchVODChapter';
 import { niceDuration } from '@/mixins/newhelpers';
-import { ChapterTypes, useStore, VODTypes } from '@/store';
-import { ApiResponse, ApiSettingsResponse } from '@common/Api/Api';
+import { useStore } from '@/store';
+import type { ApiResponse, ApiSettingsResponse } from '@common/Api/Api';
 import axios from 'axios';
 import { computed } from 'vue';
 import DurationDisplay from "@/components/DurationDisplay.vue";
 import { useI18n } from 'vue-i18n';
 import { formatDate, formatNumber, humanDuration, twitchDuration } from "@/mixins/newhelpers";
+import type { ChapterTypes, VODTypes } from '@/twitchautomator';
 
 function isTwitchChapter(chapter: ChapterTypes): chapter is TwitchVODChapter {
     return chapter instanceof TwitchVODChapter;

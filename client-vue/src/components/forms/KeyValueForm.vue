@@ -124,7 +124,7 @@
 <script lang="ts" setup>
 import { useStore } from "@/store";
 import { computed, onMounted, ref } from "vue";
-import { ApiResponse } from "@common/Api/Api";
+import type { ApiResponse } from "@common/Api/Api";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPencil, faSync, faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from "vue-i18n";

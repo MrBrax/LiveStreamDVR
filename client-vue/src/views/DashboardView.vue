@@ -116,12 +116,13 @@
 
 <script lang="ts" setup>
 import Streamer from "@/components/StreamerItem.vue";
-import { ChannelTypes, useStore } from "@/store";
+import { useStore } from "@/store";
 import LogViewer from "@/components/LogViewer.vue";
 import { useI18n } from "vue-i18n";
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { formatBytes } from "@/mixins/newhelpers";
+import type { ChannelTypes } from "@/twitchautomator";
 
 const store = useStore();
 const logviewer = ref<InstanceType<typeof LogViewer>>();

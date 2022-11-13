@@ -91,10 +91,10 @@
 <script lang="ts" setup>
 import FormSubmit from "@/components/reusables/FormSubmit.vue";
 import { useStore } from "@/store";
-import { FormStatus } from "@/twitchautomator";
-import { ApiResponse } from "@common/Api/Api";
+import type { FormStatus } from "@/twitchautomator";
+import type { ApiResponse } from "@common/Api/Api";
 import axios from "axios";
-import { computed, onMounted, ref } from "vue";
+import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { NotificationProvidersList, NotificationCategories } from "../../../../common/Defs";
 import { library } from "@fortawesome/fontawesome-svg-core";

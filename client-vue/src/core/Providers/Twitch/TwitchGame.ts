@@ -1,4 +1,4 @@
-import { ApiGame } from "@common/Api/Client";
+import type { ApiGame } from "@common/Api/Client";
 import { useStore } from "../../../store";
 
 export class TwitchGame {

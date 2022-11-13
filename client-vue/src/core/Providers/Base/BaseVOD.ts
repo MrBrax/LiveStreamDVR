@@ -1,8 +1,9 @@
-import { JobStatus, Providers } from "@common/Defs";
-import { ExportData } from "@common/Exporter";
-import { VideoMetadata, AudioMetadata } from "@common/MediaInfo";
-import { BaseVODChapter } from "./BaseVODChapter";
-import { BaseVODSegment } from "./BaseVODSegment";
+import type { Providers } from "@common/Defs";
+import { JobStatus } from "@common/Defs";
+import type { ExportData } from "@common/Exporter";
+import type { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
+import type { BaseVODChapter } from "./BaseVODChapter";
+import type { BaseVODSegment } from "./BaseVODSegment";
 
 export default class BaseVOD {
     provider: Providers = "base";

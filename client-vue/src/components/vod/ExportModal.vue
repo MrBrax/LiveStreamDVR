@@ -366,16 +366,17 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref } from 'vue';
-import { useStore, VODTypes } from '@/store';
-import { ExporterFilenameFields } from "@common/ReplacementsConsts";
+import CodeBox from "@/components/reusables/CodeBox.vue";
+import YoutubeAuth from "@/components/YoutubeAuth.vue";
+import { useStore } from '@/store';
+import type { VODTypes } from '@/twitchautomator';
+import type { ApiResponse } from '@common/Api/Api';
+import type { ExporterOptions } from "@common/Exporter";
 import { formatString } from '@common/Format';
+import { ExporterFilenameFields } from "@common/ReplacementsConsts";
 import { YouTubeCategories } from "@common/YouTube";
 import axios from 'axios';
-import { ApiResponse } from '@common/Api/Api';
-import YoutubeAuth from "@/components/YoutubeAuth.vue";
-import CodeBox from "@/components/reusables/CodeBox.vue";
-import { ExporterOptions } from "@common/Exporter";
+import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 
 const props = defineProps<{

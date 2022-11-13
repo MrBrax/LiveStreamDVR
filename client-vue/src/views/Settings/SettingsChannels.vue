@@ -59,7 +59,7 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUser, faCalendarCheck, faStar, faBell, faUserCog, faDatabase, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { faTwitch, faYoutube } from "@fortawesome/free-brands-svg-icons";
 import { useStore } from "@/store";
-import { ApiChannelConfig } from "@common/Api/Client";
+import type { ApiChannelConfig } from "@common/Api/Client";
 import { useI18n } from "vue-i18n";
 import axios from "axios";
 import { computed, onMounted, ref, watch } from "vue";

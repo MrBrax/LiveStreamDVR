@@ -2,8 +2,8 @@ import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
 import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
-import { ChannelTypes, VODTypes } from "@/store";
-import { format, formatDistance, formatDistanceToNow, parseISO, parseJSON, isDate } from "date-fns";
+import type { ChannelTypes, VODTypes } from "@/twitchautomator";
+import { format, formatDistance, parseJSON, isDate } from "date-fns";
 
 export function niceDuration(durationInSeconds: number): string {
     if (durationInSeconds < 0) {

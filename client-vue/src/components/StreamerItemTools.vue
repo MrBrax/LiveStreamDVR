@@ -156,8 +156,8 @@
 
 <script lang="ts" setup>
 import ContextMenu from "@/components/reusables/ContextMenu.vue";
-import { ChannelTypes, useStore, VODTypes } from '@/store';
-import { ApiResponse } from '@common/Api/Api';
+import { useStore } from '@/store';
+import type { ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
 import { computed, ref } from 'vue';
 
@@ -165,6 +165,7 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUpload, faEllipsisH } from "@fortawesome/free-solid-svg-icons";
 import { formatBytes } from '@/mixins/newhelpers';
 import { useI18n } from 'vue-i18n';
+import type { ChannelTypes, VODTypes } from "@/twitchautomator";
 library.add(faUpload, faEllipsisH);
 
 const props = defineProps<{

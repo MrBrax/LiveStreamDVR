@@ -268,10 +268,10 @@
 
 <script lang="ts" setup>
 import { useStore } from "@/store";
-import { ApiSubscription } from "@common/Api/Client";
-import { AboutData } from "@common/Api/About";
+import type { ApiSubscription } from "@common/Api/Client";
+import type { AboutData } from "@common/Api/About";
 import { ref, computed, onMounted } from "vue";
-import { ApiResponse, ApiAboutResponse, IApiResponse } from "@common/Api/Api";
+import type { ApiResponse, ApiAboutResponse, IApiResponse } from "@common/Api/Api";
 import CodeBox from "@/components/reusables/CodeBox.vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faRss, faBan, faSpinner } from "@fortawesome/free-solid-svg-icons";

@@ -1,22 +1,20 @@
-import { BaseVODChapter } from "@/core/Providers/Base/BaseVODChapter";
+import type { BaseVODChapter } from "@/core/Providers/Base/BaseVODChapter";
 import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
-import { TwitchVODChapter } from "@/core/Providers/Twitch/TwitchVODChapter";
+import type { TwitchVODChapter } from "@/core/Providers/Twitch/TwitchVODChapter";
 import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
 import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
 import { defaultSidemenuShow } from "@/defs";
-import { SidemenuShow } from "@/twitchautomator";
-import { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiJobsResponse, ApiLoginResponse, ApiQuotas, ApiResponse, ApiSettingsResponse, ApiVodResponse } from "@common/Api/Api";
-import { ApiChannels, ApiJob, ApiLogLine, ApiVods } from "@common/Api/Client";
+import type { SidemenuShow, VODTypes } from "@/twitchautomator";
+import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiJobsResponse, ApiLoginResponse, ApiQuotas, ApiResponse, ApiSettingsResponse, ApiVodResponse } from "@common/Api/Api";
+import type { ApiChannels, ApiJob, ApiLogLine, ApiVods } from "@common/Api/Client";
 import { defaultConfig } from "@common/ClientSettings";
-import { ClientSettings } from "@common/ClientSettings.d";
+import type { ClientSettings } from "@common/ClientSettings.d";
 import axios from "axios";
 import { parseJSON } from "date-fns";
 import { defineStore } from "pinia";
+import type { ChannelTypes } from "@/twitchautomator";
 
-export type ChannelTypes = TwitchChannel | YouTubeChannel;
-export type VODTypes = TwitchVOD | YouTubeVOD;
-export type ChapterTypes = TwitchVODChapter | BaseVODChapter;
 
 interface StoreType {
     app_name: string;

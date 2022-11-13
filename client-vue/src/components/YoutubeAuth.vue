@@ -89,7 +89,7 @@
 
 <script lang="ts" setup>
 import { ref } from "vue";
-import { ApiResponse } from "@common/Api/Api";
+import type { ApiResponse } from "@common/Api/Api";
 import { useStore } from "@/store";
 import CodeBox from "@/components/reusables/CodeBox.vue";
 import { library } from "@fortawesome/fontawesome-svg-core";

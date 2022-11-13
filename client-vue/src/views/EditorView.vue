@@ -249,16 +249,17 @@
 <script lang="ts" setup>
 import { computed, onMounted, ref } from "vue";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
-import { useStore, VODTypes } from "@/store";
-import { ApiResponse, ApiVodResponse } from "@common/Api/Api";
+import { useStore } from "@/store";
+import type { ApiResponse, ApiVodResponse } from "@common/Api/Api";
 import { formatDuration, humanDuration, formatBytes } from "@/mixins/newhelpers";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPlay, faPause, faBookmark, faFastBackward, faFastForward } from "@fortawesome/free-solid-svg-icons";
-import { BaseVODChapter } from "@/core/Providers/Base/BaseVODChapter";
+import type { BaseVODChapter } from "@/core/Providers/Base/BaseVODChapter";
 import { useI18n } from "vue-i18n";
 import axios from "axios";
 import { useRoute } from "vue-router";
 import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
+import type { VODTypes } from "@/twitchautomator";
 library.add(faPlay, faPause, faBookmark, faFastBackward, faFastForward);
 
 const props = defineProps<{

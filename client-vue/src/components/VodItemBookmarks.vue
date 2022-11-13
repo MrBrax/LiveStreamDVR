@@ -62,12 +62,13 @@
 </template>
 
 <script lang="ts" setup>
-import { useStore, VODTypes } from '@/store';
-import { ApiResponse } from '@common/Api/Api';
+import { useStore } from '@/store';
+import type { ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
 import { formatDuration } from "@/mixins/newhelpers";
 import { ref } from 'vue';
 import { useI18n } from 'vue-i18n';
+import type { VODTypes } from '@/twitchautomator';
 
 const props = defineProps({
     vod: {

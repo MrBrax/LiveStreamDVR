@@ -360,11 +360,11 @@
 import FormSubmit from "@/components/reusables/FormSubmit.vue";
 import { formatDate } from "@/mixins/newhelpers";
 import { useStore } from "@/store";
-import { FormStatus } from "@/twitchautomator";
-import { ApiResponse } from "@common/Api/Api";
-import { ApiChannelConfig } from "@common/Api/Client";
+import type { FormStatus } from "@/twitchautomator";
+import type { ApiResponse } from "@common/Api/Api";
+import type { ApiChannelConfig } from "@common/Api/Client";
 import { VideoQualityArray } from "@common/Defs";
-import { HistoryEntry, HistoryEntryOnline } from "@common/History";
+import type { HistoryEntry, HistoryEntryOnline } from "@common/History";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faList, faPencil, faSave, faTrash, faVideoSlash } from "@fortawesome/free-solid-svg-icons";
 import axios, { AxiosError } from "axios";

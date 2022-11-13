@@ -2,6 +2,7 @@
   "compilerOptions": {
     "target": "esnext",
     "module": "esnext",
+    "noImplicitThis": true,
     "strict": true,
     "jsx": "preserve",
     "importHelpers": true,
@@ -11,6 +12,9 @@
     "allowSyntheticDefaultImports": true,
     "useDefineForClassFields": true,
     "resolveJsonModule": true,
+    "isolatedModules": true,
+    "preserveValueImports": true,
+    "importsNotUsedAsValues": "error",
     "sourceMap": true,
     "baseUrl": ".",
     "paths": {
