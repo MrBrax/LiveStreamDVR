@@ -267,6 +267,13 @@ export class BaseAutomator {
 
                     chapter_data.viewer_count = stream.viewer_count;
 
+                    if (this.vod) {
+                        this.vod.viewers.push({
+                            amount: stream.viewer_count,
+                            timestamp: new Date(),
+                        }); // add viewer count to vod, good if user doesn't have continuous viewer logging
+                    }
+
                 } else {
 
                     Log.logAdvanced(Log.Level.ERROR, "automator.getChapterData", "Get chapter data: No viewer count in metadata request.");
