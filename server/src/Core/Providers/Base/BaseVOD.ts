@@ -11,6 +11,7 @@ import { JobStatus, MuteStatus, Providers } from "@common/Defs";
 import { ExportData } from "@common/Exporter";
 import { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
 import { VodUpdated } from "@common/Webhook";
+import type { VodViewerEntry } from "@common/Vod";
 import { FFmpegMetadata } from "../../FFmpegMetadata";
 import { Helper } from "../../Helper";
 import { Job } from "../../Job";
@@ -125,7 +126,7 @@ export class BaseVOD {
 
     public exportData: ExportData = {};
 
-    public viewers: { amount: number, timestamp: Date }[] = [];
+    public viewers: VodViewerEntry[] = [];
 
     /**
      * Set up date related data

@@ -4,6 +4,7 @@ import type { MuteStatus, Providers } from "@common/Defs";
 import type { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
 import type { TwitchVODBookmark } from "@common/Bookmark";
 import type { ExportData } from "@common/Exporter";
+import type { VodViewerEntry } from "@common/Vod";
 
 export interface VODJSON {
 
@@ -54,7 +55,7 @@ export interface VODJSON {
 
     export_data?: ExportData;
 
-    viewers?: { amount: number, timestamp: Date }[];
+    viewers?: VodViewerEntry[];
 
 }
 export interface TwitchVODJSON extends VODJSON {
