@@ -822,10 +822,12 @@ export async function RefreshVodMetadata(req: express.Request, res: express.Resp
         return;
     }
 
+    const oldDuration = vod.duration;
+
     let md;
 
     try {
-        md = await vod.getMediainfo();
+        md = await vod.getMediainfo(0, true);
     } catch (error) {
         res.status(400).send({
             status: "ERROR",
@@ -842,11 +844,13 @@ export async function RefreshVodMetadata(req: express.Request, res: express.Resp
         } as ApiErrorResponse);
         return;
     } else {
+        const diff = Math.abs(oldDuration - md.duration);
         res.send({
             status: "OK",
-            message: `Metadata refreshed - ${md.duration}s`,
+            message: `Metadata refreshed, old duration was ${Helper.formatDuration(oldDuration)}, new is ${Helper.formatDuration(md.duration)}. Difference is ${Helper.formatDuration(diff)}.`,
             data: md,
         } as ApiResponse);
+        vod.saveJSON("refresh metadata");
         return;
     }
 

@@ -1227,6 +1227,7 @@ export class BaseVOD {
         }
 
         this.video_metadata = metadata;
+        this.duration = metadata.duration;
 
         this.broadcastUpdate();
 

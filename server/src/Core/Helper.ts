@@ -804,7 +804,8 @@ export class Helper {
                     container: data.general.Format,
 
                     size: parseInt(data.general.FileSize),
-                    duration: parseInt(data.general.Duration),
+                    // duration: parseInt(data.general.Duration),
+                    duration: parseFloat(data.audio.Duration || data.general.Duration),
                     bitrate: parseInt(data.general.OverallBitRate),
 
                     audio_codec: data.audio.Format,
@@ -836,7 +837,8 @@ export class Helper {
                     container: data.general.Format,
 
                     size: parseInt(data.general.FileSize),
-                    duration: parseInt(data.general.Duration),
+                    // duration: parseInt(data.general.Duration),
+                    duration: parseInt(data.video.Duration || data.general.Duration),
                     bitrate: parseInt(data.general.OverallBitRate),
 
                     width: parseInt(data.video.Width),
@@ -857,7 +859,7 @@ export class Helper {
 
                 } as VideoMetadata;
 
-                Log.logAdvanced(Log.Level.SUCCESS, "helper.videometadata", `${filename} is a video file ${video_metadata.duration} long at ${video_metadata.height}p${video_metadata.fps}.`);
+                Log.logAdvanced(Log.Level.SUCCESS, "helper.videometadata", `${filename} is a video file ${Helper.formatDuration(video_metadata.duration)} long at ${video_metadata.height}p${video_metadata.fps}.`);
 
                 return video_metadata;
 
