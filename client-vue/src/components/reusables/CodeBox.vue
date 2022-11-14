@@ -54,7 +54,7 @@ function flashBox() {
     display: inline-block;
     padding: 0.15rem 0.3rem;
     border-radius: 0.25rem;
-    background-color: #f5f5f5;
+    background-color: var(--codebox-background-color);
     font-family: monospace;
     font-size: 0.95em;
     cursor: pointer;
@@ -63,7 +63,7 @@ function flashBox() {
     box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.1);
 
     &:hover {
-        background-color: #e5e5e5;
+        background-color: var(--codebox-hover-background-color);
     }
 
     .icon {

@@ -239,23 +239,21 @@
                 :form-status="formStatus"
                 :form-status-text="formStatusText"
             >
-                <div class="control">
-                    <button
-                        class="button is-confirm"
-                        type="submit"
-                    >
-                        <span class="icon"><font-awesome-icon icon="save" /></span>
-                        <span>{{ t('buttons.save') }}</span>
-                    </button>
-                    <button
-                        class="button is-danger"
-                        type="button"
-                        @click="resetForm"
-                    >
-                        <span class="icon"><font-awesome-icon icon="sync" /></span>
-                        <span>{{ t('buttons.reset') }}</span>
-                    </button>
-                </div>
+                <button
+                    class="button is-confirm"
+                    type="submit"
+                >
+                    <span class="icon"><font-awesome-icon icon="save" /></span>
+                    <span>{{ t('buttons.save') }}</span>
+                </button>
+                <button
+                    class="button is-danger"
+                    type="button"
+                    @click="resetForm"
+                >
+                    <span class="icon"><font-awesome-icon icon="sync" /></span>
+                    <span>{{ t('buttons.reset') }}</span>
+                </button>
             </FormSubmit>
         </form>
         <hr>

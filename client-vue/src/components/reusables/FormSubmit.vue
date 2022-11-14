@@ -1,6 +1,8 @@
 <template>
     <div class="field form-submit">
-        <slot />
+        <div class="form-submit-buttons">
+            <slot />
+        </div>
         <div :class="formStatusClass">
             <span class="icon">
                 <font-awesome-icon
@@ -61,25 +63,34 @@ const formStatusIcon = computed(() => {
         display: flex;
         align-items: center;
         
-        background-color: #eee;
+        // background-color: #eee;
+        background-color: rgba(128, 128, 128, 0.1);
         padding: 0.3rem 0.5rem;
         
         margin-left: 0.5em;
         border-radius: 0.3em;
         .icon {
             margin-right: 0.3em;
+            vertical-align: -2px;
         }
         &.is-success {
-            background-color: #e6ffed;
-            border-color: #a3f7bf;
+            // background-color: #e6ffed;
+            // border-color: #a3f7bf;
+            background-color: rgba(0, 255, 85, 0.1);
+            // border-color: rgba(0, 255, 85, 0.2);
         }
         &.is-error {
-            background-color: #fff1f0;
-            border-color: #ffccc7;
+            // background-color: #fff1f0;
+            // border-color: #ffccc7;
+            background-color: rgba(255, 0, 0, 0.1);
+            // border-color: rgba(255, 0, 0, 0.2);
         }
         &.is-loading {
-            background-color: #fffbe6;
-            border-color: #ffe58f;
+            // background-color: #fffbe6;
+            // border-color: #ffe58f;
+            background-color: rgba(255, 255, 0, 0.1);
+            // color: #dddd00;
+            // border-color: rgba(255, 255, 0, 0.2);
         }
     }
     .control {
@@ -91,5 +102,15 @@ const formStatusIcon = computed(() => {
     }
 }
 
+.form-submit-buttons {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    &::v-deep .button:not(:last-child):not(.is-fullwidth),
+    &::v-deep .icon-button:not(:last-child):not(.is-fullwidth) {
+        margin-right: .5rem;
+    }
+}
 
 </style>

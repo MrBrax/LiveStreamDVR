@@ -352,6 +352,7 @@
     "offset-seconds": "Offset (seconds)",
     "test-duration-dont-burn-entire-video": "Test duration (don't burn entire video)",
     "chat-horizontal": "Chat horizontal",
-    "chat-vertical": "Chat vertical"
+    "chat-vertical": "Chat vertical",
+    "chat-source-not-available": "No chat source is available"
   }
 }

@@ -98,7 +98,7 @@ export async function EditVod(req: express.Request, res: express.Response): Prom
     // }
     if (segments) {
         vod.segments_raw = segments_array;
-        vod.parseSegments(vod.segments_raw);
+        await vod.parseSegments(vod.segments_raw);
         changed = true;
     }
 
@@ -351,7 +351,7 @@ export async function RenderWizard(req: express.Request, res: express.Response):
         } catch (error) {
             res.status(400).send({
                 status: "ERROR",
-                message: (error as Error).message || "Unknown error occurred while rendering chat",
+                message: `Chat render error: ${(error as Error).message}`,
             } as ApiErrorResponse);
             return;
         }
@@ -363,10 +363,18 @@ export async function RenderWizard(req: express.Request, res: express.Response):
         } catch (error) {
             res.status(400).send({
                 status: "ERROR",
-                message: (error as Error).message || "Unknown error occurred while burning chat",
+                message: `Chat burn error: ${(error as Error).message}`,
             } as ApiErrorResponse);
             return;
         }
+    }
+
+    if (!render_chat && !burn_chat) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Neither chat render nor chat burn was selected",
+        } as ApiErrorResponse);
+        return;
     }
 
     res.status(200).send({
@@ -589,7 +597,7 @@ export async function CutVod(req: express.Request, res: express.Response): Promi
 
         let success;
         try {
-            success = await TwitchHelper.cutChat(chat_file_in, chat_file_out, seconds_in, seconds_out);
+            success = TwitchHelper.cutChat(chat_file_in, chat_file_out, seconds_in, seconds_out);
         } catch (error) {
             Log.logAdvanced(Log.Level.ERROR, "route.vod.cutVod", `Cut chat failed: ${(error as Error).message}`);
         }
@@ -611,7 +619,7 @@ export async function CutVod(req: express.Request, res: express.Response): Promi
 
 }
 
-export function AddBookmark(req: express.Request, res: express.Response): void {
+export async function AddBookmark(req: express.Request, res: express.Response): Promise<void> {
 
     const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
@@ -682,7 +690,7 @@ export function AddBookmark(req: express.Request, res: express.Response): void {
 
     vod.bookmarks.push(bookmark_data);
     vod.calculateBookmarks();
-    vod.saveJSON("bookmark add");
+    await vod.saveJSON("bookmark add");
 
     res.send({
         status: "OK",
@@ -693,7 +701,7 @@ export function AddBookmark(req: express.Request, res: express.Response): void {
 
 }
 
-export function RemoveBookmark(req: express.Request, res: express.Response): void {
+export async function RemoveBookmark(req: express.Request, res: express.Response): Promise<void> {
 
     const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
@@ -725,7 +733,7 @@ export function RemoveBookmark(req: express.Request, res: express.Response): voi
 
     vod.bookmarks.splice(index, 1);
     vod.calculateBookmarks();
-    vod.saveJSON("bookmark remove");
+    await vod.saveJSON("bookmark remove");
 
     res.send({
         status: "OK",

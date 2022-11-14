@@ -73,7 +73,7 @@
     }
 
     &.textarea {
-        font-family:x inherit;
+        font-family: inherit;
         width: 100%;
     }
 
@@ -83,6 +83,10 @@
         &:hover {
             border-color: var(--input-border-color);
         }
+    }
+
+    &.is-fullwidth {
+        width: 100%;
     }
 
     /*

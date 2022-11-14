@@ -11,9 +11,9 @@ import { JobStatus, MuteStatus, Providers } from "@common/Defs";
 import { ExportData } from "@common/Exporter";
 import { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
 import { VodUpdated } from "@common/Webhook";
-import { FFmpegMetadata } from "../../../Core/FFmpegMetadata";
-import { Helper } from "../../../Core/Helper";
-import { Job } from "../../../Core/Job";
+import { FFmpegMetadata } from "../../FFmpegMetadata";
+import { Helper } from "../../Helper";
+import { Job } from "../../Job";
 import { isTwitchVOD, isTwitchVODChapter } from "../../../Helpers/Types";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
@@ -385,10 +385,10 @@ export class BaseVOD {
 
         if (use_downloaded && !this.is_chat_downloaded) {
             console.error(chalk.redBright("No chat downloaded"));
-            throw new Error("No chat downloaded");
+            throw new Error("Use downloaded chat selected but no chat was downloaded");
         } else if (!use_downloaded && !this.is_chatdump_captured) {
             console.error(chalk.redBright("No chat dumped"));
-            throw new Error("No chat dumped");
+            throw new Error("Use captured chat selected but no chat was captured");
         }
 
         if (!this.video_metadata) {
@@ -1105,7 +1105,7 @@ export class BaseVOD {
         if (this.is_finalized) {
             if (!this.duration) {
                 Log.logAdvanced(Log.Level.DEBUG, "vod", `VOD ${this.basename} finalized but no duration, trying to fix`);
-                this.getDuration(true);
+                await this.getDuration(true);
             }
         }
 
@@ -1493,7 +1493,7 @@ export class BaseVOD {
         if (this.basename.match(LiveStreamDVR.filenameIllegalChars) && !this.issueFixes["illegal_chars"]) {
             console.log(chalk.bgRed.whiteBright(`🛠️ [${source}] ${this.basename} contains invalid characters!`));
             const new_basename = this.basename.replaceAll(LiveStreamDVR.filenameIllegalChars, "_");
-            this.changeBaseName(new_basename);
+            await this.changeBaseName(new_basename);
             this.issueFixCount++;
             this.issueFixes["illegal_chars"] = true;
             return false;
@@ -1597,7 +1597,7 @@ export class BaseVOD {
                         Helper.remuxFile(in_file, out_file)
                             .then(async status => {
                                 console.log(chalk.bgRed.whiteBright(`🛠️ [${source}] ${this.basename} remux status: ${status.success}`));
-                                this.addSegment(`${this.basename}.${container_ext}`);
+                                await this.addSegment(`${this.basename}.${container_ext}`);
                                 this.is_converting = false;
                                 await this.finalize();
                                 await this.saveJSON("fix remux");
@@ -1616,7 +1616,7 @@ export class BaseVOD {
 
                 if (fs.existsSync(path.join(this.directory, `${this.basename}.mp4`))) {
                     console.log(chalk.bgRed.whiteBright(`🛠️ [${source}] ${this.basename} has an mp4 file but is not finalized!`));
-                    this.addSegment(`${this.basename}.mp4`);
+                    await this.addSegment(`${this.basename}.mp4`);
                     await this.finalize();
                     await this.saveJSON("fix no segment added");
                     this.issueFixCount++;
