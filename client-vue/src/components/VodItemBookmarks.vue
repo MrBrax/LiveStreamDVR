@@ -2,62 +2,69 @@
     <!-- bookmark list -->
     <div
         v-if="vod.provider == 'twitch'"
-        class="video-bookmarks"
+        class="video-block video-bookmarks"
         aria-label="Bookmarks"
     >
-        <h4>{{ t('vod.bookmarks') }}</h4>
-        <ul class="list-segments">
-            <li
-                v-for="(bookmark, i) in vod.bookmarks"
-                :key="i"
+        <div class="video-block-header">
+            <h4>{{ t('vod.bookmarks') }}</h4>
+        </div>
+        <div class="video-block-content">
+            <ul
+                v-if="vod.bookmarks && vod.bookmarks.length > 0"
+                class="list-segments"
             >
-                {{ formatDuration(bookmark.offset || 0) }} - {{ bookmark.name }}
-                <button
-                    class="icon-button"
-                    @click="doDeleteBookmark(i)"
+                <li
+                    v-for="(bookmark, i) in vod.bookmarks"
+                    :key="i"
                 >
-                    <span class="icon"><font-awesome-icon icon="xmark" /></span>
-                </button>
-            </li>
-        </ul>
+                    {{ formatDuration(bookmark.offset || 0) }} - {{ bookmark.name }}
+                    <button
+                        class="icon-button"
+                        @click="doDeleteBookmark(i)"
+                    >
+                        <span class="icon"><font-awesome-icon icon="xmark" /></span>
+                    </button>
+                </li>
+            </ul>
 
-        <details class="details">
-            <summary>Create</summary>
-            <div class="field">
-                <label
-                    class="label"
-                    :for="'name.' + vod.uuid"
-                >Name</label>
-                <input
-                    :id="'name.' + vod.uuid"
-                    v-model="newBookmark.name"
-                    class="input"
-                    type="text"
+            <details class="details">
+                <summary>Create</summary>
+                <div class="field">
+                    <label
+                        class="label"
+                        :for="'name.' + vod.uuid"
+                    >Name</label>
+                    <input
+                        :id="'name.' + vod.uuid"
+                        v-model="newBookmark.name"
+                        class="input"
+                        type="text"
+                    >
+                </div>
+                <div
+                    v-if="vod.is_finalized"
+                    class="field"
                 >
-            </div>
-            <div
-                v-if="vod.is_finalized"
-                class="field"
-            >
-                <label
-                    class="label"
-                    :for="'offset.' + vod.uuid"
-                >Offset</label>
-                <input
-                    :id="'offset.' + vod.uuid"
-                    v-model="newBookmark.offset"
-                    class="input"
-                    type="number"
+                    <label
+                        class="label"
+                        :for="'offset.' + vod.uuid"
+                    >Offset</label>
+                    <input
+                        :id="'offset.' + vod.uuid"
+                        v-model="newBookmark.offset"
+                        class="input"
+                        type="number"
+                    >
+                </div>
+                <button
+                    class="button is-small is-confirm"
+                    @click="doMakeBookmark"
                 >
-            </div>
-            <button
-                class="button is-small is-confirm"
-                @click="doMakeBookmark"
-            >
-                <span class="icon"><font-awesome-icon icon="plus" /></span>
-                <span>Create</span>
-            </button>
-        </details>
+                    <span class="icon"><font-awesome-icon icon="plus" /></span>
+                    <span>Create</span>
+                </button>
+            </details>
+        </div>
     </div>
 </template>
 
@@ -117,12 +124,17 @@ function doDeleteBookmark(i: number) {
 </script>
 
 <style lang="scss" scoped>
-h4 { margin: 0 }
 .video-bookmarks {
-    padding: 1em;
     background-color: var(--video-bookmarks-background-color);
     // border-top: 1px solid #d6dbf2;
     // border-left: 1px solid #e3e3e3;
     // border-right: 1px solid #e3e3e3;
+}
+
+.details {
+    margin-top: 0;
+    summary {
+        margin-bottom: 0.8em;
+    }
 }
 </style>

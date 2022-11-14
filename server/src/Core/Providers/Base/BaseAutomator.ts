@@ -685,6 +685,8 @@ export class BaseAutomator {
             // https://github.com/streamlink/streamlink/issues/1058
             // streamlink currently does not refresh the stream if it is 24 hours or longer
             // it doesn't seem to get fixed, so we'll just warn the user
+
+            this.fallbackCapture(); // just as a last resort, capture again
         }
 
         this.vod.calculateChapters();
