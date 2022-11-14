@@ -1264,6 +1264,8 @@ export class BaseVOD {
 
         if (this.json.viewers) {
             this.viewers = this.json.viewers;
+        } else {
+            this.viewers = [];
         }
 
     }
