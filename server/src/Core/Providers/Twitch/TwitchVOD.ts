@@ -514,6 +514,8 @@ export class TwitchVOD extends BaseVOD {
         // calculate chapter durations and offsets
         this.calculateChapters();
 
+        LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
+
         // this.checkMutedVod(); // initially not muted when vod is published
 
         this.is_finalized = true;
@@ -1781,6 +1783,8 @@ export class TwitchVOD extends BaseVOD {
             if (chapters_file) {
                 fs.unlinkSync(chapters_file);
             }
+
+            LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
 
             if (ret.success) {
                 Log.logAdvanced(Log.Level.INFO, "vod.downloadVideo", `Successfully remuxed ${basename}, removing ${capture_filename}`);

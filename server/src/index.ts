@@ -1,5 +1,5 @@
 import chalk from "chalk";
-import { LiveStreamDVR } from "Core/LiveStreamDVR";
+import { LiveStreamDVR } from "./Core/LiveStreamDVR";
 import dotenv from "dotenv";
 import express from "express";
 import session from "express-session";

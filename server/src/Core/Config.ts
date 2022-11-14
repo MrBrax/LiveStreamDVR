@@ -869,6 +869,9 @@ export class Config {
 
         await TwitchHelper.setupWebsocket();
 
+        await LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
+        LiveStreamDVR.getInstance().startDiskSpaceInterval();
+
         // monitor for program exit
         // let saidGoobye = false;
         // const goodbye = () => {

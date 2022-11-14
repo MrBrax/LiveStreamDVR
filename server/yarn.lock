@@ -2338,6 +2338,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"check-disk-space@npm:^3.3.1":
+  version: 3.3.1
+  resolution: "check-disk-space@npm:3.3.1"
+  checksum: 90b7b77ab932be0c0a24c5f68778d3c0e9179686282b04d84b1272a511a1c55b9f184c98f12b1a1628b832934971d66e63acaa9e3c82f14d9d221a4848b4cf8b
+  languageName: node
+  linkType: hard
+
 "chokidar@npm:^3.5.2, chokidar@npm:^3.5.3":
   version: 3.5.3
   resolution: "chokidar@npm:3.5.3"
@@ -5260,6 +5267,7 @@ __metadata:
     axios: ^1.1.3
     basic-auth: ^2.0.1
     chalk: 4.1.2
+    check-disk-space: ^3.3.1
     chokidar: ^3.5.3
     compare-versions: ^5.0.1
     cron: 2.1.0

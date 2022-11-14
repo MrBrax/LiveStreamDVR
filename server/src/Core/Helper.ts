@@ -12,6 +12,7 @@ import { createHash } from "node:crypto";
 import { FFProbe } from "@common/FFProbe";
 import { MediaInfoJSONOutput, VideoMetadata, AudioMetadata } from "@common/MediaInfo";
 import { MediaInfo } from "@common/mediainfofield";
+import { LiveStreamDVR } from "./LiveStreamDVR";
 
 export class Helper {
     public static vodFolder(username = "") {
@@ -492,6 +493,7 @@ export class Helper {
                 if (job) {
                     job.clear();
                 }
+                LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
                 // const out_log = ffmpeg.stdout.read();
                 const success = fs.existsSync(output) && fs.statSync(output).size > 0;
                 if (success) {

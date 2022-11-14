@@ -26,6 +26,7 @@ import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 import { YouTubeVOD } from "./Providers/YouTube/YouTubeVOD";
 import { Scheduler } from "./Scheduler";
 import { Webhook } from "./Webhook";
+import checkDiskSpace from "check-disk-space";
 
 export type ChannelTypes = TwitchChannel | YouTubeChannel;
 export type VODTypes = TwitchVOD | YouTubeVOD;
@@ -354,6 +355,7 @@ export class LiveStreamDVR {
             Config.getInstance().stopWatchingConfig();
             TwitchHelper.removeAllEventWebsockets();
             if (timeout !== undefined) clearTimeout(timeout);
+            if (LiveStreamDVR.getInstance().diskSpaceInterval) clearInterval(LiveStreamDVR.getInstance().diskSpaceInterval);
             console.log(chalk.red("Finished tasks, bye bye."));
             // process.exit(0);
         });
@@ -519,4 +521,37 @@ export class LiveStreamDVR {
     //     console.debug("Subscribing to all subscriptions");
     // }
 
+    public freeStorageDiskSpace = 0;
+    public diskSpaceInterval?: NodeJS.Timeout;
+    public async updateFreeStorageDiskSpace(): Promise<boolean> {
+        let ds;
+        try {
+            ds = await checkDiskSpace(BaseConfigDataFolder.storage);
+        } catch (error) {
+            console.error(error);
+            return false;
+        }
+        this.freeStorageDiskSpace = ds.free;
+        Log.logAdvanced(Log.Level.DEBUG, "dvr", `Free storage disk space: ${Helper.formatBytes(this.freeStorageDiskSpace)}`);
+        return true;
+    }
+
+    public startDiskSpaceInterval() {
+        if (this.diskSpaceInterval) clearInterval(this.diskSpaceInterval);
+        if (LiveStreamDVR.getInstance().isIdle) return;
+        this.diskSpaceInterval = setInterval(() => {
+            this.updateFreeStorageDiskSpace();
+        }, 1000 * 60 * 10); // 10 minutes
+    }
+
+    /**
+     * Is there anything that is happening?
+     */
+    get isIdle(): boolean {
+        if (this.getChannels().some(c => c.is_capturing)) return false;
+        if (this.getVods().some(v => v.is_capturing)) return false;
+        if (this.getVods().some(v => v.is_converting)) return false;
+        if (Job.jobs.length > 0) return false;
+        return true;
+    }
 }
