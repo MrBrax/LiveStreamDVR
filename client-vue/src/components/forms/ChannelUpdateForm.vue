@@ -338,15 +338,7 @@
                     </tr>
                 </tbody>
             </table>
-            <div
-                v-if="loadingHistory"
-                class="loading"
-            >
-                <span class="icon">
-                    <font-awesome-icon icon="spinner" spin />
-                </span>
-                {{ t("messages.loading") }}
-            </div>
+            <LoadingBox v-if="loadingHistory" />
             <div v-if="history.length">
                 <strong>Average start time:</strong> {{ averageOnlineStartTime }}
             </div>

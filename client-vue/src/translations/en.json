@@ -16,7 +16,8 @@
     "login-mismatch-fixing": "Login mismatch, fixing",
     "login": "You need to be logged in to view this resource.",
     "local-videos": "Local videos",
-    "none": "None"
+    "none": "None",
+    "loading-takes-longer-than-expected": "Loading takes longer than expected..."
   },
   "vod": {
     "add_comment": "Add a comment",

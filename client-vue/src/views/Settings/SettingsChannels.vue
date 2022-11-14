@@ -37,17 +37,7 @@
                     <font-awesome-icon icon="sign-in-alt" />
                 </span> {{ t("messages.login") }}
             </div>
-            <div
-                v-else-if="loading"
-                class="loading"
-            >
-                <span class="icon">
-                    <font-awesome-icon
-                        icon="spinner"
-                        spin
-                    />
-                </span> {{ t("messages.loading") }}
-            </div>
+            <LoadingBox v-else-if="loading" />
         </div>
     </section>
 </template>

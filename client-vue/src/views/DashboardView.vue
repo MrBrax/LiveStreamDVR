@@ -64,12 +64,7 @@
                 v-else-if="!store.streamerListLoaded && store.authElement"
                 class="section-content"
             >
-                <div class="loading">
-                    <span class="icon"><fa
-                        icon="sync"
-                        spin
-                    /></span> {{ t("messages.loading") }}
-                </div>
+                <LoadingBox />
             </div>
             <div
                 v-else-if="!store.authElement"
