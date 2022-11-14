@@ -385,10 +385,10 @@ export class BaseVOD {
 
         if (use_downloaded && !this.is_chat_downloaded) {
             console.error(chalk.redBright("No chat downloaded"));
-            throw new Error("No chat downloaded");
+            throw new Error("Use downloaded chat selected but no chat was downloaded");
         } else if (!use_downloaded && !this.is_chatdump_captured) {
             console.error(chalk.redBright("No chat dumped"));
-            throw new Error("No chat dumped");
+            throw new Error("Use captured chat selected but no chat was captured");
         }
 
         if (!this.video_metadata) {

@@ -156,11 +156,17 @@
 
                 <div class="field">
                     <label class="label">{{ t('render-menu.chat-source') }}</label>
-                    <div class="select">
+                    <div
+                        v-if="vod.is_chatdump_captured || vod.is_chat_downloaded"
+                        class="select"
+                    >
                         <select
                             v-model="burnSettings.chatSource"
                         >
-                            <option value="captured">
+                            <option
+                                value="captured"
+                                :disabled="!vod.is_chatdump_captured"
+                            >
                                 {{ t('render-menu.source-captured') }}
                             </option>
                             <option
@@ -171,6 +177,12 @@
                             </option>
                         </select>
                     </div>
+                    <div
+                        v-else
+                        class="notice is-error"
+                    >
+                        {{ t('render-menu.chat-source-not-available') }}
+                    </div>
                 </div>
 
                 <div class="field">
@@ -178,7 +190,7 @@
                     <div class="control">
                         <input
                             v-model="burnSettings.chatFont"
-                            class="input"
+                            class="input is-fullwidth"
                             list="font"
                         >
                         <datalist id="font">
@@ -321,7 +333,10 @@
                 </div>
             </template>
         </div>
-        <div class="field">
+        <FormSubmit
+            :form-status="formStatus"
+            :form-status-text="formStatusText"
+        >
             <button
                 class="button is-confirm"
                 @click="doRenderWizard"
@@ -331,8 +346,7 @@
                 </span>
                 <span>Execute</span>
             </button>
-            <span v-if="burnLoading">Running...</span>
-        </div>
+        </FormSubmit>
         <div class="job-status">
             <table>
                 <tr
@@ -357,9 +371,10 @@
 </template>
 
 <script lang="ts" setup>
+import FormSubmit from "@/components/reusables/FormSubmit.vue";
 import { formatBytes } from "@/mixins/newhelpers";
 import { useStore } from '@/store';
-import type { VODTypes } from '@/twitchautomator';
+import type { FormStatus, VODTypes } from '@/twitchautomator';
 import type { ApiResponse } from '@common/Api/Api';
 import type { ApiJob } from '@common/Api/Client';
 import axios from 'axios';
@@ -377,7 +392,9 @@ const emit = defineEmits<{
 const store = useStore();
 const { t } = useI18n();
 
-const burnLoading = ref<boolean>(false);
+const formStatusText = ref<string>("Ready");
+const formStatus = ref<FormStatus>("IDLE");
+
 const burnSettings = ref({
     renderChat: false,
     burnChat: false,
@@ -449,22 +466,26 @@ onMounted(() => {
 
 function doRenderWizard() {
     if (!props.vod) return;
-    burnLoading.value = true;
+    formStatus.value = "LOADING";
     console.debug("doRenderWizard", burnSettings.value);
     axios
         .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/renderwizard`, burnSettings.value)
         .then((response) => {
             const json: ApiResponse = response.data;
-            if (json.message) alert(json.message);
+            // if (json.message) alert(json.message);
+            formStatus.value = json.status;
+            formStatusText.value = json.message || "No message";
             console.log(json);
             emit("refresh");
         })
         .catch((err) => {
             console.error("form error", err.response);
-            if (err.response.data && err.response.data.message) alert(err.response.data.message);
+            // if (err.response.data && err.response.data.message) alert(err.response.data.message);
+            formStatus.value = "ERROR";
+            formStatusText.value = err.response.data.message || "No message";
         })
         .finally(() => {
-            burnLoading.value = false;
+            // burnLoading.value = false;
         });
 } 
 
