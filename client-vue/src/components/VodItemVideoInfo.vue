@@ -119,7 +119,7 @@
             <ul class="video-info">
                 <li v-if="vod.getDuration()">
                     <strong>{{ t('metadata.file-duration') }}:</strong>
-                    {{ humanDuration(vod.getDuration()) }} / {{ vod.video_metadata?.duration ? humanDuration(vod.video_metadata?.duration) : "?" }}
+                    {{ humanDuration(vod.getDuration()) }} ({{ vod.video_metadata?.full_duration ? humanDuration(vod.video_metadata?.full_duration) : "?" }})
                 </li>
                 <li v-if="vod.segments && vod.segments.length > 0 && vod.segments[0].filesize">
                     <strong>Size:</strong>

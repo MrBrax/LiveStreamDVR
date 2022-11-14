@@ -806,6 +806,7 @@ export class Helper {
                     size: parseInt(data.general.FileSize),
                     // duration: parseInt(data.general.Duration),
                     duration: parseFloat(data.audio.Duration || data.general.Duration),
+                    full_duration: parseFloat(data.general.Duration),
                     bitrate: parseInt(data.general.OverallBitRate),
 
                     audio_codec: data.audio.Format,
@@ -839,6 +840,7 @@ export class Helper {
                     size: parseInt(data.general.FileSize),
                     // duration: parseInt(data.general.Duration),
                     duration: parseInt(data.video.Duration || data.general.Duration),
+                    full_duration: parseInt(data.general.Duration),
                     bitrate: parseInt(data.general.OverallBitRate),
 
                     width: parseInt(data.video.Width),

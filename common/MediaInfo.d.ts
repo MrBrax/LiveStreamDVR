@@ -241,6 +241,7 @@ export interface VideoMetadata {
 
     size: number;
     duration: number;
+    full_duration?: number;
     bitrate: number;
 
     width: number;
@@ -269,6 +270,7 @@ export interface AudioMetadata {
 
     size: number;
     duration: number;
+    full_duration?: number;
     bitrate: number;
 
     audio_codec: string;
