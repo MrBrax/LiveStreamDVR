@@ -53,7 +53,8 @@
         "youtube-playlist-id": "YouTube Playlist ID",
         "exporter": "Exporter"
       },
-      "capture-id": "Capture ID"
+      "capture-id": "Capture ID",
+      "duration-difference": "Full duration is {full} while video duration is {dur}, a capture difference of {diff} has been detected."
     },
     "segments": "Segments",
     "controls": {
