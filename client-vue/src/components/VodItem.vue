@@ -935,7 +935,9 @@ function showModalEv(modal: keyof typeof showModal.value): void {
         }
         // background-image: linear-gradient(to right, #2b61d6, #2b61d6 50%, #2b61d6 50%, #2b61d6);
         // background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.02));
-        border-top: 1px solid rgba(0, 0, 0, 0.2);
+
+        background-color: var(--video-block-header-background-color);
+        // border-top: 1px solid rgba(0, 0, 0, 0.2);
         // background-color: rgba(0, 0, 0, 0.2);
         // border-bottom: 1px solid rgba(0, 0, 0, 0.1);
         &.collapsible {
@@ -943,8 +945,9 @@ function showModalEv(modal: keyof typeof showModal.value): void {
             user-select: none;
             &:hover {
                 // background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
-                background-color: rgba(255, 255, 255, 0.05);
-                color: #fff;
+                // background-color: rgba(255, 255, 255, 0.05);
+                background-color: var(--video-block-header-background-color-hover);
+                // color: #fff;
                 text-shadow: 0 0 2px rgba(255, 255, 255, 0.5);
             }
         }

@@ -133,6 +133,7 @@ const isMaximized = ref(false);
 
 .video-viewers {
     // padding: 1em;
-    background-color: var(--video-segments-background-color);
+    // background-color: var(--video-segments-background-color);
+    background-color: var(--video-block-background-color);
 }
 </style>

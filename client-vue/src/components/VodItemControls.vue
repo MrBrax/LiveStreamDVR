@@ -340,7 +340,8 @@ function doRefreshMetadata() {
 
 .video-controls {
     // padding: 1em 1em 0.5em 1em;
-    background-color: var(--video-controls-background-color);
+    // background-color: var(--video-controls-background-color);
+    background-color: var(--video-block-background-color);
     // border-top: 1px solid #d6dbf2;
     // border-bottom: 1px solid #d6dbf2;
     // border-left: 1px solid #e3e3e3;

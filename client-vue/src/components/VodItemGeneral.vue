@@ -13,108 +13,110 @@
                 General
             </h4>
         </div>
-        <div
-            v-if="!isCollapsed"
-            class="video-block-content"
-        >
-            <!-- box art -->
+        <transition name="blinds">
             <div
-                v-if="vod && vod.provider == 'twitch' && vod.getUniqueGames()"
-                class="boxart-carousel is-small"
+                v-if="!isCollapsed"
+                class="video-block-content"
             >
+                <!-- box art -->
                 <div
-                    v-for="game in vod.getUniqueGames()"
-                    :key="game.id"
-                    class="boxart-item"
+                    v-if="vod && vod.provider == 'twitch' && vod.getUniqueGames()"
+                    class="boxart-carousel is-small"
                 >
-                    <img
-                        v-if="game.image_url"
-                        :title="game.name"
-                        :alt="game.name"
-                        :src="game.image_url"
-                        loading="lazy"
-                        :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }"
+                    <div
+                        v-for="game in vod.getUniqueGames()"
+                        :key="game.id"
+                        class="boxart-item"
                     >
-                    <span v-else>{{ game.name }}</span>
+                        <img
+                            v-if="game.image_url"
+                            :title="game.name"
+                            :alt="game.name"
+                            :src="game.image_url"
+                            loading="lazy"
+                            :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }"
+                        >
+                        <span v-else>{{ game.name }}</span>
+                    </div>
+                </div>
+
+                <!-- comment -->
+                <div
+                    v-if="vod.comment"
+                    class="video-comment"
+                >
+                    <p>{{ vod.comment }}</p>
+                </div>
+                <div v-else>
+                    <p>
+                        <a
+                            href="#"
+                            @click.prevent="emit('showModal', 'edit')"
+                        >
+                            <font-awesome-icon icon="comment-dots" />
+                            {{ t("vod.add_comment") }}
+                        </a>
+                    </p>
+                </div>
+
+                <vod-item-video-info
+                    :vod="vod"
+                    :show-advanced="showAdvanced"
+                />
+
+                <div
+                    v-if="vod.is_capturing"
+                    class="info-columns"
+                >
+                    <div class="info-column">
+                        <h4>Recording</h4>
+                        <ul class="video-info">
+                            <li v-if="vod.started_at">
+                                <strong>Went live:</strong> {{ formatDate(vod.started_at) }}
+                            </li>
+                            <li v-if="vod.created_at">
+                                <strong>Created:</strong> {{ formatDate(vod.created_at) }}
+                            </li>
+                            <li v-if="vod.capture_started && vod.started_at">
+                                <strong>Capture launched:</strong> {{ formatDate(vod.capture_started) }} ({{
+                                    humanDuration((vod.capture_started.getTime() - vod.started_at.getTime()) / 1000)
+                                }}
+                                missing)
+                            </li>
+                            <li v-if="vod.capture_started2">
+                                <strong>Wrote file:</strong> {{ formatDate(vod.capture_started2) }}
+                            </li>
+                            <li>
+                                <strong>Current duration:</strong> <duration-display
+                                    v-if="vod.started_at"
+                                    :start-date="vod.started_at.toISOString()"
+                                    output-style="human"
+                                />
+                            </li>
+                            <li v-if="vod.provider == 'twitch'">
+                                <strong>Resolution:</strong> {{ vod.stream_resolution || "Unknown" }}
+                            </li>
+                            <li v-if="vod.provider == 'twitch'">
+                                <strong>Watch live:</strong> <a
+                                    :href="'https://twitch.tv/' + vod.streamer_login"
+                                    rel="noreferrer"
+                                    target="_blank"
+                                >Twitch</a>
+                            </li>
+                            <li>
+                                <strong>Rewind:</strong> <a
+                                    :href="predictedFirstSegmentUrl"
+                                    rel="noreferrer"
+                                    target="_blank"
+                                    @click.prevent="store.playMedia(predictedFirstSegmentUrl)"
+                                >{{ vod.basename }}</a> (copy link and paste into desktop video player)
+                            </li>
+                        </ul>
+                        <!--<button class="button is-small is-danger" @click="unbreak">Unbreak</button>-->
+                    </div>
                 </div>
             </div>
-
-            <!-- comment -->
-            <div
-                v-if="vod.comment"
-                class="video-comment"
-            >
-                <p>{{ vod.comment }}</p>
-            </div>
-            <div v-else>
-                <p>
-                    <a
-                        href="#"
-                        @click.prevent="emit('showModal', 'edit')"
-                    >
-                        <font-awesome-icon icon="comment-dots" />
-                        {{ t("vod.add_comment") }}
-                    </a>
-                </p>
-            </div>
-
-            <vod-item-video-info
-                :vod="vod"
-                :show-advanced="showAdvanced"
-            />
-
-            <div
-                v-if="vod.is_capturing"
-                class="info-columns"
-            >
-                <div class="info-column">
-                    <h4>Recording</h4>
-                    <ul class="video-info">
-                        <li v-if="vod.started_at">
-                            <strong>Went live:</strong> {{ formatDate(vod.started_at) }}
-                        </li>
-                        <li v-if="vod.created_at">
-                            <strong>Created:</strong> {{ formatDate(vod.created_at) }}
-                        </li>
-                        <li v-if="vod.capture_started && vod.started_at">
-                            <strong>Capture launched:</strong> {{ formatDate(vod.capture_started) }} ({{
-                                humanDuration((vod.capture_started.getTime() - vod.started_at.getTime()) / 1000)
-                            }}
-                            missing)
-                        </li>
-                        <li v-if="vod.capture_started2">
-                            <strong>Wrote file:</strong> {{ formatDate(vod.capture_started2) }}
-                        </li>
-                        <li>
-                            <strong>Current duration:</strong> <duration-display
-                                v-if="vod.started_at"
-                                :start-date="vod.started_at.toISOString()"
-                                output-style="human"
-                            />
-                        </li>
-                        <li v-if="vod.provider == 'twitch'">
-                            <strong>Resolution:</strong> {{ vod.stream_resolution || "Unknown" }}
-                        </li>
-                        <li v-if="vod.provider == 'twitch'">
-                            <strong>Watch live:</strong> <a
-                                :href="'https://twitch.tv/' + vod.streamer_login"
-                                rel="noreferrer"
-                                target="_blank"
-                            >Twitch</a>
-                        </li>
-                        <li>
-                            <strong>Rewind:</strong> <a
-                                :href="predictedFirstSegmentUrl"
-                                rel="noreferrer"
-                                target="_blank"
-                                @click.prevent="store.playMedia(predictedFirstSegmentUrl)"
-                            >{{ vod.basename }}</a> (copy link and paste into desktop video player)
-                        </li>
-                    </ul>
-                    <!--<button class="button is-small is-danger" @click="unbreak">Unbreak</button>-->
-                </div>
-            </div>
-        </div>
+        </transition>
     </div>
 </template>
 
