@@ -2,79 +2,83 @@
     <!-- segment list -->
     <div
         v-if="vod.is_finalized"
-        class="video-segments"
+        class="video-block video-segments"
         aria-label="Segments"
     >
-        <h4>{{ t('vod.segments') }}</h4>
-        <ul class="list-segments">
-            <li
-                v-for="(segment, i) of vod.segments"
-                :key="segment.basename"
-            >
-                <a
-                    :href="vod?.webpath + '/' + segment.basename"
-                    target="_blank"
-                    @click.prevent="store.playMedia(vod?.webpath + '/' + segment.basename)"
+        <div class="video-block-header">
+            <h4>{{ t('vod.segments') }}</h4>
+        </div>
+        <div class="video-block-content">
+            <ul class="list-segments">
+                <li
+                    v-for="(segment, i) of vod.segments"
+                    :key="segment.basename"
                 >
-                    <span class="text-overflow">{{ segment.basename }}</span>
-                    <template v-if="!segment.deleted && segment.filesize"> ({{ formatBytes(segment.filesize) }})</template>
-                    <!-- delete -->
-                </a>
-                <button
-                    v-if="!segment.deleted"
-                    class="icon-button is-small delete-button"
-                    title="Delete segment"
-                    @click.prevent="doDeleteSegment(i)"
-                >
-                    <span class="icon"><font-awesome-icon icon="xmark" /></span>
-                </button>
-                <strong
-                    v-if="segment.deleted && !vod.cloud_storage"
-                    class="text-is-error"
-                >&nbsp;(deleted)</strong>
-                <strong
-                    v-else-if="segment.deleted && vod.cloud_storage"
-                    class="text-is-error"
-                >&nbsp;<font-awesome-icon icon="cloud" /></strong> 
-                <strong
-                    v-else-if="!segment.filesize"
-                    class="text-is-error"
-                >&nbsp;(filesize missing)</strong>
-            </li>
-
-            <li v-if="vod.is_vod_downloaded">
-                <a
-                    :href="vod.webpath + '/' + vod.basename + '_vod.mp4'"
-                    target="_blank"
-                    @click.prevent="store.playMedia(vod?.webpath + '/' + vod?.basename + '_vod.mp4')"
-                >Downloaded VOD</a>
-            </li>
-
-            <template v-if="vod.is_chat_rendered">
-                <li>
                     <a
-                        :href="vod.webpath + '/' + vod?.basename + '_chat.mp4'"
+                        :href="vod?.webpath + '/' + segment.basename"
                         target="_blank"
-                    >Rendered chat</a>
+                        @click.prevent="store.playMedia(vod?.webpath + '/' + segment.basename)"
+                    >
+                        <span class="text-overflow">{{ segment.basename }}</span>
+                        <template v-if="!segment.deleted && segment.filesize"> ({{ formatBytes(segment.filesize) }})</template>
+                        <!-- delete -->
+                    </a>
+                    <button
+                        v-if="!segment.deleted"
+                        class="icon-button is-small delete-button"
+                        title="Delete segment"
+                        @click.prevent="doDeleteSegment(i)"
+                    >
+                        <span class="icon"><font-awesome-icon icon="xmark" /></span>
+                    </button>
+                    <strong
+                        v-if="segment.deleted && !vod.cloud_storage"
+                        class="text-is-error"
+                    >&nbsp;(deleted)</strong>
+                    <strong
+                        v-else-if="segment.deleted && vod.cloud_storage"
+                        class="text-is-error"
+                    >&nbsp;<font-awesome-icon icon="cloud" /></strong> 
+                    <strong
+                        v-else-if="!segment.filesize"
+                        class="text-is-error"
+                    >&nbsp;(filesize missing)</strong>
                 </li>
-                <li>
-                    <a
-                        :href="vod.webpath + '/' + vod?.basename + '_chat_mask.mp4'"
-                        target="_blank"
-                    >Rendered chat mask</a>
-                </li>
-            </template>
 
-            <li v-if="vod.is_chat_burned">
-                <a
-                    :href="vod?.webpath + '/' + vod?.basename + '_burned.mp4'"
-                    target="_blank"
-                >Burned chat</a>
-            </li>
-        </ul>
-        <span v-if="vod.segments.length === 0">
-            <strong class="text-is-error">No segments found</strong>
-        </span>
+                <li v-if="vod.is_vod_downloaded">
+                    <a
+                        :href="vod.webpath + '/' + vod.basename + '_vod.mp4'"
+                        target="_blank"
+                        @click.prevent="store.playMedia(vod?.webpath + '/' + vod?.basename + '_vod.mp4')"
+                    >Downloaded VOD</a>
+                </li>
+
+                <template v-if="vod.is_chat_rendered">
+                    <li>
+                        <a
+                            :href="vod.webpath + '/' + vod?.basename + '_chat.mp4'"
+                            target="_blank"
+                        >Rendered chat</a>
+                    </li>
+                    <li>
+                        <a
+                            :href="vod.webpath + '/' + vod?.basename + '_chat_mask.mp4'"
+                            target="_blank"
+                        >Rendered chat mask</a>
+                    </li>
+                </template>
+
+                <li v-if="vod.is_chat_burned">
+                    <a
+                        :href="vod?.webpath + '/' + vod?.basename + '_burned.mp4'"
+                        target="_blank"
+                    >Burned chat</a>
+                </li>
+            </ul>
+            <span v-if="vod.segments.length === 0">
+                <strong class="text-is-error">No segments found</strong>
+            </span>
+        </div>
     </div>
 </template>
 
@@ -122,9 +126,7 @@ function doDeleteSegment(index = 0) {
 
 
 <style lang="scss" scoped>
-h4 { margin: 0; }
 .video-segments {
-    padding: 1em;
     background-color: var(--video-segments-background-color);
     // border-top: 1px solid #d6dbf2;
     // border-left: 1px solid #e3e3e3;

@@ -1,6 +1,6 @@
 <template>
     <!-- game list / chapters -->
-    <div class="video-chapters" aria-label="Chapters">
+    <div class="video-block video-chapters" aria-label="Chapters">
         <table
             v-if="vod && vod.chapters && vod.chapters.length > 0"
             class="table game-list is-slim"

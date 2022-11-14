@@ -421,7 +421,8 @@ function youtubePlaylistLink(playlist_id: string): string {
     margin-top: 1em;
     display: flex;
 
-    padding: 0.5em;
+    padding: 0.5em 0;
+    gap: 1em;
 
     h4 {
         font-size: 110%;

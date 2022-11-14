@@ -1,36 +1,40 @@
 <template>
     <div
         v-if="vod.viewers && vod.viewers.length > 0"
-        class="video-viewers"
+        class="video-block video-viewers"
     >
-        <h4>Viewers</h4>
-        <button
-            class="button is-small"
-            @click="isMaximized = !isMaximized"
-        >
-            <span class="icon">
-                <font-awesome-icon :icon="isMaximized ? 'chevron-up' : 'chevron-down'" />
-            </span>
-            <span>
-                {{ isMaximized ? 'Minimize' : 'Maximize' }}
-            </span>
-        </button>
-        <!--
-        <ul v-if="isMaximized">
-            <li
-                v-for="entry in vod.viewers"
-                :key="entry.timestamp.getTime()"
+        <div class="video-block-header">
+            <h4>Viewers</h4>
+        </div>
+        <div class="video-block-content">
+            <button
+                class="button is-small"
+                @click="isMaximized = !isMaximized"
             >
-                <strong>{{ formatDuration(vod.dateToTimestamp(entry.timestamp) || 0) }}:</strong> {{ entry.amount.toLocaleString() }}
-            </li>
-        </ul>
-    -->
-        <div class="viewer-chart">
-            <ViewerChart
-                v-if="isMaximized && chartData"
-                :chart-options="chartOptions"
-                :chart-data="chartData"
-            />
+                <span class="icon">
+                    <font-awesome-icon :icon="isMaximized ? 'chevron-up' : 'chevron-down'" />
+                </span>
+                <span>
+                    {{ isMaximized ? 'Minimize' : 'Maximize' }}
+                </span>
+            </button>
+            <!--
+            <ul v-if="isMaximized">
+                <li
+                    v-for="entry in vod.viewers"
+                    :key="entry.timestamp.getTime()"
+                >
+                    <strong>{{ formatDuration(vod.dateToTimestamp(entry.timestamp) || 0) }}:</strong> {{ entry.amount.toLocaleString() }}
+                </li>
+            </ul>
+        -->
+            <div class="viewer-chart">
+                <ViewerChart
+                    v-if="isMaximized && chartData"
+                    :chart-options="chartOptions"
+                    :chart-data="chartData"
+                />
+            </div>
         </div>
     </div>
 </template>
@@ -118,8 +122,12 @@ const isMaximized = ref(false);
 </script>
 
 <style lang="scss" scoped>
-h4 { margin: 0 0 1em 0; }
 .viewer-chart {
     margin-top: 1em;
+}
+
+.video-viewers {
+    // padding: 1em;
+    background-color: var(--video-segments-background-color);
 }
 </style>
