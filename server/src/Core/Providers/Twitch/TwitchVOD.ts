@@ -2333,6 +2333,7 @@ export class TwitchVOD extends BaseVOD {
         this.watchViewerCountInterval = setInterval(() => {
             this.addViewerCount();
         }, this.watchViewerCountTimeBetweenChecks);
+        this.addViewerCount();
     }
 
     public stopWatchingViewerCount() {

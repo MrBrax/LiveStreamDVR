@@ -142,6 +142,10 @@ export default defineConfig({
             './src/views/Settings/SettingsNotifications.vue',
             './src/views/Settings/SettingsTips.vue',
           ],
+          'chart': [
+            'chart.js',
+            'vue-chartjs',
+          ],
         }
       }
     }

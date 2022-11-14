@@ -153,20 +153,7 @@
                 </div>
             </div>
 
-            <div
-                v-if="vod.viewers && vod.viewers.length > 0"
-                class="video-viewers"
-            >
-                <h4>Viewers</h4>
-                <ul>
-                    <li
-                        v-for="entry in vod.viewers"
-                        :key="entry.timestamp.getTime()"
-                    >
-                        <strong>{{ entry.timestamp }}:</strong> {{ entry.amount }}
-                    </li>
-                </ul>
-            </div>
+            <vod-item-viewers :vod="vod" />
 
             <vod-item-segments :vod="vod" />
 
@@ -562,6 +549,7 @@ import ModalBox from "./ModalBox.vue";
 import VodItemSegments from "./VodItemSegments.vue";
 import VodItemBookmarks from "./VodItemBookmarks.vue";
 import VodItemChapters from "./VodItemChapters.vue";
+import VodItemViewers from "./VodItemViewers.vue";
 import RenderModal from "./vod/RenderModal.vue";
 import ExportModal from "./vod/ExportModal.vue";
 import EditModal from "./vod/EditModal.vue";

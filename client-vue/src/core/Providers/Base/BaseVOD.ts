@@ -103,7 +103,26 @@ export default class BaseVOD {
     public hasError() {
         if (this.failed) return true;
         if (!this.is_finalized && !this.is_capturing && !this.is_converting && this.segments.length == 0) return true;
-        return false;        
+        return false;
     }
+
+    public dateToTimestamp(date: Date): number | null {
+        const start = this.started_at;
+        if (start) {
+            return Math.floor((date.getTime() - start.getTime()) / 1000);
+        } else {
+            return null;
+        }
+    }
+
+    public timestampToDate(timestamp: number): Date | null {
+        const start = this.started_at;
+        if (start) {
+            return new Date(start.getTime() + timestamp * 1000);
+        } else {
+            return null;
+        }
+    }
+
 
 }
