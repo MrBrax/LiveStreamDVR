@@ -121,7 +121,7 @@
                     <strong>{{ t('metadata.file-duration') }}:</strong>
                     {{ humanDuration(vod.getDuration()) }}
                     <div
-                        v-if="fileAndVideoDurationDifference && fileAndVideoDurationDifference > 10"
+                        v-if="fileAndVideoDurationDifference && fileAndVideoDurationDifference > fileAndVideoDurationDifferenceRequired"
                         class="duration-difference"
                     >
                         {{
@@ -192,13 +192,27 @@
                         <span
                             v-if="vod.twitch_vod_duration"
                             class="px-1"
-                        >{{ humanDuration(vod.twitch_vod_duration) }}</span>
+                        >
+                            {{ humanDuration(vod.twitch_vod_duration) }}
+                        </span>
                         <span
                             v-else
                             class="px-1"
                         >
                             <strong><em>No data</em></strong>
                         </span>
+                        <div
+                            v-if="vod.twitch_vod_duration && videoAndTwitchDurationDifference && videoAndTwitchDurationDifference > videoAndTwitchDurationDifferenceRequired"
+                            class="duration-difference"
+                        >
+                            {{
+                                t('vod.video-info.twitch-duration-difference', {
+                                    full: formatDuration(vod.twitch_vod_duration),
+                                    diff: formatDuration(videoAndTwitchDurationDifference),
+                                    dur: formatDuration(vod.video_metadata?.duration || 0),
+                                })
+                            }}
+                        </div>
                     </li>
                     <li>
                         <strong>{{ t('vod.video-info.id') }}:</strong>
@@ -338,9 +352,9 @@ import type { ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
 import { useI18n } from 'vue-i18n';
 import { MuteStatus } from "../../../common/Defs";
-import { formatDate, humanDuration, formatBytes, formatDuration } from '@/mixins/newhelpers';
+import { formatDate, humanDuration, formatBytes, formatDuration, isTwitchVOD } from '@/mixins/newhelpers';
 import type { VODTypes } from '@/twitchautomator';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 const props = defineProps({
     vod: {
@@ -361,6 +375,15 @@ const fileAndVideoDurationDifference = computed((): number | null => {
     if (!props.vod.video_metadata || !props.vod.video_metadata.full_duration) return null;
     return props.vod.video_metadata.full_duration - props.vod.video_metadata.duration;
 });
+
+const videoAndTwitchDurationDifference = computed((): number | null => {
+    if (!props.vod.video_metadata || !props.vod.video_metadata.duration || !isTwitchVOD(props.vod)) return null;
+    if (!props.vod.twitch_vod_duration) return null;
+    return props.vod.twitch_vod_duration - props.vod.video_metadata.duration;
+});
+
+const fileAndVideoDurationDifferenceRequired = ref(10);
+const videoAndTwitchDurationDifferenceRequired = ref(10); // usually streams are always missing ~2 minutes
 
 function twitchVideoLink(video_id: string): string {
     return `https://www.twitch.tv/videos/${video_id}`;
