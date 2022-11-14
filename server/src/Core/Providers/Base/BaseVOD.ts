@@ -1198,7 +1198,7 @@ export class BaseVOD {
         Log.logAdvanced(Log.Level.ERROR, "vod", "Reached end of getDuration for {this.basename}, this shouldn't happen!");
     }
 
-    public async getMediainfo(segment_num = 0): Promise<false | VideoMetadata | AudioMetadata> {
+    public async getMediainfo(segment_num = 0, force = false): Promise<false | VideoMetadata | AudioMetadata> {
 
         Log.logAdvanced(Log.Level.INFO, "vod", `Fetching mediainfo of ${this.basename}, segment #${segment_num}`);
 
@@ -1220,13 +1220,15 @@ export class BaseVOD {
 
         let metadata: VideoMetadata | AudioMetadata;
         try {
-            metadata = await Helper.videometadata(filename);
+            metadata = await Helper.videometadata(filename, force);
         } catch (e) {
             Log.logAdvanced(Log.Level.ERROR, "vod", `Could not get mediainfo of ${this.basename} (${filename} @ ${this.directory}): ${(e as Error).message}`);
             return false;
         }
 
         this.video_metadata = metadata;
+
+        this.broadcastUpdate();
 
         return metadata;
 

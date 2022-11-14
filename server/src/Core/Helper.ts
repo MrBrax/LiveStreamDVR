@@ -738,14 +738,14 @@ export class Helper {
 
     }
 
-    public static async videometadata(filename: string): Promise<VideoMetadata | AudioMetadata> {
+    public static async videometadata(filename: string, force = false): Promise<VideoMetadata | AudioMetadata> {
 
         let data: MediaInfo | false = false;
 
         const filenameHash = createHash("md5").update(filename).digest("hex"); // TODO: do we need it to by dynamic?
         const dataPath = path.join(BaseConfigCacheFolder.cache, "mediainfo", `${filenameHash}.json`);
 
-        if (fs.existsSync(dataPath)) {
+        if (fs.existsSync(dataPath) && !force) {
 
             data = JSON.parse(fs.readFileSync(dataPath, { encoding: "utf-8" }));
 

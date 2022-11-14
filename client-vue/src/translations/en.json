@@ -65,7 +65,8 @@
       "check-mute": "Check mute",
       "render-menu": "Render menu",
       "fix-issues": "Fix issues",
-      "download-vod-muted": "Download muted VOD"
+      "download-vod-muted": "Download muted VOD",
+      "refresh-metadata": "Refresh metadata"
     },
     "chapters": {
       "offset": "Offset",
