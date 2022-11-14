@@ -1263,7 +1263,7 @@ export class BaseVOD {
         }
 
         if (this.json.viewers) {
-            this.viewers = this.json.viewers;
+            this.viewers = this.json.viewers.map((v) => { return { timestamp: parseJSON(v.timestamp), amount: v.amount }; });
         } else {
             this.viewers = [];
         }
