@@ -28,11 +28,14 @@
                 </li>
             </ul>
         -->
-            <div class="viewer-chart">
+            <div
+                v-if="isMaximized && chartData"
+                class="viewer-chart"
+            >
                 <ViewerChart
-                    v-if="isMaximized && chartData"
                     :chart-options="chartOptions"
                     :chart-data="chartData"
+                    :chart-id="chartId"
                 />
             </div>
         </div>
@@ -84,6 +87,8 @@ const chartOptions = reactive<ChartOptions>({
     },
 });
 
+const chartId = computed(() => `viewer-chart-${props.vod.uuid}`);
+
 onMounted(() => {
     if (!chartOptions?.scales?.x?.ticks) return; // why, typescript
     if (!chartOptions?.scales?.y?.ticks) return; // why, typescript
@@ -93,7 +98,7 @@ onMounted(() => {
     // chartOptions.plugins.title.color = getComputedStyle(document.body).getPropertyValue('--body-color');
 });
 
-const chartData = computed((): ChartData<'bar', number[], string> | null => {
+const chartData = computed((): ChartData<'line', number[], string> | null => {
     if (!props.vod.viewers || props.vod.viewers.length === 0) {
         return null;
     }

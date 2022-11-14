@@ -1,5 +1,5 @@
 <template>
-    <Bar
+    <Line
         :chart-options="chartOptions"
         :chart-data="chartData"
         :chart-id="chartId"
@@ -13,23 +13,23 @@
 </template>
 
 <script lang="ts" setup>
-import { Bar } from 'vue-chartjs';
-import { Chart as ChartJS, Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale } from 'chart.js'
-import type { Plugin, ChartOptions, ChartData, BubbleDataPoint } from 'chart.js';
-import { onMounted, reactive } from 'vue';
+import { Line } from 'vue-chartjs';
+import { Chart as ChartJS, Title, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement } from 'chart.js';
+import type { Plugin, ChartOptions, ChartData } from 'chart.js';
+import { onMounted, onUnmounted, reactive } from 'vue';
 
-ChartJS.register(Title, Tooltip, Legend, BarElement, CategoryScale, LinearScale);
+ChartJS.register(Title, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement);
 
 const props = withDefaults(defineProps<{
     chartOptions: ChartOptions;
-    chartData: ChartData<'bar', number[], string>;
+    chartData: ChartData<'line', number[], string>;
     chartId: string;
-    datasetIdKey: string;
-    cssClasses: string;
+    datasetIdKey?: string;
+    cssClasses?: string;
     styles?: Partial<CSSStyleDeclaration>;
-    width: number;
-    height: number;
-    plugins: Plugin<'bar'>[];
+    width?: number;
+    height?: number;
+    plugins?: Plugin<'line'>[];
 }>(), {
     width: 400,
     height: 400,
@@ -38,6 +38,16 @@ const props = withDefaults(defineProps<{
     plugins: () => [],
     datasetIdKey: 'id',
     chartId: 'chart',
+    chartData: () => ({ datasets: [] }),
+    chartOptions: () => ({}),
+});
+
+onMounted(() => {
+    console.log('chart mounted', props.chartId);
+});
+
+onUnmounted(() => {
+    console.log('chart unmounted', props.chartId);
 });
 
 </script>
