@@ -4,8 +4,8 @@ import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import type { TwitchVODChapter } from "@/core/Providers/Twitch/TwitchVODChapter";
 import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
 import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
-import { defaultSidemenuShow } from "@/defs";
-import type { SidemenuShow, VODTypes } from "@/twitchautomator";
+import { defaultSidemenuShow, defaultVideoBlockShow } from "@/defs";
+import type { SidemenuShow, VideoBlockShow, VODTypes } from "@/twitchautomator";
 import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiJobsResponse, ApiLoginResponse, ApiQuotas, ApiResponse, ApiSettingsResponse, ApiVodResponse } from "@common/Api/Api";
 import type { ApiChannels, ApiJob, ApiLogLine, ApiVods } from "@common/Api/Client";
 import { defaultConfig } from "@common/ClientSettings";
@@ -26,6 +26,7 @@ interface StoreType {
     version: string;
     clientConfig: ClientSettings | undefined;
     sidemenuShow: SidemenuShow;
+    videoBlockShow: VideoBlockShow;
     serverType: string;
     websocketUrl: string;
     errors: string[];
@@ -60,6 +61,7 @@ export const useStore = defineStore("twitchAutomator", {
             version: "?",
             clientConfig: undefined,
             sidemenuShow: defaultSidemenuShow,
+            videoBlockShow: defaultVideoBlockShow,
             serverType: "",
             websocketUrl: "",
             errors: [],
@@ -135,13 +137,16 @@ export const useStore = defineStore("twitchAutomator", {
 
         },
         async fetchAndUpdateStreamerList(): Promise<void> {
+            console.debug("Fetching streamer list");
             const data = await this.fetchStreamerList();
             if (data) {
                 const channels = data.streamer_list.map((channel) => {
                     switch (channel.provider) {
                         case "twitch":
+                            console.debug("Creating TwitchChannel", channel.internalName);
                             return TwitchChannel.makeFromApiResponse(channel);
                         case "youtube":
+                            console.debug("Creating YouTubeChannel", channel.internalName);
                             return YouTubeChannel.makeFromApiResponse(channel);
                     }
                 }).filter(c => c !== undefined);
@@ -151,7 +156,9 @@ export const useStore = defineStore("twitchAutomator", {
                     return;
                 }
 
-                this.streamerList = channels;
+                // this.streamerList = channels;
+                Object.assign(this.streamerList, channels);
+
                 this.streamerListLoaded = true;
                 this.diskFreeSize = data.free_size;
                 // this.diskTotalSize = data.total_size;
@@ -240,8 +247,9 @@ export const useStore = defineStore("twitchAutomator", {
                     streamer.vods_list.push(vod as YouTubeVOD);
                 }
             } else {
-                console.debug("updating vod", vod);
-                streamer.vods_list[vodIndex] = vod;
+                // console.debug("updating vod", vod);
+                // streamer.vods_list[vodIndex] = vod;
+                Object.assign(streamer.vods_list[vodIndex], vod);
             }
             return true;
         },
@@ -492,6 +500,14 @@ export const useStore = defineStore("twitchAutomator", {
                 : defaultSidemenuShow;
 
             this.sidemenuShow = currentSidemenuShow;
+
+
+            const currentVideoBlockShow: VideoBlockShow = localStorage.getItem("twitchautomator_videoblock")
+                ? JSON.parse(localStorage.getItem("twitchautomator_videoblock") as string)
+                : defaultVideoBlockShow;
+
+
+            this.videoBlockShow = currentVideoBlockShow;
 
             this.updateClientConfig(currentClientConfig);
             if (init) this.saveClientConfig();

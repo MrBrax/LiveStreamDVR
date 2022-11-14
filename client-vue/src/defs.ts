@@ -1,4 +1,4 @@
-import type { SidemenuShow } from "./twitchautomator";
+import type { SidemenuShow, VideoBlockShow } from "./twitchautomator";
 
 export const defaultSidemenuShow: SidemenuShow = {
     vod_date: true,
@@ -9,4 +9,11 @@ export const defaultSidemenuShow: SidemenuShow = {
     vod_basename: false,
     vod_icon: true,
     vod_title: false,
+};
+
+export const defaultVideoBlockShow: VideoBlockShow = { // TODO: invert name
+    general: false,
+    segments: false,
+    bookmarks: true,
+    chapters: false,
 };

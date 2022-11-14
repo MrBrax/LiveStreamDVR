@@ -52,109 +52,10 @@
             v-if="!minimized"
             class="video-content"
         >
-            <!-- description -->
-            <div class="video-block video-description">
-                <div class="video-block-header"><h4>General</h4></div>
-                <div class="video-block-content">
-                    <!-- box art -->
-                    <div
-                        v-if="vod && vod.provider == 'twitch' && vod.getUniqueGames()"
-                        class="boxart-carousel is-small"
-                    >
-                        <div
-                            v-for="game in vod.getUniqueGames()"
-                            :key="game.id"
-                            class="boxart-item"
-                        >
-                            <img
-                                v-if="game.image_url"
-                                :title="game.name"
-                                :alt="game.name"
-                                :src="game.image_url"
-                                loading="lazy"
-                                :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }"
-                            >
-                            <span v-else>{{ game.name }}</span>
-                        </div>
-                    </div>
-
-                    <!-- comment -->
-                    <div
-                        v-if="vod.comment"
-                        class="video-comment"
-                    >
-                        <p>{{ vod.comment }}</p>
-                    </div>
-                    <div v-else>
-                        <p>
-                            <a
-                                href="#"
-                                @click.prevent="showModal.edit = true"
-                            >
-                                <font-awesome-icon icon="comment-dots" />
-                                {{ t("vod.add_comment") }}
-                            </a>
-                        </p>
-                    </div>
-
-                    <vod-item-video-info
-                        :vod="vod"
-                        :show-advanced="showAdvanced"
-                    />
-
-                    <div
-                        v-if="vod.is_capturing"
-                        class="info-columns"
-                    >
-                        <div class="info-column">
-                            <h4>Recording</h4>
-                            <ul class="video-info">
-                                <li v-if="vod.started_at">
-                                    <strong>Went live:</strong> {{ formatDate(vod.started_at) }}
-                                </li>
-                                <li v-if="vod.created_at">
-                                    <strong>Created:</strong> {{ formatDate(vod.created_at) }}
-                                </li>
-                                <li v-if="vod.capture_started && vod.started_at">
-                                    <strong>Capture launched:</strong> {{ formatDate(vod.capture_started) }} ({{
-                                        humanDuration((vod.capture_started.getTime() - vod.started_at.getTime()) / 1000)
-                                    }}
-                                    missing)
-                                </li>
-                                <li v-if="vod.capture_started2">
-                                    <strong>Wrote file:</strong> {{ formatDate(vod.capture_started2) }}
-                                </li>
-                                <li>
-                                    <strong>Current duration:</strong> <duration-display
-                                        v-if="vod.started_at"
-                                        :start-date="vod.started_at.toISOString()"
-                                        output-style="human"
-                                    />
-                                </li>
-                                <li v-if="vod.provider == 'twitch'">
-                                    <strong>Resolution:</strong> {{ vod.stream_resolution || "Unknown" }}
-                                </li>
-                                <li v-if="vod.provider == 'twitch'">
-                                    <strong>Watch live:</strong> <a
-                                        :href="'https://twitch.tv/' + vod.streamer_login"
-                                        rel="noreferrer"
-                                        target="_blank"
-                                    >Twitch</a>
-                                </li>
-                                <li>
-                                    <strong>Rewind:</strong> <a
-                                        :href="predictedFirstSegmentUrl"
-                                        rel="noreferrer"
-                                        target="_blank"
-                                        @click.prevent="store.playMedia(predictedFirstSegmentUrl)"
-                                    >{{ vod.basename }}</a> (copy link and paste into desktop video player)
-                                </li>
-                            </ul>
-                            <!--<button class="button is-small is-danger" @click="unbreak">Unbreak</button>-->
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <vod-item-general
+                :vod="vod"
+                @show-modal="showModalEv($event as any)"
+            />
 
             <vod-item-viewers :vod="vod" />
 
@@ -553,6 +454,7 @@ import VodItemSegments from "./VodItemSegments.vue";
 import VodItemBookmarks from "./VodItemBookmarks.vue";
 import VodItemChapters from "./VodItemChapters.vue";
 import VodItemViewers from "./VodItemViewers.vue";
+import VodItemGeneral from "./VodItemGeneral.vue";
 import RenderModal from "./vod/RenderModal.vue";
 import ExportModal from "./vod/ExportModal.vue";
 import EditModal from "./vod/EditModal.vue";
@@ -563,7 +465,6 @@ import { format } from "date-fns";
 import axios from "axios";
 import { useRoute } from "vue-router";
 import { isTwitchVOD } from "@/mixins/newhelpers";
-import VodItemVideoInfo from "./VodItemVideoInfo.vue";
 import VodItemControls from "./VodItemControls.vue";
 import { formatDate, humanDate, humanDuration, formatBytes } from "@/mixins/newhelpers";
 import type { VODTypes } from "@/twitchautomator";
@@ -674,11 +575,6 @@ const renameVodTemplatePreview = computed(() => {
     };
     const replaced_string = formatString(renameVodSettings.value.template, replacements);
     return replaced_string;
-});
-
-const predictedFirstSegmentUrl = computed(() => {
-    if (!props.vod) return "";
-    return `${props.vod.webpath}/${props.vod.basename}.ts`;
 });
 
 /*  
@@ -998,13 +894,6 @@ function showModalEv(modal: keyof typeof showModal.value): void {
     }
 }
 
-.video-description {
-    // padding: 10px;
-    background: var(--video-description-background-color);
-    // border-left: 1px solid #e3e3e3;
-    // border-right: 1px solid #e3e3e3;
-}
-
 .video-status {
     padding: 10px;
     background-color: #b3ddad;
@@ -1036,37 +925,6 @@ function showModalEv(modal: keyof typeof showModal.value): void {
     }
 }
 
-.video-comment {
-    padding: 1em;
-    background-color: var(--video-comment-background-color);
-    border-radius: 1em;
-    width: max-content;
-    p {
-        margin: 0;
-        padding: 0;
-        white-space: pre;
-    }
-
-    position: relative;
-
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-
-    margin: 1em 0 1.5em 0;
-
-    // comment bubble tip
-    &:before {
-        content: "";
-        position: absolute;
-        bottom: -10px;
-        left: 15px;
-        width: 0;
-        height: 0;
-        border-style: solid;
-        border-width: 10px 10px 0 10px;
-        border-color: var(--video-comment-background-color) transparent transparent transparent;
-
-    }
-}
 
 .video:deep(.video-block) {
     .video-block-header {
@@ -1076,13 +934,26 @@ function showModalEv(modal: keyof typeof showModal.value): void {
             padding: 0;
         }
         // background-image: linear-gradient(to right, #2b61d6, #2b61d6 50%, #2b61d6 50%, #2b61d6);
-        background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.02));
+        // background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.02));
         border-top: 1px solid rgba(0, 0, 0, 0.2);
         // background-color: rgba(0, 0, 0, 0.2);
         // border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        &.collapsible {
+            cursor: pointer;
+            user-select: none;
+            &:hover {
+                // background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
+                background-color: rgba(255, 255, 255, 0.05);
+                color: #fff;
+                text-shadow: 0 0 2px rgba(255, 255, 255, 0.5);
+            }
+        }
     }
     .video-block-content {
         padding: 1em;
+        &.no-padding {
+            padding: 0;
+        }
     }
 }
 

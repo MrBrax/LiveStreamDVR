@@ -5,10 +5,22 @@
         class="video-block video-bookmarks"
         aria-label="Bookmarks"
     >
-        <div class="video-block-header">
-            <h4>{{ t('vod.bookmarks') }}</h4>
+        <div
+            class="video-block-header collapsible"
+            aria-role="button"
+            @click="isCollapsed = !isCollapsed"
+        >
+            <h4>
+                <span class="icon">
+                    <font-awesome-icon :icon="isCollapsed ? 'chevron-down' : 'chevron-up'" />
+                </span>
+                {{ t('vod.bookmarks') }}
+            </h4>
         </div>
-        <div class="video-block-content">
+        <div
+            v-if="!isCollapsed"
+            class="video-block-content"
+        >
             <ul
                 v-if="vod.bookmarks && vod.bookmarks.length > 0"
                 class="list-segments"
@@ -73,7 +85,7 @@ import { useStore } from '@/store';
 import type { ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
 import { formatDuration } from "@/mixins/newhelpers";
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { VODTypes } from '@/twitchautomator';
 
@@ -87,6 +99,12 @@ const props = defineProps({
 
 const store = useStore();
 const { t } = useI18n();
+
+const isCollapsed = ref<boolean>(true);
+
+onMounted(() => {
+    isCollapsed.value = store.videoBlockShow.bookmarks;
+});
 
 const newBookmark = ref({
     name: "",

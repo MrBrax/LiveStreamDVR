@@ -162,6 +162,41 @@
                 </label>
             </div>
         </div>
+        <div class="field">
+            <label class="label">Video blocks collapse</label>
+            <div class="control">
+                <label class="checkbox">
+                    <input
+                        v-model="videoBlockShow.general"
+                        type="checkbox"
+                    > General
+                </label>
+            </div>
+            <div class="control">
+                <label class="checkbox">
+                    <input
+                        v-model="videoBlockShow.segments"
+                        type="checkbox"
+                    > Segments
+                </label>
+            </div>
+            <div class="control">
+                <label class="checkbox">
+                    <input
+                        v-model="videoBlockShow.bookmarks"
+                        type="checkbox"
+                    > Bookmarks
+                </label>
+            </div>
+            <div class="control">
+                <label class="checkbox">
+                    <input
+                        v-model="videoBlockShow.chapters"
+                        type="checkbox"
+                    > Chapters
+                </label>
+            </div>
+        </div>
         <div class="field buttons">
             <button
                 class="button is-confirm"
@@ -219,8 +254,8 @@
 import { useStore } from "@/store";
 import { computed, onMounted, ref } from "vue";
 import { defaultConfig, defaultConfigFields } from "@common/ClientSettings";
-import { defaultSidemenuShow } from "@/defs";
-import type { SidemenuShow } from "@/twitchautomator";
+import { defaultSidemenuShow, defaultVideoBlockShow } from "@/defs";
+import type { SidemenuShow, VideoBlockShow } from "@/twitchautomator";
 import type { ClientSettings } from "@common/ClientSettings.d";
 import type { ApiResponse} from "@common/Api/Api";
 
@@ -236,6 +271,7 @@ const { t, te, availableLocales, locale } = useI18n();
 const currentConfig = ref<ClientSettings>({...defaultConfig});
 const updateConfig = ref<ClientSettings>({...defaultConfig});
 const sideMenuShow = ref<SidemenuShow>({...defaultSidemenuShow});
+const videoBlockShow = ref<VideoBlockShow>({...defaultVideoBlockShow});
 
 const locales = computed((): Record<string, string> => {
     const names = new Intl.DisplayNames(["en"], { type: "language" });
@@ -254,12 +290,14 @@ onMounted(() => {
     currentConfig.value = cConfig;
 
     sideMenuShow.value = {...store.sidemenuShow};
+    videoBlockShow.value = {...store.videoBlockShow};
 });
 
 
 function saveClientConfig() {
     store.updateClientConfig(updateConfig.value);
     store.sidemenuShow = sideMenuShow.value; // TODO: move to store
+    store.videoBlockShow = videoBlockShow.value; // TODO: move to store
     store.saveClientConfig();
     locale.value = updateConfig.value.language;
     if (currentConfig.value.enableNotifications !== updateConfig.value.enableNotifications && updateConfig.value.enableNotifications) {

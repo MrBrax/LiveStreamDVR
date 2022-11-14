@@ -5,10 +5,22 @@
         class="video-block video-segments"
         aria-label="Segments"
     >
-        <div class="video-block-header">
-            <h4>{{ t('vod.segments') }}</h4>
+        <div
+            class="video-block-header collapsible"
+            aria-role="button"
+            @click="isCollapsed = !isCollapsed"
+        >
+            <h4>
+                <span class="icon">
+                    <font-awesome-icon :icon="isCollapsed ? 'chevron-down' : 'chevron-up'" />
+                </span>
+                {{ t('vod.segments') }}
+            </h4>
         </div>
-        <div class="video-block-content">
+        <div
+            v-if="!isCollapsed"
+            class="video-block-content"
+        >
             <ul class="list-segments">
                 <li
                     v-for="(segment, i) of vod.segments"
@@ -90,6 +102,7 @@ import axios from 'axios';
 import { useI18n } from 'vue-i18n';
 import { formatBytes } from '@/mixins/newhelpers';
 import type { VODTypes } from '@/twitchautomator';
+import { onMounted, ref } from 'vue';
 
 const props = defineProps({
     vod: {
@@ -101,6 +114,12 @@ const props = defineProps({
 
 const store = useStore();
 const { t } = useI18n();
+
+const isCollapsed = ref<boolean>(true);
+
+onMounted(() => {
+    isCollapsed.value = store.videoBlockShow.segments;
+});
 
 function doDeleteSegment(index = 0) {
     if (!props.vod) return;

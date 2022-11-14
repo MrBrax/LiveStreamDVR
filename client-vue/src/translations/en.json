@@ -134,7 +134,10 @@
     "rename": {
       "current-name-vod-basename": "Current name: {0}"
     },
-    "fetch-clip-list": "Fetch clip list"
+    "fetch-clip-list": "Fetch clip list",
+    "block": {
+      "chapters": "Chapters"
+    }
   },
   "buttons": {
     "save": "Save",
