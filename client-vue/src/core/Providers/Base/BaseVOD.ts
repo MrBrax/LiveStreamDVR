@@ -2,6 +2,7 @@ import type { Providers } from "@common/Defs";
 import { JobStatus } from "@common/Defs";
 import type { ExportData } from "@common/Exporter";
 import type { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
+import type { VodViewerEntry } from "@common/Vod";
 import type { BaseVODChapter } from "./BaseVODChapter";
 import type { BaseVODSegment } from "./BaseVODSegment";
 
@@ -58,7 +59,7 @@ export default class BaseVOD {
 
     exportData?: ExportData;
 
-    viewers: { amount: number, timestamp: Date }[] = [];
+    viewers: VodViewerEntry[] = [];
 
     get current_chapter(): BaseVODChapter | undefined {
         if (this.chapters.length > 0) {

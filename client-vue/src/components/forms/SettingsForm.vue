@@ -252,15 +252,7 @@
             </button>
         </div>
     </form>
-    <div
-        v-if="loading"
-        class="loading"
-    >
-        <span class="icon"><fa
-            icon="sync"
-            spin
-        /></span> {{ t("messages.loading") }}
-    </div>
+    <LoadingBox v-if="loading" />
     <hr>
     <div class="auths">
         <youtube-auth />

@@ -39,12 +39,7 @@
                 </button>
             </div>
         </template>
-        <template v-else>
-            <span class="icon"><fa
-                icon="spinner"
-                spin
-            /></span> {{ t('messages.loading') }}
-        </template>
+        <LoadingBox v-else />
     </div>
 </template>
 

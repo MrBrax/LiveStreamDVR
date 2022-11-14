@@ -159,6 +159,21 @@
             <span>{{ t('vod.controls.fix-issues') }}</span>
         </button>
 
+        <!-- Fix issues -->
+        <button
+            v-if="showAdvanced"
+            class="button"
+            @click="doRefreshMetadata"
+        >
+            <span class="icon">
+                <fa
+                    icon="sync"
+                    type="fa"
+                />
+            </span>
+            <span>{{ t('vod.controls.refresh-metadata') }}</span>
+        </button>
+
         <!-- Vod export menu -->
         <button
             v-if="showAdvanced"
@@ -310,6 +325,23 @@ function doArchive() {
             console.error("form error", err.response);
             if (err.response.data && err.response.data.message) alert(err.response.data.message);
             // this.taskStatus.archive = false;
+        });
+}
+
+function doRefreshMetadata() {
+    if (!props.vod) return;
+    if (!confirm(`Do you want to refresh metadata for "${props.vod?.basename}"?`)) return;
+    // taskStatus.archive = true;
+    axios
+        .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/refresh_metadata`)
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data && err.response.data.message) alert(err.response.data.message);
         });
 }
 

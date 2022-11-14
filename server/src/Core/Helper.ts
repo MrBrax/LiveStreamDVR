@@ -738,14 +738,14 @@ export class Helper {
 
     }
 
-    public static async videometadata(filename: string): Promise<VideoMetadata | AudioMetadata> {
+    public static async videometadata(filename: string, force = false): Promise<VideoMetadata | AudioMetadata> {
 
         let data: MediaInfo | false = false;
 
         const filenameHash = createHash("md5").update(filename).digest("hex"); // TODO: do we need it to by dynamic?
         const dataPath = path.join(BaseConfigCacheFolder.cache, "mediainfo", `${filenameHash}.json`);
 
-        if (fs.existsSync(dataPath)) {
+        if (fs.existsSync(dataPath) && !force) {
 
             data = JSON.parse(fs.readFileSync(dataPath, { encoding: "utf-8" }));
 
@@ -804,7 +804,9 @@ export class Helper {
                     container: data.general.Format,
 
                     size: parseInt(data.general.FileSize),
-                    duration: parseInt(data.general.Duration),
+                    // duration: parseInt(data.general.Duration),
+                    duration: parseFloat(data.audio.Duration || data.general.Duration),
+                    full_duration: parseFloat(data.general.Duration),
                     bitrate: parseInt(data.general.OverallBitRate),
 
                     audio_codec: data.audio.Format,
@@ -836,7 +838,9 @@ export class Helper {
                     container: data.general.Format,
 
                     size: parseInt(data.general.FileSize),
-                    duration: parseInt(data.general.Duration),
+                    // duration: parseInt(data.general.Duration),
+                    duration: parseInt(data.video.Duration || data.general.Duration),
+                    full_duration: parseInt(data.general.Duration),
                     bitrate: parseInt(data.general.OverallBitRate),
 
                     width: parseInt(data.video.Width),
@@ -857,7 +861,7 @@ export class Helper {
 
                 } as VideoMetadata;
 
-                Log.logAdvanced(Log.Level.SUCCESS, "helper.videometadata", `${filename} is a video file ${video_metadata.duration} long at ${video_metadata.height}p${video_metadata.fps}.`);
+                Log.logAdvanced(Log.Level.SUCCESS, "helper.videometadata", `${filename} is a video file ${Helper.formatDuration(video_metadata.duration)} long at ${video_metadata.height}p${video_metadata.fps}.`);
 
                 return video_metadata;
 

@@ -809,3 +809,51 @@ export async function RenameVod(req: express.Request, res: express.Response): Pr
     return;
 
 }
+
+export async function RefreshVodMetadata(req: express.Request, res: express.Response): Promise<void> {
+
+    const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
+
+    if (!vod) {
+        res.status(400).send({
+            status: "ERROR",
+            message: "Vod not found",
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const oldDuration = vod.duration;
+
+    let md;
+
+    try {
+        md = await vod.getMediainfo(0, true);
+    } catch (error) {
+        res.status(400).send({
+            status: "ERROR",
+            message: (error as Error).message,
+        } as ApiErrorResponse);
+        return;
+        
+    }
+
+    if (!md) {
+        res.status(500).send({
+            status: "ERROR",
+            message: "Mediainfo error",
+        } as ApiErrorResponse);
+        return;
+    } else {
+        const diff = Math.abs(oldDuration - md.duration);
+        res.send({
+            status: "OK",
+            message: `Metadata refreshed, old duration was ${Helper.formatDuration(oldDuration)}, new is ${Helper.formatDuration(md.duration)}. Difference is ${Helper.formatDuration(diff)}.`,
+            data: md,
+        } as ApiResponse);
+        vod.saveJSON("refresh metadata");
+        return;
+    }
+
+    return;
+
+}

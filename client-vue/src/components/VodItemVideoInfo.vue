@@ -120,6 +120,18 @@
                 <li v-if="vod.getDuration()">
                     <strong>{{ t('metadata.file-duration') }}:</strong>
                     {{ humanDuration(vod.getDuration()) }}
+                    <div
+                        v-if="fileAndVideoDurationDifference && fileAndVideoDurationDifference > 10"
+                        class="duration-difference"
+                    >
+                        {{
+                            t('vod.video-info.duration-difference', {
+                                full: formatDuration(vod.video_metadata?.full_duration || 0),
+                                diff: formatDuration(fileAndVideoDurationDifference),
+                                dur: formatDuration(vod.video_metadata?.duration || 0),
+                            })
+                        }}
+                    </div> 
                 </li>
                 <li v-if="vod.segments && vod.segments.length > 0 && vod.segments[0].filesize">
                     <strong>Size:</strong>
@@ -326,8 +338,9 @@ import type { ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
 import { useI18n } from 'vue-i18n';
 import { MuteStatus } from "../../../common/Defs";
-import { formatDate, humanDuration, formatBytes } from '@/mixins/newhelpers';
+import { formatDate, humanDuration, formatBytes, formatDuration } from '@/mixins/newhelpers';
 import type { VODTypes } from '@/twitchautomator';
+import { computed } from 'vue';
 
 const props = defineProps({
     vod: {
@@ -343,6 +356,11 @@ const props = defineProps({
 
 const store = useStore();
 const { t } = useI18n();
+
+const fileAndVideoDurationDifference = computed((): number | null => {
+    if (!props.vod.video_metadata || !props.vod.video_metadata.full_duration) return null;
+    return props.vod.video_metadata.full_duration - props.vod.video_metadata.duration;
+});
 
 function twitchVideoLink(video_id: string): string {
     return `https://www.twitch.tv/videos/${video_id}`;
@@ -413,6 +431,17 @@ function youtubePlaylistLink(playlist_id: string): string {
         overflow: hidden;
         word-break: break-word;
     }
+}
+
+.duration-difference {
+    color: #fff;
+    background-color: #ce1b1b;
+    text-shadow: 1px 1px 0 #991111;
+    padding: 0.2em 0.5em;
+    border-radius: 0.2em;
+    line-height: 1.3em;
+    font-size: 0.8em;
+    max-width: 250px;
 }
 
 </style>

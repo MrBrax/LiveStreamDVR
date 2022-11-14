@@ -16,7 +16,8 @@
     "login-mismatch-fixing": "Login mismatch, fixing",
     "login": "You need to be logged in to view this resource.",
     "local-videos": "Local videos",
-    "none": "None"
+    "none": "None",
+    "loading-takes-longer-than-expected": "Loading takes longer than expected..."
   },
   "vod": {
     "add_comment": "Add a comment",
@@ -52,7 +53,8 @@
         "youtube-playlist-id": "YouTube Playlist ID",
         "exporter": "Exporter"
       },
-      "capture-id": "Capture ID"
+      "capture-id": "Capture ID",
+      "duration-difference": "Full duration is {full} while video duration is {dur}, a capture difference of {diff} has been detected."
     },
     "segments": "Segments",
     "controls": {
@@ -64,7 +66,8 @@
       "check-mute": "Check mute",
       "render-menu": "Render menu",
       "fix-issues": "Fix issues",
-      "download-vod-muted": "Download muted VOD"
+      "download-vod-muted": "Download muted VOD",
+      "refresh-metadata": "Refresh metadata"
     },
     "chapters": {
       "offset": "Offset",

@@ -30,12 +30,7 @@
                 <div class="container">
                     <section class="section">
                         <div class="section-content">
-                            <div class="loading">
-                                <span class="icon"><fa
-                                    icon="sync"
-                                    spin
-                                /></span> {{ t("messages.loading") }}
-                            </div>
+                            <LoadingBox />
                         </div>
                     </section>
                 </div>

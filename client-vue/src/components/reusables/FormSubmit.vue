@@ -107,8 +107,8 @@ const formStatusIcon = computed(() => {
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-start;
-    &::v-deep .button:not(:last-child):not(.is-fullwidth),
-    &::v-deep .icon-button:not(:last-child):not(.is-fullwidth) {
+    &:deep(.button:not(:last-child):not(.is-fullwidth)),
+    &:deep(.icon-button:not(:last-child):not(.is-fullwidth)) {
         margin-right: .5rem;
     }
 }

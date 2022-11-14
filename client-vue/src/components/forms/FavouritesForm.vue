@@ -82,15 +82,7 @@
             </div>
         </FormSubmit>
     </form>
-    <div
-        v-else
-        class="loading"
-    >
-        <span class="icon"><fa
-            icon="sync"
-            spin
-        /></span> {{ t("messages.loading") }}
-    </div>
+    <LoadingBox v-else />
 </template>
 
 <script lang="ts" setup>

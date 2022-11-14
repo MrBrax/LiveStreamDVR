@@ -110,15 +110,7 @@
             </div>
         </form>
     </div>
-    <div
-        v-if="initialLoad"
-        class="loading"
-    >
-        <span class="icon"><fa
-            icon="sync"
-            spin
-        /></span> {{ t("messages.loading") }}
-    </div>
+    <LoadingBox v-if="initialLoad" />
 </template>
 
 <script lang="ts" setup>

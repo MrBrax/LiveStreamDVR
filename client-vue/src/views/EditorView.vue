@@ -237,12 +237,7 @@
                 -->
             </div>
         </div>
-        <div v-else>
-            <span class="icon"><fa
-                icon="sync"
-                spin
-            /></span> {{ t("messages.loading") }}
-        </div>
+        <LoadingBox v-else />
     </div>
 </template>
 
