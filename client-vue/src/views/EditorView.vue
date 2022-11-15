@@ -2,7 +2,7 @@
     <div class="container">
         <div
             v-if="vodData && vodData.basename"
-            class="videoplayer"
+            class="video-editor-wrapper"
         >
             <video
                 id="video"
@@ -13,6 +13,9 @@
                 @canplay="videoCanPlay"
                 @seeked="videoSeeked"
                 @error="videoError"
+                @play="videoPlay"
+                @pause="videoPause"
+                @loadedmetadata="videoLoadedMetadata"
             >
                 <track
                     kind="chapters"
@@ -21,8 +24,11 @@
                     default
                 >
             </video>
-            <div class="videoplayer-time">
+            <div class="video-editor-time">
                 <span v-if="videoDuration">
+                    <span class="icon">
+                        <font-awesome-icon :icon="videoStatusIcon" />
+                    </span>
                     {{ formatDuration(currentVideoTime) }} / {{ videoDuration ? formatDuration(videoDuration) : '-' }}
                 </span>
                 <span v-else>
@@ -35,7 +41,7 @@
                     {{ t("messages.loading") }}
                 </span>
             </div>
-            <div class="videoplayer-controls">
+            <div class="video-editor-controls">
                 <div class="buttons">
                     <button
                         class="button is-confirm"
@@ -85,11 +91,11 @@
                 @mouseleave="timelineHover = false"
             >
                 <div
-                    id="timeline-cut"
+                    class="timeline-cut"
                     :style="timelineCutStyle"
                 />
                 <div
-                    id="timeline-playhead"
+                    class="timeline-playhead"
                     :style="timelinePlayheadStyle"
                 />
                 <div
@@ -99,33 +105,33 @@
                 />
             </div>
 
-            <div class="videoplayer-hover-time">
+            <div class="video-editor-hover-time">
                 {{ timelineHover ? formatDuration(hoverTime) : ':)' }}
             </div>
 
             <!--{{ currentVideoTime }} / {{ $refs.player ? $refs.player.currentTime : 'init' }} / {{ $refs.player ? $refs.player.duration : 'init' }}-->
 
-            <div class="videoplayer-chapters">
+            <div class="video-editor-chapters">
                 <div
                     v-for="(chapter, chapterIndex) in vodData.chapters"
                     :key="chapterIndex"
                     :title="chapter.title + ' | \\n' + chapter.game_name"
-                    class="videoplayer-chapter"
+                    class="video-editor-chapter"
                     :style="{ width: chapterWidth(chapter) + '%' }"
                     @click="scrub(chapter.offset || 0, chapter.duration || 0)"
                 >
-                    <div class="videoplayer-chapter-title">
+                    <div class="video-editor-chapter-title">
                         {{ chapter.title }}
                     </div>
-                    <div class="videoplayer-chapter-game">
+                    <div class="video-editor-chapter-game">
                         {{ chapter.game_name }}
                     </div>
                 </div>
             </div>
 
-            <div class="chapter-list">
+            <div class="video-editor-chapter-list">
                 <h2>Chapters</h2>
-                <ul class="list chapter-list">
+                <ul class="list">
                     <li
                         v-for="(chapter, i) in vodData.chapters"
                         :key="i"
@@ -152,7 +158,7 @@
 
             <!--{{ videoSource }}-->
 
-            <div class="videoplayer-form">
+            <div class="video-editor-form">
                 <h2>{{ t('views.editor.edit-segment') }}</h2>
                 <form
                     method="POST"
@@ -274,12 +280,12 @@ import { useStore } from "@/store";
 import type { FormStatus, VODTypes } from "@/twitchautomator";
 import type { ApiResponse, ApiVodResponse } from "@common/Api/Api";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faBookmark, faFastBackward, faFastForward, faPause, faPlay, faSpinner, faScissors } from "@fortawesome/free-solid-svg-icons";
+import { faBookmark, faFastBackward, faFastForward, faPause, faPlay, faSpinner, faScissors, faStop } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
-library.add(faPlay, faPause, faBookmark, faFastBackward, faFastForward, faSpinner, faScissors);
+library.add(faPlay, faPause, faBookmark, faFastBackward, faFastForward, faSpinner, faScissors, faStop);
 
 const props = defineProps<{
     uuid: string;
@@ -288,6 +294,8 @@ const props = defineProps<{
 const store = useStore();
 const { t } = useI18n();
 const route = useRoute();
+
+type VideoStatus = "loading" | "playing" | "paused" | "finished" | "stopped" | "error" | "seeking";
 
 const vodData = ref<VODTypes | undefined>(undefined);
 const secondsIn = ref<number>(0);
@@ -300,6 +308,7 @@ const videoDuration = ref<number>(0);
 const hasBeenSetup = ref<boolean>(false);
 const timelineHover = ref<boolean>(false);
 const hoverTime = ref<number>(0);
+const videoStatus = ref<VideoStatus>("loading");
 
 const player = ref<HTMLVideoElement | null>(null);
 const timeline = ref<HTMLDivElement | null>(null);
@@ -343,6 +352,26 @@ const videoSource = computed((): string => {
 const chapterSource = computed((): string => {
     if (!vodData.value) return "";
     return `${vodData.value.webpath}/${vodData.value.basename}.chapters.vtt`;
+});
+
+const videoStatusIcon = computed((): string => {
+    switch (videoStatus.value) {
+        case "loading":
+            return "spinner";
+        case "playing":
+            return "play";
+        case "paused":
+            return "pause";
+        case "finished":
+            return "stop";
+        case "stopped":
+            return "stop";
+        case "error":
+            return "play";
+        case "seeking":
+            return "spinner";
+    }
+    return "play";
 });
 
 // videoDuration(): number {
@@ -444,17 +473,34 @@ function videoTimeUpdate(event: Event) {
 
 function videoCanPlay(event: Event) {
     console.log("can play", event);
+    // videoDuration.value = (event.target as HTMLVideoElement).duration;
+}
+
+function videoLoadedMetadata(event: Event) {
+    console.log("loaded metadata", event);
     setupPlayer();
     videoDuration.value = (event.target as HTMLVideoElement).duration;
+    videoStatus.value = "stopped";
 }
 
 function videoSeeked(event: Event) {
     console.log("seeked", event);
+    videoStatus.value = player.value && player.value.paused ? "paused" : "playing";
 }
 
 function videoError(event: Event) {
     console.error("video error", event);
     alert("Video error, does the video exist?");
+}
+
+function videoPlay(event: Event) {
+    console.log("play", event);
+    videoStatus.value = "playing"
+}
+
+function videoPause(event: Event) {
+    console.log("pause", event);
+    videoStatus.value = "paused";
 }
 
 function submitForm(event: Event) {
@@ -533,7 +579,7 @@ function addBookmark() {
 <style lang="scss" scoped>
 @import "../assets/_variables";
 
-.videoplayer {
+.video-editor-wrapper {
     width: 1280px;
 
     #timeline {
@@ -542,14 +588,14 @@ function addBookmark() {
         position: relative;
     }
 
-    #timeline-cut {
+    .timeline-cut {
         background-color: #f00;
         position: absolute;
         top: 0;
         bottom: 0;
     }
 
-    #timeline-playhead {
+    .timeline-playhead {
         background-color: #fff;
         position: absolute;
         top: 0;
@@ -566,21 +612,21 @@ function addBookmark() {
     width: 1px;
 }
 
-.videoplayer-hover-time {
+.video-editor-hover-time {
     padding: 0.5em;
 }
 
-.videoplayer-controls {
+.video-editor-controls {
     background-color: #222;
     padding: 0.5em;
 }
 
-.videoplayer-chapters {
+.video-editor-chapters {
     display: flex;
     width: 100%;
 }
 
-.videoplayer-chapter {
+.video-editor-chapter {
     font-family: "Roboto Condensed", "Roboto", "Arial";
     padding: 5px;
     background: rgba(128, 128, 128, 0.3);
@@ -598,37 +644,37 @@ function addBookmark() {
     }
 }
 
-.videoplayer-chapter-title {
+.video-editor-chapter-title {
     font-weight: 700;
 }
 
-.videoplayer-chapter-game {
+.video-editor-chapter-game {
     font-weight: 400;
     font-size: 90%;
     color: #444;
 }
 
-.videoplayer-form {
+.video-editor-form {
     padding: 1em;
     margin-top: 1em;
 }
 
-.videoplayer-time {
+.video-editor-time {
     font-size: 120%;
     padding: 0.5em;
 }
 
-.chapter-list {
+.video-editor-chapter-list {
     padding: 1em;
 }
 
-.chapter-list ul li {
+.video-editor-chapter-list ul li {
     &:not(:last-child) {
         margin-bottom: 0.75em;
     }
 }
 
-.chapter-list a {
+.video-editor-chapter-list a {
     display: block;
     padding: 0.5em;
     &:hover {
@@ -640,7 +686,7 @@ function addBookmark() {
     font-weight: 700;
 }
 
-.chapter-list span {
+.video-editor-chapter-list span {
     display: inline-block;
     margin-right: 0.3em;
 }
