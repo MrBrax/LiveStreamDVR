@@ -10,7 +10,10 @@
                 <span class="icon">
                     <font-awesome-icon :icon="isCollapsed ? 'chevron-down' : 'chevron-up'" />
                 </span>
-                {{ t('vod.block.chapters') }} ({{ vod.chapters.length }})
+                {{ t('vod.block.chapters') }} <span
+                    class="amount"
+                    :data-amount="vod.chapters.length"
+                >({{ vod.chapters.length }})</span>
             </h4>
         </div>
         <transition name="blinds">

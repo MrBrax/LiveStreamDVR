@@ -14,7 +14,10 @@
                 <span class="icon">
                     <font-awesome-icon :icon="isCollapsed ? 'chevron-down' : 'chevron-up'" />
                 </span>
-                {{ t('vod.segments') }} ({{ vod.segments.length }})
+                {{ t('vod.segments') }} <span
+                    class="amount"
+                    :data-amount="vod.segments.length"
+                >({{ vod.segments.length }})</span>
             </h4>
         </div>
         <transition name="blinds">

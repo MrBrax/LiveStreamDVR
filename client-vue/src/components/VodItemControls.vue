@@ -114,7 +114,7 @@
                 <button
                     v-if="showAdvanced"
                     class="button"
-                    @click="emit('checkMute')"
+                    @click="doCheckMute"
                 >
                     <span class="icon">
                         <fa
@@ -281,7 +281,7 @@ const emit = defineEmits<{
     (event: 'delete'): void;
     // (event: 'deleteSegment', segment: number): void;
     (event: 'fixIssues'): void;
-    (event: 'checkMute'): void;
+    // (event: 'checkMute'): void;
 }>();
 
 const store = useStore();
@@ -331,6 +331,33 @@ function doRefreshMetadata() {
         .catch((err) => {
             console.error("form error", err.response);
             if (err.response.data && err.response.data.message) alert(err.response.data.message);
+        });
+}
+
+function doCheckMute(): void {
+    if (!props.vod) return;
+    axios
+        .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/check_mute`)
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+
+            if (json.data) {
+                if (json.data.muted === null || json.data.muted === MuteStatus.UNKNOWN) {
+                    alert(`The vod "${props.vod?.basename}" could not be checked.`);
+                } else {
+                    alert(`The vod "${props.vod?.basename}" is${json.data.muted === MuteStatus.MUTED ? "" : " not"} muted.`);
+                }
+            }
+            // emit("refresh");
+        })
+        .catch((err) => {
+            console.error("doCheckMute error", err.response);
+            if (err.response.data) {
+                const json = err.response.data;
+                if (json.message) alert(json.message);
+            }
         });
 }
 

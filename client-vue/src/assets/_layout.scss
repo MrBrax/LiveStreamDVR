@@ -11,7 +11,7 @@ hr {
     margin: 0.5em;
 
     border-radius: var(--border-radius);
-    overflow: hidden;
+    // overflow: hidden; // breaks position: sticky
 
     &[data-collapsed="1"] .section-content {
         display: none;
