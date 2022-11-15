@@ -10,7 +10,7 @@
                     :spin="formStatus == 'LOADING'"
                 />
             </span>
-            {{ formStatusText }}
+            {{ computedText }}
         </div>
     </div>
 </template>
@@ -20,12 +20,15 @@ import { computed } from 'vue';
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCheck, faExclamationTriangle, faFile, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import type { FormStatus } from '@/twitchautomator';
+import { useI18n } from 'vue-i18n';
 library.add(faCheck, faExclamationTriangle, faFile, faSpinner);
 
 const props = defineProps<{
     formStatusText: string;
     formStatus: FormStatus;
 }>();
+
+const { t } = useI18n();
 
 const formStatusClass = computed(() => {
     return {
@@ -45,6 +48,14 @@ const formStatusIcon = computed(() => {
         return "spinner";
     } else {
         return "file";
+    }
+});
+
+const computedText = computed(() => {
+    if (props.formStatus === "LOADING") {
+        return t("messages.loading");
+    } else {
+        return props.formStatusText;
     }
 });
 

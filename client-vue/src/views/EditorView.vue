@@ -25,7 +25,15 @@
                 <span v-if="videoDuration">
                     {{ formatDuration(currentVideoTime) }} / {{ videoDuration ? formatDuration(videoDuration) : '-' }}
                 </span>
-                <span v-else>{{ t("messages.loading") }}</span>
+                <span v-else>
+                    <span class="icon">
+                        <font-awesome-icon
+                            icon="spinner"
+                            spin
+                        />
+                    </span>
+                    {{ t("messages.loading") }}
+                </span>
             </div>
             <div class="videoplayer-controls">
                 <div class="buttons">
@@ -72,6 +80,9 @@
                 id="timeline"
                 ref="timeline"
                 @click="seek"
+                @mousemove="timelineMouseMove"
+                @mouseenter="timelineHover = true"
+                @mouseleave="timelineHover = false"
             >
                 <div
                     id="timeline-cut"
@@ -81,6 +92,15 @@
                     id="timeline-playhead"
                     :style="timelinePlayheadStyle"
                 />
+                <div
+                    v-if="timelineHover"
+                    class="timeline-hover"
+                    :style="timelineHoverStyle"
+                />
+            </div>
+
+            <div class="videoplayer-hover-time">
+                {{ timelineHover ? formatDuration(hoverTime) : ':)' }}
             </div>
 
             <!--{{ currentVideoTime }} / {{ $refs.player ? $refs.player.currentTime : 'init' }} / {{ $refs.player ? $refs.player.duration : 'init' }}-->
@@ -103,7 +123,8 @@
                 </div>
             </div>
 
-            <div>
+            <div class="chapter-list">
+                <h2>Chapters</h2>
                 <ul class="list chapter-list">
                     <li
                         v-for="(chapter, i) in vodData.chapters"
@@ -117,7 +138,10 @@
                                 {{ formatDuration(chapter.offset) }} - {{ formatDuration(chapter.offset + chapter.duration) }} ({{ formatDuration(chapter.duration) }})
                             </div> 
                             <div class="chapter-game">
-                                <img :src="chapter.image_url" height="20" />
+                                <img
+                                    :src="chapter.image_url"
+                                    height="20"
+                                >
                                 {{ chapter.game_name }}
                             </div>
                             <div class="chapter-title text-overflow">{{ chapter.title }}</div>
@@ -129,14 +153,13 @@
             <!--{{ videoSource }}-->
 
             <div class="videoplayer-form">
+                <h2>{{ t('views.editor.edit-segment') }}</h2>
                 <form
                     method="POST"
                     enctype="multipart/form-data"
                     action="#"
                     @submit="submitForm"
                 >
-                    <h2>{{ t('views.editor.edit-segment') }}</h2>
-
                     <input
                         type="hidden"
                         name="vod"
@@ -211,20 +234,20 @@
                         </div>
                     </div>
 
-                    <div class="field form-submit">
+                    <FormSubmit
+                        :form-status="formStatus"
+                        :form-status-text="formStatusText"
+                    >
                         <div class="control">
                             <button
                                 type="submit"
                                 class="button is-confirm"
                             >
-                                <span class="icon"><font-awesome-icon icon="save" /></span>
+                                <span class="icon"><font-awesome-icon icon="scissors" /></span>
                                 <span>{{ t('views.editor.buttons.submit-cut') }}</span>
                             </button>
                         </div>
-                        <div :class="formStatusClass">
-                            {{ formStatusText }}
-                        </div>
-                    </div>
+                    </FormSubmit>
                 </form>
 
                 <!--
@@ -242,20 +265,21 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, ref } from "vue";
-import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
-import { useStore } from "@/store";
-import type { ApiResponse, ApiVodResponse } from "@common/Api/Api";
-import { formatDuration, humanDuration, formatBytes } from "@/mixins/newhelpers";
-import { library } from "@fortawesome/fontawesome-svg-core";
-import { faPlay, faPause, faBookmark, faFastBackward, faFastForward } from "@fortawesome/free-solid-svg-icons";
+import FormSubmit from "@/components/reusables/FormSubmit.vue";
 import type { BaseVODChapter } from "@/core/Providers/Base/BaseVODChapter";
-import { useI18n } from "vue-i18n";
-import axios from "axios";
-import { useRoute } from "vue-router";
+import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
-import type { VODTypes } from "@/twitchautomator";
-library.add(faPlay, faPause, faBookmark, faFastBackward, faFastForward);
+import { formatBytes, formatDuration, humanDuration } from "@/mixins/newhelpers";
+import { useStore } from "@/store";
+import type { FormStatus, VODTypes } from "@/twitchautomator";
+import type { ApiResponse, ApiVodResponse } from "@common/Api/Api";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { faBookmark, faFastBackward, faFastForward, faPause, faPlay, faSpinner, faScissors } from "@fortawesome/free-solid-svg-icons";
+import axios from "axios";
+import { computed, onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
+import { useRoute } from "vue-router";
+library.add(faPlay, faPause, faBookmark, faFastBackward, faFastForward, faSpinner, faScissors);
 
 const props = defineProps<{
     uuid: string;
@@ -271,8 +295,11 @@ const secondsOut = ref<number>(0);
 const currentVideoTime = ref<number>(0);
 const cutName = ref<string>("");
 const formStatusText = ref<string>("Ready");
-const formStatus = ref<string>("");
+const formStatus = ref<FormStatus>("IDLE");
 const videoDuration = ref<number>(0);
+const hasBeenSetup = ref<boolean>(false);
+const timelineHover = ref<boolean>(false);
+const hoverTime = ref<number>(0);
 
 const player = ref<HTMLVideoElement | null>(null);
 const timeline = ref<HTMLDivElement | null>(null);
@@ -291,14 +318,6 @@ const timelinePlayheadStyle = computed((): Record<string, string> => {
     const percent = (currentVideoTime.value / (player.value).duration) * 100;
     return {
         left: percent + "%",
-    };
-});
-
-const formStatusClass = computed((): Record<string, boolean> => {
-    return {
-        "form-status": true,
-        "is-error": formStatus.value == "ERROR",
-        "is-success": formStatus.value == "OK",
     };
 });
 
@@ -348,19 +367,21 @@ function fetchData() {
             } else {
                 vodData.value = YouTubeVOD.makeFromApiResponse(json.data);
             }
-            setTimeout(() => {
-                setupPlayer();
-            }, 500);
+            // setTimeout(() => {
+            //     setupPlayer();
+            // }, 500);
         })
         .catch((err) => {
             console.error("about error", err.response);
         });
 }
+
 function setupPlayer() {
-    if (route.query.start !== undefined) {
+    if (route.query.start !== undefined && !hasBeenSetup.value) {
         if (player.value) player.value.currentTime = parseInt(route.query.start as string);
         if (route.query.start !== undefined) secondsIn.value = parseInt(route.query.start as string);
         if (route.query.end !== undefined) secondsOut.value = parseInt(route.query.end as string);
+        hasBeenSetup.value = true;
     }
 }
 
@@ -396,6 +417,26 @@ function seek(event: MouseEvent) {
     // this.$forceUpdate();
 }
 
+function timelineMouseMove(event: MouseEvent) {
+    if (!player.value || !timeline.value) return;
+    const duration = player.value.duration;
+    const rect = timeline.value.getBoundingClientRect();
+    const percent = (event.clientX - rect.left) / timeline.value.clientWidth;
+    const seconds = Math.round(duration * percent);
+    hoverTime.value = seconds;
+    // timelineHover.value = true;
+}
+
+const timelineHoverStyle = computed((): Record<string, string> => {
+    if (!player.value || !timeline.value) return { left: "0%" };
+    const duration = player.value.duration;
+    const percent = (hoverTime.value / duration) * 100;
+    return {
+        left: percent + "%",
+        // transform: `translateX(${percent}%)`,
+    };
+});
+
 function videoTimeUpdate(event: Event) {
     // console.log(v);
     currentVideoTime.value = (event.target as HTMLVideoElement).currentTime;
@@ -403,6 +444,7 @@ function videoTimeUpdate(event: Event) {
 
 function videoCanPlay(event: Event) {
     console.log("can play", event);
+    setupPlayer();
     videoDuration.value = (event.target as HTMLVideoElement).duration;
 }
 
@@ -419,8 +461,7 @@ function submitForm(event: Event) {
 
     if (!vodData.value) return;
 
-    formStatusText.value = t("messages.loading");
-    formStatus.value = "";
+    formStatus.value = "LOADING";
 
     const inputs = {
         vod: vodData.value.basename,
@@ -475,7 +516,7 @@ function addBookmark() {
     const offset = currentVideoTime.value;
     const name = prompt(`Bookmark name for offset ${offset}:`);
     if (!name) return;
-    axios.post<ApiResponse>(`/api/v0/vod/${vodData.value.basename}/bookmark`, { name: name, offset: offset }).then((response) => {
+    axios.post<ApiResponse>(`/api/v0/vod/${vodData.value.uuid}/bookmark`, { name: name, offset: offset }).then((response) => {
         const json = response.data;
         if (json.message) alert(json.message);
         console.log(json);
@@ -515,6 +556,18 @@ function addBookmark() {
         bottom: 0;
         width: 1px;
     }
+}
+
+.timeline-hover {
+    background-color: #ccc;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+}
+
+.videoplayer-hover-time {
+    padding: 0.5em;
 }
 
 .videoplayer-controls {
@@ -565,7 +618,11 @@ function addBookmark() {
     padding: 0.5em;
 }
 
-.chapter-list li {
+.chapter-list {
+    padding: 1em;
+}
+
+.chapter-list ul li {
     &:not(:last-child) {
         margin-bottom: 0.75em;
     }

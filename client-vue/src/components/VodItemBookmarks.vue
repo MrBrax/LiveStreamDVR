@@ -33,7 +33,10 @@
                         v-for="(bookmark, i) in vod.bookmarks"
                         :key="i"
                     >
-                        {{ formatDuration(bookmark.offset || 0) }} - {{ bookmark.name }}
+                        <router-link :to="playerLink(bookmark)">
+                            {{ formatDuration(bookmark.offset || 0) }} - {{ bookmark.name }}
+                        </router-link>
+                        &nbsp;
                         <button
                             class="icon-button"
                             @click="doDeleteBookmark(i)"
@@ -93,6 +96,7 @@ import { formatDuration, isTwitchVOD } from "@/mixins/newhelpers";
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { VODTypes } from '@/twitchautomator';
+import type { TwitchVODBookmark } from "@common/Bookmark";
 
 const props = defineProps({
     vod: {
@@ -143,6 +147,20 @@ function doDeleteBookmark(i: number) {
         console.error("form error", err.response);
         if (err.response.data && err.response.data.message) alert(err.response.data.message);
     });
+}
+
+function playerLink(bookmark: TwitchVODBookmark) {
+    if (!props.vod) return;
+    return {
+        name: "Editor",
+        params: {
+            uuid: props.vod.uuid,
+        },
+        query: {
+            start: bookmark.offset,
+        },
+    };
+    // return `/player/${props.vod.uuid}?bookmark=${bookmark.offset}`;
 }
 
 </script>
