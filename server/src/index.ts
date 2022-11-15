@@ -51,7 +51,7 @@ try {
 }
 
 // load all required config files and cache stuff
-Config.init().then(() => {
+LiveStreamDVR.init().then(() => {
 
     // if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "lock"))) {
     //     Log.logAdvanced(Log.Level.WARNING, "index", "Seems like the server was not shut down gracefully...");

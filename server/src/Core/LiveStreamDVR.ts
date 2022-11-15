@@ -10,7 +10,7 @@ import { WebSocketServer, WebSocket } from "ws";
 import { ChannelConfig } from "@common/Config";
 import { SubStatus } from "@common/Defs";
 import { version } from "../../package.json";
-import { BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath } from "./BaseConfig";
+import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath, DataRoot, HomeRoot } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
 import { Helper } from "./Helper";
@@ -27,6 +27,10 @@ import { YouTubeVOD } from "./Providers/YouTube/YouTubeVOD";
 import { Scheduler } from "./Scheduler";
 import { Webhook } from "./Webhook";
 import checkDiskSpace from "check-disk-space";
+import { TwitchGame } from "./Providers/Twitch/TwitchGame";
+import { YouTubeHelper } from "Providers/YouTube";
+
+const argv = minimist(process.argv.slice(2));
 
 export type ChannelTypes = TwitchChannel | YouTubeChannel;
 export type VODTypes = TwitchVOD | YouTubeVOD;
@@ -58,6 +62,102 @@ export class LiveStreamDVR {
 
     static destroyInstance() {
         this.instance = undefined;
+    }
+
+    /**
+     * Initialise entire application, like loading config, creating folders, etc.
+     */
+    static async init() {
+
+        // Main load
+        console.log(chalk.green("Initialising..."));
+        console.log(chalk.magenta(`Environment: ${process.env.NODE_ENV}`));
+        console.log(chalk.magenta(`Running as user ${process.env.USER}`));
+
+        console.log(`AppRoot: ${AppRoot}`);
+        console.log(`DataRoot: ${DataRoot}`);
+
+        if (argv.home && !fs.existsSync(HomeRoot)) {
+            fs.mkdirSync(HomeRoot, { recursive: true });
+        } else if (!argv.home && !fs.existsSync(DataRoot)) { // create data root, is this a good idea?
+            // throw new Error(`DataRoot does not exist: ${DataRoot}`);
+            fs.mkdirSync(DataRoot, { recursive: true });
+        }
+
+        Config.checkAppRoot();
+
+        Config.checkBuiltDependencies();
+
+        const config = Config.getInstance().config;
+        if (config && Object.keys(config).length > 0) {
+            // throw new Error("Config already loaded, has init been called twice?");
+            console.error(chalk.red("Config already loaded, has init been called twice?"));
+            return false;
+        }
+
+        Config.getInstance().checkPermissions();
+
+        Config.createFolders();
+
+        KeyValue.getInstance().load();
+
+        Config.getInstance().loadConfig(); // load config, calls after this will work if config is required
+
+        await YouTubeHelper.setupClient();
+
+        ClientBroker.loadNotificationSettings();
+
+        Config.getInstance().generateEventSubSecret();
+
+        await TwitchHelper.setupAxios();
+
+        Log.readTodaysLog();
+
+        Log.logAdvanced(
+            Log.Level.SUCCESS,
+            "config",
+            `The time is ${new Date().toISOString()}.` +
+            " Current topside temperature is 93 degrees, with an estimated high of one hundred and five." +
+            " The Black Mesa compound is maintained at a pleasant 68 degrees at all times."
+        );
+
+        await Config.getInstance().getGitHash();
+        await Config.getInstance().getGitBranch();
+
+        TwitchGame.populateGameDatabase();
+        TwitchGame.populateFavouriteGames();
+        LiveStreamDVR.getInstance().loadChannelsConfig();
+        TwitchChannel.loadChannelsCache();
+        YouTubeChannel.loadChannelsCache();
+        await LiveStreamDVR.getInstance().loadChannels();
+        Job.loadJobsFromCache();
+
+        Config.getInstance().startWatchingConfig();
+
+        Scheduler.defaultJobs();
+
+        await TwitchHelper.setupWebsocket();
+
+        await LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
+        LiveStreamDVR.getInstance().startDiskSpaceInterval();
+
+        // monitor for program exit
+        // let saidGoobye = false;
+        // const goodbye = () => {
+        //     if (saidGoobye) return;
+        //     TwitchLog.logAdvanced(Log.Level.INFO, "config", "See you next time!");
+        //     saidGoobye = true;
+        // };
+        // process.on("exit", goodbye);
+        // process.on("SIGINT", goodbye);
+        // process.on("SIGTERM", goodbye);
+
+        Log.logAdvanced(Log.Level.SUCCESS, "config", "Loading config stuff done.");
+
+        Config.getInstance().initialised = true;
+
+        // TwitchHelper.refreshUserAccessToken();
+
     }
 
     /**
@@ -538,8 +638,8 @@ export class LiveStreamDVR {
 
     public startDiskSpaceInterval() {
         if (this.diskSpaceInterval) clearInterval(this.diskSpaceInterval);
-        if (LiveStreamDVR.getInstance().isIdle) return;
         this.diskSpaceInterval = setInterval(() => {
+            // if (LiveStreamDVR.getInstance().isIdle) return;
             this.updateFreeStorageDiskSpace();
         }, 1000 * 60 * 10); // 10 minutes
     }

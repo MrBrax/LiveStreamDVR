@@ -31,7 +31,7 @@ jest.spyOn(Config.prototype, "saveConfig").mockImplementation((source?: string):
 });
 
 beforeAll(async () => {
-    await Config.init();
+    await LiveStreamDVR.init();
     app = express();
 
     app.use(express.json({
