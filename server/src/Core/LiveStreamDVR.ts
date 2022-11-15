@@ -28,7 +28,7 @@ import { Scheduler } from "./Scheduler";
 import { Webhook } from "./Webhook";
 import checkDiskSpace from "check-disk-space";
 import { TwitchGame } from "./Providers/Twitch/TwitchGame";
-import { YouTubeHelper } from "Providers/YouTube";
+import { YouTubeHelper } from "../Providers/YouTube";
 import { formatBytes } from "../Helpers/Format";
 
 const argv = minimist(process.argv.slice(2));
