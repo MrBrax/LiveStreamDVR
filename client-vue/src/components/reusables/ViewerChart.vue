@@ -42,12 +42,14 @@ const props = withDefaults(defineProps<{
     chartOptions: () => ({}),
 });
 
+/*
 onMounted(() => {
-    console.log('chart mounted', props.chartId);
+    console.debug('chart mounted', props.chartId);
 });
 
 onUnmounted(() => {
-    console.log('chart unmounted', props.chartId);
+    console.debug('chart unmounted', props.chartId);
 });
+*/
 
 </script>

@@ -49,7 +49,7 @@
 
             <vod-item-status
                 :vod="vod"
-                @do-delete="doDelete"
+                @delete="doDelete"
                 @fix-issues="doFixIssues"
             />
 

@@ -137,6 +137,9 @@
     "fetch-clip-list": "Fetch clip list",
     "block": {
       "chapters": "Chapters"
+    },
+    "blocks": {
+      "viewers": "Viewers"
     }
   },
   "buttons": {

@@ -137,16 +137,16 @@ export const useStore = defineStore("twitchAutomator", {
 
         },
         async fetchAndUpdateStreamerList(): Promise<void> {
-            console.debug("Fetching streamer list");
+            // console.debug("Fetching streamer list");
             const data = await this.fetchStreamerList();
             if (data) {
                 const channels = data.streamer_list.map((channel) => {
                     switch (channel.provider) {
                         case "twitch":
-                            console.debug("Creating TwitchChannel", channel.internalName);
+                            // console.debug("Creating TwitchChannel", channel.internalName);
                             return TwitchChannel.makeFromApiResponse(channel);
                         case "youtube":
-                            console.debug("Creating YouTubeChannel", channel.internalName);
+                            // console.debug("Creating YouTubeChannel", channel.internalName);
                             return YouTubeChannel.makeFromApiResponse(channel);
                     }
                 }).filter(c => c !== undefined);

@@ -3,6 +3,7 @@
         v-if="(vod.failed && !vod.is_finalized && !vod.is_capturing) || vod.hasError()"
         class="video-block video-error"
     >
+        <!-- capture failed-->
         <div class="video-block-content">
             <strong>
                 <span class="icon"><font-awesome-icon icon="exclamation-triangle" /></span> {{ t('vod.failed') }}
@@ -12,7 +13,7 @@
                 <button
                     class="button is-danger is-small"
                     :disabled="vod.prevent_deletion"
-                    @click="emit('doDelete')"
+                    @click="emit('delete')"
                 >
                     <span class="icon">
                         <fa
@@ -26,7 +27,7 @@
                 <!-- Fix issues -->
                 <button
                     class="button is-confirm is-small"
-                    @click="emit('doFixIssues')"
+                    @click="emit('fixIssues')"
                 >
                     <span class="icon">
                         <fa
@@ -39,10 +40,12 @@
             </div>
         </div>
     </div>
+    
     <div
         v-else-if="!vod.is_finalized"
         class="video-block video-status"
     >
+        <!-- not finalized, error check -->
         <div class="video-block-content">
             <template v-if="vod.is_converting">
                 <em>
@@ -125,22 +128,22 @@
             </template>
         </div>
     </div>
-
-    <!-- capture length warning -->
+    
     <div
         v-if="vod.is_capturing && vod.getDurationLive() > 86400"
         class="video-block video-error"
     >
+        <!-- capture length warning -->
         <div class="video-block-content">
             {{ t('vod.capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck') }}
         </div>
     </div>
 
-    <!-- no chapters error -->
     <div
         v-if="!vod.chapters"
         class="video-block video-error"
     >
+        <!-- no chapters error -->
         <div class="video-block-content">
             No chapter data!?
         </div>
@@ -158,8 +161,8 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    (event: 'doDelete'): void;
-    (event: 'doFixIssues'): void;
+    (event: 'delete'): void;
+    (event: 'fixIssues'): void;
 }>();
 
 const store = useStore();

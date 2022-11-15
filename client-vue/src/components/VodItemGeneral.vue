@@ -124,6 +124,7 @@
 import { useStore } from '@/store';
 import { useI18n } from 'vue-i18n';
 import VodItemVideoInfo from "./VodItemVideoInfo.vue";
+import DurationDisplay from "@/components/DurationDisplay.vue";
 import { formatDate, humanDuration } from "@/mixins/newhelpers";
 import type { VODTypes } from '@/twitchautomator';
 import { computed, onMounted, ref } from 'vue';

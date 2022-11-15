@@ -16,4 +16,5 @@ export const defaultVideoBlockShow: VideoBlockShow = { // TODO: invert name
     segments: false,
     bookmarks: true,
     chapters: false,
+    viewers: true,
 };

@@ -27,6 +27,7 @@ export type VideoBlockShow = {
     segments: boolean;
     bookmarks: boolean;
     chapters: boolean;
+    viewers: boolean;
 };
 
 export type FormStatus = "IDLE" | "LOADING" | "ERROR" | "OK";

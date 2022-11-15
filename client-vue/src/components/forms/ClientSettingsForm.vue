@@ -196,6 +196,14 @@
                     > Chapters
                 </label>
             </div>
+            <div class="control">
+                <label class="checkbox">
+                    <input
+                        v-model="videoBlockShow.viewers"
+                        type="checkbox"
+                    > Viewers
+                </label>
+            </div>
         </div>
         <div class="field buttons">
             <button
