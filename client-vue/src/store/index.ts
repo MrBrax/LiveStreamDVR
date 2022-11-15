@@ -515,6 +515,7 @@ export const useStore = defineStore("twitchAutomator", {
         saveClientConfig() {
             localStorage.setItem("twitchautomator_config", JSON.stringify(this.clientConfig));
             localStorage.setItem("twitchautomator_sidemenu", JSON.stringify(this.sidemenuShow));
+            localStorage.setItem("twitchautomator_videoblock", JSON.stringify(this.videoBlockShow));
             console.log("Saved client config");
         },
         getStreamers(): ChannelTypes[] {

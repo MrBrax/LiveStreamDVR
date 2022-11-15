@@ -193,6 +193,8 @@ svg[data-icon] {
 .anchor {
     height: $anchor-height;
     margin: -$anchor-height 0 0;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .settings-streamer {
