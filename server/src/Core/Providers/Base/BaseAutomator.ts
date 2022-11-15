@@ -6,6 +6,7 @@ import { VodBasenameTemplate } from "@common/Replacements";
 import { ChannelUpdateEvent } from "@common/TwitchAPI/EventSub/ChannelUpdate";
 import chalk from "chalk";
 import { format, formatDistanceToNow, isValid, parseJSON } from "date-fns";
+import { formatBytes } from "../../../Helpers/Format";
 import { spawn } from "node:child_process";
 import fs from "node:fs";
 import { IncomingHttpHeaders } from "node:http";
@@ -1045,7 +1046,7 @@ export class BaseAutomator {
                     console.log(
                         chalk.bgGreen.whiteBright(
                             `🎥 ${new Date().toISOString()} ${basename} ${this.stream_resolution} ` +
-                            `${Helper.formatBytes(size)} / ${Math.round((bitRate * 8) / 1000)} kbps`
+                            `${formatBytes(size)} / ${Math.round((bitRate * 8) / 1000)} kbps`
                         )
                     );
                 } else {
@@ -1188,7 +1189,7 @@ export class BaseAutomator {
                     console.log(
                         chalk.bgGreen.whiteBright(
                             `🎥 ${new Date().toISOString()} ${basename} ${this.stream_resolution} ` +
-                            `${Helper.formatBytes(size)} / ${Math.round((bitRate * 8) / 1000)} kbps`
+                            `${formatBytes(size)} / ${Math.round((bitRate * 8) / 1000)} kbps`
                         )
                     );
                 } else {

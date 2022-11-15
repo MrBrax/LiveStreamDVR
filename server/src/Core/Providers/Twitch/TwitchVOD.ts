@@ -1,37 +1,38 @@
+import { ApiTwitchVod } from "@common/Api/Client";
+import { TwitchVODBookmark } from "@common/Bookmark";
+import type { TwitchComment, TwitchCommentDump } from "@common/Comments";
+import { VideoQuality } from "@common/Config";
+import { JobStatus, MuteStatus, Providers } from "@common/Defs";
+import { AudioStream, FFProbe, VideoStream } from "@common/FFProbe";
+import { VideoMetadata } from "@common/MediaInfo";
+import { ProxyVideo } from "@common/Proxies/Video";
+import { Clip, ClipsResponse } from "@common/TwitchAPI/Clips";
+import { Video, VideosResponse } from "@common/TwitchAPI/Video";
 import axios from "axios";
 import chalk from "chalk";
 import chokidar from "chokidar";
-import {format, parse, parseJSON} from "date-fns";
+import { format, parse, parseJSON } from "date-fns";
+import { encode as htmlentities } from "html-entities";
 import fs from "node:fs";
-import {isTwitchVOD} from "../../../Helpers/Types";
-import {encode as htmlentities} from "html-entities";
 import path from "node:path";
-import {trueCasePathSync} from "true-case-path";
-import {ApiTwitchVod} from "@common/Api/Client";
-import {TwitchVODBookmark} from "@common/Bookmark";
-import type {TwitchComment, TwitchCommentDump} from "@common/Comments";
-import {VideoQuality} from "@common/Config";
-import {JobStatus, MuteStatus, Providers} from "@common/Defs";
-import {AudioStream, FFProbe, VideoStream} from "@common/FFProbe";
-import {VideoMetadata} from "@common/MediaInfo";
-import {ProxyVideo} from "@common/Proxies/Video";
-import {Clip, ClipsResponse} from "@common/TwitchAPI/Clips";
-import {Video, VideosResponse} from "@common/TwitchAPI/Video";
-import {Helper} from "../../Helper";
-import {TwitchHelper} from "../../../Providers/Twitch";
-import {TwitchVODChapterJSON, TwitchVODJSON} from "../../../Storage/JSON";
-import {AppName, BaseConfigCacheFolder, BaseConfigDataFolder} from "../../BaseConfig";
-import {ClientBroker} from "../../ClientBroker";
-import {Config} from "../../Config";
-import {FFmpegMetadata} from "../../FFmpegMetadata";
-import {Job} from "../../Job";
-import {LiveStreamDVR} from "../../LiveStreamDVR";
-import {Log} from "../../Log";
-import {Webhook} from "../../Webhook";
-import {BaseVOD} from "../Base/BaseVOD";
-import {TwitchChannel} from "./TwitchChannel";
-import {TwitchGame} from "./TwitchGame";
-import {TwitchVODChapter} from "./TwitchVODChapter";
+import { trueCasePathSync } from "true-case-path";
+import { formatDuration, formatSubtitleDuration } from "../../../Helpers/Format";
+import { isTwitchVOD } from "../../../Helpers/Types";
+import { TwitchHelper } from "../../../Providers/Twitch";
+import { TwitchVODChapterJSON, TwitchVODJSON } from "../../../Storage/JSON";
+import { AppName, BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
+import { ClientBroker } from "../../ClientBroker";
+import { Config } from "../../Config";
+import { FFmpegMetadata } from "../../FFmpegMetadata";
+import { Helper } from "../../Helper";
+import { Job } from "../../Job";
+import { LiveStreamDVR } from "../../LiveStreamDVR";
+import { Log } from "../../Log";
+import { Webhook } from "../../Webhook";
+import { BaseVOD } from "../Base/BaseVOD";
+import { TwitchChannel } from "./TwitchChannel";
+import { TwitchGame } from "./TwitchGame";
+import { TwitchVODChapter } from "./TwitchVODChapter";
 
 /**
  * Twitch VOD
@@ -208,7 +209,7 @@ export class TwitchVOD extends BaseVOD {
         if (this.started_at && this.ended_at) {
             // format is H:i:s
             const diff_seconds = (this.ended_at.getTime() - this.started_at.getTime()) / 1000;
-            return Helper.formatDuration(diff_seconds);
+            return formatDuration(diff_seconds);
         } else {
             return undefined;
         }
@@ -597,8 +598,8 @@ export class TwitchVOD extends BaseVOD {
             const start = offset;
             const end = offset + duration;
 
-            const txt_start = Helper.formatSubtitleDuration(start);
-            const txt_end = Helper.formatSubtitleDuration(end);
+            const txt_start = formatSubtitleDuration(start);
+            const txt_end = formatSubtitleDuration(end);
 
             data += `Chapter ${i + 1}\n`;
             data += `${txt_start} --> ${txt_end}\n`;

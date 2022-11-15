@@ -13,48 +13,11 @@ import { FFProbe } from "@common/FFProbe";
 import { MediaInfoJSONOutput, VideoMetadata, AudioMetadata } from "@common/MediaInfo";
 import { MediaInfo } from "@common/mediainfofield";
 import { LiveStreamDVR } from "./LiveStreamDVR";
+import { formatDuration } from "../Helpers/Format";
 
 export class Helper {
     public static vodFolder(username = "") {
         return BaseConfigDataFolder.vod + (Config.getInstance().cfg("channel_folders") && username !== "" ? path.sep + username : "");
-    }
-
-    public static getNiceDuration(duration: number) {
-        // format 1d 2h 3m 4s
-
-        const days = Math.floor(duration / (60 * 60 * 24));
-        const hours = Math.floor((duration - (days * 60 * 60 * 24)) / (60 * 60));
-        const minutes = Math.floor((duration - (days * 60 * 60 * 24) - (hours * 60 * 60)) / 60);
-        const seconds = duration - (days * 60 * 60 * 24) - (hours * 60 * 60) - (minutes * 60);
-
-        let str = "";
-
-        if (days > 0) str += days + "d ";
-        if (hours > 0) str += hours + "h ";
-        if (minutes > 0) str += minutes + "m ";
-        if (seconds > 0) str += seconds + "s";
-
-        return str.trim();
-
-    }
-
-    /**
-     * Format in HH:MM:SS
-     * @param duration_seconds 
-     */
-    public static formatDuration(duration_seconds: number) {
-        const hours = Math.floor(duration_seconds / (60 * 60));
-        const minutes = Math.floor((duration_seconds - (hours * 60 * 60)) / 60);
-        const seconds = Math.floor(duration_seconds - (hours * 60 * 60) - (minutes * 60));
-        return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-    }
-
-    public static formatSubtitleDuration(duration_seconds: number) {
-        const hours = Math.floor(duration_seconds / (60 * 60));
-        const minutes = Math.floor((duration_seconds - (hours * 60 * 60)) / 60);
-        const seconds = Math.floor(duration_seconds - (hours * 60 * 60) - (minutes * 60));
-        const milliseconds = Math.floor((duration_seconds - (hours * 60 * 60) - (minutes * 60) - seconds) * 1000);
-        return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}.${milliseconds.toString().padStart(3, "0")}`;
     }
 
     public static is_windows() {
@@ -628,28 +591,6 @@ export class Helper {
 
     }
 
-
-    // https://stackoverflow.com/a/2510459
-    static formatBytes(bytes: number, precision = 2): string {
-
-        const units = ["B", "KB", "MB", "GB", "TB"];
-
-        bytes = Math.max(bytes, 0);
-        let pow = Math.floor((bytes ? Math.log(bytes) : 0) / Math.log(1024));
-        pow = Math.min(pow, units.length - 1);
-
-        // Uncomment one of the following alternatives
-        bytes /= Math.pow(1024, pow);
-        // $bytes /= (1 << (10 * $pow)); 
-
-        // return round($bytes, $precision) . ' ' . $units[$pow];
-        return `${bytes.toFixed(precision)} ${units[pow]}`;
-    }
-
-    static formatBits(bits: number, precision = 2): string {
-        return this.formatBytes(bits * 8, precision).toLowerCase();
-    }
-
     /**
      * Return mediainfo for a file
      * 
@@ -863,7 +804,7 @@ export class Helper {
 
                 } as VideoMetadata;
 
-                Log.logAdvanced(Log.Level.SUCCESS, "helper.videometadata", `${filename} is a video file ${Helper.formatDuration(video_metadata.duration)} long at ${video_metadata.height}p${video_metadata.fps}.`);
+                Log.logAdvanced(Log.Level.SUCCESS, "helper.videometadata", `${filename} is a video file ${formatDuration(video_metadata.duration)} long at ${video_metadata.height}p${video_metadata.fps}.`);
 
                 return video_metadata;
 

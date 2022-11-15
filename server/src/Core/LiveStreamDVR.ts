@@ -29,6 +29,7 @@ import { Webhook } from "./Webhook";
 import checkDiskSpace from "check-disk-space";
 import { TwitchGame } from "./Providers/Twitch/TwitchGame";
 import { YouTubeHelper } from "Providers/YouTube";
+import { formatBytes } from "../Helpers/Format";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -632,7 +633,7 @@ export class LiveStreamDVR {
             return false;
         }
         this.freeStorageDiskSpace = ds.free;
-        Log.logAdvanced(Log.Level.DEBUG, "dvr", `Free storage disk space: ${Helper.formatBytes(this.freeStorageDiskSpace)}`);
+        Log.logAdvanced(Log.Level.DEBUG, "dvr", `Free storage disk space: ${formatBytes(this.freeStorageDiskSpace)}`);
         return true;
     }
 

@@ -1,12 +1,3 @@
-import axios, { AxiosResponse } from "axios";
-import chalk from "chalk";
-import chokidar from "chokidar";
-import { randomUUID } from "node:crypto";
-import { format, parseJSON } from "date-fns";
-import fs from "node:fs";
-import { encode as htmlentities } from "html-entities";
-import path from "node:path";
-import { Readable } from "stream";
 import type { ApiTwitchChannel } from "@common/Api/Client";
 import { TwitchChannelConfig, VideoQuality } from "@common/Config";
 import { MuteStatus, Providers, SubStatus } from "@common/Defs";
@@ -18,13 +9,23 @@ import type { Stream, StreamsResponse } from "@common/TwitchAPI/Streams";
 import type { SubscriptionRequest, SubscriptionResponse } from "@common/TwitchAPI/Subscriptions";
 import type { BroadcasterType, UsersResponse } from "@common/TwitchAPI/Users";
 import type { UserData } from "@common/User";
-import { Helper } from "../../Helper";
+import axios, { AxiosResponse } from "axios";
+import chalk from "chalk";
+import chokidar from "chokidar";
+import { format, parseJSON } from "date-fns";
+import { encode as htmlentities } from "html-entities";
+import { randomUUID } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import { Readable } from "stream";
+import { formatBytes } from "../../../Helpers/Format";
 import { isTwitchChannel } from "../../../Helpers/Types";
 import { EventWebsocket, TwitchHelper } from "../../../Providers/Twitch";
 import { TwitchVODChapterJSON } from "../../../Storage/JSON";
 import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
 import { Config } from "../../Config";
+import { Helper } from "../../Helper";
 import { Job } from "../../Job";
 import { KeyValue } from "../../KeyValue";
 import { LiveStreamDVR } from "../../LiveStreamDVR";
@@ -478,7 +479,7 @@ export class TwitchChannel extends BaseChannel {
                 total_vods += 1;
 
                 if (total_size > max_gigabytes) {
-                    Log.logAdvanced(Log.Level.DEBUG, "channel", `Adding ${vodclass.basename} to vod_candidates due to storage limit (${Helper.formatBytes(vodclass.total_size)} of current total ${Helper.formatBytes(total_size)}, limit ${Helper.formatBytes(max_gigabytes)})`);
+                    Log.logAdvanced(Log.Level.DEBUG, "channel", `Adding ${vodclass.basename} to vod_candidates due to storage limit (${formatBytes(vodclass.total_size)} of current total ${formatBytes(total_size)}, limit ${formatBytes(max_gigabytes)})`);
                     vod_candidates.push(vodclass);
                 }
 
@@ -488,7 +489,7 @@ export class TwitchChannel extends BaseChannel {
                 }
 
                 if (!vod_candidates.includes(vodclass)) {
-                    Log.logAdvanced(Log.Level.DEBUG, "channel", `Keeping ${vodclass.basename} due to it not being over storage limit (${Helper.formatBytes(total_size)}/${Helper.formatBytes(max_gigabytes)}) and not being over vod limit (${total_vods}/${max_vods})`);
+                    Log.logAdvanced(Log.Level.DEBUG, "channel", `Keeping ${vodclass.basename} due to it not being over storage limit (${formatBytes(total_size)}/${formatBytes(max_gigabytes)}) and not being over vod limit (${total_vods}/${max_vods})`);
                 }
 
             }
