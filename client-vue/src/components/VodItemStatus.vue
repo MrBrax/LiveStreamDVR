@@ -74,11 +74,11 @@
                     Capturing to <strong>{{ vod.basename }}.ts</strong> (<strong>{{
                         vod.getRecordingSize() ? formatBytes(vod.getRecordingSize() as number) : "unknown"
                     }}</strong>)
-                    <span
-                        class="icon clickable"
+                    <button
+                        class="icon-button"
                         title="Refresh"
                         @click="vod && store.fetchAndUpdateVod(vod.uuid)"
-                    ><font-awesome-icon icon="sync" /></span>
+                    ><span class="icon"><font-awesome-icon icon="sync" /></span></button>
                 </em>
 
                 <br>

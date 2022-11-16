@@ -600,7 +600,7 @@ function showModalEv(modal: keyof typeof showModal.value): void {
 @import "../assets/_variables";
 
 .video {
-    margin-bottom: 10px;
+    margin-bottom: 1em;
     // border-bottom: 1px solid #eee;
 
     &.is-recording {
