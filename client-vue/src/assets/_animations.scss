@@ -128,6 +128,7 @@
 .blinds-leave-active {
     transition: all 0.3s ease;
     max-height: 400px;
+    overflow: hidden;
 }
 
 .blinds-enter,

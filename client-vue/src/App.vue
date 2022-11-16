@@ -84,24 +84,29 @@
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref, watch } from "vue";
-
 import SideMenu from "@/components/SideMenu.vue";
-import { useStore } from "./store";
-import JobStatus from "./components/JobStatus.vue";
-import type { ChannelUpdated, ChapterUpdateData, EndCaptureData, EndConvertData, JobClear, JobProgress, JobSave, NotifyData, VodRemoved, VodUpdated, WebhookAction } from "@common/Webhook";
+import type { ApiAuthResponse } from "@common/Api/Api";
 import type { ApiLogLine } from "@common/Api/Client";
-import type { ApiResponse, ApiAuthResponse } from "@common/Api/Api";
-import { parseISO } from "date-fns";
-import type { WebsocketJSON } from "./websocket";
-import WebsocketStatus from "./components/WebsocketStatus.vue";
-
+import type { ChannelUpdated, ChapterUpdateData, EndCaptureData, EndConvertData, JobClear, JobProgress, JobSave, NotifyData, VodRemoved, VodUpdated, WebhookAction } from "@common/Webhook";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
-import { useI18n } from "vue-i18n";
 import axios from "axios";
+import { parseISO } from "date-fns";
+import { onMounted, onUnmounted, ref, watch } from "vue";
+import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
+import JobStatus from "./components/JobStatus.vue";
+import WebsocketStatus from "./components/WebsocketStatus.vue";
 import { prefersReducedMotion } from "./mixins/newhelpers";
+import { useStore } from "./store";
+import type { WebsocketJSON } from "./websocket";
+/**
+ * LiveStreamDVR Client
+ * Written in Vue 3 & TypeScript
+ * @author Braxen
+ * @created 2021-01-17
+ */
+
 library.add(faArrowUpRightFromSquare);
 
 const faviconCanvas = document.createElement("canvas");
@@ -630,7 +635,7 @@ function checkLoginStatus(): Promise<{ authentication: boolean; status: boolean;
         // console.debug("Check login status", response.data);
         return { authentication: response.data.authentication as boolean, status: true, guest_mode: response.data.guest_mode as boolean };
     }).catch((error) => {
-        // console.debug("Check login error", error);    
+        // console.debug("Check login error", error);
         return { authentication: error.response.data.authentication as boolean, status: false, guest_mode: error.response.data.guest_mode as boolean };       
     });
 }
@@ -640,5 +645,3 @@ function keyEvent(event: KeyboardEvent) {
     store.keyEvent(event.key);
 }
 </script>
-
-<style lang="scss"></style>

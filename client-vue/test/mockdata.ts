@@ -126,7 +126,7 @@ export const MockApiVODData: ApiTwitchVod = {
     path_chatburn: "",
     path_chatdump: "",
     path_chatmask: "",
-    path_adbreak: "",
+    // path_adbreak: "",
     path_playlist: "",
     duration_live: 0,
     duration: 0,
@@ -139,6 +139,7 @@ export const MockApiVODData: ApiTwitchVod = {
     uuid: "",
     channel_uuid: "",
     viewers: [],
+    stream_pauses: [],
 };
 
 export const MockApiChapterData: ApiVodTwitchChapter = {

@@ -39,7 +39,7 @@ h1,
 h2,
 h3 {
     padding: 0;
-    margin: 0 0 10px 0;
+    margin: 0 0 1em 0;
     color: var(--header-color);
     font-family: var(--header-font);
 }
@@ -193,6 +193,8 @@ svg[data-icon] {
 .anchor {
     height: $anchor-height;
     margin: -$anchor-height 0 0;
+    visibility: hidden;
+    pointer-events: none;
 }
 
 .settings-streamer {

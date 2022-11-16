@@ -276,7 +276,7 @@ export class YouTubeChannel extends BaseChannel {
         userData.id = res.data.items[0].id || "";
 
         // insert into memory and save to file
-        console.debug(`Inserting user data for ${method} ${identifier} into cache and file`);
+        // console.debug(`Inserting user data for ${method} ${identifier} into cache and file`);
         YouTubeChannel.channels_cache[userData.id] = userData;
         fs.writeFileSync(BaseConfigPath.streamerYouTubeCache, JSON.stringify(YouTubeChannel.channels_cache));
 

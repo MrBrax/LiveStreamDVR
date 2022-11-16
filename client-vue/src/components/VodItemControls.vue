@@ -114,7 +114,7 @@
                 <button
                     v-if="showAdvanced"
                     class="button"
-                    @click="emit('checkMute')"
+                    @click="doCheckMute"
                 >
                     <span class="icon">
                         <fa
@@ -281,7 +281,7 @@ const emit = defineEmits<{
     (event: 'delete'): void;
     // (event: 'deleteSegment', segment: number): void;
     (event: 'fixIssues'): void;
-    (event: 'checkMute'): void;
+    // (event: 'checkMute'): void;
 }>();
 
 const store = useStore();
@@ -334,13 +334,41 @@ function doRefreshMetadata() {
         });
 }
 
+function doCheckMute(): void {
+    if (!props.vod) return;
+    axios
+        .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/check_mute`)
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+
+            if (json.data) {
+                if (json.data.muted === null || json.data.muted === MuteStatus.UNKNOWN) {
+                    alert(`The vod "${props.vod?.basename}" could not be checked.`);
+                } else {
+                    alert(`The vod "${props.vod?.basename}" is${json.data.muted === MuteStatus.MUTED ? "" : " not"} muted.`);
+                }
+            }
+            // emit("refresh");
+        })
+        .catch((err) => {
+            console.error("doCheckMute error", err.response);
+            if (err.response.data) {
+                const json = err.response.data;
+                if (json.message) alert(json.message);
+            }
+        });
+}
+
 </script>
 
 <style lang="scss" scoped>
 
 .video-controls {
     // padding: 1em 1em 0.5em 1em;
-    background-color: var(--video-controls-background-color);
+    // background-color: var(--video-controls-background-color);
+    background-color: var(--video-block-background-color);
     // border-top: 1px solid #d6dbf2;
     // border-bottom: 1px solid #d6dbf2;
     // border-left: 1px solid #e3e3e3;

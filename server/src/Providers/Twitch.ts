@@ -13,12 +13,12 @@ import path from "node:path";
 import { WebSocket } from "ws";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
-import { Helper } from "../Core/Helper";
 import { KeyValue } from "../Core/KeyValue";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { Log } from "../Core/Log";
 import { AutomatorMetadata, TwitchAutomator } from "../Core/Providers/Twitch/TwitchAutomator";
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
+import { getNiceDuration } from "../Helpers/Format";
 
 export interface ExecReturn {
     stdout: string[];
@@ -479,7 +479,7 @@ export class TwitchHelper {
     }
 
     public static twitchDuration(seconds: number): string {
-        return Helper.getNiceDuration(seconds).replaceAll(" ", "").trim();
+        return getNiceDuration(seconds).replaceAll(" ", "").trim();
         // return trim(str_replace(" ", "", self::getNiceDuration($seconds)));
     }
 

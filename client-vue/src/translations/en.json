@@ -55,7 +55,8 @@
       },
       "capture-id": "Capture ID",
       "duration-difference": "Full duration is {full} while video duration is {dur}, a capture difference of {diff} has been detected.",
-      "twitch-duration-difference": "Twitch duration is {full} while video duration is {dur}, a capture difference of {diff} has been detected."
+      "twitch-duration-difference": "Twitch duration is {full} while video duration is {dur}, a capture difference of {diff} has been detected.",
+      "stream-pauses": "Stream pauses"
     },
     "segments": "Segments",
     "controls": {
@@ -134,7 +135,13 @@
     "rename": {
       "current-name-vod-basename": "Current name: {0}"
     },
-    "fetch-clip-list": "Fetch clip list"
+    "fetch-clip-list": "Fetch clip list",
+    "block": {
+      "chapters": "Chapters"
+    },
+    "blocks": {
+      "viewers": "Viewers"
+    }
   },
   "buttons": {
     "save": "Save",

@@ -3,42 +3,38 @@
         v-if="vod.viewers && vod.viewers.length > 0"
         class="video-block video-viewers"
     >
-        <div class="video-block-header">
-            <h4>Viewers</h4>
-        </div>
-        <div class="video-block-content">
-            <button
-                class="button is-small"
-                @click="isMaximized = !isMaximized"
-            >
+        <div
+            class="video-block-header collapsible"
+            aria-role="button"
+            @click="isCollapsed = !isCollapsed"
+        >
+            <h4>
                 <span class="icon">
-                    <font-awesome-icon :icon="isMaximized ? 'chevron-up' : 'chevron-down'" />
+                    <font-awesome-icon :icon="isCollapsed ? 'chevron-down' : 'chevron-up'" />
                 </span>
-                <span>
-                    {{ isMaximized ? 'Minimize' : 'Maximize' }}
-                </span>
-            </button>
-            <!--
-            <ul v-if="isMaximized">
-                <li
-                    v-for="entry in vod.viewers"
-                    :key="entry.timestamp.getTime()"
-                >
-                    <strong>{{ formatDuration(vod.dateToTimestamp(entry.timestamp) || 0) }}:</strong> {{ entry.amount.toLocaleString() }}
-                </li>
-            </ul>
-        -->
-            <div
-                v-if="isMaximized && chartData"
-                class="viewer-chart"
-            >
-                <ViewerChart
-                    :chart-options="chartOptions"
-                    :chart-data="chartData"
-                    :chart-id="chartId"
-                />
-            </div>
+                {{ t('vod.blocks.viewers') }}
+            </h4>
         </div>
+        <transition name="blinds">
+            <div
+                v-if="!isCollapsed"
+                class="video-block-content"
+            >
+                <div
+                    v-if="chartData"
+                    class="viewer-chart"
+                >
+                    <ViewerChart
+                        :chart-options="chartOptions"
+                        :chart-data="chartData"
+                        :chart-id="chartId"
+                    />
+                </div>
+                <div v-else>
+                    No data
+                </div>
+            </div>
+        </transition>
     </div>
 </template>
 
@@ -89,7 +85,12 @@ const chartOptions = reactive<ChartOptions>({
 
 const chartId = computed(() => `viewer-chart-${props.vod.uuid}`);
 
+const isCollapsed = ref(true);
+
 onMounted(() => {
+
+    isCollapsed.value = store.videoBlockShow.viewers;
+
     if (!chartOptions?.scales?.x?.ticks) return; // why, typescript
     if (!chartOptions?.scales?.y?.ticks) return; // why, typescript
     // if (!chartOptions?.plugins?.title) return; // why, typescript
@@ -122,7 +123,6 @@ const chartData = computed((): ChartData<'line', number[], string> | null => {
 
 const store = useStore();
 const { t } = useI18n();
-const isMaximized = ref(false);
 
 </script>
 
@@ -133,6 +133,7 @@ const isMaximized = ref(false);
 
 .video-viewers {
     // padding: 1em;
-    background-color: var(--video-segments-background-color);
+    // background-color: var(--video-segments-background-color);
+    background-color: var(--video-block-background-color);
 }
 </style>

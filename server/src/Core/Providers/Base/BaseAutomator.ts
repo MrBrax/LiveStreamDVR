@@ -4,6 +4,7 @@ import { ExporterOptions } from "@common/Exporter";
 import { formatString } from "@common/Format";
 import { VodBasenameTemplate } from "@common/Replacements";
 import { ChannelUpdateEvent } from "@common/TwitchAPI/EventSub/ChannelUpdate";
+import type { StreamPause } from "@common/Vod";
 import chalk from "chalk";
 import { format, formatDistanceToNow, isValid, parseJSON } from "date-fns";
 import { spawn } from "node:child_process";
@@ -13,6 +14,7 @@ import path from "node:path";
 import sanitize from "sanitize-filename";
 import { TwitchVODChapterJSON } from "Storage/JSON";
 import { Exporter, GetExporter } from "../../../Controllers/Exporter";
+import { formatBytes } from "../../../Helpers/Format";
 import { Sleep } from "../../../Helpers/Sleep";
 import { isTwitchVOD, isTwitchVODChapter } from "../../../Helpers/Types";
 import { RemuxReturn } from "../../../Providers/Twitch";
@@ -266,6 +268,13 @@ export class BaseAutomator {
                 if (stream.viewer_count !== undefined) {
 
                     chapter_data.viewer_count = stream.viewer_count;
+
+                    if (this.vod) {
+                        this.vod.viewers.push({
+                            amount: stream.viewer_count,
+                            timestamp: new Date(),
+                        }); // add viewer count to vod, good if user doesn't have continuous viewer logging
+                    }
 
                 } else {
 
@@ -802,9 +811,10 @@ export class BaseAutomator {
     }
 
     private chunks_missing = 0;
+    private stream_pause?: Partial<StreamPause>;
     public captureTicker(source: "stdout" | "stderr", raw_data: Buffer) {
 
-        const basename = this.vodBasenameTemplate();
+        const basename = this.vod ? this.vod.basename : this.vodBasenameTemplate();
 
         const data = raw_data.toString();
 
@@ -883,6 +893,37 @@ export class BaseAutomator {
             if (this.vod) {
                 this.vod.capture_started2 = new Date();
                 this.vod.broadcastUpdate();
+            }
+        }
+
+        if (data.includes("Waiting for pre-roll ads to finish")) {
+            Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", "Streamlink waiting for pre-roll ads to finish.");
+
+        }
+
+        if (data.includes("Filtering out segments and pausing stream output")) {
+            Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", "Streamlink filtering out segments and pausing stream output.");
+            // create ad object
+            this.stream_pause = { start: new Date() };
+            if (this.vod) {
+                this.vod.is_capture_paused = true;
+                this.vod.broadcastUpdate();
+            }
+        }
+
+        if (data.includes("Resuming stream output")) {
+            Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", "Streamlink resuming stream output.");
+            // end ad object
+            if (this.stream_pause && this.stream_pause.start) {
+                this.stream_pause.end = new Date();
+                if (this.vod) {
+                    const duration = Math.round((this.stream_pause.end.getTime() - this.stream_pause.start.getTime()) / 1000);
+                    Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", `Pause detected for ${basename}, ${duration}s long.`);
+                    this.vod.stream_pauses.push(this.stream_pause as StreamPause); // cool hack
+                    this.vod.is_capture_paused = false;
+                    this.vod.broadcastUpdate();
+                }
+                this.stream_pause = undefined;
             }
         }
 
@@ -1004,23 +1045,23 @@ export class BaseAutomator {
             });
 
             // make job for capture
-            let capture_job: Job;
+            // let capture_job: Job;
             const jobName = `capture_${this.getLogin()}_${this.getVodID()}`;
 
             if (capture_process.pid) {
                 Log.logAdvanced(Log.Level.SUCCESS, "automator.captureVideo", `Spawned process ${capture_process.pid} for ${jobName}`);
-                capture_job = Job.create(jobName);
-                capture_job.setPid(capture_process.pid);
-                capture_job.setExec(bin, cmd);
-                capture_job.setProcess(capture_process);
-                capture_job.startLog(jobName, `$ ${bin} ${cmd.join(" ")}\n`);
-                capture_job.addMetadata({
+                this.captureJob = Job.create(jobName);
+                this.captureJob.setPid(capture_process.pid);
+                this.captureJob.setExec(bin, cmd);
+                this.captureJob.setProcess(capture_process);
+                this.captureJob.startLog(jobName, `$ ${bin} ${cmd.join(" ")}\n`);
+                this.captureJob.addMetadata({
                     "login": this.getLogin(), // TODO: username?
                     "basename": this.vodBasenameTemplate(),
                     "capture_filename": this.capture_filename,
                     "stream_id": this.getVodID(),
                 });
-                if (!capture_job.save()) {
+                if (!this.captureJob.save()) {
                     Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Failed to save job ${jobName}`);
                 }
             } else {
@@ -1038,7 +1079,7 @@ export class BaseAutomator {
                     console.log(
                         chalk.bgGreen.whiteBright(
                             `🎥 ${new Date().toISOString()} ${basename} ${this.stream_resolution} ` +
-                            `${Helper.formatBytes(size)} / ${Math.round((bitRate * 8) / 1000)} kbps`
+                            `${formatBytes(size)} / ${Math.round((bitRate * 8) / 1000)} kbps`
                         )
                     );
                 } else {
@@ -1060,16 +1101,16 @@ export class BaseAutomator {
 
                 clearInterval(keepalive);
 
-                if (capture_job) {
-                    capture_job.clear();
+                if (this.captureJob) {
+                    this.captureJob.clear();
                 }
 
                 if (fs.existsSync(this.capture_filename) && fs.statSync(this.capture_filename).size > 0) {
 
-                    const stream_resolution = capture_job.stdout.join("\n").match(/stream:\s([0-9_a-z]+)\s/);
-                    if (stream_resolution && this.vod) {
-                        this.vod.stream_resolution = stream_resolution[1] as VideoQuality;
-                    }
+                    // const stream_resolution = capture_job.stdout.join("\n").match(/stream:\s([0-9_a-z]+)\s/);
+                    // if (stream_resolution && this.vod) {
+                    //     this.vod.stream_resolution = stream_resolution[1] as VideoQuality;
+                    // }
 
                     resolve(true);
                 } else {
@@ -1181,7 +1222,7 @@ export class BaseAutomator {
                     console.log(
                         chalk.bgGreen.whiteBright(
                             `🎥 ${new Date().toISOString()} ${basename} ${this.stream_resolution} ` +
-                            `${Helper.formatBytes(size)} / ${Math.round((bitRate * 8) / 1000)} kbps`
+                            `${formatBytes(size)} / ${Math.round((bitRate * 8) / 1000)} kbps`
                         )
                     );
                 } else {

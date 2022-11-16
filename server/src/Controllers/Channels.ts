@@ -42,7 +42,7 @@ export async function ListChannels(req: express.Request, res: express.Response):
             streamer_list: streamer_list,
             total_size: total_size,
             // free_size: fs.statSync(TwitchHelper.vodFolder()).size,
-            free_size: -1, // broken until further notice
+            free_size: LiveStreamDVR.getInstance().freeStorageDiskSpace, // broken until further notice
         },
         status: "OK",
     } as ApiChannelsResponse);

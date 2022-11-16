@@ -12,48 +12,12 @@ import { createHash } from "node:crypto";
 import { FFProbe } from "@common/FFProbe";
 import { MediaInfoJSONOutput, VideoMetadata, AudioMetadata } from "@common/MediaInfo";
 import { MediaInfo } from "@common/mediainfofield";
+import { LiveStreamDVR } from "./LiveStreamDVR";
+import { formatDuration } from "../Helpers/Format";
 
 export class Helper {
     public static vodFolder(username = "") {
         return BaseConfigDataFolder.vod + (Config.getInstance().cfg("channel_folders") && username !== "" ? path.sep + username : "");
-    }
-
-    public static getNiceDuration(duration: number) {
-        // format 1d 2h 3m 4s
-
-        const days = Math.floor(duration / (60 * 60 * 24));
-        const hours = Math.floor((duration - (days * 60 * 60 * 24)) / (60 * 60));
-        const minutes = Math.floor((duration - (days * 60 * 60 * 24) - (hours * 60 * 60)) / 60);
-        const seconds = duration - (days * 60 * 60 * 24) - (hours * 60 * 60) - (minutes * 60);
-
-        let str = "";
-
-        if (days > 0) str += days + "d ";
-        if (hours > 0) str += hours + "h ";
-        if (minutes > 0) str += minutes + "m ";
-        if (seconds > 0) str += seconds + "s";
-
-        return str.trim();
-
-    }
-
-    /**
-     * Format in HH:MM:SS
-     * @param duration_seconds 
-     */
-    public static formatDuration(duration_seconds: number) {
-        const hours = Math.floor(duration_seconds / (60 * 60));
-        const minutes = Math.floor((duration_seconds - (hours * 60 * 60)) / 60);
-        const seconds = Math.floor(duration_seconds - (hours * 60 * 60) - (minutes * 60));
-        return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
-    }
-
-    public static formatSubtitleDuration(duration_seconds: number) {
-        const hours = Math.floor(duration_seconds / (60 * 60));
-        const minutes = Math.floor((duration_seconds - (hours * 60 * 60)) / 60);
-        const seconds = Math.floor(duration_seconds - (hours * 60 * 60) - (minutes * 60));
-        const milliseconds = Math.floor((duration_seconds - (hours * 60 * 60) - (minutes * 60) - seconds) * 1000);
-        return `${hours.toString().padStart(2, "0")}:${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}.${milliseconds.toString().padStart(3, "0")}`;
     }
 
     public static is_windows() {
@@ -492,6 +456,7 @@ export class Helper {
                 if (job) {
                     job.clear();
                 }
+                LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
                 // const out_log = ffmpeg.stdout.read();
                 const success = fs.existsSync(output) && fs.statSync(output).size > 0;
                 if (success) {
@@ -626,28 +591,6 @@ export class Helper {
 
     }
 
-
-    // https://stackoverflow.com/a/2510459
-    static formatBytes(bytes: number, precision = 2): string {
-
-        const units = ["B", "KB", "MB", "GB", "TB"];
-
-        bytes = Math.max(bytes, 0);
-        let pow = Math.floor((bytes ? Math.log(bytes) : 0) / Math.log(1024));
-        pow = Math.min(pow, units.length - 1);
-
-        // Uncomment one of the following alternatives
-        bytes /= Math.pow(1024, pow);
-        // $bytes /= (1 << (10 * $pow)); 
-
-        // return round($bytes, $precision) . ' ' . $units[$pow];
-        return `${bytes.toFixed(precision)} ${units[pow]}`;
-    }
-
-    static formatBits(bits: number, precision = 2): string {
-        return this.formatBytes(bits * 8, precision).toLowerCase();
-    }
-
     /**
      * Return mediainfo for a file
      * 
@@ -754,6 +697,8 @@ export class Helper {
                 throw new Error("No cached data from mediainfo");
             }
 
+            Log.logAdvanced(Log.Level.DEBUG, "helper.videometadata", `Read cached mediainfo of ${filename}`);
+
         } else {
 
             try {
@@ -773,6 +718,8 @@ export class Helper {
             }
 
             fs.writeFileSync(dataPath, JSON.stringify(data));
+
+            Log.logAdvanced(Log.Level.DEBUG, "helper.videometadata", `Wrote cached mediainfo of ${filename}`);
 
         }
 
@@ -861,7 +808,7 @@ export class Helper {
 
                 } as VideoMetadata;
 
-                Log.logAdvanced(Log.Level.SUCCESS, "helper.videometadata", `${filename} is a video file ${Helper.formatDuration(video_metadata.duration)} long at ${video_metadata.height}p${video_metadata.fps}.`);
+                Log.logAdvanced(Log.Level.SUCCESS, "helper.videometadata", `${filename} is a video file ${formatDuration(video_metadata.duration)} long at ${video_metadata.height}p${video_metadata.fps}.`);
 
                 return video_metadata;
 
@@ -886,7 +833,7 @@ export class Helper {
 
     public static async videoThumbnail(filename: string, width: number, offset = 5000): Promise<string> {
 
-        Log.logAdvanced(Log.Level.INFO, "helper.thumbnail", `Run ffmpeg on ${filename}`);
+        Log.logAdvanced(Log.Level.INFO, "helper.videoThumbnail", `Requested video thumbnail of ${filename}`);
 
         if (!filename) {
             throw new Error("No filename supplied for thumbnail");
@@ -905,6 +852,7 @@ export class Helper {
         const output_image = path.join(BaseConfigCacheFolder.public_cache_thumbs, `${filenameHash}.${Config.getInstance().cfg<string>("thumbnail_format", "jpg")}`);
 
         if (fs.existsSync(output_image)) {
+            Log.logAdvanced(Log.Level.DEBUG, "helper.videoThumbnail", `Thumbnail already exists for ${filename}, returning cached version`);
             return path.basename(output_image);
         }
 
@@ -920,8 +868,10 @@ export class Helper {
         ], "ffmpeg video thumbnail");
 
         if (output && fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
+            Log.logAdvanced(Log.Level.SUCCESS, "helper.videoThumbnail", `Created video thumbnail for ${filename}`);
             return path.basename(output_image);
         } else {
+            Log.logAdvanced(Log.Level.ERROR, "helper.videoThumbnail", `Failed to create video thumbnail for ${filename}`);
             throw new Error("No output from ffmpeg");
         }
 
@@ -929,32 +879,37 @@ export class Helper {
 
     public static async imageThumbnail(filename: string, width: number): Promise<string> {
 
-        Log.logAdvanced(Log.Level.INFO, "helper.thumbnail", `Run thumbnail on ${filename}`);
+        Log.logAdvanced(Log.Level.INFO, "helper.imageThumbnail", `Run thumbnail on ${filename}`);
 
         if (!filename) {
             throw new Error("No filename supplied for thumbnail");
         }
 
         if (!fs.existsSync(filename)) {
-            throw new Error(`File not found for thumbnail: ${filename}`);
+            Log.logAdvanced(Log.Level.ERROR, "helper.imageThumbnail", `File not found for image thumbnail: ${filename}`);
+            throw new Error(`File not found for image thumbnail: ${filename}`);
         }
 
         if (fs.statSync(filename).size == 0) {
-            throw new Error(`Filesize is 0 for thumbnail: ${filename}`);
+            Log.logAdvanced(Log.Level.ERROR, "helper.imageThumbnail", `Filesize is 0 for image thumbnail: ${filename}`);
+            throw new Error(`Filesize is 0 for image thumbnail: ${filename}`);
         }
 
-        const filenameHash = createHash("md5").update(filename + width).digest("hex");
+        // const filenameHash = createHash("md5").update(filename + width).digest("hex");
+        const fileHash = createHash("md5").update(fs.readFileSync(filename)).digest("hex");
 
         const thumbnail_format = Config.getInstance().cfg<string>("thumbnail_format", "jpg");
 
-        const output_image = path.join(BaseConfigCacheFolder.public_cache_thumbs, `${filenameHash}.${thumbnail_format}`);
+        const output_image = path.join(BaseConfigCacheFolder.public_cache_thumbs, `${fileHash}.${thumbnail_format}`);
 
         if (fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
+            Log.logAdvanced(Log.Level.DEBUG, "helper.imageThumbnail", `Found existing thumbnail for ${filename}`);
             return path.basename(output_image);
         }
 
-        if (fs.statSync(output_image).size === 0) {
-            console.debug("Existing thumbnail filesize is 0, removing file");
+        if (fs.existsSync(output_image) && fs.statSync(output_image).size === 0) {
+            // console.debug("Existing thumbnail filesize is 0, removing file");
+            Log.logAdvanced(Log.Level.DEBUG, "helper.imageThumbnail", `Existing thumbnail filesize is 0, removing file: ${output_image}`);
             fs.unlinkSync(output_image); // remove empty file
         }
 
@@ -980,12 +935,12 @@ export class Helper {
             output = await Helper.execSimple(ffmpeg_path, [
                 "-i", filename,
                 "-vf", `scale=${width}:-1`,
-                // "-codec", codec,        
+                // "-codec", codec,
                 output_image,
             ], "ffmpeg image thumbnail");
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "helper.thumbnail", `Failed to create thumbnail: ${error}`, error);
-            throw error;            
+            Log.logAdvanced(Log.Level.ERROR, "helper.imageThumbnail", `Failed to create thumbnail: ${error}`, error);
+            throw error;
         }
 
         if ((output.stderr.join("") + output.stdout.join("")).includes("Default encoder for format")) {
@@ -995,7 +950,7 @@ export class Helper {
         if (output && fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
             return path.basename(output_image);
         } else {
-            Log.logAdvanced(Log.Level.ERROR, "helper.thumbnail", `Failed to create thumbnail for ${filename}`, output);
+            Log.logAdvanced(Log.Level.ERROR, "helper.imageThumbnail", `Failed to create thumbnail for ${filename}`, output);
             throw new Error("No output from ffmpeg");
         }
 

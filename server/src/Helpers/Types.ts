@@ -2,7 +2,7 @@ import type { YouTubeVOD } from "../Core/Providers/YouTube/YouTubeVOD";
 import type { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 import type { TwitchVODChapter } from "../Core/Providers/Twitch/TwitchVODChapter";
 import type { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
-import type { YouTubeChannel } from "Core/Providers/YouTube/YouTubeChannel";
+import type { YouTubeChannel } from "../Core/Providers/YouTube/YouTubeChannel";
 
 export function isTwitchChannel(data: any): data is TwitchChannel {
     return (data as TwitchChannel).provider === "twitch";

@@ -18,6 +18,7 @@ import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { Helper } from "../Core/Helper";
 import { EditableChapter } from "@common/Api/Client";
 import { TwitchVODChapter } from "../Core/Providers/Twitch/TwitchVODChapter";
+import { formatDuration } from "../Helpers/Format";
 
 export async function GetVod(req: express.Request, res: express.Response): Promise<void> {
 
@@ -847,7 +848,7 @@ export async function RefreshVodMetadata(req: express.Request, res: express.Resp
         const diff = Math.abs(oldDuration - md.duration);
         res.send({
             status: "OK",
-            message: `Metadata refreshed, old duration was ${Helper.formatDuration(oldDuration)}, new is ${Helper.formatDuration(md.duration)}. Difference is ${Helper.formatDuration(diff)}.`,
+            message: `Metadata refreshed, old duration was ${formatDuration(oldDuration)}, new is ${formatDuration(md.duration)}. Difference is ${formatDuration(diff)}.`,
             data: md,
         } as ApiResponse);
         vod.saveJSON("refresh metadata");

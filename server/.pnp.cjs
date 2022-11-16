@@ -46,6 +46,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["axios", "npm:1.1.3"],\
             ["basic-auth", "npm:2.0.1"],\
             ["chalk", "npm:4.1.2"],\
+            ["check-disk-space", "npm:3.3.1"],\
             ["chokidar", "npm:3.5.3"],\
             ["compare-versions", "npm:5.0.1"],\
             ["cron", "npm:2.1.0"],\
@@ -3154,6 +3155,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/char-regex-npm-1.0.2-ecade5f97f-b563e4b603.zip/node_modules/char-regex/",\
           "packageDependencies": [\
             ["char-regex", "npm:1.0.2"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["check-disk-space", [\
+        ["npm:3.3.1", {\
+          "packageLocation": "./.yarn/cache/check-disk-space-npm-3.3.1-e4d759f5a6-90b7b77ab9.zip/node_modules/check-disk-space/",\
+          "packageDependencies": [\
+            ["check-disk-space", "npm:3.3.1"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -6624,6 +6634,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["axios", "npm:1.1.3"],\
             ["basic-auth", "npm:2.0.1"],\
             ["chalk", "npm:4.1.2"],\
+            ["check-disk-space", "npm:3.3.1"],\
             ["chokidar", "npm:3.5.3"],\
             ["compare-versions", "npm:5.0.1"],\
             ["cron", "npm:2.1.0"],\

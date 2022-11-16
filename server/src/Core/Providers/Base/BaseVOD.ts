@@ -1,24 +1,24 @@
-import chalk from "chalk";
-import chokidar from "chokidar";
-import { randomUUID } from "node:crypto";
-import { format, parseJSON } from "date-fns";
-import fs from "node:fs";
-import path from "node:path";
-import { BaseVODChapterJSON, VODJSON } from "Storage/JSON";
 import { ApiBaseVod } from "@common/Api/Client";
 import { VideoQuality } from "@common/Config";
 import { JobStatus, MuteStatus, Providers } from "@common/Defs";
 import { ExportData } from "@common/Exporter";
 import { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
+import type { StreamPause, VodViewerEntry } from "@common/Vod";
 import { VodUpdated } from "@common/Webhook";
-import type { VodViewerEntry } from "@common/Vod";
-import { FFmpegMetadata } from "../../FFmpegMetadata";
-import { Helper } from "../../Helper";
-import { Job } from "../../Job";
+import chalk from "chalk";
+import chokidar from "chokidar";
+import { format, parseJSON } from "date-fns";
+import { randomUUID } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import { BaseVODChapterJSON, VODJSON } from "Storage/JSON";
 import { isTwitchVOD, isTwitchVODChapter } from "../../../Helpers/Types";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
 import { Config } from "../../Config";
+import { FFmpegMetadata } from "../../FFmpegMetadata";
+import { Helper } from "../../Helper";
+import { Job } from "../../Job";
 import { LiveStreamDVR, VODTypes } from "../../LiveStreamDVR";
 import { Log } from "../../Log";
 import { Webhook } from "../../Webhook";
@@ -97,7 +97,7 @@ export class BaseVOD {
     path_chatmask = "";
     path_chatburn = "";
     path_chatdump = "";
-    path_adbreak = "";
+    // path_adbreak = "";
     path_playlist = "";
     path_ffmpegchapters = "";
     path_vttchapters = "";
@@ -127,6 +127,8 @@ export class BaseVOD {
     public exportData: ExportData = {};
 
     public viewers: VodViewerEntry[] = [];
+
+    public stream_pauses: StreamPause[] = [];
 
     /**
      * Set up date related data
@@ -290,7 +292,8 @@ export class BaseVOD {
     get is_vod_downloaded(): boolean { return this.path_downloaded_vod !== "" && fs.existsSync(this.path_downloaded_vod); }
     get is_lossless_cut_generated(): boolean { return this.path_losslesscut !== "" && fs.existsSync(this.path_losslesscut); }
     get is_chatdump_captured(): boolean { return this.path_chatdump !== "" && fs.existsSync(this.path_chatdump); }
-    get is_capture_paused(): boolean { return this.path_adbreak !== "" && fs.existsSync(this.path_adbreak); }
+    // get is_capture_paused(): boolean { return this.path_adbreak !== "" && fs.existsSync(this.path_adbreak); }
+    public is_capture_paused = false; // no longer a file, just a flag
     get is_chat_rendered(): boolean { return this.path_chatrender !== "" && fs.existsSync(this.path_chatrender); }
     get is_chat_burned(): boolean { return this.path_chatburn !== "" && fs.existsSync(this.path_chatburn); }
 
@@ -964,7 +967,7 @@ export class BaseVOD {
         this.path_chatmask = this.realpath(path.join(this.directory, `${this.basename}_chat_mask.mp4`));
         this.path_chatburn = this.realpath(path.join(this.directory, `${this.basename}_burned.mp4`));
         this.path_chatdump = this.realpath(path.join(this.directory, `${this.basename}.chatdump`));
-        this.path_adbreak = this.realpath(path.join(this.directory, `${this.basename}.adbreak`));
+        // this.path_adbreak = this.realpath(path.join(this.directory, `${this.basename}.adbreak`));
         this.path_playlist = this.realpath(path.join(this.directory, `${this.basename}.m3u8`));
         this.path_ffmpegchapters = this.realpath(path.join(this.directory, `${this.basename}-ffmpeg-chapters.txt`));
         this.path_vttchapters = this.realpath(path.join(this.directory, `${this.basename}.chapters.vtt`));
@@ -1266,6 +1269,22 @@ export class BaseVOD {
             this.viewers = this.json.viewers.map((v) => { return { timestamp: parseJSON(v.timestamp), amount: v.amount }; });
         } else {
             this.viewers = [];
+        }
+
+        if (this.json.stream_pauses) {
+            this.stream_pauses =
+                this.json.stream_pauses
+                    // .filter((p) => p.start && p.end)
+                    .flatMap((v) => {
+                        // return {
+                        //     start: parseJSON(v.start),
+                        //     end: parseJSON(v.end),
+                        // }; 
+                        return v.start && v.end ? [{
+                            start: parseJSON(v.start),
+                            end: parseJSON(v.end),
+                        }] : [];
+                    });
         }
 
     }

@@ -6,6 +6,11 @@
 import { onMounted, onUnmounted, ref, watch } from "vue";
 import { isDate, parseJSON } from "date-fns";
 import { formatDuration, niceDuration, shortDuration } from "@/mixins/newhelpers";
+/**
+ * Shows duration in a human readable format that auto updates every second.
+ * @param startDate The start date of the duration.
+ * @param outputStyle The output style of the duration.
+ */
 
 const props = defineProps({
     startDate: { type: [String, Number, Date], default: "0", },

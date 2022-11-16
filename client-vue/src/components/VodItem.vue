@@ -17,144 +17,20 @@
         />
 
         <!-- title -->
-        <div
-            class="video-title"
-            aria-label="Video title"
-            :aria-pressed="!minimized"
-            tabindex="0"
-            role="button"
-            @click="emit('toggleMinimize')"
-            @keydown.prevent.enter="emit('toggleMinimize')"
-            @keydown.prevent.space="emit('toggleMinimize')"
-        >
-            <div class="video-title-text">
-                <h3>
-                    <span class="icon"><font-awesome-icon icon="file-video" /></span>
-                    <span
-                        v-if="vod.started_at"
-                        class="video-date"
-                        :title="formatDate(vod.started_at)"
-                    >{{
-                        store.clientCfg('useRelativeTime') ? humanDate(vod.started_at, true) : formatDate(vod.started_at)
-                    }}</span>
-                    <span class="video-sxe">
-                        {{ vod.stream_season }}x{{ vod.stream_number?.toString().padStart(2, "0") }}
-                    </span>
-                    <span class="video-filename">{{ vod.basename }}</span>
-                </h3>
-            </div>
-            <div class="video-title-actions">
-                <font-awesome-icon :icon="!minimized ? 'chevron-up' : 'chevron-down'" />
-            </div>
-        </div>
+        <vod-item-title
+            :vod="vod"
+            :minimized="minimized"
+            @toggle-minimize="emit('toggleMinimize')"
+        />
 
         <div
             v-if="!minimized"
             class="video-content"
         >
-            <!-- description -->
-            <div class="video-block video-description">
-                <div class="video-block-header"><h4>General</h4></div>
-                <div class="video-block-content">
-                    <!-- box art -->
-                    <div
-                        v-if="vod && vod.provider == 'twitch' && vod.getUniqueGames()"
-                        class="boxart-carousel is-small"
-                    >
-                        <div
-                            v-for="game in vod.getUniqueGames()"
-                            :key="game.id"
-                            class="boxart-item"
-                        >
-                            <img
-                                v-if="game.image_url"
-                                :title="game.name"
-                                :alt="game.name"
-                                :src="game.image_url"
-                                loading="lazy"
-                                :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }"
-                            >
-                            <span v-else>{{ game.name }}</span>
-                        </div>
-                    </div>
-
-                    <!-- comment -->
-                    <div
-                        v-if="vod.comment"
-                        class="video-comment"
-                    >
-                        <p>{{ vod.comment }}</p>
-                    </div>
-                    <div v-else>
-                        <p>
-                            <a
-                                href="#"
-                                @click.prevent="showModal.edit = true"
-                            >
-                                <font-awesome-icon icon="comment-dots" />
-                                {{ t("vod.add_comment") }}
-                            </a>
-                        </p>
-                    </div>
-
-                    <vod-item-video-info
-                        :vod="vod"
-                        :show-advanced="showAdvanced"
-                    />
-
-                    <div
-                        v-if="vod.is_capturing"
-                        class="info-columns"
-                    >
-                        <div class="info-column">
-                            <h4>Recording</h4>
-                            <ul class="video-info">
-                                <li v-if="vod.started_at">
-                                    <strong>Went live:</strong> {{ formatDate(vod.started_at) }}
-                                </li>
-                                <li v-if="vod.created_at">
-                                    <strong>Created:</strong> {{ formatDate(vod.created_at) }}
-                                </li>
-                                <li v-if="vod.capture_started && vod.started_at">
-                                    <strong>Capture launched:</strong> {{ formatDate(vod.capture_started) }} ({{
-                                        humanDuration((vod.capture_started.getTime() - vod.started_at.getTime()) / 1000)
-                                    }}
-                                    missing)
-                                </li>
-                                <li v-if="vod.capture_started2">
-                                    <strong>Wrote file:</strong> {{ formatDate(vod.capture_started2) }}
-                                </li>
-                                <li>
-                                    <strong>Current duration:</strong> <duration-display
-                                        v-if="vod.started_at"
-                                        :start-date="vod.started_at.toISOString()"
-                                        output-style="human"
-                                    />
-                                </li>
-                                <li v-if="vod.provider == 'twitch'">
-                                    <strong>Resolution:</strong> {{ vod.stream_resolution || "Unknown" }}
-                                </li>
-                                <li v-if="vod.provider == 'twitch'">
-                                    <strong>Watch live:</strong> <a
-                                        :href="'https://twitch.tv/' + vod.streamer_login"
-                                        rel="noreferrer"
-                                        target="_blank"
-                                    >Twitch</a>
-                                </li>
-                                <li>
-                                    <strong>Rewind:</strong> <a
-                                        :href="predictedFirstSegmentUrl"
-                                        rel="noreferrer"
-                                        target="_blank"
-                                        @click.prevent="store.playMedia(predictedFirstSegmentUrl)"
-                                    >{{ vod.basename }}</a> (copy link and paste into desktop video player)
-                                </li>
-                            </ul>
-                            <!--<button class="button is-small is-danger" @click="unbreak">Unbreak</button>-->
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <vod-item-general
+                :vod="vod"
+                @show-modal="showModalEv($event as any)"
+            />
 
             <vod-item-viewers :vod="vod" />
 
@@ -169,147 +45,13 @@
                 @toggle-advanced="showAdvanced = !showAdvanced"
                 @delete="doDelete"
                 @fix-issues="doFixIssues"
-                @check-mute="doCheckMute"
             />
 
-            <div
-                v-if="(vod.failed && !vod.is_finalized && !vod.is_capturing) || vod.hasError()"
-                class="video-error"
-            >
-                <strong>
-                    <span class="icon"><font-awesome-icon icon="exclamation-triangle" /></span> {{ t('vod.failed') }}
-                </strong>&nbsp;
-                <div class="buttons">
-                    <!-- Delete -->
-                    <button
-                        class="button is-danger is-small"
-                        :disabled="vod.prevent_deletion"
-                        @click="doDelete"
-                    >
-                        <span class="icon">
-                            <fa
-                                icon="trash"
-                                type="fa"
-                            />
-                        </span>
-                        <span>{{ t('buttons.delete') }}</span>
-                    </button>
-
-                    <!-- Fix issues -->
-                    <button
-                        class="button is-confirm is-small"
-                        @click="doFixIssues"
-                    >
-                        <span class="icon">
-                            <fa
-                                icon="wrench"
-                                type="fa"
-                            />
-                        </span>
-                        <span>{{ t('vod.controls.fix-issues') }}</span>
-                    </button>
-                </div>
-            </div>
-            <div
-                v-else-if="!vod.is_finalized"
-                class="video-status"
-            >
-                <template v-if="vod.is_converting">
-                    <em>
-                        <span class="icon"><font-awesome-icon icon="file-signature" /></span>
-                        Converting <strong>{{ vod.basename }}.ts</strong> to <strong>{{ vod.basename }}.mp4</strong>
-                    </em>
-                    <br>
-                    <em>
-                        <span v-if="vod.getConvertingStatus()">
-                            <span class="icon"><fa
-                                icon="sync"
-                                spin
-                            /></span>
-                            Running (pid {{ vod.getConvertingStatus() }})
-                        </span>
-                        <span v-else>
-                            <strong class="text-is-error flashing">
-                                <span class="icon"><font-awesome-icon icon="exclamation-triangle" /></span> Not running, did it crash?
-                            </strong>
-                        </span>
-                    </em>
-                </template>
-                <template v-else-if="vod && vod.is_capturing">
-                    <em class="text-overflow">
-                        <span class="icon"><font-awesome-icon icon="video" /></span>
-                        Capturing to <strong>{{ vod.basename }}.ts</strong> (<strong>{{
-                            vod.getRecordingSize() ? formatBytes(vod.getRecordingSize() as number) : "unknown"
-                        }}</strong>)
-                        <span
-                            class="icon clickable"
-                            title="Refresh"
-                            @click="vod && store.fetchAndUpdateVod(vod.uuid)"
-                        ><font-awesome-icon icon="sync" /></span>
-                    </em>
-
-                    <br>
-
-                    <template v-if="store.cfg('playlist_dump')">
-                        <em>
-                            <span v-if="vod.getCapturingStatus()">
-                                <span class="icon"><fa
-                                    icon="sync"
-                                    spin
-                                /></span>
-                                Video capture running (pid
-                                {{ vod.getCapturingStatus() }})
-                            </span>
-                            <span v-else>
-                                <strong class="text-is-error flashing">
-                                    <span class="icon"><font-awesome-icon icon="exclamation-triangle" /></span>
-                                    Video capture not running, did it crash?
-                                </strong>
-                            </span>
-                        </em>
-                        <template v-if="store.cfg('chat_dump')">
-                            <br><em>
-                                <span v-if="vod.getChatDumpStatus()">
-                                    <span class="icon"><fa
-                                        icon="sync"
-                                        spin
-                                    /></span>
-                                    Chat dump running (pid
-                                    {{ vod.getChatDumpStatus() }})
-                                </span>
-                                <span v-else>
-                                    <strong class="text-is-error flashing">
-                                        <span class="icon"><font-awesome-icon icon="exclamation-triangle" /></span>
-                                        Chat dump not running, did it crash?
-                                    </strong>
-                                </span>
-                            </em>
-                        </template>
-                    </template>
-                </template>
-                <template v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized">
-                    <em>Waiting to finalize video (since {{ vod.ended_at ? formatDate(vod.ended_at, "yyyy-MM-dd HH:mm:ss") : "(unknown)" }})</em>
-                </template>
-                <template v-else>
-                    <em>No video file or error</em>
-                </template>
-            </div>
-
-            <!-- capture length warning -->
-            <div
-                v-if="vod.is_capturing && vod.getDurationLive() > 86400"
-                class="video-error"
-            >
-                {{ t('vod.capture-has-been-running-for-over-24-hours-streamlink-does-not-support-this-is-the-capture-stuck') }}
-            </div>
-
-            <!-- no chapters error -->
-            <div
-                v-if="!vod.chapters"
-                class="video-error"
-            >
-                No chapter data!?
-            </div>
+            <vod-item-status
+                :vod="vod"
+                @delete="doDelete"
+                @fix-issues="doFixIssues"
+            />
 
             <!-- troubleshoot error -->
             <!--
@@ -522,7 +264,6 @@ import { useI18n } from "vue-i18n";
 import type { VodBasenameTemplate } from "@common/Replacements";
 import { VodBasenameFields, ExporterFilenameFields } from "@common/ReplacementsConsts";
 import { computed, onMounted, ref } from "vue";
-import DurationDisplay from "@/components/DurationDisplay.vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
     faFileVideo,
@@ -553,19 +294,20 @@ import VodItemSegments from "./VodItemSegments.vue";
 import VodItemBookmarks from "./VodItemBookmarks.vue";
 import VodItemChapters from "./VodItemChapters.vue";
 import VodItemViewers from "./VodItemViewers.vue";
+import VodItemGeneral from "./VodItemGeneral.vue";
+import VodItemStatus from "./VodItemStatus.vue";
+import VodItemTitle from "./VodItemTitle.vue";
 import RenderModal from "./vod/RenderModal.vue";
 import ExportModal from "./vod/ExportModal.vue";
 import EditModal from "./vod/EditModal.vue";
-import { MuteStatus, VideoQualityArray } from "../../../common/Defs";
+import { VideoQualityArray } from "../../../common/Defs";
 import type { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
 import { formatString } from "@common/Format";
 import { format } from "date-fns";
 import axios from "axios";
 import { useRoute } from "vue-router";
 import { isTwitchVOD } from "@/mixins/newhelpers";
-import VodItemVideoInfo from "./VodItemVideoInfo.vue";
 import VodItemControls from "./VodItemControls.vue";
-import { formatDate, humanDate, humanDuration, formatBytes } from "@/mixins/newhelpers";
 import type { VODTypes } from "@/twitchautomator";
 library.add(
     faFileVideo,
@@ -676,11 +418,6 @@ const renameVodTemplatePreview = computed(() => {
     return replaced_string;
 });
 
-const predictedFirstSegmentUrl = computed(() => {
-    if (!props.vod) return "";
-    return `${props.vod.webpath}/${props.vod.basename}.ts`;
-});
-
 /*  
 watch: {
     // watch hash
@@ -754,32 +491,7 @@ function doDownloadVod(): void {
         });
 }
 
-function doCheckMute(): void {
-    if (!props.vod) return;
-    axios
-        .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/check_mute`)
-        .then((response) => {
-            const json = response.data;
-            if (json.message) alert(json.message);
-            console.log(json);
 
-            if (json.data) {
-                if (json.data.muted === null || json.data.muted === MuteStatus.UNKNOWN) {
-                    alert(`The vod "${props.vod?.basename}" could not be checked.`);
-                } else {
-                    alert(`The vod "${props.vod?.basename}" is${json.data.muted === MuteStatus.MUTED ? "" : " not"} muted.`);
-                }
-            }
-            emit("refresh");
-        })
-        .catch((err) => {
-            console.error("doCheckMute error", err.response);
-            if (err.response.data) {
-                const json = err.response.data;
-                if (json.message) alert(json.message);
-            }
-        });
-}
 
 function doDelete(): void {
     if (!props.vod) return;
@@ -888,7 +600,7 @@ function showModalEv(modal: keyof typeof showModal.value): void {
 @import "../assets/_variables";
 
 .video {
-    margin-bottom: 10px;
+    margin-bottom: 1em;
     // border-bottom: 1px solid #eee;
 
     &.is-recording {
@@ -931,80 +643,12 @@ function showModalEv(modal: keyof typeof showModal.value): void {
     }
 }
 
-.video-title {
-    padding: 10px;
-    $bg-color: #2b61d6;
-    background: $bg-color;
-    color: #fff;
-
-    // good idea?
-    position: sticky;
-    top: 50px;
-    z-index: 1;
-
-    display: flex;
-
-    word-break: break-all;
-
-    cursor: pointer;
-
-    &:hover {
-        background-color: lighten($bg-color, 5%);
-    }
-
-    .icon {
-        margin-right: 0.3em;
-    }
-
-    h3 {
-        margin: 0;
-        padding: 0;
-        // text-shadow: 0 2px 0 #1e4599;
-        // text-shadow: 0 2px 0 rgba(0, 0, 0, 0.2);
-        color: #fff;
-    }
-
-    .video-title-text {
-        flex-grow: 1;
-    }
-
-    .video-title-actions {
-        display: flex;
-        // center horizontal and vertical
-        justify-content: center;
-        align-items: center;
-    }
-}
-
 .video-content {
     overflow: hidden;
 }
 
-.video-sxe {
-    font-family: "Roboto Condensed";
-    color: rgba(255, 255, 255, 0.5);
 
-    &:before {
-        content: " · ";
-    }
-}
-
-.video-filename {
-    font-family: "Roboto Condensed";
-    color: rgba(255, 255, 255, 0.5);
-
-    &:before {
-        content: " · ";
-    }
-}
-
-.video-description {
-    // padding: 10px;
-    background: var(--video-description-background-color);
-    // border-left: 1px solid #e3e3e3;
-    // border-right: 1px solid #e3e3e3;
-}
-
+/*
 .video-status {
     padding: 10px;
     background-color: #b3ddad;
@@ -1014,59 +658,15 @@ function showModalEv(modal: keyof typeof showModal.value): void {
     // border-left: 1px solid #e3e3e3;
     // border-right: 1px solid #e3e3e3;
 }
+*/
 
+/*
 .video-chapters {
     // border-left: 1px solid #e3e3e3;
     // border-right: 1px solid #e3e3e3;
     // border-bottom: 1px solid #e3e3e3;
 }
-
-.video-error {
-    background: #f00;
-    padding: 10px;
-    color: #fff;
-    font-weight: 700;
-
-    a {
-        color: #ffff00;
-
-        &:hover {
-            color: #fff;
-        }
-    }
-}
-
-.video-comment {
-    padding: 1em;
-    background-color: var(--video-comment-background-color);
-    border-radius: 1em;
-    width: max-content;
-    p {
-        margin: 0;
-        padding: 0;
-        white-space: pre;
-    }
-
-    position: relative;
-
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-
-    margin: 1em 0 1.5em 0;
-
-    // comment bubble tip
-    &:before {
-        content: "";
-        position: absolute;
-        bottom: -10px;
-        left: 15px;
-        width: 0;
-        height: 0;
-        border-style: solid;
-        border-width: 10px 10px 0 10px;
-        border-color: var(--video-comment-background-color) transparent transparent transparent;
-
-    }
-}
+*/
 
 .video:deep(.video-block) {
     .video-block-header {
@@ -1076,13 +676,38 @@ function showModalEv(modal: keyof typeof showModal.value): void {
             padding: 0;
         }
         // background-image: linear-gradient(to right, #2b61d6, #2b61d6 50%, #2b61d6 50%, #2b61d6);
-        background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.02));
-        border-top: 1px solid rgba(0, 0, 0, 0.2);
+        // background-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.02));
+
+        background-color: var(--video-block-header-background-color);
+        // border-top: 1px solid rgba(0, 0, 0, 0.2);
         // background-color: rgba(0, 0, 0, 0.2);
         // border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+        &.collapsible {
+            cursor: pointer;
+            user-select: none;
+            &:hover {
+                // background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02));
+                // background-color: rgba(255, 255, 255, 0.05);
+                background-color: var(--video-block-header-background-color-hover);
+                // color: #fff;
+                text-shadow: 0 0 2px rgba(255, 255, 255, 0.5);
+            }
+        }
+
+        .amount {
+            // font-size: 0.8em;
+            // color: rgba(255, 255, 255, 0.5);
+            opacity: 0.8;
+            &[data-amount="0"] {
+                opacity: 0.5;
+            }
+        }
     }
     .video-block-content {
         padding: 1em;
+        &.no-padding {
+            padding: 0;
+        }
     }
 }
 

@@ -8,7 +8,7 @@
 
 ⚠️⚠️⚠️
 
-*Until Twitch implements websocket eventsub, a public facing HTTPS server is required for this application to function.*
+*Until Twitch changes the max quota on Websocket Eventsubs, a public facing HTTPS server is required for this application to function.*
 
 A reverse proxy is a good way to get around this:
 - [Nginx](https://www.nginx.com/)
@@ -27,6 +27,7 @@ etc. I have only tested this with Nginx and letsencrypt.
     - Because of notification delays, the stream usually starts capturing after ~2 minutes after the stream goes live.
 - Cyclic recording, as in when a specified amount or storage per streamer is reached, the oldest stream gets deleted.
 - Tons of metadata, maybe too much. Stores info about games played, stream titles, duration, if the stream got muted from copyrighted music, etc.
+- Viewer count logging with graphs.
 - Chapters (titles and games) are written to the final video file.
 - [Video player](https://github.com/MrBrax/twitch-vod-chat) with chat playback.
 - Video cutter with chapter display for easy exporting, also cuts the downloaded chat for synced rendering.
@@ -39,6 +40,7 @@ etc. I have only tested this with Nginx and letsencrypt.
 - Can be set to automatically download the whole stream chat to a JSON file, to be used in my [twitch-vod-chat](https://github.com/MrBrax/twitch-vod-chat) webapp or automatically burned in with [TwitchDownloader](https://github.com/lay295/TwitchDownloader).
 - Basic webhook support for external scripting.
 - Notifications over the browser, telegram, pushover, and discord.
+- Mobile friendly site with PWA.
 - Exporting of videos to external file, SFTP, and YouTube.
     - Can be enabled for all finished captures
     - Can be run for an entire channel at once
@@ -56,10 +58,6 @@ Thanks to the contributors that helped expand the project!
 </a>
 
 ---
-
-## Migration from the PHP version
-Move the folders `cache`,  `config`, `logs`, `payloads`, and `storage` to a new folder called `data` in the root of the application, or place them anywhere else on the filesystem and use the `--dataroot` argument to tell the server where to look for them.
-
 ## Docker setup
 
 Reminder that I don't use docker myself on my capturing setup, so any specific errors to this are hard to test.

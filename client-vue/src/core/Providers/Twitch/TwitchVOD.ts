@@ -88,6 +88,7 @@ export default class TwitchVOD extends BaseVOD {
         vod.cloud_storage = apiResponse.cloud_storage || false;
         vod.exportData = apiResponse.export_data || {};
         vod.viewers = apiResponse.viewers ? apiResponse.viewers.map(entry => { return { timestamp: new Date(entry.timestamp), amount: entry.amount } }) : [];
+        vod.stream_pauses = apiResponse.stream_pauses ? apiResponse.stream_pauses.map(entry => ({ start: new Date(entry.start), end: new Date(entry.end) })) : [];
         return vod;
     }
 

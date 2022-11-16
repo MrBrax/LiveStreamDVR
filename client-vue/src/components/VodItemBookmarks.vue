@@ -5,66 +5,86 @@
         class="video-block video-bookmarks"
         aria-label="Bookmarks"
     >
-        <div class="video-block-header">
-            <h4>{{ t('vod.bookmarks') }}</h4>
+        <div
+            class="video-block-header collapsible"
+            aria-role="button"
+            @click="isCollapsed = !isCollapsed"
+        >
+            <h4>
+                <span class="icon">
+                    <font-awesome-icon :icon="isCollapsed ? 'chevron-down' : 'chevron-up'" />
+                </span>
+                {{ t('vod.bookmarks') }} <span
+                    class="amount"
+                    :data-amount="vod.bookmarks.length"
+                >({{ vod.bookmarks.length }})</span>
+            </h4>
         </div>
-        <div class="video-block-content">
-            <ul
-                v-if="vod.bookmarks && vod.bookmarks.length > 0"
-                class="list-segments"
+        <transition name="blinds">
+            <div
+                v-if="!isCollapsed"
+                class="video-block-content"
             >
-                <li
-                    v-for="(bookmark, i) in vod.bookmarks"
-                    :key="i"
+                <ul
+                    v-if="vod.bookmarks && vod.bookmarks.length > 0"
+                    class="list-segments"
                 >
-                    {{ formatDuration(bookmark.offset || 0) }} - {{ bookmark.name }}
-                    <button
-                        class="icon-button"
-                        @click="doDeleteBookmark(i)"
+                    <li
+                        v-for="(bookmark, i) in vod.bookmarks"
+                        :key="i"
                     >
-                        <span class="icon"><font-awesome-icon icon="xmark" /></span>
-                    </button>
-                </li>
-            </ul>
+                        <router-link :to="playerLink(bookmark)">
+                            {{ formatDuration(bookmark.offset || 0) }} - {{ bookmark.name }}
+                        </router-link>
+                        &nbsp;
+                        <button
+                            class="icon-button"
+                            @click="doDeleteBookmark(i)"
+                        >
+                            <span class="icon"><font-awesome-icon icon="xmark" /></span>
+                        </button>
+                    </li>
+                </ul>
 
-            <details class="details">
-                <summary>Create</summary>
-                <div class="field">
-                    <label
-                        class="label"
-                        :for="'name.' + vod.uuid"
-                    >Name</label>
-                    <input
-                        :id="'name.' + vod.uuid"
-                        v-model="newBookmark.name"
-                        class="input"
-                        type="text"
+                <details class="details">
+                    <summary>Create</summary>
+                    <div class="field">
+                        <label
+                            class="label"
+                            :for="'name.' + vod.uuid"
+                        >Name</label>
+                        <input
+                            :id="'name.' + vod.uuid"
+                            v-model="newBookmark.name"
+                            class="input"
+                            type="text"
+                        >
+                    </div>
+                    <div
+                        v-if="vod.is_finalized"
+                        class="field"
                     >
-                </div>
-                <div
-                    v-if="vod.is_finalized"
-                    class="field"
-                >
-                    <label
-                        class="label"
-                        :for="'offset.' + vod.uuid"
-                    >Offset</label>
-                    <input
-                        :id="'offset.' + vod.uuid"
-                        v-model="newBookmark.offset"
-                        class="input"
-                        type="number"
+                        <label
+                            class="label"
+                            :for="'offset.' + vod.uuid"
+                        >Offset</label>
+                        <input
+                            :id="'offset.' + vod.uuid"
+                            v-model="newBookmark.offset"
+                            class="input"
+                            type="number"
+                        >
+                    </div>
+                    <button
+                        class="button is-small is-confirm"
+                        @click="doMakeBookmark"
                     >
-                </div>
-                <button
-                    class="button is-small is-confirm"
-                    @click="doMakeBookmark"
-                >
-                    <span class="icon"><font-awesome-icon icon="plus" /></span>
-                    <span>Create</span>
-                </button>
-            </details>
-        </div>
+                        <span class="icon"><font-awesome-icon icon="plus" /></span>
+                        <span>Create</span>
+                    </button>
+                </details>
+            </div>
+        </transition>
     </div>
 </template>
 
@@ -72,10 +92,11 @@
 import { useStore } from '@/store';
 import type { ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
-import { formatDuration } from "@/mixins/newhelpers";
-import { ref } from 'vue';
+import { formatDuration, isTwitchVOD } from "@/mixins/newhelpers";
+import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { VODTypes } from '@/twitchautomator';
+import type { TwitchVODBookmark } from "@common/Bookmark";
 
 const props = defineProps({
     vod: {
@@ -87,6 +108,13 @@ const props = defineProps({
 
 const store = useStore();
 const { t } = useI18n();
+
+const isCollapsed = ref<boolean>(true);
+
+onMounted(() => {
+    if (!isTwitchVOD(props.vod)) return;
+    isCollapsed.value = props.vod.bookmarks.length == 0 ? true : store.videoBlockShow.bookmarks;
+});
 
 const newBookmark = ref({
     name: "",
@@ -121,11 +149,26 @@ function doDeleteBookmark(i: number) {
     });
 }
 
+function playerLink(bookmark: TwitchVODBookmark) {
+    if (!props.vod) return;
+    return {
+        name: "Editor",
+        params: {
+            uuid: props.vod.uuid,
+        },
+        query: {
+            start: bookmark.offset,
+        },
+    };
+    // return `/player/${props.vod.uuid}?bookmark=${bookmark.offset}`;
+}
+
 </script>
 
 <style lang="scss" scoped>
 .video-bookmarks {
-    background-color: var(--video-bookmarks-background-color);
+    // background-color: var(--video-bookmarks-background-color);
+    background-color: var(--video-block-background-color);
     // border-top: 1px solid #d6dbf2;
     // border-left: 1px solid #e3e3e3;
     // border-right: 1px solid #e3e3e3;
