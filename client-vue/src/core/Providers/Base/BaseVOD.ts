@@ -74,6 +74,13 @@ export default class BaseVOD {
         return this.segments.findIndex(s => s.deleted) !== -1;
     }
 
+    get totalPausedTime(): number {
+        return this.stream_pauses.reduce((acc, pause) => {
+            const duration = pause.end.getTime() - pause.start.getTime();
+            return acc + duration;
+        }, 0);
+    }
+
     public getDuration() {
         return this.duration;
     }
