@@ -18,17 +18,14 @@ export interface SoftwareCallback {
 export interface AboutData {
     is_docker: boolean;
     bins: {
-        ffmpeg: SoftwareCallback;
-        mediainfo: SoftwareCallback;
-        tcd: SoftwareCallback;
-        streamlink: SoftwareCallback;
-        youtubedl: SoftwareCallback;
-        pipenv: SoftwareCallback;
-        python: SoftwareCallback;
-        python3: SoftwareCallback;
-        twitchdownloader: SoftwareCallback;
-        php: SoftwareCallback;
-        node: SoftwareCallback;
+        [key: string]: BinaryStatus;
     };
     pip: Record<string, { comparator: string; version: string; }>;
+}
+
+export interface BinaryStatus {
+    path?: string;
+    status?: string;
+    version?: string;
+    min_version?: string;
 }

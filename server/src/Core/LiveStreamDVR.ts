@@ -1,15 +1,21 @@
 import chalk from "chalk";
 import { compareVersions } from "compare-versions";
+import minimist from "minimist";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import { Server } from "node:http";
-import minimist from "minimist";
 // import { version } from "node:os";
-import path from "node:path";
-import { WebSocketServer, WebSocket } from "ws";
+import type { BinaryStatus } from "@common/Api/About";
 import { ChannelConfig } from "@common/Config";
 import { SubStatus } from "@common/Defs";
+import checkDiskSpace from "check-disk-space";
+import path from "node:path";
+import { WebSocket, WebSocketServer } from "ws";
 import { version } from "../../package.json";
+import { formatBytes } from "../Helpers/Format";
+import { DVRBinaries, DVRPipPackages, getBinaryVersion } from "../Helpers/Software";
+import { TwitchHelper } from "../Providers/Twitch";
+import { YouTubeHelper } from "../Providers/YouTube";
 import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath, DataRoot, HomeRoot } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
@@ -18,18 +24,14 @@ import { Job } from "./Job";
 import { KeyValue } from "./KeyValue";
 import { Log } from "./Log";
 import { BaseVODChapter } from "./Providers/Base/BaseVODChapter";
-import { TwitchHelper } from "../Providers/Twitch";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
+import { TwitchGame } from "./Providers/Twitch/TwitchGame";
 import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
 import { TwitchVODChapter } from "./Providers/Twitch/TwitchVODChapter";
 import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 import { YouTubeVOD } from "./Providers/YouTube/YouTubeVOD";
 import { Scheduler } from "./Scheduler";
 import { Webhook } from "./Webhook";
-import checkDiskSpace from "check-disk-space";
-import { TwitchGame } from "./Providers/Twitch/TwitchGame";
-import { YouTubeHelper } from "../Providers/YouTube";
-import { formatBytes } from "../Helpers/Format";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -141,6 +143,8 @@ export class LiveStreamDVR {
 
         await LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
         LiveStreamDVR.getInstance().startDiskSpaceInterval();
+
+        LiveStreamDVR.checkBinaryVersions();
 
         // monitor for program exit
         // let saidGoobye = false;
@@ -578,6 +582,13 @@ export class LiveStreamDVR {
             }
         }
 
+        for (const bin in this.binaryVersions) {
+            const d = this.binaryVersions[bin];
+            if (d.status !== "ok") {
+                errors.push(`Binary ${bin} (${d.version}/${d.min_version}) is not ok: ${d.status}`);
+            }
+        }
+
         if (Config.debug) {
 
             for (const vod of LiveStreamDVR.getInstance().getVods()) {
@@ -654,5 +665,32 @@ export class LiveStreamDVR {
         if (this.getVods().some(v => v.is_converting)) return false;
         if (Job.jobs.length > 0) return false;
         return true;
+    }
+
+    public static binaryVersions: Record<string, BinaryStatus> = {};
+    public static async checkBinaryVersions() {
+        const bins = DVRBinaries();
+        const pkgs = DVRPipPackages();
+        for (const key in bins) {
+            const binary = bins[key];
+            if (binary.on_boot) {
+                const ret = await getBinaryVersion("bin", key);
+                if (ret) {
+                    LiveStreamDVR.binaryVersions[key] = ret;
+                    console.log(`Binary ${key} version: ${ret.version}`);
+                }
+            }
+        }
+        for (const key in pkgs) {
+            const binary = pkgs[key];
+            if (binary.on_boot) {
+                const ret = await getBinaryVersion("pip", key);
+                if (ret) {
+                    LiveStreamDVR.binaryVersions[key] = ret;
+                    console.log(`Pip package ${key} version: ${ret.version}`);
+                }
+            }
+        }
+
     }
 }
