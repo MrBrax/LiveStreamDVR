@@ -63,6 +63,8 @@ beforeAll(() => {
     jest.spyOn(KeyValue.prototype, "load").mockImplementation(() => { return; });
     jest.spyOn(LiveStreamDVR.prototype, "loadChannelsConfig").mockImplementation(() => { return true; });
     jest.spyOn(LiveStreamDVR.prototype, "saveChannelsConfig").mockImplementation(() => { return true; });
+    jest.spyOn(LiveStreamDVR.prototype, "startDiskSpaceInterval").mockImplementation(() => { return true; });
+    jest.spyOn(LiveStreamDVR, "checkBinaryVersions").mockImplementation(() => { return Promise.resolve(); });
     jest.spyOn(LiveStreamDVR, "checkVersion").mockImplementation(() => { return; });
     jest.spyOn(Log, "logAdvanced").mockImplementation((level, module, text, meta) => {
         console.log(`[TEST][${level}] ${module}: ${text}`);
