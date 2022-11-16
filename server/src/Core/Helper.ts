@@ -697,6 +697,8 @@ export class Helper {
                 throw new Error("No cached data from mediainfo");
             }
 
+            Log.logAdvanced(Log.Level.DEBUG, "helper.videometadata", `Read cached mediainfo of ${filename}`);
+
         } else {
 
             try {
@@ -716,6 +718,8 @@ export class Helper {
             }
 
             fs.writeFileSync(dataPath, JSON.stringify(data));
+
+            Log.logAdvanced(Log.Level.DEBUG, "helper.videometadata", `Wrote cached mediainfo of ${filename}`);
 
         }
 
@@ -829,7 +833,7 @@ export class Helper {
 
     public static async videoThumbnail(filename: string, width: number, offset = 5000): Promise<string> {
 
-        Log.logAdvanced(Log.Level.INFO, "helper.thumbnail", `Run ffmpeg on ${filename}`);
+        Log.logAdvanced(Log.Level.INFO, "helper.videoThumbnail", `Requested video thumbnail of ${filename}`);
 
         if (!filename) {
             throw new Error("No filename supplied for thumbnail");
@@ -848,6 +852,7 @@ export class Helper {
         const output_image = path.join(BaseConfigCacheFolder.public_cache_thumbs, `${filenameHash}.${Config.getInstance().cfg<string>("thumbnail_format", "jpg")}`);
 
         if (fs.existsSync(output_image)) {
+            Log.logAdvanced(Log.Level.DEBUG, "helper.videoThumbnail", `Thumbnail already exists for ${filename}, returning cached version`);
             return path.basename(output_image);
         }
 
@@ -863,8 +868,10 @@ export class Helper {
         ], "ffmpeg video thumbnail");
 
         if (output && fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
+            Log.logAdvanced(Log.Level.SUCCESS, "helper.videoThumbnail", `Created video thumbnail for ${filename}`);
             return path.basename(output_image);
         } else {
+            Log.logAdvanced(Log.Level.ERROR, "helper.videoThumbnail", `Failed to create video thumbnail for ${filename}`);
             throw new Error("No output from ffmpeg");
         }
 
@@ -872,19 +879,19 @@ export class Helper {
 
     public static async imageThumbnail(filename: string, width: number): Promise<string> {
 
-        Log.logAdvanced(Log.Level.INFO, "helper.thumbnail", `Run thumbnail on ${filename}`);
+        Log.logAdvanced(Log.Level.INFO, "helper.imageThumbnail", `Run thumbnail on ${filename}`);
 
         if (!filename) {
             throw new Error("No filename supplied for thumbnail");
         }
 
         if (!fs.existsSync(filename)) {
-            Log.logAdvanced(Log.Level.ERROR, "helper.thumbnail", `File not found for image thumbnail: ${filename}`);
+            Log.logAdvanced(Log.Level.ERROR, "helper.imageThumbnail", `File not found for image thumbnail: ${filename}`);
             throw new Error(`File not found for image thumbnail: ${filename}`);
         }
 
         if (fs.statSync(filename).size == 0) {
-            Log.logAdvanced(Log.Level.ERROR, "helper.thumbnail", `Filesize is 0 for image thumbnail: ${filename}`);
+            Log.logAdvanced(Log.Level.ERROR, "helper.imageThumbnail", `Filesize is 0 for image thumbnail: ${filename}`);
             throw new Error(`Filesize is 0 for image thumbnail: ${filename}`);
         }
 
@@ -896,13 +903,13 @@ export class Helper {
         const output_image = path.join(BaseConfigCacheFolder.public_cache_thumbs, `${fileHash}.${thumbnail_format}`);
 
         if (fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
-            Log.logAdvanced(Log.Level.DEBUG, "helper.thumbnail", `Found existing thumbnail for ${filename}`);
+            Log.logAdvanced(Log.Level.DEBUG, "helper.imageThumbnail", `Found existing thumbnail for ${filename}`);
             return path.basename(output_image);
         }
 
         if (fs.existsSync(output_image) && fs.statSync(output_image).size === 0) {
             // console.debug("Existing thumbnail filesize is 0, removing file");
-            Log.logAdvanced(Log.Level.DEBUG, "helper.thumbnail", `Existing thumbnail filesize is 0, removing file: ${output_image}`);
+            Log.logAdvanced(Log.Level.DEBUG, "helper.imageThumbnail", `Existing thumbnail filesize is 0, removing file: ${output_image}`);
             fs.unlinkSync(output_image); // remove empty file
         }
 
@@ -932,7 +939,7 @@ export class Helper {
                 output_image,
             ], "ffmpeg image thumbnail");
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "helper.thumbnail", `Failed to create thumbnail: ${error}`, error);
+            Log.logAdvanced(Log.Level.ERROR, "helper.imageThumbnail", `Failed to create thumbnail: ${error}`, error);
             throw error;
         }
 
@@ -943,7 +950,7 @@ export class Helper {
         if (output && fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
             return path.basename(output_image);
         } else {
-            Log.logAdvanced(Log.Level.ERROR, "helper.thumbnail", `Failed to create thumbnail for ${filename}`, output);
+            Log.logAdvanced(Log.Level.ERROR, "helper.imageThumbnail", `Failed to create thumbnail for ${filename}`, output);
             throw new Error("No output from ffmpeg");
         }
 

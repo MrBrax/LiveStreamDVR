@@ -504,4 +504,8 @@ export class BaseChannel {
         }
     }
 
+    get channelLogoExists(): boolean {
+        throw new Error("Method not implemented.");
+    }
+
 }

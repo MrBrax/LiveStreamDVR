@@ -17,6 +17,7 @@ import { encode as htmlentities } from "html-entities";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { pipeline } from "node:stream/promises";
 import { Readable } from "stream";
 import { formatBytes } from "../../../Helpers/Format";
 import { isTwitchChannel } from "../../../Helpers/Types";
@@ -922,10 +923,11 @@ export class TwitchChannel extends BaseChannel {
         for (const file of files) {
             if (!file.endsWith(".mp4")) continue;
             if (allVodFiles.includes(path.basename(file))) continue;
-            console.debug(`Adding local video ${file} for channel ${this.internalName}`);
+            // console.debug(`Adding local video ${file} for channel ${this.internalName}`);
             this.addLocalVideo(path.basename(file));
         }
-        console.log(`Added ${this.video_list.length} local videos to ${this.internalName}`);
+        // console.log(`Added ${this.video_list.length} local videos to ${this.internalName}`);
+        Log.logAdvanced(Log.Level.INFO, "channel", `Added ${this.video_list.length} local videos to ${this.internalName}`);
     }
 
     /**
@@ -978,19 +980,9 @@ export class TwitchChannel extends BaseChannel {
             Log.logAdvanced(Log.Level.WARNING, "channel", `Channel ${channel.login} has stale chapter data.`);
         }
 
-        /*
-            $subfile = TwitchHelper::$cache_folder . DIRECTORY_SEPARATOR . "subs.json";
-            if (file_exists($subfile)) {
-                $sub_data = json_decode(file_get_contents($subfile), true);
-                if (isset($sub_data[$channel->display_name])) {
-                    if (isset($sub_data[$channel->display_name]['subbed_at']))
-                        $channel->subbed_at = \DateTime::createFromFormat(TwitchHelper::DATE_FORMAT, $sub_data[$channel->display_name]['subbed_at']);
-
-                    if (isset($sub_data[$channel->display_name]['expires_at']))
-                        $channel->expires_at = \DateTime::createFromFormat(TwitchHelper::DATE_FORMAT, $sub_data[$channel->display_name]['expires_at']);
-                }
-            }
-        */
+        if (channel.channel_data.profile_image_url && !channel.channelLogoExists) {
+            await this.fetchChannelLogo(channel.channel_data);
+        }
 
         // $channel->api_getSubscriptionStatus = $channel->getSubscriptionStatus();
 
@@ -1402,62 +1394,7 @@ export class TwitchChannel extends BaseChannel {
 
         // download channel logo
         if (userData.profile_image_url) {
-            const logo_filename = `${userData.id}${path.extname(userData.profile_image_url)}`;
-            const logo_path = path.join(BaseConfigCacheFolder.public_cache_avatars, logo_filename);
-            if (fs.existsSync(logo_path)) {
-                fs.unlinkSync(logo_path);
-                Log.logAdvanced(Log.Level.DEBUG, "channel", `Deleted old avatar for ${userData.id}`);
-            }
-            let avatar_response: AxiosResponse<Readable> | undefined;
-            try {
-                avatar_response = await axios({
-                    url: userData.profile_image_url,
-                    method: "GET",
-                    responseType: "stream",
-                });
-            } catch (error) {
-                Log.logAdvanced(Log.Level.ERROR, "channel", `Could not download user logo for ${userData.id}: ${(error as Error).message}`, error);
-            }
-            if (avatar_response) {
-                Log.logAdvanced(Log.Level.DEBUG, "channel", `Fetched avatar for ${userData.id}`);
-                // const ws = fs.createWriteStream(logo_path);
-                // avatar_response.data.pipe(ws);
-                // ws.close();
-
-                // const s = fs.createWriteStream(logo_path);
-                // avatar_response.data.pipe(s);
-
-                // async write stream
-                const stream = fs.createWriteStream(logo_path);
-                await new Promise((resolve, reject) => {
-                    if (avatar_response) avatar_response.data.pipe(stream);
-                    stream.on("finish", resolve);
-                    stream.on("error", reject);
-                });
-
-                Log.logAdvanced(Log.Level.DEBUG, "channel", `Saved avatar for ${userData.id}`);
-
-                if (fs.existsSync(logo_path) && fs.statSync(logo_path).size > 0) {
-                    userData.cache_avatar = logo_filename;
-
-                    Log.logAdvanced(Log.Level.DEBUG, "channel", `Create thumbnail for ${userData.id}`);
-
-                    let avatar_thumbnail;
-                    try {
-                        avatar_thumbnail = await Helper.imageThumbnail(logo_path, 64);
-                    } catch (error) {
-                        Log.logAdvanced(Log.Level.ERROR, "channel", `Could not create thumbnail for user logo for ${userData.id}: ${(error as Error).message}`, error);
-                    }
-
-                    if (avatar_thumbnail) {
-                        userData.cache_avatar = avatar_thumbnail;
-                        Log.logAdvanced(Log.Level.DEBUG, "channel", `Created thumbnail for user logo for ${userData.id}`);
-                    }
-                } else {
-                    Log.logAdvanced(Log.Level.ERROR, "channel", `Could not find downloaded avatar for ${userData.id}`);
-                }
-
-            }
+            await TwitchChannel.fetchChannelLogo(userData);
         } else {
             Log.logAdvanced(Log.Level.WARNING, "channel", `User ${userData.id} has no profile image url`);
         }
@@ -1487,12 +1424,84 @@ export class TwitchChannel extends BaseChannel {
         }
 
         // insert into memory and save to file
-        console.debug(`Inserting user data for ${method} ${identifier} into cache and file`);
+        // console.debug(`Inserting user data for ${method} ${identifier} into cache and file`);
         TwitchChannel.channels_cache[userData.id] = userData;
         fs.writeFileSync(BaseConfigPath.streamerCache, JSON.stringify(TwitchChannel.channels_cache));
 
         return userData;
 
+    }
+
+    private static async fetchChannelLogo(userData: UserData) {
+
+        Log.logAdvanced(Log.Level.INFO, "channel", `Fetching channel logo for ${userData.id}`);
+
+        const logo_filename = `${userData.id}${path.extname(userData.profile_image_url)}`;
+
+        const logo_path = path.join(BaseConfigCacheFolder.public_cache_avatars, logo_filename);
+
+        if (fs.existsSync(logo_path)) {
+            fs.unlinkSync(logo_path);
+            Log.logAdvanced(Log.Level.DEBUG, "channel", `Deleted old avatar for ${userData.id}`);
+        }
+
+        let avatar_response: AxiosResponse<Readable> | undefined;
+
+        try {
+            avatar_response = await axios({
+                url: userData.profile_image_url,
+                method: "GET",
+                responseType: "stream",
+            });
+        } catch (error) {
+            Log.logAdvanced(Log.Level.ERROR, "channel", `Could not download user logo for ${userData.id}: ${(error as Error).message}`, error);
+        }
+
+        if (avatar_response) {
+            Log.logAdvanced(Log.Level.DEBUG, "channel", `Fetched avatar for ${userData.id}`);
+
+            // const stream = fs.createWriteStream(logo_path);
+
+            /*
+            await new Promise((resolve, reject) => {
+                if (avatar_response)
+                    avatar_response.data.pipe(stream);
+                stream.on("finish", resolve);
+                stream.on("error", reject);
+            });
+            */
+
+            await pipeline(avatar_response.data, fs.createWriteStream(logo_path));
+
+            Log.logAdvanced(Log.Level.DEBUG, "channel", `Saved avatar for ${userData.id}`);
+
+            if (fs.existsSync(logo_path) && fs.statSync(logo_path).size > 0) {
+                userData.cache_avatar = logo_filename;
+
+
+                // make thumbnails
+
+                Log.logAdvanced(Log.Level.DEBUG, "channel", `Create thumbnail for ${userData.id}`);
+
+                let avatar_thumbnail;
+                try {
+                    avatar_thumbnail = await Helper.imageThumbnail(logo_path, 64);
+                } catch (error) {
+                    Log.logAdvanced(Log.Level.ERROR, "channel", `Could not create thumbnail for user logo for ${userData.id}: ${(error as Error).message}`, error);
+                }
+
+                if (avatar_thumbnail) {
+                    userData.cache_avatar = avatar_thumbnail;
+                    Log.logAdvanced(Log.Level.DEBUG, "channel", `Created thumbnail for user logo for ${userData.id}`);
+                }
+
+                TwitchChannel.channels_cache[userData.id] = userData; // TODO: is this a good idea
+
+            } else {
+                Log.logAdvanced(Log.Level.ERROR, "channel", `Could not find downloaded avatar for ${userData.id}`);
+            }
+
+        }
     }
 
     /**
@@ -2021,6 +2030,13 @@ export class TwitchChannel extends BaseChannel {
             }
         }
         return this.channel_data?.profile_image_url || "";
+    }
+
+    get channelLogoExists(): boolean {
+        if (!this.channel_data) return false;
+        // const logo_filename_jpg = `${this.channel_data.id}${path.extname(this.channel_data.profile_image_url)}`;
+        return fs.existsSync(path.join(BaseConfigCacheFolder.public_cache_avatars, `${this.channel_data.id}.jpg`)) ||
+            fs.existsSync(path.join(BaseConfigCacheFolder.public_cache_avatars, `${this.channel_data.id}.png`));
     }
 
     public static async subscribeToAllChannels() {
