@@ -4,9 +4,9 @@ import { ExporterOptions } from "@common/Exporter";
 import { formatString } from "@common/Format";
 import { VodBasenameTemplate } from "@common/Replacements";
 import { ChannelUpdateEvent } from "@common/TwitchAPI/EventSub/ChannelUpdate";
+import type { StreamPause } from "@common/Vod";
 import chalk from "chalk";
 import { format, formatDistanceToNow, isValid, parseJSON } from "date-fns";
-import { formatBytes } from "../../../Helpers/Format";
 import { spawn } from "node:child_process";
 import fs from "node:fs";
 import { IncomingHttpHeaders } from "node:http";
@@ -14,6 +14,7 @@ import path from "node:path";
 import sanitize from "sanitize-filename";
 import { TwitchVODChapterJSON } from "Storage/JSON";
 import { Exporter, GetExporter } from "../../../Controllers/Exporter";
+import { formatBytes } from "../../../Helpers/Format";
 import { Sleep } from "../../../Helpers/Sleep";
 import { isTwitchVOD, isTwitchVODChapter } from "../../../Helpers/Types";
 import { RemuxReturn } from "../../../Providers/Twitch";
@@ -810,6 +811,7 @@ export class BaseAutomator {
     }
 
     private chunks_missing = 0;
+    private stream_pause?: Partial<StreamPause>;
     public captureTicker(source: "stdout" | "stderr", raw_data: Buffer) {
 
         const basename = this.vodBasenameTemplate();
@@ -891,6 +893,37 @@ export class BaseAutomator {
             if (this.vod) {
                 this.vod.capture_started2 = new Date();
                 this.vod.broadcastUpdate();
+            }
+        }
+
+        if (data.includes("Waiting for pre-roll ads to finish")) {
+            Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", "Streamlink waiting for pre-roll ads to finish.");
+
+        }
+
+        if (data.includes("Filtering out segments and pausing stream output")) {
+            Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", "Streamlink filtering out segments and pausing stream output.");
+            // create ad object
+            this.stream_pause = { start: new Date() };
+            if (this.vod) {
+                this.vod.is_capture_paused = true;
+                this.vod.broadcastUpdate();
+            }
+        }
+
+        if (data.includes("Resuming stream output")) {
+            Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", "Streamlink resuming stream output.");
+            // end ad object
+            if (this.stream_pause && this.stream_pause.start) {
+                this.stream_pause.end = new Date();
+                if (this.vod) {
+                    const duration = Math.round((this.stream_pause.end.getTime() - this.stream_pause.start.getTime()) / 1000);
+                    Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", `Pause detected for ${basename}, ${duration}s long.`);
+                    this.vod.stream_pauses.push(this.stream_pause as StreamPause); // cool hack
+                    this.vod.is_capture_paused = false;
+                    this.vod.broadcastUpdate();
+                }
+                this.stream_pause = undefined;
             }
         }
 

@@ -82,7 +82,7 @@ export interface ApiBaseVod {
     path_chatburn: string;
     path_chatdump: string;
     path_chatmask: string;
-    path_adbreak: string;
+    // path_adbreak: string;
     path_playlist: string;
     duration_live: number | false;
     duration: number;
@@ -105,6 +105,7 @@ export interface ApiBaseVod {
     export_data?: ExportData;
 
     viewers: { amount: number; timestamp: string }[];
+    stream_pauses: { start: string; end: string }[];
 
 }
 

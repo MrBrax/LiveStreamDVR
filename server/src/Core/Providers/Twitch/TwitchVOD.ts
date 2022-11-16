@@ -769,7 +769,7 @@ export class TwitchVOD extends BaseVOD {
             path_chatburn: this.path_chatburn,
             path_chatdump: this.path_chatdump,
             path_chatmask: this.path_chatmask,
-            path_adbreak: this.path_adbreak,
+            // path_adbreak: this.path_adbreak,
             path_playlist: this.path_playlist,
 
             duration_live: this.getDurationLive(),
@@ -801,6 +801,7 @@ export class TwitchVOD extends BaseVOD {
             export_data: this.exportData,
 
             viewers: this.viewers.map((v) => { return { timestamp: v.timestamp.toISOString(), amount: v.amount }; }),
+            stream_pauses: this.stream_pauses.map((v) => { return { start: v.start.toISOString(), end: v.end.toISOString() }; }),
 
             // game_offset: this.game_offset || 0,
             // twitch_vod_url: this.twitch_vod_url,
@@ -910,7 +911,11 @@ export class TwitchVOD extends BaseVOD {
 
         generated.export_data = this.exportData;
 
-        generated.viewers = this.viewers;
+        generated.viewers = this.viewers.map((viewer) => ({ timestamp: viewer.timestamp.toJSON(), amount: viewer.amount }));
+
+        generated.stream_pauses = this.stream_pauses.flatMap((pause) => {
+            return pause.start && pause.end ? [{ start: pause.start.toJSON(), end: pause.end.toJSON() }] : [];
+        });
 
         // generated.twitch_vod_status = this.twitch_vod_status;
 

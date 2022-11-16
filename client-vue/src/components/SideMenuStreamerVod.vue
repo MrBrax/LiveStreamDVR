@@ -18,46 +18,62 @@
         }"
         :title="vod.started_at ? formatDate(vod.started_at) : 'Unknown'"
     >
-        <!-- capturing -->
-        <span
-            v-if="vod.is_capturing && store.sidemenuShow.vod_icon"
-            class="icon"
-        ><fa
-            icon="sync"
-            spin
-        /></span>
+        <!--
+            ICON
+        -->
+        <template v-if="store.sidemenuShow.vod_icon">
+            <!-- paused -->
+            <span
+                v-if="vod.is_capturing && vod.is_capture_paused"
+                class="icon"
+            ><font-awesome-icon icon="pause" /></span>
+            
+            <!-- capturing -->
+            <span
+                v-else-if="vod.is_capturing"
+                class="icon"
+            ><fa
+                icon="sync"
+                spin
+            /></span>
 
-        <!-- converting -->
-        <span
-            v-else-if="vod.is_converting && store.sidemenuShow.vod_icon"
-            class="icon"
-        ><fa
-            icon="cog"
-            spin
-        /></span>
+            <!-- converting -->
+            <span
+                v-else-if="vod.is_converting"
+                class="icon"
+            ><fa
+                icon="cog"
+                spin
+            /></span>
 
-        <!-- favourite -->
-        <span
-            v-else-if="isTwitchVOD(vod) && vod.hasFavouriteGame() && store.sidemenuShow.vod_icon"
-            class="icon"
-        ><font-awesome-icon icon="star" /></span>
+            <!-- favourite -->
+            <span
+                v-else-if="isTwitchVOD(vod) && vod.hasFavouriteGame()"
+                class="icon"
+            ><font-awesome-icon icon="star" /></span>
 
-        <span
-            v-else-if="(vod.failed || vod.hasError()) && store.sidemenuShow.vod_icon"
-            class="icon is-error"
-        ><font-awesome-icon icon="exclamation-triangle" /></span>
+            <!-- failed -->
+            <span
+                v-else-if="(vod.failed || vod.hasError())"
+                class="icon is-error"
+            ><font-awesome-icon icon="exclamation-triangle" /></span>
 
-        <!-- waiting after capture -->
-        <span
-            v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized && store.sidemenuShow.vod_icon"
-            class="icon"
-        ><font-awesome-icon :icon="['far', 'hourglass']" /></span>
+            <!-- waiting after capture -->
+            <span
+                v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized"
+                class="icon"
+            ><font-awesome-icon :icon="['far', 'hourglass']" /></span>
 
-        <!-- video -->
-        <span
-            v-else-if="vod.is_finalized && store.sidemenuShow.vod_icon"
-            class="icon"
-        ><font-awesome-icon :icon="fileIcon(vod)" /></span>
+            <!-- video -->
+            <span
+                v-else-if="vod.is_finalized"
+                class="icon"
+            ><font-awesome-icon :icon="fileIcon(vod)" /></span>
+        </template>
+
+        <!--
+            TEXT
+        -->
 
         <!-- basename -->
         <span v-if="store.sidemenuShow.vod_basename">{{ vod.basename }}</span>
@@ -165,13 +181,6 @@
                     title="Muted"
                 ><font-awesome-icon icon="volume-mute" /></span>
 
-                <!-- capturing paused -->
-                <span
-                    v-if="vod.is_capture_paused"
-                    class="icon is-error"
-                    title="Paused"
-                ><font-awesome-icon icon="pause" /></span>
-
                 <!-- prevent deletion -->
                 <span
                     v-if="vod.prevent_deletion"
@@ -246,9 +255,9 @@ import { isTwitchVOD } from "@/mixins/newhelpers";
 import { formatDate, formatBytes, humanDuration, niceDuration, humanDate } from "@/mixins/newhelpers";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faTrash, faVolumeMute } from "@fortawesome/free-solid-svg-icons";
+import { faTrash, faVolumeMute, faPause } from "@fortawesome/free-solid-svg-icons";
 import type { ChannelTypes, VODTypes } from "@/twitchautomator";
-library.add(faTrash, faVolumeMute);
+library.add(faTrash, faVolumeMute, faPause);
 
 const store = useStore();
 

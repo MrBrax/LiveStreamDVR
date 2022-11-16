@@ -88,7 +88,7 @@ export class YouTubeVOD extends BaseVOD {
             path_chatburn: this.path_chatburn,
             path_chatdump: this.path_chatdump,
             path_chatmask: this.path_chatmask,
-            path_adbreak: this.path_adbreak,
+            // path_adbreak: this.path_adbreak,
             path_playlist: this.path_playlist,
 
             duration_live: this.getDurationLive(),
@@ -113,6 +113,7 @@ export class YouTubeVOD extends BaseVOD {
             failed: this.failed,
 
             viewers: this.viewers.map((v) => { return { timestamp: v.timestamp.toISOString(), amount: v.amount }; }),
+            stream_pauses: this.stream_pauses.map((v) => { return { start: v.start.toISOString(), end: v.end.toISOString() }; }),
 
             // bookmarks: this.bookmarks,
 

@@ -4,7 +4,7 @@ import type { MuteStatus, Providers } from "@common/Defs";
 import type { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
 import type { TwitchVODBookmark } from "@common/Bookmark";
 import type { ExportData } from "@common/Exporter";
-import type { VodViewerEntry } from "@common/Vod";
+import type { VodViewerEntry, StreamPause } from "@common/Vod";
 
 export interface VODJSON {
 
@@ -55,7 +55,10 @@ export interface VODJSON {
 
     export_data?: ExportData;
 
-    viewers?: VodViewerEntry[];
+    // viewers?: VodViewerEntry[];
+    viewers?: { timestamp: string; amount: number }[];
+    // stream_pauses?: StreamPause[];
+    stream_pauses?: { start?: string; end?: string }[];
 
 }
 export interface TwitchVODJSON extends VODJSON {
