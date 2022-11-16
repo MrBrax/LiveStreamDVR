@@ -879,25 +879,30 @@ export class Helper {
         }
 
         if (!fs.existsSync(filename)) {
-            throw new Error(`File not found for thumbnail: ${filename}`);
+            Log.logAdvanced(Log.Level.ERROR, "helper.thumbnail", `File not found for image thumbnail: ${filename}`);
+            throw new Error(`File not found for image thumbnail: ${filename}`);
         }
 
         if (fs.statSync(filename).size == 0) {
-            throw new Error(`Filesize is 0 for thumbnail: ${filename}`);
+            Log.logAdvanced(Log.Level.ERROR, "helper.thumbnail", `Filesize is 0 for image thumbnail: ${filename}`);
+            throw new Error(`Filesize is 0 for image thumbnail: ${filename}`);
         }
 
-        const filenameHash = createHash("md5").update(filename + width).digest("hex");
+        // const filenameHash = createHash("md5").update(filename + width).digest("hex");
+        const fileHash = createHash("md5").update(fs.readFileSync(filename)).digest("hex");
 
         const thumbnail_format = Config.getInstance().cfg<string>("thumbnail_format", "jpg");
 
-        const output_image = path.join(BaseConfigCacheFolder.public_cache_thumbs, `${filenameHash}.${thumbnail_format}`);
+        const output_image = path.join(BaseConfigCacheFolder.public_cache_thumbs, `${fileHash}.${thumbnail_format}`);
 
         if (fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
+            Log.logAdvanced(Log.Level.DEBUG, "helper.thumbnail", `Found existing thumbnail for ${filename}`);
             return path.basename(output_image);
         }
 
-        if (fs.statSync(output_image).size === 0) {
-            console.debug("Existing thumbnail filesize is 0, removing file");
+        if (fs.existsSync(output_image) && fs.statSync(output_image).size === 0) {
+            // console.debug("Existing thumbnail filesize is 0, removing file");
+            Log.logAdvanced(Log.Level.DEBUG, "helper.thumbnail", `Existing thumbnail filesize is 0, removing file: ${output_image}`);
             fs.unlinkSync(output_image); // remove empty file
         }
 
@@ -923,12 +928,12 @@ export class Helper {
             output = await Helper.execSimple(ffmpeg_path, [
                 "-i", filename,
                 "-vf", `scale=${width}:-1`,
-                // "-codec", codec,        
+                // "-codec", codec,
                 output_image,
             ], "ffmpeg image thumbnail");
         } catch (error) {
             Log.logAdvanced(Log.Level.ERROR, "helper.thumbnail", `Failed to create thumbnail: ${error}`, error);
-            throw error;            
+            throw error;
         }
 
         if ((output.stderr.join("") + output.stdout.join("")).includes("Default encoder for format")) {

@@ -1419,6 +1419,7 @@ export class TwitchChannel extends BaseChannel {
                 Log.logAdvanced(Log.Level.ERROR, "channel", `Could not download user logo for ${userData.id}: ${(error as Error).message}`, error);
             }
             if (avatar_response) {
+                Log.logAdvanced(Log.Level.DEBUG, "channel", `Fetched avatar for ${userData.id}`);
                 // const ws = fs.createWriteStream(logo_path);
                 // avatar_response.data.pipe(ws);
                 // ws.close();
@@ -1434,8 +1435,12 @@ export class TwitchChannel extends BaseChannel {
                     stream.on("error", reject);
                 });
 
-                if (fs.existsSync(logo_path)) {
+                Log.logAdvanced(Log.Level.DEBUG, "channel", `Saved avatar for ${userData.id}`);
+
+                if (fs.existsSync(logo_path) && fs.statSync(logo_path).size > 0) {
                     userData.cache_avatar = logo_filename;
+
+                    Log.logAdvanced(Log.Level.DEBUG, "channel", `Create thumbnail for ${userData.id}`);
 
                     let avatar_thumbnail;
                     try {
