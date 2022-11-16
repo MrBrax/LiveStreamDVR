@@ -814,7 +814,7 @@ export class BaseAutomator {
     private stream_pause?: Partial<StreamPause>;
     public captureTicker(source: "stdout" | "stderr", raw_data: Buffer) {
 
-        const basename = this.vodBasenameTemplate();
+        const basename = this.vod ? this.vod.basename : this.vodBasenameTemplate();
 
         const data = raw_data.toString();
 
@@ -1045,23 +1045,23 @@ export class BaseAutomator {
             });
 
             // make job for capture
-            let capture_job: Job;
+            // let capture_job: Job;
             const jobName = `capture_${this.getLogin()}_${this.getVodID()}`;
 
             if (capture_process.pid) {
                 Log.logAdvanced(Log.Level.SUCCESS, "automator.captureVideo", `Spawned process ${capture_process.pid} for ${jobName}`);
-                capture_job = Job.create(jobName);
-                capture_job.setPid(capture_process.pid);
-                capture_job.setExec(bin, cmd);
-                capture_job.setProcess(capture_process);
-                capture_job.startLog(jobName, `$ ${bin} ${cmd.join(" ")}\n`);
-                capture_job.addMetadata({
+                this.captureJob = Job.create(jobName);
+                this.captureJob.setPid(capture_process.pid);
+                this.captureJob.setExec(bin, cmd);
+                this.captureJob.setProcess(capture_process);
+                this.captureJob.startLog(jobName, `$ ${bin} ${cmd.join(" ")}\n`);
+                this.captureJob.addMetadata({
                     "login": this.getLogin(), // TODO: username?
                     "basename": this.vodBasenameTemplate(),
                     "capture_filename": this.capture_filename,
                     "stream_id": this.getVodID(),
                 });
-                if (!capture_job.save()) {
+                if (!this.captureJob.save()) {
                     Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Failed to save job ${jobName}`);
                 }
             } else {
@@ -1101,16 +1101,16 @@ export class BaseAutomator {
 
                 clearInterval(keepalive);
 
-                if (capture_job) {
-                    capture_job.clear();
+                if (this.captureJob) {
+                    this.captureJob.clear();
                 }
 
                 if (fs.existsSync(this.capture_filename) && fs.statSync(this.capture_filename).size > 0) {
 
-                    const stream_resolution = capture_job.stdout.join("\n").match(/stream:\s([0-9_a-z]+)\s/);
-                    if (stream_resolution && this.vod) {
-                        this.vod.stream_resolution = stream_resolution[1] as VideoQuality;
-                    }
+                    // const stream_resolution = capture_job.stdout.join("\n").match(/stream:\s([0-9_a-z]+)\s/);
+                    // if (stream_resolution && this.vod) {
+                    //     this.vod.stream_resolution = stream_resolution[1] as VideoQuality;
+                    // }
 
                     resolve(true);
                 } else {
