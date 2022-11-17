@@ -4,127 +4,140 @@
             v-if="vodData && vodData.basename"
             class="video-editor-wrapper"
         >
-            <video
-                id="video"
-                ref="player"
-                :src="videoSource"
-                width="1280"
-                @timeupdate="videoTimeUpdate"
-                @canplay="videoCanPlay"
-                @seeked="videoSeeked"
-                @error="videoError"
-                @play="videoPlay"
-                @pause="videoPause"
-                @loadedmetadata="videoLoadedMetadata"
-            >
-                <track
-                    kind="chapters"
-                    :src="chapterSource"
-                    label="Chapters"
-                    default
-                >
-            </video>
-            <div class="video-editor-time">
-                <span v-if="videoDuration">
-                    <span class="icon">
-                        <font-awesome-icon :icon="videoStatusIcon" />
-                    </span>
-                    {{ humanDuration(currentVideoTime) }} / {{ videoDuration ? humanDuration(videoDuration) : '-' }}
-                </span>
-                <span v-else>
-                    <span class="icon">
-                        <font-awesome-icon
-                            icon="spinner"
-                            spin
-                        />
-                    </span>
-                    {{ t("messages.loading") }}
-                </span>
-            </div>
-            <div class="video-editor-controls">
-                <div class="buttons">
-                    <button
-                        class="button is-confirm"
-                        @click="play"
+            <div class="video-editor">
+                <div class="video-editor-video">
+                    <video
+                        id="video"
+                        ref="player"
+                        :src="videoSource"
+                        controls="true"
+                        @timeupdate="videoTimeUpdate"
+                        @canplay="videoCanPlay"
+                        @seeked="videoSeeked"
+                        @error="videoError"
+                        @play="videoPlay"
+                        @pause="videoPause"
+                        @loadedmetadata="videoLoadedMetadata"
                     >
-                        <span class="icon"><font-awesome-icon icon="play" /></span>
-                        <span>{{ t('views.editor.buttons.play') }}</span>
-                    </button>
-                    <button
-                        class="button is-confirm"
-                        @click="pause"
-                    >
-                        <span class="icon"><font-awesome-icon icon="pause" /></span>
-                        <span>{{ t('views.editor.buttons.pause') }}</span>
-                    </button>
-                    <button
-                        type="button"
-                        class="button is-confirm"
-                        @click="setFrameIn(currentVideoTime)"
-                    >
-                        <span class="icon"><font-awesome-icon icon="fast-backward" /></span>
-                        <span>{{ t('views.editor.buttons.mark-in') }}</span>
-                    </button>
-                    <button
-                        type="button"
-                        class="button is-confirm"
-                        @click="setFrameOut(currentVideoTime)"
-                    >
-                        <span class="icon"><font-awesome-icon icon="fast-forward" /></span>
-                        <span>{{ t('views.editor.buttons.mark-out') }}</span>
-                    </button>
-                    <button
-                        class="button is-confirm"
-                        @click="addBookmark"
-                    >
-                        <span class="icon"><font-awesome-icon icon="bookmark" /></span>
-                        <span>{{ t('views.editor.buttons.add-bookmark') }}</span>
-                    </button>
+                        <track
+                            kind="chapters"
+                            :src="chapterSource"
+                            label="Chapters"
+                            default
+                        >
+                    </video>
                 </div>
-            </div>
-            <div
-                id="timeline"
-                ref="timeline"
-                @click="seek"
-                @mousemove="timelineMouseMove"
-                @mouseenter="timelineHover = true"
-                @mouseleave="timelineHover = false"
-            >
                 <div
-                    class="timeline-cut"
-                    :style="timelineCutStyle"
-                />
-                <div
-                    class="timeline-playhead"
-                    :style="timelinePlayheadStyle"
-                />
-                <div
-                    v-if="timelineHover"
-                    class="timeline-hover"
-                    :style="timelineHoverStyle"
-                />
-            </div>
-
-            <div class="video-editor-hover-time">
-                {{ timelineHover ? humanDuration(hoverTime) : ':)' }}
-            </div>
-
-            <!--{{ currentVideoTime }} / {{ $refs.player ? $refs.player.currentTime : 'init' }} / {{ $refs.player ? $refs.player.duration : 'init' }}-->
-
-            <div class="video-editor-chapters">
-                <div
-                    v-for="(chapter, chapterIndex) in vodData.chapters"
-                    :key="chapterIndex"
-                    :title="chapter.title + ' | \\n' + chapter.game_name"
-                    class="video-editor-chapter"
-                    :style="{ width: chapterWidth(chapter) + '%' }"
-                    @click="scrub(chapter.offset || 0, chapter.duration || 0)"
+                    id="timeline"
+                    ref="timeline"
+                    @click="seek"
+                    @mousemove="timelineMouseMove"
+                    @mouseenter="timelineHover = true"
+                    @mouseleave="timelineHover = false"
                 >
-                    <div class="video-editor-chapter-title">
-                        {{ chapter.title }}
+                    <div
+                        class="timeline-cut"
+                        :style="timelineCutStyle"
+                    />
+                    <div
+                        class="timeline-playhead"
+                        :style="timelinePlayheadStyle"
+                    />
+                    <div
+                        v-if="timelineHover"
+                        class="timeline-hover"
+                        :style="timelineHoverStyle"
+                    />
+                </div>
+
+                <div class="video-editor-time">
+                    <span v-if="videoDuration">
+                        <span class="icon">
+                            <font-awesome-icon :icon="videoStatusIcon" />
+                        </span>
+                        {{ humanDuration(currentVideoTime) }} / {{ videoDuration ? humanDuration(videoDuration) : '-' }}
+                    </span>
+                    <span v-else>
+                        <span class="icon">
+                            <font-awesome-icon
+                                icon="spinner"
+                                spin
+                            />
+                        </span>
+                        {{ t("messages.loading") }}
+                    </span>
+                </div>
+
+                <div class="video-editor-controls">
+                    <div class="buttons no-margin">
+                        <button
+                            class="button is-confirm"
+                            @click="play"
+                        >
+                            <span class="icon"><font-awesome-icon icon="play" /></span>
+                            <span>{{ t('views.editor.buttons.play') }}</span>
+                        </button>
+                        <button
+                            class="button is-confirm"
+                            @click="pause"
+                        >
+                            <span class="icon"><font-awesome-icon icon="pause" /></span>
+                            <span>{{ t('views.editor.buttons.pause') }}</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="button is-confirm"
+                            @click="setFrameIn(currentVideoTime)"
+                        >
+                            <span class="icon"><font-awesome-icon icon="fast-backward" /></span>
+                            <span>{{ t('views.editor.buttons.mark-in') }}</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="button is-confirm"
+                            @click="setFrameOut(currentVideoTime)"
+                        >
+                            <span class="icon"><font-awesome-icon icon="fast-forward" /></span>
+                            <span>{{ t('views.editor.buttons.mark-out') }}</span>
+                        </button>
+                        <button
+                            class="button is-confirm"
+                            @click="addBookmark"
+                        >
+                            <span class="icon"><font-awesome-icon icon="bookmark" /></span>
+                            <span>{{ t('views.editor.buttons.add-bookmark') }}</span>
+                        </button>
+                        <button
+                            class="button is-confirm"
+                            @click="fullscreen"
+                        >
+                            <span class="icon"><font-awesome-icon icon="expand" /></span>
+                            <span>{{ t('views.editor.buttons.fullscreen') }}</span>
+                        </button>
                     </div>
-                    <div class="video-editor-chapter-game">
-                        {{ chapter.game_name }}
+                </div>
+
+                <div class="video-editor-hover-time">
+                    {{ timelineHover ? humanDuration(hoverTime) : ':)' }}
+                </div>
+
+                <!--{{ currentVideoTime }} / {{ $refs.player ? $refs.player.currentTime : 'init' }} / {{ $refs.player ? $refs.player.duration : 'init' }}-->
+
+                <div class="video-editor-chapters">
+                    <div
+                        v-for="(chapter, chapterIndex) in vodData.chapters"
+                        :key="chapterIndex"
+                        :title="chapter.title + ' | \\n' + chapter.game_name"
+                        class="video-editor-chapter"
+                        :style="{ width: chapterWidth(chapter) + '%' }"
+                        @click="scrub(chapter.offset || 0, chapter.duration || 0)"
+                    >
+                        <div class="video-editor-chapter-title">
+                            {{ chapter.title }}
+                        </div>
+                        <div class="video-editor-chapter-game">
+                            {{ chapter.game_name }}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -280,12 +293,12 @@ import { useStore } from "@/store";
 import type { FormStatus, VODTypes } from "@/twitchautomator";
 import type { ApiResponse, ApiVodResponse } from "@common/Api/Api";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faBookmark, faFastBackward, faFastForward, faPause, faPlay, faScissors, faSpinner, faStop } from "@fortawesome/free-solid-svg-icons";
+import { faBookmark, faFastBackward, faFastForward, faPause, faPlay, faScissors, faSpinner, faStop, faExpand } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
-library.add(faPlay, faPause, faBookmark, faFastBackward, faFastForward, faSpinner, faScissors, faStop);
+library.add(faPlay, faPause, faBookmark, faFastBackward, faFastForward, faSpinner, faScissors, faStop, faExpand);
 
 const props = defineProps<{
     uuid: string;
@@ -573,6 +586,15 @@ function addBookmark() {
         if (err.response.data && err.response.data.message) alert(err.response.data.message);
     });
 }
+
+function fullscreen() {
+    if (!player.value) return;
+    if (player.value.requestFullscreen) {
+        player.value.requestFullscreen();
+    } else {
+        alert("Fullscreen not supported");
+    }
+}
     
 </script>
 
@@ -580,7 +602,8 @@ function addBookmark() {
 @import "../assets/_variables";
 
 .video-editor-wrapper {
-    width: 1280px;
+    // width: 1280px;
+    margin: auto;
 
     #timeline {
         background: #444;
@@ -601,6 +624,27 @@ function addBookmark() {
         top: 0;
         bottom: 0;
         width: 1px;
+    }
+}
+
+.video-editor {
+    margin: 1em auto;
+    width: 60vw;
+    padding: 0.5em;
+    background: #222;
+    border: 1px solid #444;
+    border-radius: 5px;
+    box-shadow: 0 0 10px #000;
+    box-sizing: content-box;
+    #video {
+        width: 100%;
+        height: auto;
+        background: #000;
+    }
+    .video-editor-container {
+        width: 100%;
+        height: auto;
+        background: #000;
     }
 }
 
@@ -660,7 +704,7 @@ function addBookmark() {
 }
 
 .video-editor-time {
-    font-size: 120%;
+    font-size: 0.9em;
     padding: 0.5em;
 }
 
