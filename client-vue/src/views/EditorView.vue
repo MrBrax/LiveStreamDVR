@@ -36,18 +36,34 @@
                     @mouseleave="timelineHover = false"
                 >
                     <div
-                        class="timeline-cut"
-                        :style="timelineCutStyle"
-                    />
-                    <div
                         class="timeline-playhead"
                         :style="timelinePlayheadStyle"
                     />
                     <div
+                        v-if="cutSegmentlength > 0"
+                        class="timeline-cut"
+                        :style="timelineCutStyle"
+                    />
+                    <div
                         v-if="timelineHover"
                         class="timeline-hover"
-                        :style="timelineHoverStyle"
+                        :style="timelineSeekHoverBarStyle"
                     />
+                </div>
+
+                <div class="video-editor-cut">
+                    <div
+                        v-if="cutSegmentlength > 0"
+                        class="video-editor-cut-display"
+                        :style="cutDisplayStyle"
+                    >
+                        <div class="duration">
+                            {{ humanDuration(cutSegmentlength) }}
+                        </div>
+                        <div class="size">
+                            {{ formatBytes(exportSize) }}
+                        </div>
+                    </div>
                 </div>
 
                 <div class="video-editor-time">
@@ -87,6 +103,23 @@
                         <button
                             type="button"
                             class="button is-confirm"
+                            @click="seekRelative(-1)"
+                        >
+                            <span class="icon"><font-awesome-icon icon="backward-step" /></span>
+                            <span>{{ t('views.editor.buttons.step-back') }}</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="button is-confirm"
+                            @click="seekRelative(1)"
+                        >
+                            <span class="icon"><font-awesome-icon icon="forward-step" /></span>
+                            <span>{{ t('views.editor.buttons.step-forward') }}</span>
+                        </button>
+                        <button
+                            type="button"
+                            class="button is-confirm"
+                            :disabled="secondsIn == Math.round(currentVideoTime)"
                             @click="setFrameIn(currentVideoTime)"
                         >
                             <span class="icon"><font-awesome-icon icon="fast-backward" /></span>
@@ -95,6 +128,7 @@
                         <button
                             type="button"
                             class="button is-confirm"
+                            :disabled="secondsOut == Math.round(currentVideoTime)"
                             @click="setFrameOut(currentVideoTime)"
                         >
                             <span class="icon"><font-awesome-icon icon="fast-forward" /></span>
@@ -117,8 +151,13 @@
                     </div>
                 </div>
 
-                <div class="video-editor-hover-time">
-                    {{ timelineHover ? humanDuration(hoverTime) : ':)' }}
+                <div
+                    v-if="timelineHover"
+                    ref="hoverTimeTooltip"
+                    class="video-editor-hover-time"
+                    :style="timelineSeekTooltipStyle"
+                >
+                    {{ humanDuration(hoverTime) }}
                 </div>
 
                 <!--{{ currentVideoTime }} / {{ $refs.player ? $refs.player.currentTime : 'init' }} / {{ $refs.player ? $refs.player.duration : 'init' }}-->
@@ -140,6 +179,12 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="video-editor-help">
+                <p>
+                    Note that video cuts are not frame perfect. Make sure to verify the end result. 
+                </p>
             </div>
 
             <div class="video-editor-chapter-list">
@@ -293,12 +338,12 @@ import { useStore } from "@/store";
 import type { FormStatus, VODTypes } from "@/twitchautomator";
 import type { ApiResponse, ApiVodResponse } from "@common/Api/Api";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faBookmark, faFastBackward, faFastForward, faPause, faPlay, faScissors, faSpinner, faStop, faExpand } from "@fortawesome/free-solid-svg-icons";
+import { faBookmark, faFastBackward, faFastForward, faPause, faPlay, faScissors, faSpinner, faStop, faExpand, faBackwardStep, faForwardStep } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
-library.add(faPlay, faPause, faBookmark, faFastBackward, faFastForward, faSpinner, faScissors, faStop, faExpand);
+library.add(faPlay, faPause, faBookmark, faFastBackward, faFastForward, faSpinner, faScissors, faStop, faExpand, faBackwardStep, faForwardStep);
 
 const props = defineProps<{
     uuid: string;
@@ -325,6 +370,7 @@ const videoStatus = ref<VideoStatus>("loading");
 
 const player = ref<HTMLVideoElement | null>(null);
 const timeline = ref<HTMLDivElement | null>(null);
+const hoverTimeTooltip = ref<HTMLDivElement | null>(null);
 
 const timelineCutStyle = computed((): Record<string, string> => {
     if (!currentVideoTime.value || !player.value) return { left: "0%", right: "100%" };
@@ -339,7 +385,7 @@ const timelinePlayheadStyle = computed((): Record<string, string> => {
     if (!currentVideoTime.value || !player.value) return { left: "0%" };
     const percent = (currentVideoTime.value / (player.value).duration) * 100;
     return {
-        left: percent + "%",
+        width: percent + "%",
     };
 });
 
@@ -396,7 +442,7 @@ const videoStatusIcon = computed((): string => {
 onMounted(() => {
     fetchData();
 });
-    
+
 function fetchData() {
     // vodData.value = [];
     /** TODO: axios */
@@ -459,6 +505,11 @@ function seek(event: MouseEvent) {
     // this.$forceUpdate();
 }
 
+function seekRelative(seconds: number) {
+    if (!player.value) return;
+    player.value.currentTime += seconds;
+}
+
 function timelineMouseMove(event: MouseEvent) {
     if (!player.value || !timeline.value) return;
     const duration = player.value.duration;
@@ -469,13 +520,39 @@ function timelineMouseMove(event: MouseEvent) {
     // timelineHover.value = true;
 }
 
-const timelineHoverStyle = computed((): Record<string, string> => {
+const timelineSeekHoverBarStyle = computed((): Record<string, string> => {
     if (!player.value || !timeline.value) return { left: "0%" };
     const duration = player.value.duration;
     const percent = (hoverTime.value / duration) * 100;
     return {
         left: percent + "%",
         // transform: `translateX(${percent}%)`,
+    };
+});
+
+const timelineSeekTooltipStyle = computed((): Record<string, string> => {
+    if (!player.value || !timeline.value || !hoverTimeTooltip.value) return { left: "0%" };
+    const duration = player.value.duration;
+    const percent = (hoverTime.value / duration) * 100;
+
+    const timeline_bound = timeline.value.getBoundingClientRect();
+    const hover_bound = hoverTimeTooltip.value.getBoundingClientRect();
+
+    const offset = timeline.value.getBoundingClientRect().left + timeline.value.clientWidth * (percent / 100);
+
+    return {
+        left: `${offset - hover_bound.width / 2}px`,
+        top: `${timeline_bound.top - hover_bound.height - 3}px`,
+        // transform: `translateX(${percent}%)`,
+    };
+});
+
+const cutDisplayStyle = computed((): Record<string, string> => {
+    if (!currentVideoTime.value || !player.value) return { left: "0%", right: "100%" };
+    const dur = player.value.duration;
+    return {
+        left: (secondsIn.value / dur) * 100 + "%",
+        right: 100 - (secondsOut.value / dur) * 100 + "%",
     };
 });
 
@@ -595,7 +672,7 @@ function fullscreen() {
         alert("Fullscreen not supported");
     }
 }
-    
+
 </script>
 
 <style lang="scss" scoped>
@@ -606,35 +683,63 @@ function fullscreen() {
     margin: auto;
 
     #timeline {
-        background: #444;
-        height: 20px;
+        background: var(--section-title-hover-background-color);
+        height: 2em;
         position: relative;
+        border-radius: 0.5em;
+        overflow: hidden;
+        cursor: pointer;
     }
 
     .timeline-cut {
-        background-color: #f00;
+        // background-color: rgba(255, 0, 0, 0.7);
+        border-left: 1px solid rgba(255, 0, 0, 0.4);
+        border-right: 1px solid rgba(255, 0, 0, 0.4);
         position: absolute;
         top: 0;
-        bottom: 0;
+        height: 100%;
+        // transition: all 0.2s ease-in-out;
+        // bottom: 0;
+
+        // scrolling stripes background
+        background-image: linear-gradient(45deg, rgba(220, 50, 20, 0.7) 25%, transparent 25%, transparent 50%, rgba(220, 50, 20, 0.7) 50%, rgba(220, 50, 20, 0.7) 75%, transparent 75%, transparent);
+        background-size: 2em 2em;
+        animation: stripes 6s linear infinite;
     }
 
+    // #timeline:hover > .timeline-cut {
+    //     height: 50%;
+    // }
+
     .timeline-playhead {
-        background-color: #fff;
+        background-color: #45ee45;
+        background-image: linear-gradient(to bottom, #45ee45, #1ecc1e);
+        border-right: 1px solid #000;
         position: absolute;
         top: 0;
         bottom: 0;
-        width: 1px;
+        left: 0;
+        //width: 1px;
+    }
+}
+
+@keyframes stripes {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: -2em 2em;
     }
 }
 
 .video-editor {
     margin: 1em auto;
     width: 60vw;
-    padding: 0.5em;
-    background: #222;
-    border: 1px solid #444;
-    border-radius: 5px;
-    box-shadow: 0 0 10px #000;
+    padding: 1em;
+    background: var(--section-background-color);
+    // border: 1px solid #444;
+    border-radius: 1em;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
     box-sizing: content-box;
     #video {
         width: 100%;
@@ -649,20 +754,45 @@ function fullscreen() {
 }
 
 .timeline-hover {
-    background-color: #ccc;
+    background-color: #fff;
+    box-shadow: 0 0 3px 1px rgba(255, 255, 255, 1);
     position: absolute;
     top: 0;
     bottom: 0;
     width: 1px;
 }
 
+.video-editor-cut {
+    position: relative;
+    height: 2em;
+}
+
+.video-editor-cut-display {
+    position: absolute;
+    overflow: hidden;
+    text-align: center;
+    padding: 0.2em;
+    background-color: rgba(128, 128, 128, 0.1);
+    border-radius: 0 0 1em 1em;
+    .size {
+        font-size: 0.8em;
+        color: #888;
+    }
+}
+
 .video-editor-hover-time {
     padding: 0.5em;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    position: fixed;
+    border-radius: 0.5em;
+    pointer-events: none;
 }
 
 .video-editor-controls {
-    background-color: #222;
+    background-color: var(--video-controls-background-color);
     padding: 0.5em;
+    border-radius: 0.5em;
 }
 
 .video-editor-chapters {
@@ -706,6 +836,16 @@ function fullscreen() {
 .video-editor-time {
     font-size: 0.9em;
     padding: 0.5em;
+}
+
+.video-editor-help {
+    padding: 1em;
+    margin-top: 1em;
+    background: rgba(128, 128, 128, 0.1);
+    border-radius: 0.5em;
+    p {
+        margin: 0;
+    }
 }
 
 .video-editor-chapter-list {
