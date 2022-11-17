@@ -156,7 +156,7 @@ const mediaplayer = ref<HTMLDialogElement>();
 const mediaplayervideo = ref<HTMLVideoElement>();
 
 // watch
-watch(() => route, () => {
+watch(() => route.name, () => {
     updateTitle();
 });
 

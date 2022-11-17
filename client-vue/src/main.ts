@@ -30,6 +30,6 @@ createApp(App)
     .component("fa", FontAwesomeIcon)
     .component("font-awesome-icon", FontAwesomeIcon)
     .component("LoadingBox", LoadingBox)
-    .mixin(titleMixin)
-    .mixin(helpers)
+    // .mixin(titleMixin)
+    // .mixin(helpers)
     .mount("#app");

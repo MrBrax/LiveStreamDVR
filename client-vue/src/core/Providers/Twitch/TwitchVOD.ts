@@ -4,11 +4,11 @@ import type TwitchChannel from "./TwitchChannel";
 import { TwitchVODChapter } from "./TwitchVODChapter";
 // import { useStore } from "../store";
 import type { TwitchGame } from "./TwitchGame";
-import { TwitchHelper } from "../../helper";
 import { BaseVODSegment } from "../Base/BaseVODSegment";
 import type { TwitchVODBookmark } from "@common/Bookmark";
 import BaseVOD from "../Base/BaseVOD";
 import type { ApiTwitchVod } from "@common/Api/Client";
+import { humanDuration } from "@/mixins/newhelpers";
 
 // const store = useStore();
 
@@ -108,7 +108,7 @@ export default class TwitchVOD extends BaseVOD {
         if (this.started_at && this.ended_at) {
             // format is H:i:s
             const diff_seconds = (this.ended_at.getTime() - this.started_at.getTime()) / 1000;
-            return TwitchHelper.formatDuration(diff_seconds);
+            return humanDuration(diff_seconds);
         } else {
             return undefined;
         }

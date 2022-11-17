@@ -97,7 +97,7 @@
                                 <strong>Resolution:</strong> {{ vod.stream_resolution || "Unknown" }}
                             </li>
                             <li v-if="vod.stream_pauses">
-                                <strong>Stream pauses:</strong> {{ vod.stream_pauses.length }}
+                                <strong>Stream pauses:</strong> {{ vod.stream_pauses.length }} ({{ humanDuration(vod.totalPausedTime) }})
                             </li>
                             <li v-if="vod.provider == 'twitch'">
                                 <strong>Watch live:</strong> <a

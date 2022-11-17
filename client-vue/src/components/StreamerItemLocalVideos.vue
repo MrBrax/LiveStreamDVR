@@ -28,7 +28,7 @@
                     ><br>
                     <span class="local-video-title">{{ video.basename }}</span>
                 </a><br>
-                <span class="local-video-info">{{ formatBytes(video.size) }}, {{ formatDuration(video.duration) }}, {{ video.video_metadata.height }}p</span>
+                <span class="local-video-info">{{ formatBytes(video.size) }}, {{ humanDuration(video.duration) }}, {{ video.video_metadata.height }}p</span>
             </div>
         </transition-group>
     </div>
@@ -38,7 +38,7 @@
 import { useStore } from "@/store";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";
-import { formatBytes, formatDuration } from "@/mixins/newhelpers";
+import { formatBytes, humanDuration } from "@/mixins/newhelpers";
 import type { ChannelTypes } from "@/twitchautomator";
 
 const store = useStore();

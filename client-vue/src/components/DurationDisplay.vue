@@ -5,7 +5,7 @@
 <script lang="ts" setup>
 import { onMounted, onUnmounted, ref, watch } from "vue";
 import { isDate, parseJSON } from "date-fns";
-import { formatDuration, niceDuration, shortDuration } from "@/mixins/newhelpers";
+import { humanDuration, niceDuration, shortDuration } from "@/mixins/newhelpers";
 /**
  * Shows duration in a human readable format that auto updates every second.
  * @param startDate The start date of the duration.
@@ -62,7 +62,7 @@ const refreshTime = () => {
     } else if(props.outputStyle == "humanLong") {
         timeString.value = shortDuration(totalSeconds);
     } else if(props.outputStyle == "numbers") {
-        timeString.value = formatDuration(totalSeconds);
+        timeString.value = humanDuration(totalSeconds);
     } else {
         timeString.value = "Invalid output style";
     }

@@ -169,7 +169,7 @@
                     </td>
                     <td>
                         <input
-                            :value="formatDuration(newChapter.offset)"
+                            :value="humanDuration(newChapter.offset)"
                             readonly
                             disabled
                             class="input is-small"
@@ -309,7 +309,7 @@ import { faUndo } from '@fortawesome/free-solid-svg-icons';
 import { library } from "@fortawesome/fontawesome-svg-core";
 import type { ApiGame, EditableChapter } from '@common/Api/Client';
 import { TwitchVODChapter } from '@/core/Providers/Twitch/TwitchVODChapter';
-import { formatDuration } from '@/mixins/newhelpers';
+import { humanDuration } from '@/mixins/newhelpers';
 import { useI18n } from 'vue-i18n';
 import type { ChapterTypes, VODTypes } from '@/twitchautomator';
 library.add(faUndo);
@@ -438,7 +438,7 @@ function chapterDate(index: number): Date | undefined {
 function humanReadableChapterOffset(index: number): string {
     if (!props.vod.started_at) return "";
     const chapter = sortedChapters.value[index];
-    return formatDuration(chapter.offset);
+    return humanDuration(chapter.offset);
 }
 
 onMounted(() => {

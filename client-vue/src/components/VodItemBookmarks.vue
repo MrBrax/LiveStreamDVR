@@ -34,7 +34,7 @@
                         :key="i"
                     >
                         <router-link :to="playerLink(bookmark)">
-                            {{ formatDuration(bookmark.offset || 0) }} - {{ bookmark.name }}
+                            {{ humanDuration(bookmark.offset || 0) }} - {{ bookmark.name }}
                         </router-link>
                         &nbsp;
                         <button
@@ -92,7 +92,7 @@
 import { useStore } from '@/store';
 import type { ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
-import { formatDuration, isTwitchVOD } from "@/mixins/newhelpers";
+import { humanDuration, isTwitchVOD } from "@/mixins/newhelpers";
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { VODTypes } from '@/twitchautomator';

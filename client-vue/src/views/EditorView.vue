@@ -29,7 +29,7 @@
                     <span class="icon">
                         <font-awesome-icon :icon="videoStatusIcon" />
                     </span>
-                    {{ formatDuration(currentVideoTime) }} / {{ videoDuration ? formatDuration(videoDuration) : '-' }}
+                    {{ humanDuration(currentVideoTime) }} / {{ videoDuration ? humanDuration(videoDuration) : '-' }}
                 </span>
                 <span v-else>
                     <span class="icon">
@@ -106,7 +106,7 @@
             </div>
 
             <div class="video-editor-hover-time">
-                {{ timelineHover ? formatDuration(hoverTime) : ':)' }}
+                {{ timelineHover ? humanDuration(hoverTime) : ':)' }}
             </div>
 
             <!--{{ currentVideoTime }} / {{ $refs.player ? $refs.player.currentTime : 'init' }} / {{ $refs.player ? $refs.player.duration : 'init' }}-->
@@ -141,7 +141,7 @@
                             @click="scrub(chapter.offset || 0, chapter.duration || 0)"
                         >
                             <div class="chapter-time">
-                                {{ formatDuration(chapter.offset) }} - {{ formatDuration(chapter.offset + chapter.duration) }} ({{ formatDuration(chapter.duration) }})
+                                {{ humanDuration(chapter.offset) }} - {{ humanDuration(chapter.offset + chapter.duration) }} ({{ humanDuration(chapter.duration) }})
                             </div> 
                             <div class="chapter-game">
                                 <img
@@ -275,12 +275,12 @@ import FormSubmit from "@/components/reusables/FormSubmit.vue";
 import type { BaseVODChapter } from "@/core/Providers/Base/BaseVODChapter";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
-import { formatBytes, formatDuration, humanDuration } from "@/mixins/newhelpers";
+import { formatBytes, humanDuration } from "@/mixins/newhelpers";
 import { useStore } from "@/store";
 import type { FormStatus, VODTypes } from "@/twitchautomator";
 import type { ApiResponse, ApiVodResponse } from "@common/Api/Api";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faBookmark, faFastBackward, faFastForward, faPause, faPlay, faSpinner, faScissors, faStop } from "@fortawesome/free-solid-svg-icons";
+import { faBookmark, faFastBackward, faFastForward, faPause, faPlay, faScissors, faSpinner, faStop } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
 import { computed, onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
