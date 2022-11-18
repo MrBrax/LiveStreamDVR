@@ -81,20 +81,20 @@
             @close="showModal.chatDownload = false"
         >
             <div class="buttons is-centered">
-                <button
-                    class="button is-confirm"
+                <d-button
+                    class="is-confirm"
+                    icon="download"
                     @click="doDownloadChat('tcd')"
                 >
-                    <span class="icon"><font-awesome-icon icon="download" /></span>
-                    <span>{{ t('vod.buttons.download-with', ['tcd']) }}</span>
-                </button>
-                <button
-                    class="button is-confirm"
+                    {{ t('vod.buttons.download-with', ['tcd']) }}
+                </d-button>
+                <d-button
+                    class="is-confirm"
+                    icon="download"
                     @click="doDownloadChat('td')"
                 >
-                    <span class="icon"><font-awesome-icon icon="download" /></span>
-                    <span>{{ t('vod.buttons.download-with', ['TwitchDownloader']) }}</span>
-                </button>
+                    {{ t('vod.buttons.download-with', ['TwitchDownloader']) }}
+                </d-button>
             </div>
         </modal-box>
         <modal-box

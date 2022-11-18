@@ -35,18 +35,15 @@
                 <span>{{ t('vod.controls.editor') }}</span>
             </router-link>
             <!-- Player -->
-            <button
+            <d-button
                 v-if="vod.is_chat_downloaded || vod.is_chatdump_captured"
-                class="button is-blue"
+                class="is-blue"
                 target="_blank"
+                icon="play"
                 @click="emit('showModal', 'player')"
             >
-                <span class="icon"><fa
-                    icon="play"
-                    type="fa"
-                /></span>
-                <span>{{ t('vod.controls.player') }}</span>
-            </button>
+                {{ t('vod.controls.player') }}
+            </d-button>
             <!-- JSON -->
             <a
                 v-if="showAdvanced"
@@ -61,153 +58,91 @@
                 <span>JSON</span>
             </a>
             <!-- Archive -->
-            <button
-                class="button"
+            <d-button
+                icon="archive"
                 @click="doArchive"
             >
-                <span class="icon">
-                    <fa
-                        icon="archive"
-                        type="fa"
-                    />
-                </span>
-                <span>{{ t('vod.controls.archive') }}</span>
-            </button>
+                {{ t('vod.controls.archive') }}
+            </d-button>
             <!-- Download chat-->
-            <button
+            <d-button
                 v-if="vod.provider == 'twitch' && vod.twitch_vod_id && !vod?.is_chat_downloaded"
-                class="button"
+                icon="comments"
+                :loading="compDownloadChat"
                 @click="emit('showModal', 'chatDownload')"
             >
-                <span class="icon">
-                    <fa
-                        v-if="!compDownloadChat"
-                        icon="comments"
-                        type="fa"
-                    />
-                    <fa
-                        v-else
-                        icon="sync"
-                        type="fa"
-                        spin
-                    />
-                </span>
-                <span>{{ t('vod.controls.download-chat') }}</span>
-            </button>
+                {{ t('vod.controls.download-chat') }}
+            </d-button>
             <template v-if="vod.provider == 'twitch' && vod.twitch_vod_id">
                 <!-- Download VOD -->
-                <button
+                <d-button
                     v-if="!vod.is_vod_downloaded"
-                    class="button"
+                    icon="download"
                     @click="emit('showModal', 'vodDownload')"
                 >
-                    <span class="icon">
-                        <fa
-                            icon="download"
-                            type="fa"
-                        />
-                    </span>
-                    <span v-if="vod.twitch_vod_muted == MuteStatus.MUTED">{{ t('vod.controls.download-vod-muted') }}</span>
-                    <span v-else>{{ t('vod.controls.download-vod') }}</span>
-                </button>
+                    <template v-if="vod.twitch_vod_muted == MuteStatus.MUTED">{{ t('vod.controls.download-vod-muted') }}</template>
+                    <template v-else>{{ t('vod.controls.download-vod') }}</template>
+                </d-button>
                 <!-- Check mute -->
-                <button
+                <d-button
                     v-if="showAdvanced"
                     class="button"
+                    icon="volume-mute"
                     @click="doCheckMute"
                 >
-                    <span class="icon">
-                        <fa
-                            icon="volume-mute"
-                            type="fa"
-                        />
-                    </span>
-                    <span>{{ t('vod.controls.check-mute') }}</span>
-                </button>
+                    {{ t('vod.controls.check-mute') }}
+                </d-button>
             </template>
-            <button
+            <d-button
                 v-if="vod.video_metadata && vod.video_metadata.type !== 'audio'"
-                class="button"
+                icon="burn"
                 @click="emit('showModal', 'burn')"
             >
-                <span class="icon">
-                    <fa
-                        icon="burn"
-                        type="fa"
-                    />
-                </span>
-                <span>{{ t('vod.controls.render-menu') }}</span>
-            </button>
+                {{ t('vod.controls.render-menu') }}
+            </d-button>
             <!-- Fix issues -->
-            <button
+            <d-button
                 v-if="showAdvanced"
-                class="button"
+                icon="wrench"
                 @click="emit('fixIssues')"
             >
-                <span class="icon">
-                    <fa
-                        icon="wrench"
-                        type="fa"
-                    />
-                </span>
-                <span>{{ t('vod.controls.fix-issues') }}</span>
-            </button>
+                {{ t('vod.controls.fix-issues') }}
+            </d-button>
             <!-- Fix issues -->
-            <button
+            <d-button
                 v-if="showAdvanced"
-                class="button"
+                icon="sync"
                 @click="doRefreshMetadata"
             >
-                <span class="icon">
-                    <fa
-                        icon="sync"
-                        type="fa"
-                    />
-                </span>
-                <span>{{ t('vod.controls.refresh-metadata') }}</span>
-            </button>
+                {{ t('vod.controls.refresh-metadata') }}
+            </d-button>
             <!-- Vod export menu -->
-            <button
+            <d-button
                 v-if="showAdvanced"
-                class="button is-confirm"
+                class="is-confirm"
+                icon="upload"
                 @click="emit('showModal', 'export')"
             >
-                <span class="icon">
-                    <fa
-                        icon="upload"
-                        type="fa"
-                    />
-                </span>
-                <span>{{ t('buttons.export') }}</span>
-            </button>
+                {{ t('buttons.export') }}
+            </d-button>
             <!-- Vod edit menu -->
-            <button
+            <d-button
                 v-if="showAdvanced"
-                class="button is-confirm"
+                class="is-confirm"
+                icon="pencil"
                 @click="emit('showModal', 'edit')"
             >
-                <span class="icon">
-                    <fa
-                        icon="pencil"
-                        type="fa"
-                    />
-                </span>
-                <span>{{ t('buttons.edit') }}</span>
-            </button>
+                {{ t('buttons.edit') }}
+            </d-button>
             <!-- Rename vod menu -->
-            <button
+            <d-button
                 v-if="showAdvanced"
-                class="button is-confirm"
+                class="is-confirm"
+                icon="pencil"
                 @click="emit('showModal', 'rename')"
             >
-                <span class="icon">
-                    <fa
-                        icon="pencil"
-                        type="fa"
-                    />
-                </span>
-                <span>{{ t('buttons.rename') }}</span>
-            </button>
+                {{ t('buttons.rename') }}
+            </d-button>
             <!-- Delete segment -->
             <!--
             <button
@@ -226,19 +161,14 @@
             </button>
             -->
             <!-- Delete -->
-            <button
+            <d-button
                 class="button is-danger"
                 :disabled="vod.prevent_deletion"
+                icon="trash"
                 @click="emit('delete')"
             >
-                <span class="icon">
-                    <fa
-                        icon="trash"
-                        type="fa"
-                    />
-                </span>
-                <span>{{ t('buttons.delete') }}</span>
-            </button>
+                {{ t('buttons.delete') }}
+            </d-button>
         </div>
     </div>
 </template>
