@@ -88,7 +88,10 @@
                 <div class="video-editor-time">
                     <span v-if="videoDuration">
                         <span class="icon">
-                            <font-awesome-icon :icon="videoStatusIcon" />
+                            <font-awesome-icon
+                                :icon="videoStatusIcon"
+                                :spin="videoStatus == 'loading'"
+                            />
                         </span>
                         {{ humanDuration(currentVideoTime) }} / {{ videoDuration ? humanDuration(videoDuration) : '-' }}
                     </span>
@@ -349,7 +352,7 @@ import type { ApiResponse, ApiVodResponse } from "@common/Api/Api";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faBookmark, faFastBackward, faFastForward, faPause, faPlay, faScissors, faSpinner, faStop, faExpand, faBackwardStep, faForwardStep, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref, watch, type HTMLAttributes } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
 library.add(faPlay, faPause, faBookmark, faFastBackward, faFastForward, faSpinner, faScissors, faStop, faExpand, faBackwardStep, faForwardStep, faEye, faEyeSlash);
@@ -382,20 +385,20 @@ const player = ref<HTMLVideoElement | null>(null);
 const timeline = ref<HTMLDivElement | null>(null);
 const hoverTimeTooltip = ref<HTMLDivElement | null>(null);
 
-const timelineCutStyle = computed((): Record<string, string> => {
-    if (!currentVideoTime.value || !player.value) return { left: "0%", right: "100%" };
-    const dur = player.value.duration;
+const timelineCutStyle = computed((): HTMLAttributes["style"] => {
+    if (!secondsIn.value && !secondsOut.value) return { display: "none" };
+    const dur = videoDuration.value;
     return {
         left: (secondsIn.value / dur) * 100 + "%",
         right: 100 - (secondsOut.value / dur) * 100 + "%",
     };
 });
 
-const timelinePlayheadStyle = computed((): Record<string, string> => {
-    if (!currentVideoTime.value || !player.value) return { left: "0%" };
-    const percent = (currentVideoTime.value / (player.value).duration) * 100;
+const timelinePlayheadStyle = computed((): HTMLAttributes["style"] => {
+    if (!currentVideoTime.value || !videoDuration.value) return { left: "0%" };
+    const percent = (currentVideoTime.value / (videoDuration.value)) * 100;
     return {
-        width: percent + "%",
+        width: `${percent}%`,
     };
 });
 
@@ -474,7 +477,7 @@ function fetchData() {
         });
 }
 
-function setupPlayer() {
+function setupPlayer(): void {
     if (route.query.start !== undefined && !hasBeenSetup.value) {
         if (player.value) player.value.currentTime = parseInt(route.query.start as string);
         if (route.query.start !== undefined) secondsIn.value = parseInt(route.query.start as string);
@@ -483,19 +486,19 @@ function setupPlayer() {
     }
 }
 
-function play() {
+function play(): void {
     if (!player.value) return;
     console.log("play", player.value);
     player.value.play();
 }
 
-function pause() {
+function pause(): void {
     if (!player.value) return;
     console.log("pause", player.value);
     player.value.pause();
 }
 
-function setCutpoints(tIn: number, tOut: number) {
+function setCutpoints(tIn: number, tOut: number): void {
     // const gameOffset = vodData.value.game_offset; // TODO: why
     const gameOffset = 0;
 
@@ -504,16 +507,15 @@ function setCutpoints(tIn: number, tOut: number) {
     }
     secondsIn.value = Math.round(tIn - gameOffset);
     secondsOut.value = Math.round(tIn + tOut - gameOffset);
-    // this.$forceUpdate();
+    console.debug("setCutpoints", secondsIn.value, secondsOut.value);
 }
 
-function seekMouseHandler(event: MouseEvent) {
+function seekMouseHandler(event: MouseEvent): void {
     console.log("seek", event);
     if (!player.value || !timeline.value) return;
-    const duration = player.value.duration;
     const rect = timeline.value.getBoundingClientRect();
     const percent = (event.clientX - rect.left) / timeline.value.clientWidth;
-    const seconds = Math.round(duration * percent);
+    const seconds = Math.round(videoDuration.value * percent);
     
     if (previewClip.value && (seconds > secondsOut.value || seconds < secondsIn.value)) {
         previewClip.value = false; // stop preview
@@ -523,40 +525,37 @@ function seekMouseHandler(event: MouseEvent) {
     
 }
 
-function seekAbsolute(seconds: number) {
+function seekAbsolute(seconds: number): void {
     if (!player.value) return;
     player.value.currentTime = seconds;
 }
 
-function seekRelative(seconds: number) {
+function seekRelative(seconds: number): void {
     if (!player.value) return;
     player.value.currentTime += seconds;
 }
 
-function timelineMouseMove(event: MouseEvent) {
+function timelineMouseMove(event: MouseEvent): void {
     if (!player.value || !timeline.value) return;
-    const duration = player.value.duration;
     const rect = timeline.value.getBoundingClientRect();
     const percent = (event.clientX - rect.left) / timeline.value.clientWidth;
-    const seconds = Math.round(duration * percent);
+    const seconds = Math.round(videoDuration.value * percent);
     hoverTime.value = seconds;
     // timelineHover.value = true;
 }
 
-const timelineSeekHoverBarStyle = computed((): Record<string, string> => {
+const timelineSeekHoverBarStyle = computed((): HTMLAttributes["style"] => {
     if (!player.value || !timeline.value) return { left: "0%" };
-    const duration = player.value.duration;
-    const percent = (hoverTime.value / duration) * 100;
+    const percent = (hoverTime.value / videoDuration.value) * 100;
     return {
         left: percent + "%",
         // transform: `translateX(${percent}%)`,
     };
 });
 
-const timelineSeekTooltipStyle = computed((): Record<string, string> => {
+const timelineSeekTooltipStyle = computed((): HTMLAttributes["style"] => {
     if (!player.value || !timeline.value || !hoverTimeTooltip.value) return { left: "0%" };
-    const duration = player.value.duration;
-    const percent = (hoverTime.value / duration) * 100;
+    const percent = (hoverTime.value / videoDuration.value) * 100;
 
     const timeline_bound = timeline.value.getBoundingClientRect();
     const hover_bound = hoverTimeTooltip.value.getBoundingClientRect();
@@ -570,18 +569,17 @@ const timelineSeekTooltipStyle = computed((): Record<string, string> => {
     };
 });
 
-const cutDisplayStyle = computed((): Record<string, string> => {
-    if (!currentVideoTime.value || !player.value) return { left: "0%", right: "100%" };
-    const dur = player.value.duration;
+const cutDisplayStyle = computed((): HTMLAttributes["style"] => {
+    if (!secondsIn.value && !secondsOut.value) return { display: "none" };
     return {
-        left: (secondsIn.value / dur) * 100 + "%",
-        right: 100 - (secondsOut.value / dur) * 100 + "%",
+        left: (secondsIn.value / videoDuration.value) * 100 + "%",
+        right: 100 - (secondsOut.value / videoDuration.value) * 100 + "%",
     };
 });
 
 // Video hooks
 
-function videoTimeUpdate(event: Event) {
+function videoTimeUpdate(event: Event): void {
     // console.log(v);
     currentVideoTime.value = (event.target as HTMLVideoElement).currentTime;
     if (previewClip.value && currentVideoTime.value >= secondsOut.value) {
@@ -589,53 +587,54 @@ function videoTimeUpdate(event: Event) {
     }
 }
 
-function videoCanPlay(event: Event) {
-    console.log("can play", event);
+function videoCanPlay(event: Event): void {
+    console.debug("can play", event);
     // videoDuration.value = (event.target as HTMLVideoElement).duration;
 }
 
-function videoLoadedMetadata(event: Event) {
-    console.log("loaded metadata", event);
+function videoLoadedMetadata(event: Event): void {
+    console.debug("loaded metadata", event);
     setupPlayer();
     videoDuration.value = (event.target as HTMLVideoElement).duration;
     videoStatus.value = "stopped";
+    console.debug("video duration", videoDuration.value);
 }
 
-function videoLoadedData(event: Event) {
-    console.log("loaded data", event);
+function videoLoadedData(event: Event): void {
+    console.debug("loaded data", event);
 }
 
-function videoWaiting(event: Event) {
-    console.log("waiting", event);
+function videoWaiting(event: Event): void {
+    console.debug("waiting", event);
     videoStatus.value = "loading";
 }
 
-function videoSeeked(event: Event) {
-    console.log("seeked", event);
+function videoSeeked(event: Event): void {
+    console.debug("seeked", event);
     videoStatus.value = player.value && player.value.paused ? "paused" : "playing";
 }
 
-function videoError(event: Event) {
+function videoError(event: Event): void {
     console.error("video error", event);
     alert("Video error, does the video exist?");
 }
 
-function videoPlay(event: Event) {
-    console.log("play", event);
+function videoPlay(event: Event): void {
+    console.debug("play", event);
     videoStatus.value = "playing"
 }
 
-function videoPause(event: Event) {
-    console.log("pause", event);
+function videoPause(event: Event): void {
+    console.debug("pause", event);
     videoStatus.value = "paused";
 }
 
-function videoStalled(event: Event) {
-    console.log("stalled", event);
+function videoStalled(event: Event): void {
+    console.debug("stalled", event);
     // videoStatus.value = "loading";
 }
 
-function submitForm(event: Event) {
+function submitForm(event: Event): void {
 
     if (!vodData.value) return;
 
@@ -666,29 +665,26 @@ function submitForm(event: Event) {
         });
 
     event.preventDefault();
-    return false;
 }
 
 function chapterWidth(chapter: BaseVODChapter): number {
-    if (!player.value) return 0;
     // const chapterOffset = chapter.offset || 0;
     const chapterDuration = chapter.duration || 0;
-    const videoDuration = player.value.duration;
-    const width = (chapterDuration / videoDuration) * 100;
+    const width = (chapterDuration / videoDuration.value) * 100;
     return width;
 }
 
-function setFrameIn(frameNum: number) {
+function setFrameIn(frameNum: number): void {
     secondsIn.value = Math.round(frameNum);
     if (secondsOut.value < secondsIn.value) secondsOut.value = secondsIn.value;
 }
 
-function setFrameOut(frameNum: number) {
+function setFrameOut(frameNum: number): void {
     secondsOut.value = Math.round(frameNum);
     if (secondsIn.value > secondsOut.value) secondsIn.value = secondsOut.value;
 }
 
-function addBookmark() {
+function addBookmark(): void {
     if (!vodData.value) return;
     pause();
     const offset = currentVideoTime.value;
@@ -706,7 +702,7 @@ function addBookmark() {
     });
 }
 
-function fullscreen() {
+function fullscreen(): void {
     if (!player.value) return;
     if (player.value.requestFullscreen) {
         player.value.requestFullscreen();
@@ -859,6 +855,7 @@ watch(() => previewClip.value, (clip) => {
     white-space: nowrap;
     overflow: hidden;
     max-height: 100px;
+    box-sizing: content-box;
 
     &:hover {
         background: rgba(128, 128, 128, 0.5);
