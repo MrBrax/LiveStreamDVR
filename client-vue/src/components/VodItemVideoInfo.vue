@@ -135,7 +135,7 @@
                 </li>
                 <li v-if="vod.stream_pauses && vod.stream_pauses.length > 0">
                     <strong>{{ t('vod.video-info.stream-pauses') }}:</strong>
-                    {{ humanDuration(vod.totalPausedTime) }} ({{ vod.stream_pauses.length }})
+                    {{ humanDuration(vod.totalPausedTime / 1000) }} ({{ vod.stream_pauses.length }})
                 </li>
                 <li v-if="vod.segments && vod.segments.length > 0 && vod.segments[0].filesize">
                     <strong>Size:</strong>
