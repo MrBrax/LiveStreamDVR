@@ -32,30 +32,24 @@
                         >
                     </video>
                 </div>
-                <div class="video-editor-chapters">
-                    <div
-                        v-for="(chapter, chapterIndex) in vodData.chapters"
-                        :key="chapterIndex"
-                        :title="chapter.title + ' | \\n' + chapter.game_name"
-                        class="video-editor-chapter"
-                        :style="{ width: chapterWidth(chapter) + '%' }"
-                        @click="setCutpoints(chapter.offset || 0, chapter.duration || 0)"
-                    >
-                        <div class="video-editor-chapter-title">
-                            {{ chapter.title }}
+                <div class="video-editor-chapter-hover">
+                    <template v-if="currentChapterHoverIndex">
+                        <div class="chapter-title">
+                            {{ vodData.chapters[currentChapterHoverIndex].title }}
                         </div>
-                        <div class="video-editor-chapter-game">
-                            {{ chapter.game_name }}
+                        <div class="chapter-game">
+                            {{ vodData.chapters[currentChapterHoverIndex].game_name }}
                         </div>
-                    </div>
+                    </template>
                 </div>
+
                 <div
                     id="timeline"
                     ref="timeline"
                     @click="seekMouseHandler"
                     @mousemove="timelineMouseMove"
                     @mouseenter="timelineHover = true"
-                    @mouseleave="timelineHover = false"
+                    @mouseleave="timelineMouseLeave"
                 >
                     <div
                         class="timeline-playhead"
@@ -66,6 +60,14 @@
                         class="timeline-cut"
                         :style="timelineCutStyle"
                     />
+                    <div class="video-editor-chapters">
+                        <div
+                            v-for="(chapter, chapterIndex) in vodData.chapters"
+                            :key="chapterIndex"
+                            class="video-editor-chapter"
+                            :style="chapterStyle(chapterIndex, chapter)"
+                        />
+                    </div>
                     <div
                         v-if="timelineHover"
                         class="timeline-hover"
@@ -397,6 +399,7 @@ const videoStatus = ref<VideoStatus>("loading");
 const previewClip = ref<boolean>(false);
 const isDraggingInPoint = ref<boolean>(false);
 const isDraggingOutPoint = ref<boolean>(false);
+const currentChapterHoverIndex = ref<number | undefined>(undefined);
 
 const player = ref<HTMLVideoElement | null>(null);
 const timeline = ref<HTMLDivElement | null>(null);
@@ -523,7 +526,7 @@ function setCutpoints(tIn: number, tOut: number): void {
         if (!confirm(t("views.editor.confirm-cutpoints"))) return;
     }
     secondsIn.value = Math.round(tIn - gameOffset);
-    secondsOut.value = Math.round(tIn + tOut - gameOffset);
+    secondsOut.value = Math.min(Math.round(tIn + tOut - gameOffset), videoDuration.value);
     console.debug("setCutpoints", secondsIn.value, secondsOut.value);
 }
 
@@ -558,7 +561,23 @@ function timelineMouseMove(event: MouseEvent): void {
     const percent = (event.clientX - rect.left) / timeline.value.clientWidth;
     const seconds = Math.round(videoDuration.value * percent);
     hoverTime.value = seconds;
-    // timelineHover.value = true;
+
+    if (vodData.value) {
+        const idx = vodData.value.chapters.findIndex((chapter, i) => {
+            const o = i == 0 ? 0 : (chapter.offset || 0);
+            return chapter.offset && chapter.duration && seconds >= o && seconds < o + chapter.duration;
+        });
+        if (idx !== -1) {
+            currentChapterHoverIndex.value = idx;
+        } else {
+            currentChapterHoverIndex.value = undefined;
+        }
+    }
+}
+
+function timelineMouseLeave(): void {
+    currentChapterHoverIndex.value = undefined;
+    timelineHover.value = false;
 }
 
 const timelineSeekHoverBarStyle = computed((): HTMLAttributes["style"] => {
@@ -757,6 +776,18 @@ watch(() => previewClip.value, (clip) => {
     seekAbsolute(secondsIn.value);
 });
 
+function chapterStyle(index: number, chapter: BaseVODChapter): HTMLAttributes["style"] {
+    const chapterOffset = index == 0 ? 0 : (chapter.offset || 0);
+    const chapterDuration = chapter.duration || 0;
+    const left = (chapterOffset / videoDuration.value) * 100;
+    // cap width at duration
+    const width = Math.min((chapterDuration / videoDuration.value) * 100, 100 - left);
+    return {
+        left: `${left}%`,
+        width: `${width}%`,
+    };
+}
+
 </script>
 
 <style lang="scss" scoped>
@@ -803,6 +834,7 @@ watch(() => previewClip.value, (clip) => {
         top: 0;
         bottom: 0;
         left: 0;
+        pointer-events: none;
         //width: 1px;
     }
 }
@@ -839,11 +871,12 @@ watch(() => previewClip.value, (clip) => {
 
 .timeline-hover {
     background-color: #fff;
-    box-shadow: 0 0 3px 1px rgba(255, 255, 255, 1);
+    // box-shadow: 0 0 3px 1px rgba(255, 255, 255, 1);
     position: absolute;
     top: 0;
     bottom: 0;
     width: 1px;
+    pointer-events: none;
 }
 
 .video-editor-cut {
@@ -903,29 +936,46 @@ watch(() => previewClip.value, (clip) => {
     border-radius: 0.5em;
 }
 
-.video-editor-chapters {
-    display: flex;
-    width: 100%;
+.video-editor-chapter-hover {
+    height: 3em;
+    padding: 0.5em;
+    background: rgba(128, 128, 128, 0.1);
+    border-radius: 0.5em;
     margin-bottom: 0.5em;
+    .chapter-game {
+        font-size: 0.8em;
+    }
+}
+
+.video-editor-chapters {
+    // display: flex;
+    width: 100%;
+    height: 2em;
+    margin-bottom: 0.5em;
+    position: relative;
 }
 
 .video-editor-chapter {
+    position: absolute;
     font-family: "Roboto Condensed", "Roboto", "Arial";
-    padding: 5px;
-    background: rgba(128, 128, 128, 0.3);
-    border-right: 1px solid #aaa;
+    font-size: 0.8em;
+    padding: 0.5em;
+    text-align: center;
+    // background: rgba(128, 128, 128, 0.3);
+    border-left: 1px solid #aaa;
     //flex-shrink: 1;
     //flex-grow: 1;
     word-break: break-all;
+    text-overflow: ellipsis;
     white-space: nowrap;
     overflow: hidden;
-    max-height: 100px;
-    box-sizing: content-box;
+    height: 100%;
+    box-sizing: border-box;
 
-    &:hover {
-        background: rgba(128, 128, 128, 0.5);
-        cursor: pointer;
-    }
+    // &:hover {
+    //     background: rgba(128, 128, 128, 0.5);
+    //     cursor: pointer;
+    // }
 }
 
 .video-editor-chapter-title {
@@ -935,7 +985,7 @@ watch(() => previewClip.value, (clip) => {
 .video-editor-chapter-game {
     font-weight: 400;
     font-size: 90%;
-    color: #444;
+    color: #888;
 }
 
 .video-editor-form {
@@ -960,6 +1010,9 @@ watch(() => previewClip.value, (clip) => {
 
 .video-editor-chapter-list {
     padding: 1em;
+    .chapter-game img {
+        vertical-align: middle;
+    }
 }
 
 .video-editor-chapter-list ul li {
@@ -985,8 +1038,6 @@ watch(() => previewClip.value, (clip) => {
     margin-right: 0.3em;
 }
 
-.chapter-game img {
-    vertical-align: middle;
-}
+
 
 </style>

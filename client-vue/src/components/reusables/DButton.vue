@@ -19,7 +19,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, defineProps, useSlots } from 'vue';
+import { computed, useSlots } from 'vue';
 
 const slots = useSlots();
 
