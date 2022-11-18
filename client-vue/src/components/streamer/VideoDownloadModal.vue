@@ -37,7 +37,7 @@
                 <img :src="imageUrl(vod.thumbnail, 320, 240)"><br>
                 <p>{{ vod.title }}</p>
                 <ul>
-                    <li>{{ formatDuration(vod.duration) }}</li>
+                    <li>{{ humanDuration(vod.duration) }}</li>
                     <li>{{ formatNumber(vod.view_count, 0) }} views</li>
                     <li v-if="vod.muted_segments && vod.muted_segments.length > 0">
                         <span class="text-is-error">Muted segments: {{ vod.muted_segments.length }}</span>
@@ -60,7 +60,7 @@
 
 <script lang="ts" setup>
 import YouTubeChannel from '@/core/Providers/YouTube/YouTubeChannel';
-import { isTwitch, isYouTube, formatDuration, formatNumber } from '@/mixins/newhelpers';
+import { isTwitch, isYouTube, humanDuration, formatNumber } from '@/mixins/newhelpers';
 import type { ProxyVideo } from '@common/Proxies/Video';
 import axios from 'axios';
 import { ref } from 'vue';

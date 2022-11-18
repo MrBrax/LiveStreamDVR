@@ -126,16 +126,16 @@
                     >
                         {{
                             t('vod.video-info.duration-difference', {
-                                full: formatDuration(vod.video_metadata?.full_duration || 0),
-                                diff: formatDuration(fileAndVideoDurationDifference),
-                                dur: formatDuration(vod.video_metadata?.duration || 0),
+                                full: humanDuration(vod.video_metadata?.full_duration || 0),
+                                diff: humanDuration(fileAndVideoDurationDifference),
+                                dur: humanDuration(vod.video_metadata?.duration || 0),
                             })
                         }}
                     </div> 
                 </li>
                 <li v-if="vod.stream_pauses && vod.stream_pauses.length > 0">
                     <strong>{{ t('vod.video-info.stream-pauses') }}:</strong>
-                    {{ humanDuration(vod.totalPausedTime) }} ({{ vod.stream_pauses.length }})
+                    {{ humanDuration(vod.totalPausedTime / 1000) }} ({{ vod.stream_pauses.length }})
                 </li>
                 <li v-if="vod.segments && vod.segments.length > 0 && vod.segments[0].filesize">
                     <strong>Size:</strong>
@@ -211,9 +211,9 @@
                         >
                             {{
                                 t('vod.video-info.twitch-duration-difference', {
-                                    full: formatDuration(vod.twitch_vod_duration),
-                                    diff: formatDuration(videoAndTwitchDurationDifference),
-                                    dur: formatDuration(vod.video_metadata?.duration || 0),
+                                    full: humanDuration(vod.twitch_vod_duration),
+                                    diff: humanDuration(videoAndTwitchDurationDifference),
+                                    dur: humanDuration(vod.video_metadata?.duration || 0),
                                 })
                             }}
                         </div>
@@ -339,11 +339,17 @@
                 </li>
                 <li v-if="vod.exportData.youtube_id">
                     <strong>{{ t('vod.video-info.export-data.youtube-id') }}:</strong>
-                    <a :href="youtubeVideoLink(vod.exportData.youtube_id)" target="_blank">{{ vod.exportData.youtube_id }}</a>
+                    <a
+                        :href="youtubeVideoLink(vod.exportData.youtube_id)"
+                        target="_blank"
+                    >{{ vod.exportData.youtube_id }}</a>
                 </li>
                 <li v-if="vod.exportData.youtube_playlist_id">
                     <strong>{{ t('vod.video-info.export-data.youtube-playlist-id') }}:</strong>
-                    <a :href="youtubePlaylistLink(vod.exportData.youtube_playlist_id)" target="_blank">{{ vod.exportData.youtube_playlist_id }}</a>
+                    <a
+                        :href="youtubePlaylistLink(vod.exportData.youtube_playlist_id)"
+                        target="_blank"
+                    >{{ vod.exportData.youtube_playlist_id }}</a>
                 </li>
             </ul>
         </article>
@@ -356,7 +362,7 @@ import type { ApiResponse } from '@common/Api/Api';
 import axios from 'axios';
 import { useI18n } from 'vue-i18n';
 import { MuteStatus } from "../../../common/Defs";
-import { formatDate, humanDuration, formatBytes, formatDuration, isTwitchVOD } from '@/mixins/newhelpers';
+import { formatDate, humanDuration, formatBytes, isTwitchVOD } from '@/mixins/newhelpers';
 import type { VODTypes } from '@/twitchautomator';
 import { computed, ref } from 'vue';
 

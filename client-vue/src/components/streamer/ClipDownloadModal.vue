@@ -25,7 +25,7 @@
                 <img :src="imageUrl(clip.thumbnail_url, 320, 240)"><br>
                 <p>{{ clip.title }}</p>
                 <ul>
-                    <li>{{ formatDuration(clip.duration) }}</li>
+                    <li>{{ humanDuration(clip.duration) }}</li>
                     <li>{{ formatNumber(clip.view_count, 0) }} views</li>
                     <!--<li>Estimated size: {{ formatBytes(((averageVodBitrate || 6000000) / 10) * parseTwitchDuration(vod.duration)) }}</li>-->
                 </ul>
@@ -44,7 +44,7 @@
 </template>
 
 <script lang="ts" setup>
-import { formatDuration, isTwitch, formatNumber } from '@/mixins/newhelpers';
+import { humanDuration, isTwitch, formatNumber } from '@/mixins/newhelpers';
 import type { Clip } from '@common/TwitchAPI/Clips';
 import axios from 'axios';
 import { ref } from 'vue';

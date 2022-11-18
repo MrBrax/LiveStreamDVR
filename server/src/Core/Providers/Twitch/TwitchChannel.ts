@@ -134,7 +134,10 @@ export class TwitchChannel extends BaseChannel {
             }
 
             if (!vodclass.channel_uuid) {
-                Log.logAdvanced(Log.Level.INFO, "channel.parseVODs", `VOD '${vod}' does not have a channel UUID, setting it to '${this.uuid}'`);
+                Log.logAdvanced(Log.Level.WARNING, "channel.parseVODs", `VOD '${vod}' does not have a channel UUID, setting it to '${this.uuid}'`);
+                vodclass.channel_uuid = this.uuid;
+            } else if (vodclass.channel_uuid && vodclass.channel_uuid !== this.uuid) {
+                Log.logAdvanced(Log.Level.WARNING, "channel.parseVODs", `VOD '${vod}' has a channel UUID '${vodclass.channel_uuid}', but it should be '${this.uuid}', setting it to '${this.uuid}'`);
                 vodclass.channel_uuid = this.uuid;
             }
 

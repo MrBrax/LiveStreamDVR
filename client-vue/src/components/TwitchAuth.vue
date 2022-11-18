@@ -5,15 +5,15 @@
     >
         <h3><span class="icon"><font-awesome-icon :icon="['fab', 'twitch']" /></span> Twitch authentication</h3>
         <div class="buttons">
-            <button
-                class="button is-confirm"
+            <d-button
+                class="is-confirm"
                 :disabled="loading"
                 type="button"
+                icon="sync"
                 @click="doCheckTwitchStatus"
             >
-                <span class="icon"><font-awesome-icon icon="sync" /></span>
-                <span>{{ t("buttons.checkstatus") }}</span>
-            </button>
+                {{ t("buttons.checkstatus") }}
+            </d-button>
             <button
                 class="button is-confirm"
                 title="Authenticate with Twitch using method 1"
@@ -34,15 +34,15 @@
                 <span class="icon"><font-awesome-icon icon="sign-in-alt" /></span>
                 <span>{{ t("buttons.authmethod2") }}</span>
             </button>
-            <button
+            <d-button
                 class="button is-danger"
                 :disabled="loading"
                 type="button"
+                icon="right-from-bracket"
                 @click="doDestroyTwitch"
             >
-                <span class="icon"><font-awesome-icon icon="right-from-bracket" /></span>
-                <span>{{ t("buttons.destroy-session") }}</span>
-            </button>
+                {{ t("buttons.destroy-session") }}
+            </d-button>
         </div>
         <div
             v-if="status"

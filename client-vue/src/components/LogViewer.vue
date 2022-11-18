@@ -11,14 +11,13 @@
                     </option>
                 </select>
             </div>
-            <button
-                class="button is-small is-confirm"
-                type="button"
+            <d-button
+                class="is-small is-confirm"
+                icon="sync"
                 @click="fetchLog(true)"
             >
-                <span class="icon"><font-awesome-icon icon="sync" /></span>
-                <span>Fetch</span>
-            </button>
+                Fetch
+            </d-button>
         </div>
     </div>
 

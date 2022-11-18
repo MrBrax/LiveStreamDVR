@@ -2,8 +2,6 @@ import { createApp } from "vue";
 import App from "./App.vue";
 import router from "./router";
 import axios from "axios";
-import titleMixin from "./mixins/titleMixin";
-import helpers from "./mixins/helpers";
 import { createPinia } from "pinia";
 import VueObserveVisibility from "vue-observe-visibility";
 // import "./registerServiceWorker";
@@ -15,6 +13,7 @@ import "./assets/style.scss";
 import i18n from "./plugins/i18n";
 
 import LoadingBox from "@/components/reusables/LoadingBox.vue";
+import DButton from "@/components/reusables/DButton.vue";
 
 
 if (import.meta.env.BASE_URL !== undefined) {
@@ -30,6 +29,7 @@ createApp(App)
     .component("fa", FontAwesomeIcon)
     .component("font-awesome-icon", FontAwesomeIcon)
     .component("LoadingBox", LoadingBox)
-    .mixin(titleMixin)
-    .mixin(helpers)
+    .component("DButton", DButton)
+    // .mixin(titleMixin)
+    // .mixin(helpers)
     .mount("#app");

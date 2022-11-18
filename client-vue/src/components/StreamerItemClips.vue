@@ -26,7 +26,7 @@
                     {{ clip.folder + "/" + clip.basename }}<br>
                     <span class="streamer-clips-info">
                         {{ formatBytes(clip.size) }},
-                        {{ formatDuration(clip.duration) }},
+                        {{ humanDuration(clip.duration) }},
                         {{ clip.video_metadata.height }}p<template v-if="clip.clip_metadata?.created_at">,
                             {{ formatDate(clip.clip_metadata.created_at) }}
                         </template>
@@ -54,7 +54,7 @@ import { useStore } from "@/store";
 import type { LocalClip } from "@common/LocalClip";
 import { computed, ref } from "vue";
 import { useI18n } from "vue-i18n";
-import { formatBytes, formatDuration, formatDate } from "@/mixins/newhelpers";
+import { formatBytes, humanDuration, formatDate } from "@/mixins/newhelpers";
 import type { ChannelTypes } from "@/twitchautomator";
 
 const store = useStore();

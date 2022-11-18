@@ -239,72 +239,72 @@
                 :form-status="formStatus"
                 :form-status-text="formStatusText"
             >
-                <button
-                    class="button is-confirm"
+                <d-button
+                    class="is-confirm"
                     type="submit"
+                    icon="save"
                 >
-                    <span class="icon"><font-awesome-icon icon="save" /></span>
-                    <span>{{ t('buttons.save') }}</span>
-                </button>
-                <button
-                    class="button is-danger"
+                    {{ t('buttons.save') }}
+                </d-button>
+                <d-button
+                    class="is-danger"
                     type="button"
+                    icon="sync"
                     @click="resetForm"
                 >
-                    <span class="icon"><font-awesome-icon icon="sync" /></span>
-                    <span>{{ t('buttons.reset') }}</span>
-                </button>
+                    {{ t('buttons.reset') }}
+                </d-button>
             </FormSubmit>
         </form>
         <hr>
         <div class="buttons">
-            <button
-                class="button is-small is-danger"
+            <d-button
+                class="is-small is-danger"
+                icon="trash"
                 @click="deleteChannel"
             >
-                <span class="icon"><font-awesome-icon icon="trash" /></span>
-                <span>{{ t('buttons.delete') }}</span>
-            </button>
-            <button
-                class="button is-small is-danger"
+                {{ t('buttons.delete') }}
+            </d-button>
+            <d-button
+                class="is-small is-danger"
+                icon="video-slash"
                 @click="deleteAllVods"
             >
-                <span class="icon"><font-awesome-icon icon="video-slash" /></span>
-                <span>{{ t('buttons.delete-all-vods') }}</span>
-            </button>
-            <button
-                class="button is-small"
+                {{ t('buttons.delete-all-vods') }}
+            </d-button>
+            <d-button
+                class="is-small"
+                icon="sync"
                 @click="subscribeChannel"
             >
-                <span class="icon"><font-awesome-icon icon="sync" /></span>
-                <span>{{ t('buttons.subscribe') }}</span>
-            </button>
-            <button
-                class="button is-small"
+                {{ t('buttons.subscribe') }}
+            </d-button>
+            <d-button
+                class="is-small"
+                icon="list"
                 @click="checkSubscriptions"
             >
-                <span class="icon"><font-awesome-icon icon="list" /></span>
-                <span>{{ t('buttons.check-subscriptions') }}</span>
-            </button>
-            <button
-                class="button is-small"
+                {{ t('buttons.check-subscriptions') }}
+            </d-button>
+            <d-button
+                class="is-small"
+                icon="pencil"
                 @click="renameChannel"
             >
-                <span class="icon"><font-awesome-icon icon="pencil" /></span>
-                <span>{{ t('buttons.rename') }}</span>
-            </button>
+                {{ t('buttons.rename') }}
+            </d-button>
         </div>
         <hr>
         <div>
             <h2>History</h2>
             <div class="field">
-                <button
-                    class="button is-small is-confirm"
+                <d-button
+                    class="is-small is-confirm"
+                    icon="sync"
                     @click="fetchHistory"
                 >
-                    <span class="icon"><font-awesome-icon icon="sync" /></span>
-                    <span>{{ t('buttons.fetch') }}</span>
-                </button>
+                    {{ t('buttons.fetch') }}
+                </d-button>
             </div>
             <table
                 v-if="history.length"

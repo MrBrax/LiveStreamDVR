@@ -123,9 +123,11 @@
 
         background-color: #848484;
         color: #ddd;
+        border-color: #848484;
 
         &:hover {
             background-color: #848484;
+            border-color: #848484;
             // border-color: darken($base-bg, 5%);
         }
 

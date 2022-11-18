@@ -16,7 +16,6 @@
 import { Line } from 'vue-chartjs';
 import { Chart as ChartJS, Title, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement } from 'chart.js';
 import type { Plugin, ChartOptions, ChartData } from 'chart.js';
-import { onMounted, onUnmounted, reactive } from 'vue';
 
 ChartJS.register(Title, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement);
 
