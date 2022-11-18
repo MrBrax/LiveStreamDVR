@@ -3,6 +3,9 @@
         <div
             v-if="vodData && vodData.basename"
             class="video-editor-wrapper"
+            @mousemove="onMouseMove"
+            @mouseout="onMouseOut"
+            @mouseup="onMouseUp"
         >
             <div class="video-editor">
                 <div class="video-editor-video">
@@ -76,6 +79,18 @@
                         class="video-editor-cut-display"
                         :style="cutDisplayStyle"
                     >
+                        <div
+                            class="drag-handle in"
+                            :class="{ 'is-active': isDraggingInPoint }"
+                            @mousedown="isDraggingInPoint = true"
+                            @mouseup="isDraggingInPoint = false"
+                        />
+                        <div
+                            class="drag-handle out"
+                            :class="{ 'is-active': isDraggingOutPoint }"
+                            @mousedown="isDraggingOutPoint = true"
+                            @mouseup="isDraggingOutPoint = false"
+                        />
                         <div class="duration">
                             {{ humanDuration(cutSegmentlength) }}
                         </div>
@@ -380,6 +395,8 @@ const timelineHover = ref<boolean>(false);
 const hoverTime = ref<number>(0);
 const videoStatus = ref<VideoStatus>("loading");
 const previewClip = ref<boolean>(false);
+const isDraggingInPoint = ref<boolean>(false);
+const isDraggingOutPoint = ref<boolean>(false);
 
 const player = ref<HTMLVideoElement | null>(null);
 const timeline = ref<HTMLDivElement | null>(null);
@@ -711,6 +728,30 @@ function fullscreen(): void {
     }
 }
 
+function onMouseMove(event: MouseEvent): void {
+    if (!timeline.value) return;
+    if (isDraggingInPoint.value) {
+        const percent = (event.clientX - timeline.value.getBoundingClientRect().left) / timeline.value.clientWidth;
+        const seconds = Math.round(percent * videoDuration.value);
+        setFrameIn(seconds);
+    } else if (isDraggingOutPoint.value) {
+        const percent = (event.clientX - timeline.value.getBoundingClientRect().left) / timeline.value.clientWidth;
+        const seconds = Math.round(percent * videoDuration.value);
+        setFrameOut(seconds);
+    }
+}
+
+function onMouseUp(event: MouseEvent): void {
+    isDraggingInPoint.value = false;
+    isDraggingOutPoint.value = false;
+}
+
+function onMouseOut(event: MouseEvent): void {
+    // console.debug("mouse out", event.target);
+    // isDraggingInPoint.value = false;
+    // isDraggingOutPoint.value = false;
+}
+
 watch(() => previewClip.value, (clip) => {
     if (!clip) return;
     seekAbsolute(secondsIn.value);
@@ -812,14 +853,38 @@ watch(() => previewClip.value, (clip) => {
 
 .video-editor-cut-display {
     position: absolute;
-    overflow: hidden;
+    // overflow: hidden;
     text-align: center;
     padding: 0.2em;
     background-color: rgba(128, 128, 128, 0.1);
-    border-radius: 0 0 1em 1em;
+    // border-radius: 0 0 1em 1em;
     .size {
         font-size: 0.8em;
         color: #888;
+    }
+    .drag-handle {
+        user-select: none;
+        float: left;
+
+        // tactile background
+        background-image: radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.2) 50%, transparent 50%, transparent);
+        background-size: 0.25em 0.25em;
+        background-position: 0 0;
+        background-repeat: repeat;
+        background-color: #3d3d3d;
+
+        width: 1em;
+        height: 2em;
+        position: relative;
+        left: -0.5em;
+        cursor: ew-resize;
+        &.is-active {
+            background-color: #555;
+        }
+        &.out {
+            float: right;
+            left: 0.5em;
+        }
     }
 }
 
