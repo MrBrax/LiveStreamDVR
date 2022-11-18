@@ -10,7 +10,6 @@
                         id="video"
                         ref="player"
                         :src="videoSource"
-                        controls="true"
                         @timeupdate="videoTimeUpdate"
                         @canplay="videoCanPlay"
                         @seeked="videoSeeked"
@@ -18,6 +17,9 @@
                         @play="videoPlay"
                         @pause="videoPause"
                         @loadedmetadata="videoLoadedMetadata"
+                        @loadeddata="videoLoadedData"
+                        @waiting="videoWaiting"
+                        @stalled="videoStalled"
                     >
                         <track
                             kind="chapters"
@@ -27,10 +29,27 @@
                         >
                     </video>
                 </div>
+                <div class="video-editor-chapters">
+                    <div
+                        v-for="(chapter, chapterIndex) in vodData.chapters"
+                        :key="chapterIndex"
+                        :title="chapter.title + ' | \\n' + chapter.game_name"
+                        class="video-editor-chapter"
+                        :style="{ width: chapterWidth(chapter) + '%' }"
+                        @click="setCutpoints(chapter.offset || 0, chapter.duration || 0)"
+                    >
+                        <div class="video-editor-chapter-title">
+                            {{ chapter.title }}
+                        </div>
+                        <div class="video-editor-chapter-game">
+                            {{ chapter.game_name }}
+                        </div>
+                    </div>
+                </div>
                 <div
                     id="timeline"
                     ref="timeline"
-                    @click="seek"
+                    @click="seekMouseHandler"
                     @mousemove="timelineMouseMove"
                     @mouseenter="timelineHover = true"
                     @mouseleave="timelineHover = false"
@@ -148,6 +167,14 @@
                             <span class="icon"><font-awesome-icon icon="expand" /></span>
                             <span>{{ t('views.editor.buttons.fullscreen') }}</span>
                         </button>
+                        <button
+                            class="button"
+                            :class="{ 'is-confirm': previewClip, 'is-danger': !previewClip }"
+                            @click="previewClip = !previewClip"
+                        >
+                            <span class="icon"><font-awesome-icon :icon="previewClip ? 'eye' : 'eye-slash'" /></span>
+                            <span>{{ t('views.editor.buttons.preview') }}</span>
+                        </button>
                     </div>
                 </div>
 
@@ -161,24 +188,6 @@
                 </div>
 
                 <!--{{ currentVideoTime }} / {{ $refs.player ? $refs.player.currentTime : 'init' }} / {{ $refs.player ? $refs.player.duration : 'init' }}-->
-
-                <div class="video-editor-chapters">
-                    <div
-                        v-for="(chapter, chapterIndex) in vodData.chapters"
-                        :key="chapterIndex"
-                        :title="chapter.title + ' | \\n' + chapter.game_name"
-                        class="video-editor-chapter"
-                        :style="{ width: chapterWidth(chapter) + '%' }"
-                        @click="scrub(chapter.offset || 0, chapter.duration || 0)"
-                    >
-                        <div class="video-editor-chapter-title">
-                            {{ chapter.title }}
-                        </div>
-                        <div class="video-editor-chapter-game">
-                            {{ chapter.game_name }}
-                        </div>
-                    </div>
-                </div>
             </div>
 
             <div class="video-editor-help">
@@ -196,7 +205,7 @@
                     >
                         <a
                             v-if="chapter.offset !== undefined && chapter.duration !== undefined"
-                            @click="scrub(chapter.offset || 0, chapter.duration || 0)"
+                            @click="setCutpoints(chapter.offset || 0, chapter.duration || 0)"
                         >
                             <div class="chapter-time">
                                 {{ humanDuration(chapter.offset) }} - {{ humanDuration(chapter.offset + chapter.duration) }} ({{ humanDuration(chapter.duration) }})
@@ -338,12 +347,12 @@ import { useStore } from "@/store";
 import type { FormStatus, VODTypes } from "@/twitchautomator";
 import type { ApiResponse, ApiVodResponse } from "@common/Api/Api";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faBookmark, faFastBackward, faFastForward, faPause, faPlay, faScissors, faSpinner, faStop, faExpand, faBackwardStep, faForwardStep } from "@fortawesome/free-solid-svg-icons";
+import { faBookmark, faFastBackward, faFastForward, faPause, faPlay, faScissors, faSpinner, faStop, faExpand, faBackwardStep, faForwardStep, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
-library.add(faPlay, faPause, faBookmark, faFastBackward, faFastForward, faSpinner, faScissors, faStop, faExpand, faBackwardStep, faForwardStep);
+library.add(faPlay, faPause, faBookmark, faFastBackward, faFastForward, faSpinner, faScissors, faStop, faExpand, faBackwardStep, faForwardStep, faEye, faEyeSlash);
 
 const props = defineProps<{
     uuid: string;
@@ -367,6 +376,7 @@ const hasBeenSetup = ref<boolean>(false);
 const timelineHover = ref<boolean>(false);
 const hoverTime = ref<number>(0);
 const videoStatus = ref<VideoStatus>("loading");
+const previewClip = ref<boolean>(false);
 
 const player = ref<HTMLVideoElement | null>(null);
 const timeline = ref<HTMLDivElement | null>(null);
@@ -485,24 +495,37 @@ function pause() {
     player.value.pause();
 }
 
-function scrub(tIn: number, tOut: number) {
+function setCutpoints(tIn: number, tOut: number) {
     // const gameOffset = vodData.value.game_offset; // TODO: why
     const gameOffset = 0;
+
+    if (secondsIn.value !== 0 && secondsOut.value !== 0) {
+        if (!confirm(t("views.editor.confirm-cutpoints"))) return;
+    }
     secondsIn.value = Math.round(tIn - gameOffset);
     secondsOut.value = Math.round(tIn + tOut - gameOffset);
     // this.$forceUpdate();
 }
 
-function seek(event: MouseEvent) {
+function seekMouseHandler(event: MouseEvent) {
     console.log("seek", event);
     if (!player.value || !timeline.value) return;
     const duration = player.value.duration;
     const rect = timeline.value.getBoundingClientRect();
     const percent = (event.clientX - rect.left) / timeline.value.clientWidth;
     const seconds = Math.round(duration * percent);
-    player.value.currentTime = seconds;
+    
+    if (previewClip.value && (seconds > secondsOut.value || seconds < secondsIn.value)) {
+        previewClip.value = false; // stop preview
+    }
+    
+    seekAbsolute(seconds);
+    
+}
 
-    // this.$forceUpdate();
+function seekAbsolute(seconds: number) {
+    if (!player.value) return;
+    player.value.currentTime = seconds;
 }
 
 function seekRelative(seconds: number) {
@@ -556,9 +579,14 @@ const cutDisplayStyle = computed((): Record<string, string> => {
     };
 });
 
+// Video hooks
+
 function videoTimeUpdate(event: Event) {
     // console.log(v);
     currentVideoTime.value = (event.target as HTMLVideoElement).currentTime;
+    if (previewClip.value && currentVideoTime.value >= secondsOut.value) {
+        seekAbsolute(secondsIn.value);
+    }
 }
 
 function videoCanPlay(event: Event) {
@@ -571,6 +599,15 @@ function videoLoadedMetadata(event: Event) {
     setupPlayer();
     videoDuration.value = (event.target as HTMLVideoElement).duration;
     videoStatus.value = "stopped";
+}
+
+function videoLoadedData(event: Event) {
+    console.log("loaded data", event);
+}
+
+function videoWaiting(event: Event) {
+    console.log("waiting", event);
+    videoStatus.value = "loading";
 }
 
 function videoSeeked(event: Event) {
@@ -591,6 +628,11 @@ function videoPlay(event: Event) {
 function videoPause(event: Event) {
     console.log("pause", event);
     videoStatus.value = "paused";
+}
+
+function videoStalled(event: Event) {
+    console.log("stalled", event);
+    // videoStatus.value = "loading";
 }
 
 function submitForm(event: Event) {
@@ -672,6 +714,11 @@ function fullscreen() {
         alert("Fullscreen not supported");
     }
 }
+
+watch(() => previewClip.value, (clip) => {
+    if (!clip) return;
+    seekAbsolute(secondsIn.value);
+});
 
 </script>
 
@@ -798,6 +845,7 @@ function fullscreen() {
 .video-editor-chapters {
     display: flex;
     width: 100%;
+    margin-bottom: 0.5em;
 }
 
 .video-editor-chapter {

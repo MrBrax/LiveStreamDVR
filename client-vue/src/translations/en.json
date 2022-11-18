@@ -265,12 +265,14 @@
         "submit-cut": "Submit cut",
         "fullscreen": "Fullscreen",
         "step-back": "Step back",
-        "step-forward": "Step forward"
+        "step-forward": "Step forward",
+        "preview": "Preview"
       },
       "time-in": "Time In",
       "time-out": "Time Out",
       "filesize": "Filesize",
-      "edit-segment": "Edit segment"
+      "edit-segment": "Edit segment",
+      "confirm-cutpoints": "Do you want to overwrite the current cut points?"
     },
     "settings": {
       "new_and_interesting": "New & Interesting"
