@@ -1763,7 +1763,7 @@ export class BaseVOD {
 
         Log.logAdvanced(Log.Level.DEBUG, "vod", `fixIssues meta dump for ${this.basename} (${this.uuid})`, {
             "channel_uuid": this.channel_uuid,
-            "channel_name": this.getChannel().internalName,
+            "channel_name": this.channel_uuid && LiveStreamDVR.getInstance().getChannelByUUID(this.channel_uuid) ? this.getChannel().internalName : "unknown",
             "uuid": this.uuid,
 
             "basename": this.basename,
