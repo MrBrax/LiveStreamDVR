@@ -28,7 +28,7 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
     if (subs && subs.length > 0) {
 
         let callback = `${Config.getInstance().cfg("app_url")}/api/v0/hook/twitch`;
-        if (Config.getInstance().cfg("instance_id")) callback += "?instance=" + Config.getInstance().cfg("instance_id");
+        if (Config.getInstance().hasValue("instance_id")) callback += "?instance=" + Config.getInstance().cfg("instance_id");
 
         const payload_data: { channels: ChannelSub[]; total: number; all_usernames: Set<string>; callback: string; } = {
             channels: [],

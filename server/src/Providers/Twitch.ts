@@ -178,8 +178,8 @@ export class TwitchHelper {
 
 
         if (
-            !Config.getInstance().cfg("api_secret") ||
-            !Config.getInstance().cfg("api_client_id")
+            !Config.getInstance().hasValue("api_secret") ||
+            !Config.getInstance().hasValue("api_client_id")
         ) {
             Log.logAdvanced(
                 Log.Level.ERROR,
@@ -360,7 +360,7 @@ export class TwitchHelper {
             throw new Error("Can't refresh access token, not using a user access token!");
         }
 
-        if (!Config.getInstance().cfg("api_secret") || !Config.getInstance().cfg("api_client_id")) {
+        if (!Config.getInstance().hasValue("api_secret") || !Config.getInstance().hasValue("api_client_id")) {
             Log.logAdvanced(
                 Log.Level.ERROR,
                 "tw.helper.refreshUserAccessToken",
@@ -749,7 +749,7 @@ export class TwitchHelper {
 
         console.log(chalk.blue("Setting up axios..."));
 
-        if (!Config.getInstance().cfg("api_client_id")) {
+        if (!Config.getInstance().hasValue("api_client_id")) {
             console.error(chalk.red("API client id not set, can't setup axios"));
             return;
         }

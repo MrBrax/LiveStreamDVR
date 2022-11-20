@@ -404,6 +404,14 @@ export class TwitchAutomator extends BaseAutomator {
         // disable reruns
         cmd.push("--twitch-disable-reruns");
 
+        if (Config.getInstance().hasValue("capture.twitch-api-header")) {
+            cmd.push("--twitch-api-header", Config.getInstance().cfg<string>("capture.twitch-api-header"));
+        }
+
+        if (Config.getInstance().hasValue("capture.twitch-access-token-param")) {
+            cmd.push("--twitch-access-token-param", Config.getInstance().cfg<string>("capture.twitch-access-token-param"));
+        }
+
         return cmd;
 
     }

@@ -73,6 +73,16 @@ describe("Config", () => {
         expect(config.cfg("password", "")).toBe("");
     });
 
+    it("hasValue", () => {
+        const config = Config.getCleanInstance();
+        config.config = {};
+        expect(config.hasValue("password")).toBe(false);
+        config.setConfig("password", "test");
+        expect(config.hasValue("password")).toBe(true);
+        config.setConfig("password", "");
+        expect(config.hasValue("password")).toBe(false);
+    });
+
     it("setting exists", () => {
         expect(Config.settingExists("app_url")).toBe(true);
         expect(Config.settingExists("app_url1")).toBe(false);

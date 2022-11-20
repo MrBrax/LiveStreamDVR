@@ -119,6 +119,8 @@ export class Config {
         { "key": "capture.killendedstream", "group": "Capture", "text": "Kill ended stream", "type": "boolean", "default": false, "help": "Kill the capture process when the notification is received that the stream has ended", new: true },
         { "key": "capture.fallbackcapture", "group": "Capture", "text": "Fallback capture", "type": "boolean", "default": false, "help": "Capture to saved_vods if any of the capture methods fail", new: true },
 
+        { "key": "capture.twitch-api-header", "group": "Capture", "text": "Twitch API header", "type": "string", new: true },
+        { "key": "capture.twitch-access-token-param", "group": "Capture", "text": "Twitch API header", "type": "string", new: true },
 
         // { "key": "sub_lease", "group": "Advanced", "text": "Subscription lease", "type": "number", "default": 604800 },
         { "key": "api_client_id", "group": "Twitch", "text": "Twitch client ID", "type": "string", "required": true },
@@ -434,6 +436,33 @@ export class Config {
 
     }
 
+    hasValue(key: string): boolean {
+        if (this.config === undefined) {
+            console.error("Config not loaded", key);
+            throw new Error("Config not loaded");
+        }
+
+        if (!Config.settingExists(key)) {
+            Log.logAdvanced(Log.Level.WARNING, "config", `Setting '${key}' does not exist.`);
+            console.warn(chalk.red(`Setting '${key}' does not exist.`));
+        }
+
+        if (process.env[`TCD_${key.toUpperCase()}`] !== undefined) {
+            return true;
+        }
+
+        if (this.config[key] === undefined) {
+            return false;
+        }
+
+        if (this.config[key] === "") {
+            return false;
+        }
+
+        return true;
+
+    }
+
     /**
      * @test disable
      * @returns 
@@ -665,7 +694,7 @@ export class Config {
     }
 
     generateEventSubSecret() {
-        if (this.cfg("eventsub_secret")) return;
+        if (this.hasValue("eventsub_secret")) return;
         console.log(chalk.yellow("Generating eventsub secret..."));
         const secret = crypto.randomBytes(16).toString("hex");
         this.setConfig<string>("eventsub_secret", secret);
@@ -810,7 +839,7 @@ export class Config {
 
         let full_url = url + "/api/v0/hook";
 
-        if (this.cfg("instance_id") !== undefined) {
+        if (this.hasValue("instance_id")) {
             full_url += "?instance=" + this.cfg("instance_id");
         }
 

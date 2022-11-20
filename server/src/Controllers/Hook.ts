@@ -25,7 +25,7 @@ const verifyTwitchSignature = (request: express.Request): boolean => {
                 return 403
         */
 
-    if (!Config.getInstance().cfg("eventsub_secret")) {
+    if (!Config.getInstance().hasValue("eventsub_secret")) {
         Log.logAdvanced(Log.Level.ERROR, "hook", "No eventsub secret in config.");
         return false;
     }
@@ -90,7 +90,7 @@ export async function HookTwitch(req: express.Request, res: express.Response): P
 
     Log.logAdvanced(Log.Level.INFO, "hook", `Hook called with message ID ${messageId}, version ${subscriptionVersion}, type ${subscriptionType} (retry ${messageRetry}, type ${messageType}, date ${messageTimestamp})`, debugMeta);
 
-    if (Config.getInstance().cfg("instance_id")) {
+    if (Config.getInstance().hasValue("instance_id")) {
         if (!req.query.instance || req.query.instance != Config.getInstance().cfg("instance_id")) {
             Log.logAdvanced(Log.Level.ERROR, "hook", `Hook called with the wrong instance (${req.query.instance} != ${Config.getInstance().cfg("instance_id")})`, debugMeta);
             res.send("Invalid instance");
@@ -230,7 +230,7 @@ export async function HookYouTube(req: express.Request, res: express.Response): 
 
     Log.logAdvanced(Log.Level.INFO, "hook", "YouTube hook called", debugMeta);
 
-    if (Config.getInstance().cfg("instance_id")) {
+    if (Config.getInstance().hasValue("instance_id")) {
         if (!req.query.instance || req.query.instance != Config.getInstance().cfg("instance_id")) {
             Log.logAdvanced(Log.Level.ERROR, "hook", `Hook called with the wrong instance (${req.query.instance})`);
             res.send("Invalid instance");

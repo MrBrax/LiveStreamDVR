@@ -29,7 +29,7 @@ export class Helper {
     }
 
     public static path_node(): string | false {
-        if (Config.getInstance().cfg("node_path")) return Config.getInstance().cfg<string>("node_path");
+        if (Config.getInstance().hasValue("node_path")) return Config.getInstance().cfg<string>("node_path");
 
         if (this.is_windows()) {
             return "C:\\Program Files\\nodejs\\node.exe";
@@ -39,12 +39,12 @@ export class Helper {
     }
 
     public static path_mediainfo(): string | false {
-        if (Config.getInstance().cfg("mediainfo_path")) return Config.getInstance().cfg<string>("mediainfo_path");
+        if (Config.getInstance().hasValue("mediainfo_path")) return Config.getInstance().cfg<string>("mediainfo_path");
         return false;
     }
 
     public static path_ffmpeg(): string | false {
-        if (Config.getInstance().cfg("ffmpeg_path")) return Config.getInstance().cfg<string>("ffmpeg_path");
+        if (Config.getInstance().hasValue("ffmpeg_path")) return Config.getInstance().cfg<string>("ffmpeg_path");
         return false;
     }
 
@@ -56,7 +56,7 @@ export class Helper {
     }
 
     public static path_streamlink(): string | false {
-        if (!Config.getInstance().cfg("bin_dir")) return false;
+        if (!Config.getInstance().hasValue("bin_dir")) return false;
         const full_path = path.join(Config.getInstance().cfg("bin_dir"), `streamlink${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
@@ -69,7 +69,7 @@ export class Helper {
     }
 
     public static path_youtubedl(): string | false {
-        if (!Config.getInstance().cfg("bin_dir")) return false;
+        if (!Config.getInstance().hasValue("bin_dir")) return false;
         const full_path = path.join(Config.getInstance().cfg("bin_dir"), `yt-dlp${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
@@ -82,7 +82,7 @@ export class Helper {
     }
 
     public static path_tcd(): string | false {
-        if (!Config.getInstance().cfg("bin_dir")) return false;
+        if (!Config.getInstance().hasValue("bin_dir")) return false;
         const full_path = path.join(Config.getInstance().cfg("bin_dir"), `tcd${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
@@ -95,7 +95,7 @@ export class Helper {
     }
 
     public static path_pipenv(): string | false {
-        if (!Config.getInstance().cfg("bin_dir")) return false;
+        if (!Config.getInstance().hasValue("bin_dir")) return false;
         const full_path = path.join(Config.getInstance().cfg("bin_dir"), `pipenv${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
@@ -108,7 +108,7 @@ export class Helper {
     }
 
     public static path_twitchdownloader(): string | false {
-        if (Config.getInstance().cfg("twitchdownloader_path")) return Config.getInstance().cfg<string>("twitchdownloader_path");
+        if (Config.getInstance().hasValue("twitchdownloader_path")) return Config.getInstance().cfg<string>("twitchdownloader_path");
         return false;
     }
 

@@ -35,7 +35,7 @@ export class Webhook {
         ClientBroker.broadcast(payload);
 
         // send webhook
-        if (Config.getInstance().cfg("webhook_url")) {
+        if (Config.getInstance().hasValue("webhook_url")) {
             axios.post(Config.getInstance().cfg("webhook_url"), payload).catch(error => {
                 Log.logAdvanced(Log.Level.ERROR, "webhook", `Webhook error: ${error}`);
             });
