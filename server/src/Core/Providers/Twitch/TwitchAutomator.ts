@@ -150,14 +150,24 @@ export class TwitchAutomator extends BaseAutomator {
 
             if (TwitchVOD.hasVod(basename)) {
                 Log.logAdvanced(Log.Level.INFO, "automator.handle", `Channel ${this.broadcaster_user_login} online, but vod ${basename} already exists, skipping`);
-                this.fallbackCapture();
+                this.fallbackCapture().then(() => {
+                    Log.logAdvanced(Log.Level.INFO, "automator.download", `Fallback capture finished for ${this.getLogin()}`);
+                }).catch(error => {
+                    Log.logAdvanced(Log.Level.ERROR, "automator.download", `Fallback capture failed for ${this.getLogin()}: ${(error as Error).message}`);
+                    console.error(error);
+                });
                 return false;
             }
 
             const capture_vod = TwitchVOD.getVodByCaptureId(event.id);
             if (capture_vod) {
                 Log.logAdvanced(Log.Level.INFO, "automator.handle", `Channel ${this.broadcaster_user_login} online, but vod ${event.id} already exists (${capture_vod.basename}), skipping`);
-                this.fallbackCapture();
+                this.fallbackCapture().then(() => {
+                    Log.logAdvanced(Log.Level.INFO, "automator.download", `Fallback capture finished for ${this.getLogin()}`);
+                }).catch(error => {
+                    Log.logAdvanced(Log.Level.ERROR, "automator.download", `Fallback capture failed for ${this.getLogin()}: ${(error as Error).message}`);
+                    console.error(error);
+                });
                 return false;
             }
 
