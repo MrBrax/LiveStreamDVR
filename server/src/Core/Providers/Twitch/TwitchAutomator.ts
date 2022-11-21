@@ -387,7 +387,8 @@ export class TwitchAutomator extends BaseAutomator {
         cmd.push("--twitch-disable-hosting");
 
         if (fs.existsSync(path.join(BaseConfigDataFolder.config, "twitch_oauth.txt"))) {
-            const token = fs.readFileSync(path.join(BaseConfigDataFolder.config, "twitch_oauth.txt"));
+            const token = fs.readFileSync(path.join(BaseConfigDataFolder.config, "twitch_oauth.txt"), "utf8").trim();
+            Log.censoredWords.add(token.toString());
             cmd.push(`--twitch-api-header=Authorization=OAuth ${token}`);
         }
 

@@ -345,7 +345,8 @@ export class TwitchChannel extends BaseChannel {
     }
 
     public checkStaleVodsInMemory(): void {
-        if (!this.login) return;
+
+        Log.logAdvanced(Log.Level.DEBUG, "channel", `Check stale VODs in memory for ${this.internalName}`);
 
         // const vods_on_disk = fs.readdirSync(Helper.vodFolder(this.login)).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".json") && !f.endsWith("_chat.json"));
         const vods_on_disk = this.rescanVods();
@@ -360,6 +361,7 @@ export class TwitchChannel extends BaseChannel {
                 undefined,
                 "system"
             );
+            console.log("Removed VODs: ", removedVods.map(v => v.basename).join(", "));
             Log.logAdvanced(Log.Level.ERROR, "channel", `Vod on disk and vod in memory are not the same for ${this.internalName}`, {
                 vods_on_disk,
                 vods_in_channel_memory,
@@ -375,6 +377,7 @@ export class TwitchChannel extends BaseChannel {
                 undefined,
                 "system"
             );
+            console.log("Removed VODs: ", removedVods.map(v => v.basename).join(", "));
             Log.logAdvanced(Log.Level.ERROR, "channel", `Vod on disk and vod in main memory are not the same for ${this.internalName}`, {
                 vods_on_disk,
                 vods_in_channel_memory,
@@ -390,6 +393,7 @@ export class TwitchChannel extends BaseChannel {
                 undefined,
                 "system"
             );
+            console.log("Removed VODs: ", removedVods.map(v => v.basename).join(", "));
             Log.logAdvanced(Log.Level.ERROR, "channel", `Vod in memory and vod in main memory are not the same for ${this.internalName}`, {
                 vods_on_disk,
                 vods_in_channel_memory,

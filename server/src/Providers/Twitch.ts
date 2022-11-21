@@ -767,6 +767,8 @@ export class TwitchHelper {
             throw new Error("Could not get access token!");
         }
 
+        Log.censoredWords.add(token);
+
         if (TwitchHelper.accessTokenType === "user") {
             const validateResult = await TwitchHelper.validateOAuth();
             if (!validateResult) {
@@ -796,6 +798,7 @@ export class TwitchHelper {
             return false;
         }
         TwitchHelper.axios.defaults.headers.common["Authorization"] = `Bearer ${TwitchHelper.accessToken}`;
+        Log.censoredWords.add(TwitchHelper.accessToken);
         console.log(chalk.green(`✔ Axios token updated with ${TwitchHelper.accessTokenType} token.`));
         return true;
     }
