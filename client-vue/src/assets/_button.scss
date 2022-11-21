@@ -76,7 +76,8 @@
         }
     }
 
-    &.is-blue {
+    &.is-blue,
+    &.is-info {
         $base-bg: #5098f7;
         background-color: $base-bg;
         border-color: darken($base-bg, 5%);
@@ -88,7 +89,8 @@
         }
     }
 
-    &.is-confirm {
+    &.is-confirm,
+    &.is-success {
         $base-bg: #3db92c;
         background-color: $base-bg;
         border-color: darken($base-bg, 5%);
@@ -105,8 +107,22 @@
         }
     }
 
-    &.is-danger {
+    /** @deprecated */
+    &.is-danger,
+    &.color-red {
         $base-bg: #b35531;
+        background-color: $base-bg;
+        border-color: darken($base-bg, 5%);
+        color: #fff;
+
+        &:hover {
+            background-color: darken($base-bg, 5%);
+            border-color: darken($base-bg, 10%);
+        }
+    }
+
+    &.is-warning {
+        $base-bg: #f7b850;
         background-color: $base-bg;
         border-color: darken($base-bg, 5%);
         color: #fff;

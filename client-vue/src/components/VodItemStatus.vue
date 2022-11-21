@@ -10,33 +10,26 @@
             </strong>&nbsp;
             <div class="buttons">
                 <!-- Delete -->
-                <button
-                    class="button is-danger is-small"
+                <d-button
+                    class="is-danger"
+                    color="danger"
+                    size="small"
+                    icon="trash"
                     :disabled="vod.prevent_deletion"
                     @click="emit('delete')"
                 >
-                    <span class="icon">
-                        <fa
-                            icon="trash"
-                            type="fa"
-                        />
-                    </span>
-                    <span>{{ t('buttons.delete') }}</span>
-                </button>
+                    {{ t('buttons.delete') }}
+                </d-button>
 
                 <!-- Fix issues -->
-                <button
-                    class="button is-confirm is-small"
+                <d-button
+                    color="success"
+                    size="small"
+                    icon="wrench"
                     @click="emit('fixIssues')"
                 >
-                    <span class="icon">
-                        <fa
-                            icon="wrench"
-                            type="fa"
-                        />
-                    </span>
-                    <span>{{ t('vod.controls.fix-issues') }}</span>
-                </button>
+                    {{ t('vod.controls.fix-issues') }}
+                </d-button>
             </div>
         </div>
     </div>

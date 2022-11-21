@@ -206,34 +206,34 @@
             </div>
         </div>
         <div class="field buttons">
-            <button
-                class="button is-confirm"
+            <d-button
+                color="success"
+                icon="save"
                 @click="saveClientConfig"
             >
-                <span class="icon"><font-awesome-icon icon="save" /></span>
-                <span>{{ t('buttons.save') }}</span>
-            </button>
-            <button
-                class="button is-confirm"
+                {{ t('buttons.save') }}
+            </d-button>
+            <d-button
+                color="success"
+                icon="download"
                 @click="downloadClientSettings"
             >
-                <span class="icon"><font-awesome-icon icon="download" /></span>
-                <span>{{ t('buttons.sync-down') }}</span>
-            </button>
-            <button
-                class="button is-confirm"
+                {{ t('buttons.sync-down') }}
+            </d-button>
+            <d-button
+                color="success"
+                icon="upload"
                 @click="uploadClientConfig"
             >
-                <span class="icon"><font-awesome-icon icon="upload" /></span>
-                <span>{{ t('buttons.sync-up') }}</span>
-            </button>
-            <button
-                class="button is-danger"
+                {{ t('buttons.sync-up') }}
+            </d-button>
+            <d-button
+                color="danger"
+                icon="undo"
                 @click="resetClientConfig"
             >
-                <span class="icon"><font-awesome-icon icon="undo" /></span>
-                <span>{{ t('buttons.reset') }}</span>
-            </button>
+                {{ t('buttons.reset') }}
+            </d-button>
         </div>
         <br>
         <div class="field">

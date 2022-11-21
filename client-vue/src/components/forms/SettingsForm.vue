@@ -230,26 +230,26 @@
             :form-status-text="formStatusText"
         >
             <div class="control">
-                <button
-                    class="button is-confirm"
+                <d-button
+                    color="success"
                     type="submit"
+                    icon="save"
                 >
-                    <span class="icon"><font-awesome-icon icon="save" /></span>
-                    <span>{{ t('buttons.save') }}</span>
-                </button>
+                    {{ t('buttons.save') }}
+                </d-button>
             </div>
         </FormSubmit>
 
         <div class="control">
             <hr>
-            <button
-                class="button is-confirm"
+            <d-button
+                color="success"
                 type="button"
+                icon="globe"
                 @click="doValidateExternalURL"
             >
-                <span class="icon"><font-awesome-icon icon="globe" /></span>
-                <span>{{ t('forms.config.validate-external-url') }}</span>
-            </button>
+                {{ t('forms.config.validate-external-url') }}
+            </d-button>
         </div>
     </form>
     <LoadingBox v-if="loading" />

@@ -240,14 +240,14 @@
                 :form-status-text="formStatusText"
             >
                 <d-button
-                    class="is-confirm"
+                    color="success"
                     type="submit"
                     icon="save"
                 >
                     {{ t('buttons.save') }}
                 </d-button>
                 <d-button
-                    class="is-danger"
+                    color="danger"
                     type="button"
                     icon="sync"
                     @click="resetForm"
@@ -259,35 +259,37 @@
         <hr>
         <div class="buttons">
             <d-button
-                class="is-small is-danger"
+                size="small"
+                color="danger"
                 icon="trash"
                 @click="deleteChannel"
             >
                 {{ t('buttons.delete') }}
             </d-button>
             <d-button
-                class="is-small is-danger"
+                size="small"
+                color="danger"
                 icon="video-slash"
                 @click="deleteAllVods"
             >
                 {{ t('buttons.delete-all-vods') }}
             </d-button>
             <d-button
-                class="is-small"
+                size="small"
                 icon="sync"
                 @click="subscribeChannel"
             >
                 {{ t('buttons.subscribe') }}
             </d-button>
             <d-button
-                class="is-small"
+                size="small"
                 icon="list"
                 @click="checkSubscriptions"
             >
                 {{ t('buttons.check-subscriptions') }}
             </d-button>
             <d-button
-                class="is-small"
+                size="small"
                 icon="pencil"
                 @click="renameChannel"
             >
@@ -299,7 +301,8 @@
             <h2>History</h2>
             <div class="field">
                 <d-button
-                    class="is-small is-confirm"
+                    size="small"
+                    color="success"
                     icon="sync"
                     @click="fetchHistory"
                 >
