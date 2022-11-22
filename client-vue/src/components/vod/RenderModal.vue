@@ -337,15 +337,13 @@
             :form-status="formStatus"
             :form-status-text="formStatusText"
         >
-            <button
-                class="button is-confirm"
+            <d-button
+                color="success"
+                icon="burn"
                 @click="doRenderWizard"
             >
-                <span class="icon">
-                    <font-awesome-icon icon="burn" />
-                </span>
-                <span>Execute</span>
-            </button>
+                {{ t('buttons.execute') }}
+            </d-button>
         </FormSubmit>
         <div class="job-status">
             <table>

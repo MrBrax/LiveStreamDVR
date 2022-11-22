@@ -42,19 +42,21 @@
             :form-status-text="formStatusText"
         >
             <div class="control">
-                <button
-                    class="button is-confirm"
+                <d-button
+                    icon="save"
+                    color="success"
                     type="submit"
                 >
-                    <span class="icon"><font-awesome-icon icon="save" /></span>
-                    <span>{{ t('buttons.save') }}</span>
-                </button>
+                    {{ t('buttons.save') }}
+                </d-button>
             </div>
         </FormSubmit>
     </form>
     <hr>
     <div>
-        <h2 class="title is-2">Test</h2>
+        <h2 class="title is-2">
+            Test
+        </h2>
         <!--
         <div class="select">
             <select v-model="test.provider">
@@ -81,10 +83,13 @@
                 </select>
             </div>
         </div>
-        <button
-            class="button is-confirm"
+        <d-button
+            color="success"
+            icon="paper-plane"
             @click="testNotification"
-        >Test</button>
+        >
+            Test
+        </d-button>
     </div>
 </template>
 
@@ -98,8 +103,8 @@ import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import { NotificationProvidersList, NotificationCategories } from "../../../../common/Defs";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faSave } from "@fortawesome/free-solid-svg-icons";
-library.add(faSave);
+import { faSave, faPaperPlane } from "@fortawesome/free-solid-svg-icons";
+library.add(faSave, faPaperPlane);
 
 // emit
 const emit = defineEmits(["formSuccess"]);

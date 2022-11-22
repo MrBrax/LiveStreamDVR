@@ -75,13 +75,14 @@
                             type="number"
                         >
                     </div>
-                    <button
-                        class="button is-small is-confirm"
+                    <d-button
+                        size="small"
+                        color="success"
+                        icon="plus"
                         @click="doMakeBookmark"
                     >
-                        <span class="icon"><font-awesome-icon icon="plus" /></span>
-                        <span>Create</span>
-                    </button>
+                        {{ t('buttons.create') }}
+                    </d-button>
                 </details>
             </div>
         </transition>

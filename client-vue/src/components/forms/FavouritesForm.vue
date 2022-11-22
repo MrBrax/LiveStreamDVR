@@ -72,13 +72,13 @@
             :form-status-text="formStatusText"
         >
             <div class="control">
-                <button
-                    class="button is-confirm"
+                <d-button
+                    color="success"
+                    icon="save"
                     type="submit"
                 >
-                    <span class="icon"><font-awesome-icon icon="save" /></span>
-                    <span>{{ t('buttons.save-favourites') }}</span>
-                </button>
+                    {{ t('buttons.save-favourites') }}
+                </d-button>
             </div>
         </FormSubmit>
     </form>

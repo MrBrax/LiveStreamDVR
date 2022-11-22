@@ -28,13 +28,13 @@
             :form-status-text="formStatusText"
         >
             <div class="control">
-                <button
-                    class="button is-confirm"
+                <d-button
+                    icon="download"
+                    color="success"
                     type="submit"
                 >
-                    <span class="icon"><font-awesome-icon icon="download" /></span>
-                    <span>{{ t('buttons.execute') }}</span>
-                </button>
+                    {{ t('buttons.execute') }}
+                </d-button>
             </div>
         </FormSubmit>
     </form>

@@ -38,24 +38,25 @@
                     </button>
                 </td>
                 <td>
-                    <button
-                        class="button is-danger is-small"
+                    <d-button
+                        icon="trash"
+                        color="danger"
+                        size="small"
                         @click="deleteKeyValue(key)"
                     >
-                        <span class="icon"><font-awesome-icon icon="trash" /></span>
-                        <span>{{ t('buttons.delete') }}</span>
-                    </button>
+                        {{ t('buttons.delete') }}
+                    </d-button>
                 </td>
             </tr>
             <tr key="deleteall">
                 <td colspan="999">
-                    <button
-                        class="button is-danger"
+                    <d-button
+                        icon="trash"
+                        color="danger"
                         @click="deleteAllKeyValues"
                     >
-                        <span class="icon"><font-awesome-icon icon="trash" /></span>
-                        <span>{{ t('buttons.delete-all') }}</span>
-                    </button>
+                        {{ t('buttons.delete-all') }}
+                    </d-button>
                 </td>
             </tr>
         </table>
@@ -99,13 +100,13 @@
             </div>
             <div class="field">
                 <div class="control">
-                    <button
-                        class="button is-confirm"
+                    <d-button
+                        icon="plus"
+                        color="success"
                         type="submit"
                     >
-                        <span class="icon"><font-awesome-icon icon="plus" /></span>
-                        <span>{{ t('buttons.create') }}</span>
-                    </button>
+                        {{ t('buttons.create') }}
+                    </d-button>
                 </div>
             </div>
         </form>

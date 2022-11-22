@@ -237,23 +237,23 @@
         </div>
         <br>
         <div class="field">
-            <button
-                class="button is-small"
+            <d-button
+                size="small"
+                icon="bell"
                 @click="requestNotifications"
             >
-                <span class="icon"><font-awesome-icon icon="bell" /></span>
-                <span>Request notification permissions</span>
-            </button>
+                Request notification permissions
+            </d-button>
         </div>
         <div class="field">
-            <button
-                class="button is-danger"
+            <d-button
+                icon="arrow-right-from-bracket"
+                color="danger"
                 :disabled="!store.authenticated"
                 @click="logout"
             >
-                <span class="icon"><font-awesome-icon icon="arrow-right-from-bracket" /></span>
-                <span>{{ t('buttons.logout') }}</span>
-            </button>
+                {{ t('buttons.logout') }}
+            </d-button>
         </div>
     </div>
 </template>

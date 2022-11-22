@@ -169,7 +169,8 @@
     "download-config": "Download config",
     "upload-config": "Upload config",
     "sync-down": "Sync down",
-    "sync-up": "Sync up"
+    "sync-up": "Sync up",
+    "unsubscribe": "Unsubscribe"
   },
   "pages": {
     "favourite-games": "Favourite games",
