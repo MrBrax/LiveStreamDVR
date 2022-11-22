@@ -361,11 +361,11 @@ export class TwitchChannel extends BaseChannel {
                 undefined,
                 "system"
             );
-            console.log("Removed VODs: ", removedVods.map(v => v.basename).join(", "));
+            // console.log("Removed VODs: ", removedVods.map(v => v.basename).join(", "));
             Log.logAdvanced(Log.Level.ERROR, "channel", `Vod on disk and vod in memory are not the same for ${this.internalName}`, {
                 vods_on_disk,
-                vods_in_channel_memory,
-                vods_in_main_memory,
+                vods_in_channel_memory: vods_in_channel_memory.map(v => v.basename),
+                vods_in_main_memory: vods_in_main_memory.map(v => v.basename),
             });
         }
 
@@ -377,11 +377,11 @@ export class TwitchChannel extends BaseChannel {
                 undefined,
                 "system"
             );
-            console.log("Removed VODs: ", removedVods.map(v => v.basename).join(", "));
+            // console.log("Removed VODs: ", removedVods.map(v => v.basename).join(", "));
             Log.logAdvanced(Log.Level.ERROR, "channel", `Vod on disk and vod in main memory are not the same for ${this.internalName}`, {
                 vods_on_disk,
-                vods_in_channel_memory,
-                vods_in_main_memory,
+                vods_in_channel_memory: vods_in_channel_memory.map(v => v.basename),
+                vods_in_main_memory: vods_in_main_memory.map(v => v.basename),
             });
         }
 
@@ -393,11 +393,11 @@ export class TwitchChannel extends BaseChannel {
                 undefined,
                 "system"
             );
-            console.log("Removed VODs: ", removedVods.map(v => v.basename).join(", "));
+            // console.log("Removed VODs: ", removedVods.map(v => v.basename).join(", "));
             Log.logAdvanced(Log.Level.ERROR, "channel", `Vod in memory and vod in main memory are not the same for ${this.internalName}`, {
                 vods_on_disk,
-                vods_in_channel_memory,
-                vods_in_main_memory,
+                vods_in_channel_memory: vods_in_channel_memory.map(v => v.basename),
+                vods_in_main_memory: vods_in_main_memory.map(v => v.basename),
             });
         }
 

@@ -168,6 +168,7 @@ export class Log {
             stringy_log_data = JSON.stringify(log_data);
         } catch (e) {
             console.error(chalk.bgRed.whiteBright("😤 Error stringifying log data!"), log_data);
+            Log.logAdvanced(LOGLEVEL.ERROR, `Log.${module}`, "Error stringifying log data!");
             return;
         }
 
