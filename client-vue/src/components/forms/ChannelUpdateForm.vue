@@ -584,7 +584,7 @@ function renameChannel() {
 }
 
 function deleteAllVods() {
-    if (!confirm(`Do you want to delete all VODs for "${props.channel.uuid}"? This cannot be undone.`)) return;
+    if (!confirm(`Do you want to delete all VODs for "${store.channelUUIDToInternalName(props.channel.uuid)}"? This cannot be undone.`)) return;
     axios
         .post<ApiResponse>(`/api/v0/channels/${props.channel.uuid}/deleteallvods`)
         .then((response) => {
