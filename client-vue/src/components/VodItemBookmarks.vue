@@ -51,10 +51,10 @@
                     <div class="field">
                         <label
                             class="label"
-                            :for="'name.' + vod.uuid"
+                            :for="`name.${vod.uuid}`"
                         >Name</label>
                         <input
-                            :id="'name.' + vod.uuid"
+                            :id="`name.${vod.uuid}`"
                             v-model="newBookmark.name"
                             class="input"
                             type="text"
@@ -66,10 +66,10 @@
                     >
                         <label
                             class="label"
-                            :for="'offset.' + vod.uuid"
+                            :for="`offset.${vod.uuid}`"
                         >Offset</label>
                         <input
-                            :id="'offset.' + vod.uuid"
+                            :id="`offset.${vod.uuid}`"
                             v-model="newBookmark.offset"
                             class="input"
                             type="number"

@@ -101,7 +101,7 @@
                             </li>
                             <li v-if="vod.provider == 'twitch'">
                                 <strong>Watch live:</strong> <a
-                                    :href="'https://twitch.tv/' + vod.streamer_login"
+                                    :href="`https://twitch.tv/${vod.streamer_login}`"
                                     rel="noreferrer"
                                     target="_blank"
                                 >Twitch</a>

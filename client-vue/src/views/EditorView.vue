@@ -338,7 +338,6 @@
                         <div class="control">
                             <d-button
                                 type="submit"
-                                class="button is-confirm"
                                 color="success"
                                 icon="scissors"
                                 :disabled="!cutSegmentlength"

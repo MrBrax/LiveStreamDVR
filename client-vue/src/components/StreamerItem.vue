@@ -1,14 +1,14 @@
 <template>
     <div
         v-if="streamer"
-        :id="'streamer_' + streamer.uuid"
+        :id="`streamer_${streamer.uuid}`"
         class="streamer-box"
         :aria-label="streamer.displayName"
     >
         <div :class="{ 'streamer-title': true, 'is-live': streamer.is_live, 'is-capturing': streamer.is_capturing }">
             <div
                 class="streamer-title-avatar"
-                :style="'background-image: url(' + avatarUrl + ')'"
+                :style="`background-image: url(${avatarUrl})`"
             />
             <div class="streamer-title-text">
                 <h2>

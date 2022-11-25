@@ -10,7 +10,7 @@
             <label
                 v-if="value.type != 'boolean'"
                 class="label"
-                :for="'input_' + key"
+                :for="`input_${key}`"
             >
                 {{ te('clientsetting.' + key) ? te('clientsetting.' + key) : value.name }} <!--<span v-if="value.required" class="required">*</span>-->
             </label>
@@ -30,7 +30,7 @@
                 class="control"
             >
                 <input
-                    :id="'input_' + key"
+                    :id="`input_${key}`"
                     v-model.number="(updateConfig[key] as number)"
                     type="number"
                     class="input"
@@ -41,7 +41,7 @@
                 class="control"
             >
                 <input
-                    :id="'input_' + key"
+                    :id="`input_${key}`"
                     v-model="(updateConfig[key] as string)"
                     type="text"
                     class="input"
@@ -53,7 +53,7 @@
             >
                 <div class="select">
                     <select
-                        :id="'input_' + key"
+                        :id="`input_${key}`"
                         v-model="(updateConfig[key] as string)"
                     >
                         <option

@@ -6,7 +6,6 @@
         </p>
         <d-button
             v-if="isTwitch(streamer)"
-            class="button is-confirm"
             color="success"
             icon="download"
             @click="fetchTwitchVods"
@@ -15,7 +14,6 @@
         </d-button>
         <d-button
             v-if="isYouTube(streamer)"
-            class="button is-confirm"
             color="success"
             icon="download"
             @click="fetchYouTubeVods"

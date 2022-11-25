@@ -40,7 +40,6 @@
         >
             <div class="control">
                 <d-button
-                    class="button is-confirm"
                     color="success"
                     icon="download"
                     type="submit"

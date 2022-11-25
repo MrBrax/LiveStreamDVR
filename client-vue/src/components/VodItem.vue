@@ -12,7 +12,7 @@
         :aria-label="vod.basename"
     >
         <div
-            :id="'vod_' + vod.uuid"
+            :id="`vod_${vod.uuid}`"
             class="anchor"
         />
 
@@ -333,17 +333,14 @@ library.add(
     faKey
 );
 
-const props = defineProps({
-    vod: {
-        type: Object as () => VODTypes,
-        default: null,
-        // required: true,
-    },
-    minimized: {
-        type: Boolean,
-        default: false,
-    },
+const props = withDefaults(defineProps<{
+    vod: VODTypes;
+    minimized: boolean;
+}>(), {
+    minimized: false,
 });
+
+
 const emit = defineEmits(["forceFetchData", "refresh", "toggleMinimize"]);
 
 const store = useStore();

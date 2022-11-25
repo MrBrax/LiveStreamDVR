@@ -1,5 +1,5 @@
 <template>
-    <div :id="'channelupdate_' + channel.uuid">
+    <div :id="`channelupdate_${channel.uuid}`">
         <form @submit.prevent="submitForm">
             <div class="field">
                 <label class="label">{{ t('forms.channel.provider') }}</label>
