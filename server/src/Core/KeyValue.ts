@@ -223,4 +223,18 @@ export class KeyValue extends EventEmitter {
         }
     }
 
+    // on(event: "set", listener: (key: string, value: string) => void): this;
+    // on(event: "delete", listener: (key: string) => void): this;
+    // on(event: "delete_all", listener: () => void): this;
+    // on(event: string, listener: (...args: any[]) => void): this {
+    //     return super.on(event, listener);
+    // }
+
+}
+
+export declare interface KeyValue {
+    on(event: "set", listener: (key: string, value: string) => void): this;
+    on(event: "delete", listener: (key: string) => void): this;
+    on(event: "delete_all", listener: () => void): this;
+    // on(event: string, listener: (...args: any[]) => void): this;
 }

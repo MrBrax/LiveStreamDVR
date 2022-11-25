@@ -1055,7 +1055,7 @@ export class TwitchChannel extends BaseChannel {
             try {
                 await channel.subscribe();
             } catch (error) {
-                Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`);
+                Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to subscribe to channel ${channel.internalName}: ${(error as Error).message}`);
                 LiveStreamDVR.getInstance().channels_config = LiveStreamDVR.getInstance().channels_config.filter(ch => ch.provider == "twitch" && ch.login !== config.login); // remove channel from config
                 LiveStreamDVR.getInstance().saveChannelsConfig();
                 // throw new Error(`Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`, { cause: error });
@@ -1612,6 +1612,7 @@ export class TwitchChannel extends BaseChannel {
      * @test disable
      * @param channel_id
      * @param force
+     * @throws
      */
     public static async subscribeToIdWithWebhook(channel_id: string, force = false): Promise<boolean> {
 
@@ -1705,12 +1706,29 @@ export class TwitchChannel extends BaseChannel {
                 KeyValue.getInstance().set(`${channel_id}.substatus.${sub_type}`, SubStatus.WAITING);
 
                 Log.logAdvanced(Log.Level.SUCCESS, "channel", `Subscribe for ${channel_id}:${sub_type} (${streamer_login}) sent. Check logs for a 'subscription active' message.`);
+
+                await new Promise((resolve, reject) => {
+                    KeyValue.getInstance().once("set", (key, value) => {
+                        if (key === `${channel_id}.substatus.${sub_type}` && value === SubStatus.SUBSCRIBED) {
+                            Log.logAdvanced(Log.Level.SUCCESS, "channel", `Subscribe for ${channel_id}:${sub_type} (${streamer_login}) active.`);
+                            resolve(true);
+                            return;
+                        } else if (key === `${channel_id}.substatus.${sub_type}` && value === SubStatus.FAILED) {
+                            Log.logAdvanced(Log.Level.ERROR, "channel", `Subscribe for ${channel_id}:${sub_type} (${streamer_login}) failed.`);
+                            reject(new Error("Subscription failed, check logs for details."));
+                            return;
+                        }
+                        reject(new Error("Unknown error"));
+                    });
+                });
+
             } else if (http_code == 409) {
                 Log.logAdvanced(Log.Level.ERROR, "channel", `Duplicate sub for ${channel_id}:${sub_type} detected.`);
             } else {
                 Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to send subscription request for ${channel_id}:${sub_type}: ${json}, HTTP ${http_code})`);
-                return false;
+                // return false;
                 // continue;
+                throw new Error(`Failed to send subscription request for ${channel_id}:${sub_type}: ${json}, HTTP ${http_code})`);
             }
 
         }
