@@ -1708,18 +1708,28 @@ export class TwitchChannel extends BaseChannel {
                 Log.logAdvanced(Log.Level.SUCCESS, "channel", `Subscribe for ${channel_id}:${sub_type} (${streamer_login}) sent. Check logs for a 'subscription active' message.`);
 
                 await new Promise((resolve, reject) => {
+                    let kvResponse: boolean | undefined = undefined;
                     KeyValue.getInstance().once("set", (key, value) => {
                         if (key === `${channel_id}.substatus.${sub_type}` && value === SubStatus.SUBSCRIBED) {
                             Log.logAdvanced(Log.Level.SUCCESS, "channel", `Subscribe for ${channel_id}:${sub_type} (${streamer_login}) active.`);
+                            kvResponse = true;
                             resolve(true);
                             return;
                         } else if (key === `${channel_id}.substatus.${sub_type}` && value === SubStatus.FAILED) {
                             Log.logAdvanced(Log.Level.ERROR, "channel", `Subscribe for ${channel_id}:${sub_type} (${streamer_login}) failed.`);
+                            kvResponse = true;
                             reject(new Error("Subscription failed, check logs for details."));
                             return;
                         }
+                        kvResponse = false;
                         reject(new Error("Unknown error"));
                     });
+                    // timeout and reject, remove if we get a response
+                    setTimeout(() => {
+                        if (kvResponse === undefined) {
+                            reject(new Error("Timeout"));
+                        }
+                    }, 10000);
                 });
 
             } else if (http_code == 409) {
