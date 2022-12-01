@@ -45,7 +45,7 @@
                 <label
                     v-if="data.type != 'boolean'"
                     class="label"
-                    :for="'input_' + data.key"
+                    :for="`input_${data.key}`"
                 >
                     {{ te('config.' + data.key) ? t('config.' + data.key) : data.text }} <span
                         v-if="data.required"
@@ -64,7 +64,7 @@
                 >
                     <label class="checkbox">
                         <input
-                            :id="'input_' + data.key"
+                            :id="`input_${data.key}`"
                             v-model="(formData.config[data.key] as boolean)"
                             type="checkbox"
                             :name="data.key"
@@ -80,7 +80,7 @@
                 >
                     <input
                         v-if="!data.multiline"
-                        :id="'input_' + data.key"
+                        :id="`input_${data.key}`"
                         v-model="formData.config[data.key]"
                         class="input"
                         type="text"
@@ -90,7 +90,7 @@
                     >
                     <textarea
                         v-if="data.multiline"
-                        :id="'input_' + data.key"
+                        :id="`input_${data.key}`"
                         v-model="(formData.config[data.key] as string)"
                         class="input textarea"
                         :name="data.key"
@@ -105,7 +105,7 @@
                     class="control"
                 >
                     <input
-                        :id="'input_' + data.key"
+                        :id="`input_${data.key}`"
                         v-model.number="formData.config[data.key]"
                         class="input"
                         type="number"
@@ -122,7 +122,7 @@
                     <div class="select">
                         <select
                             v-if="data.choices"
-                            :id="'input_' + data.key"
+                            :id="`input_${data.key}`"
                             v-model="formData.config[data.key]"
                             class="input"
                             :name="data.key"
@@ -165,7 +165,7 @@
                 >
                     <textarea
                         v-if="data.multiline"
-                        :id="'input_' + data.key"
+                        :id="`input_${data.key}`"
                         v-model="(formData.config[data.key] as string)"
                         class="input"
                         type="text"
@@ -173,7 +173,7 @@
                     />
                     <input
                         v-else
-                        :id="'input_' + data.key"
+                        :id="`input_${data.key}`"
                         v-model="formData.config[data.key]"
                         class="input"
                         type="text"
@@ -230,26 +230,26 @@
             :form-status-text="formStatusText"
         >
             <div class="control">
-                <button
-                    class="button is-confirm"
+                <d-button
+                    color="success"
                     type="submit"
+                    icon="save"
                 >
-                    <span class="icon"><font-awesome-icon icon="save" /></span>
-                    <span>{{ t('buttons.save') }}</span>
-                </button>
+                    {{ t('buttons.save') }}
+                </d-button>
             </div>
         </FormSubmit>
 
         <div class="control">
             <hr>
-            <button
-                class="button is-confirm"
+            <d-button
+                color="success"
                 type="button"
+                icon="globe"
                 @click="doValidateExternalURL"
             >
-                <span class="icon"><font-awesome-icon icon="globe" /></span>
-                <span>{{ t('forms.config.validate-external-url') }}</span>
-            </button>
+                {{ t('forms.config.validate-external-url') }}
+            </d-button>
         </div>
     </form>
     <LoadingBox v-if="loading" />

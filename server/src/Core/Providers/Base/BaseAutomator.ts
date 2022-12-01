@@ -520,7 +520,12 @@ export class BaseAutomator {
                 "automator.download",
                 `Stream already capturing to ${meta.basename} from ${data_username}, but reached download function regardless!`
             );
-            this.fallbackCapture();
+            this.fallbackCapture().then(() => {
+                Log.logAdvanced(Log.Level.INFO, "automator.download", `Fallback capture finished for ${this.getLogin()}`);
+            }).catch(error => {
+                Log.logAdvanced(Log.Level.ERROR, "automator.download", `Fallback capture failed for ${this.getLogin()}: ${(error as Error).message}`);
+                console.error(error);
+            });
             return false;
         }
 
@@ -558,7 +563,12 @@ export class BaseAutomator {
 
         if (TwitchVOD.hasVod(basename)) {
             Log.logAdvanced(Log.Level.ERROR, "automator.download", `Cancel download of ${basename}, vod already exists`);
-            this.fallbackCapture();
+            this.fallbackCapture().then(() => {
+                Log.logAdvanced(Log.Level.INFO, "automator.download", `Fallback capture finished for ${this.getLogin()}`);
+            }).catch(error => {
+                Log.logAdvanced(Log.Level.ERROR, "automator.download", `Fallback capture failed for ${this.getLogin()}: ${(error as Error).message}`);
+                console.error(error);
+            });
             return false;
         }
 
@@ -695,7 +705,13 @@ export class BaseAutomator {
             // streamlink currently does not refresh the stream if it is 24 hours or longer
             // it doesn't seem to get fixed, so we'll just warn the user
 
-            this.fallbackCapture(); // just as a last resort, capture again
+            // just as a last resort, capture again
+            this.fallbackCapture().then(() => {
+                Log.logAdvanced(Log.Level.INFO, "automator.download", `Fallback capture finished for ${this.getLogin()}`);
+            }).catch(error => {
+                Log.logAdvanced(Log.Level.ERROR, "automator.download", `Fallback capture failed for ${this.getLogin()}: ${(error as Error).message}`);
+                console.error(error);
+            });
         }
 
         this.vod.calculateChapters();
@@ -1154,10 +1170,10 @@ export class BaseAutomator {
     /**
      * Fallback capture for when you really really want to capture a VOD even if it's a duplicate or whatever
      */
-    public fallbackCapture() {
+    public fallbackCapture(): Promise<boolean> {
 
         if (!Config.getInstance().cfg("capture.fallbackcapture")) {
-            return;
+            return Promise.reject(new Error("Fallback capture disabled"));
         }
 
         return new Promise((resolve, reject) => {

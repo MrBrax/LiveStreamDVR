@@ -97,11 +97,11 @@
                                 <strong>Resolution:</strong> {{ vod.stream_resolution || "Unknown" }}
                             </li>
                             <li v-if="vod.stream_pauses">
-                                <strong>Stream pauses:</strong> {{ vod.stream_pauses.length }} ({{ humanDuration(vod.totalPausedTime) }})
+                                <strong>Stream pauses:</strong> {{ vod.stream_pauses.length }} ({{ humanDuration(vod.totalPausedTime / 1000) }})
                             </li>
                             <li v-if="vod.provider == 'twitch'">
                                 <strong>Watch live:</strong> <a
-                                    :href="'https://twitch.tv/' + vod.streamer_login"
+                                    :href="`https://twitch.tv/${vod.streamer_login}`"
                                     rel="noreferrer"
                                     target="_blank"
                                 >Twitch</a>

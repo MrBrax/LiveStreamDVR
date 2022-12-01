@@ -1,13 +1,13 @@
 <template>
     <div class="video-download-menu">
-        <button
+        <d-button
             v-if="isTwitch(streamer)"
-            class="button is-confirm"
+            color="success"
+            icon="download"
             @click="fetchTwitchClips"
         >
-            <span class="icon"><font-awesome-icon icon="download" /></span>
-            <span>{{ t('vod.fetch-clip-list') }}</span>
-        </button>
+            {{ t('vod.fetch-clip-list') }}
+        </d-button>
         <hr>
         <template v-if="!loading">
             <div
@@ -30,13 +30,14 @@
                     <!--<li>Estimated size: {{ formatBytes(((averageVodBitrate || 6000000) / 10) * parseTwitchDuration(vod.duration)) }}</li>-->
                 </ul>
                 <br>
-                <button
-                    class="button is-small is-confirm"
+                <d-button
+                    color="success"
+                    icon="download"
+                    size="small"
                     @click="downloadClip(clip)"
                 >
-                    <span class="icon"><font-awesome-icon icon="download" /></span>
-                    <span>{{ t("buttons.download") }}</span>
-                </button>
+                    {{ t("buttons.download") }}
+                </d-button>
             </div>
         </template>
         <LoadingBox v-else />

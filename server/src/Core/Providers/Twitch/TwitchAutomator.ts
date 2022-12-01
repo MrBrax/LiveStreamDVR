@@ -150,14 +150,24 @@ export class TwitchAutomator extends BaseAutomator {
 
             if (TwitchVOD.hasVod(basename)) {
                 Log.logAdvanced(Log.Level.INFO, "automator.handle", `Channel ${this.broadcaster_user_login} online, but vod ${basename} already exists, skipping`);
-                this.fallbackCapture();
+                this.fallbackCapture().then(() => {
+                    Log.logAdvanced(Log.Level.INFO, "automator.download", `Fallback capture finished for ${this.getLogin()}`);
+                }).catch(error => {
+                    Log.logAdvanced(Log.Level.ERROR, "automator.download", `Fallback capture failed for ${this.getLogin()}: ${(error as Error).message}`);
+                    console.error(error);
+                });
                 return false;
             }
 
             const capture_vod = TwitchVOD.getVodByCaptureId(event.id);
             if (capture_vod) {
                 Log.logAdvanced(Log.Level.INFO, "automator.handle", `Channel ${this.broadcaster_user_login} online, but vod ${event.id} already exists (${capture_vod.basename}), skipping`);
-                this.fallbackCapture();
+                this.fallbackCapture().then(() => {
+                    Log.logAdvanced(Log.Level.INFO, "automator.download", `Fallback capture finished for ${this.getLogin()}`);
+                }).catch(error => {
+                    Log.logAdvanced(Log.Level.ERROR, "automator.download", `Fallback capture failed for ${this.getLogin()}: ${(error as Error).message}`);
+                    console.error(error);
+                });
                 return false;
             }
 
@@ -377,7 +387,8 @@ export class TwitchAutomator extends BaseAutomator {
         cmd.push("--twitch-disable-hosting");
 
         if (fs.existsSync(path.join(BaseConfigDataFolder.config, "twitch_oauth.txt"))) {
-            const token = fs.readFileSync(path.join(BaseConfigDataFolder.config, "twitch_oauth.txt"));
+            const token = fs.readFileSync(path.join(BaseConfigDataFolder.config, "twitch_oauth.txt"), "utf8").trim();
+            Log.censoredWords.add(token.toString());
             cmd.push(`--twitch-api-header=Authorization=OAuth ${token}`);
         }
 
@@ -393,6 +404,14 @@ export class TwitchAutomator extends BaseAutomator {
 
         // disable reruns
         cmd.push("--twitch-disable-reruns");
+
+        if (Config.getInstance().hasValue("capture.twitch-api-header")) {
+            cmd.push("--twitch-api-header", Config.getInstance().cfg<string>("capture.twitch-api-header"));
+        }
+
+        if (Config.getInstance().hasValue("capture.twitch-access-token-param")) {
+            cmd.push("--twitch-access-token-param", Config.getInstance().cfg<string>("capture.twitch-access-token-param"));
+        }
 
         return cmd;
 

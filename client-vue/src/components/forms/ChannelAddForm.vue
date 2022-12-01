@@ -43,15 +43,15 @@
                     pattern="^[a-z0-9_]{3,25}$"
                     @keyup="checkLogin"
                 >
-                <button
-                    class="button is-confirm"
+                <d-button
                     type="button"
+                    color="success"
+                    icon="sync"
                     :disabled="!formData.login"
                     @click="fetchLogin"
                 >
-                    <span class="icon"><font-awesome-icon icon="sync" /></span>
-                    <span>{{ t('forms.channel.check') }}</span>
-                </button>
+                    {{ t('forms.channel.check') }}
+                </d-button>
             </div>
             <p class="input-help">
                 {{ t('forms.channel.login_help') }}
@@ -70,17 +70,15 @@
                     type="text"
                     :disabled="fetchingUrl"
                 >
-                <button
-                    class="button is-confirm"
+                <d-button
                     type="button"
+                    color="success"
+                    icon="sync"
+                    :loading="fetchingUrl"
                     @click="getChannelId"
                 >
-                    <span class="icon"><fa
-                        icon="sync"
-                        :spin="fetchingUrl"
-                    /></span>
-                    <span>{{ t('buttons.fetch') }}</span>
-                </button>
+                    {{ t('buttons.fetch') }}
+                </d-button>
             </div>
         </div>
 
@@ -313,13 +311,13 @@
             :form-status-text="formStatusText"
         >
             <div class="control">
-                <button
-                    class="button is-confirm"
+                <d-button
                     type="submit"
+                    color="success"
+                    icon="user-plus"
                 >
-                    <span class="icon"><font-awesome-icon icon="user-plus" /></span>
-                    <span>{{ t('forms.channel.add-channel') }}</span>
-                </button>
+                    {{ t('forms.channel.add-channel') }}
+                </d-button>
             </div>
         </FormSubmit>
     </form>

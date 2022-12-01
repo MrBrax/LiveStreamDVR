@@ -4,22 +4,22 @@
             {{ t('messages.video_download_help') }}<br>
             <!--<span v-if="averageVodBitrate">Average bitrate: {{ averageVodBitrate / 1000 }} kbps</span>-->
         </p>
-        <button
+        <d-button
             v-if="isTwitch(streamer)"
-            class="button is-confirm"
+            color="success"
+            icon="download"
             @click="fetchTwitchVods"
         >
-            <span class="icon"><font-awesome-icon icon="download" /></span>
-            <span>{{ t('vod.fetch-vod-list') }}</span>
-        </button>
-        <button
+            {{ t('vod.fetch-vod-list') }}
+        </d-button>
+        <d-button
             v-if="isYouTube(streamer)"
-            class="button is-confirm"
+            color="success"
+            icon="download"
             @click="fetchYouTubeVods"
         >
-            <span class="icon"><font-awesome-icon icon="download" /></span>
-            <span>{{ t('vod.fetch-vod-list') }}</span>
-        </button>
+            {{ t('vod.fetch-vod-list') }}
+        </d-button>
         <hr>
         <template v-if="!loading">
             <div
@@ -45,13 +45,14 @@
                     <!--<li>Estimated size: {{ formatBytes(((averageVodBitrate || 6000000) / 10) * parseTwitchDuration(vod.duration)) }}</li>-->
                 </ul>
                 <br>
-                <button
-                    class="button is-small is-confirm"
+                <d-button
+                    size="small"
+                    color="success"
+                    icon="download"
                     @click="downloadVideo(vod.id.toString())"
                 >
-                    <span class="icon"><font-awesome-icon icon="download" /></span>
-                    <span>{{ t("buttons.download") }}</span>
-                </button>
+                    {{ t("buttons.download") }}
+                </d-button>
             </div>
         </template>
         <LoadingBox v-else />

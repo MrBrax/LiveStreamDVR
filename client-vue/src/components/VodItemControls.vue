@@ -162,7 +162,7 @@
             -->
             <!-- Delete -->
             <d-button
-                class="button is-danger"
+                color="danger"
                 :disabled="vod.prevent_deletion"
                 icon="trash"
                 @click="emit('delete')"

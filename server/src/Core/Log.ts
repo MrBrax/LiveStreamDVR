@@ -60,6 +60,8 @@ export class Log {
     // static readonly DEBUG = "DEBUG";
     // static readonly WARNING = "WARNING";
 
+    static censoredWords: Set<string> = new Set();
+
     static readTodaysLog(): void {
         console.log(chalk.blue("Read today's log..."));
         const today = format(new Date(), "yyyy-MM-dd");
@@ -131,6 +133,10 @@ export class Log {
         const dateFormat = "yyyy-MM-dd HH:mm:ss.SSS";
         const dateString = format(date, dateFormat);
 
+        for (const word of Log.censoredWords) {
+            text = text.replace(word, "*".repeat(word.length));
+        }
+
         // write cleartext
         const textOutput = `${dateString} ${process.pid}+${Config.getInstance().gitHash?.substring(0, 4)} | ${module} <${level}> ${text}`;
         fs.appendFileSync(filepath_combined, `${textOutput}\n`);
@@ -162,6 +168,7 @@ export class Log {
             stringy_log_data = JSON.stringify(log_data);
         } catch (e) {
             console.error(chalk.bgRed.whiteBright("😤 Error stringifying log data!"), log_data);
+            Log.logAdvanced(LOGLEVEL.ERROR, `Log.${module}`, "Error stringifying log data!");
             return;
         }
 

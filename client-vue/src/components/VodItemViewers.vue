@@ -43,10 +43,12 @@ import { useStore } from '@/store';
 import { useI18n } from 'vue-i18n';
 import type { VODTypes } from '@/twitchautomator';
 import { humanDuration } from '@/mixins/newhelpers';
-import { computed, onMounted, reactive, ref } from 'vue';
+import { computed, onMounted, reactive, ref, defineAsyncComponent } from 'vue';
 import type { ChartData, ChartOptions } from 'chart.js';
-import ViewerChart from '@/components/reusables/ViewerChart.vue';
+// import ViewerChart from '@/components/reusables/ViewerChart.vue';
 // const ViewerChart = () => import('@/components/reusables/ViewerChart.vue');
+
+const ViewerChart = defineAsyncComponent(() => import('@/components/reusables/ViewerChart.vue'));
 
 const props = defineProps({
     vod: {

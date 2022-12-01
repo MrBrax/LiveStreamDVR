@@ -51,10 +51,10 @@
                     <div class="field">
                         <label
                             class="label"
-                            :for="'name.' + vod.uuid"
+                            :for="`name.${vod.uuid}`"
                         >Name</label>
                         <input
-                            :id="'name.' + vod.uuid"
+                            :id="`name.${vod.uuid}`"
                             v-model="newBookmark.name"
                             class="input"
                             type="text"
@@ -66,22 +66,23 @@
                     >
                         <label
                             class="label"
-                            :for="'offset.' + vod.uuid"
+                            :for="`offset.${vod.uuid}`"
                         >Offset</label>
                         <input
-                            :id="'offset.' + vod.uuid"
+                            :id="`offset.${vod.uuid}`"
                             v-model="newBookmark.offset"
                             class="input"
                             type="number"
                         >
                     </div>
-                    <button
-                        class="button is-small is-confirm"
+                    <d-button
+                        size="small"
+                        color="success"
+                        icon="plus"
                         @click="doMakeBookmark"
                     >
-                        <span class="icon"><font-awesome-icon icon="plus" /></span>
-                        <span>Create</span>
-                    </button>
+                        {{ t('buttons.create') }}
+                    </d-button>
                 </details>
             </div>
         </transition>

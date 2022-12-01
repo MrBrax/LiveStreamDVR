@@ -251,13 +251,14 @@
                 Currently not editable
             </div>
             -->
-            <button
-                class="button is-small is-danger"
+            <d-button
+                size="small"
+                color="danger"
+                icon="undo"
                 @click="resetChapters"
             >
-                <span class="icon"><font-awesome-icon icon="undo" /></span>
-                <span>{{ t('vod.edit.reset-chapters') }}</span>
-            </button>
+                {{ t('vod.edit.reset-chapters') }}
+            </d-button>
             <p>
                 Total duration: {{ vod.duration }}
             </p>
@@ -289,13 +290,13 @@
     </div>
 
     <div class="field">
-        <button
-            class="button is-confirm"
+        <d-button
+            color="success"
+            icon="save"
             @click="doEditVod"
         >
-            <span class="icon"><font-awesome-icon icon="save" /></span>
-            <span>{{ t("buttons.save") }}</span>
-        </button>
+            {{ t("buttons.save") }}
+        </d-button>
     </div>
 </template>
 

@@ -10,7 +10,7 @@
             <label
                 v-if="value.type != 'boolean'"
                 class="label"
-                :for="'input_' + key"
+                :for="`input_${key}`"
             >
                 {{ te('clientsetting.' + key) ? te('clientsetting.' + key) : value.name }} <!--<span v-if="value.required" class="required">*</span>-->
             </label>
@@ -30,7 +30,7 @@
                 class="control"
             >
                 <input
-                    :id="'input_' + key"
+                    :id="`input_${key}`"
                     v-model.number="(updateConfig[key] as number)"
                     type="number"
                     class="input"
@@ -41,7 +41,7 @@
                 class="control"
             >
                 <input
-                    :id="'input_' + key"
+                    :id="`input_${key}`"
                     v-model="(updateConfig[key] as string)"
                     type="text"
                     class="input"
@@ -53,7 +53,7 @@
             >
                 <div class="select">
                     <select
-                        :id="'input_' + key"
+                        :id="`input_${key}`"
                         v-model="(updateConfig[key] as string)"
                     >
                         <option
@@ -206,54 +206,54 @@
             </div>
         </div>
         <div class="field buttons">
-            <button
-                class="button is-confirm"
+            <d-button
+                color="success"
+                icon="save"
                 @click="saveClientConfig"
             >
-                <span class="icon"><font-awesome-icon icon="save" /></span>
-                <span>{{ t('buttons.save') }}</span>
-            </button>
-            <button
-                class="button is-confirm"
+                {{ t('buttons.save') }}
+            </d-button>
+            <d-button
+                color="success"
+                icon="download"
                 @click="downloadClientSettings"
             >
-                <span class="icon"><font-awesome-icon icon="download" /></span>
-                <span>{{ t('buttons.sync-down') }}</span>
-            </button>
-            <button
-                class="button is-confirm"
+                {{ t('buttons.sync-down') }}
+            </d-button>
+            <d-button
+                color="success"
+                icon="upload"
                 @click="uploadClientConfig"
             >
-                <span class="icon"><font-awesome-icon icon="upload" /></span>
-                <span>{{ t('buttons.sync-up') }}</span>
-            </button>
-            <button
-                class="button is-danger"
+                {{ t('buttons.sync-up') }}
+            </d-button>
+            <d-button
+                color="danger"
+                icon="undo"
                 @click="resetClientConfig"
             >
-                <span class="icon"><font-awesome-icon icon="undo" /></span>
-                <span>{{ t('buttons.reset') }}</span>
-            </button>
+                {{ t('buttons.reset') }}
+            </d-button>
         </div>
         <br>
         <div class="field">
-            <button
-                class="button is-small"
+            <d-button
+                size="small"
+                icon="bell"
                 @click="requestNotifications"
             >
-                <span class="icon"><font-awesome-icon icon="bell" /></span>
-                <span>Request notification permissions</span>
-            </button>
+                Request notification permissions
+            </d-button>
         </div>
         <div class="field">
-            <button
-                class="button is-danger"
+            <d-button
+                icon="arrow-right-from-bracket"
+                color="danger"
                 :disabled="!store.authenticated"
                 @click="logout"
             >
-                <span class="icon"><font-awesome-icon icon="arrow-right-from-bracket" /></span>
-                <span>{{ t('buttons.logout') }}</span>
-            </button>
+                {{ t('buttons.logout') }}
+            </d-button>
         </div>
     </div>
 </template>

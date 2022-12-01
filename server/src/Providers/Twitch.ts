@@ -178,8 +178,8 @@ export class TwitchHelper {
 
 
         if (
-            !Config.getInstance().cfg("api_secret") ||
-            !Config.getInstance().cfg("api_client_id")
+            !Config.getInstance().hasValue("api_secret") ||
+            !Config.getInstance().hasValue("api_client_id")
         ) {
             Log.logAdvanced(
                 Log.Level.ERROR,
@@ -360,7 +360,7 @@ export class TwitchHelper {
             throw new Error("Can't refresh access token, not using a user access token!");
         }
 
-        if (!Config.getInstance().cfg("api_secret") || !Config.getInstance().cfg("api_client_id")) {
+        if (!Config.getInstance().hasValue("api_secret") || !Config.getInstance().hasValue("api_client_id")) {
             Log.logAdvanced(
                 Log.Level.ERROR,
                 "tw.helper.refreshUserAccessToken",
@@ -749,7 +749,7 @@ export class TwitchHelper {
 
         console.log(chalk.blue("Setting up axios..."));
 
-        if (!Config.getInstance().cfg("api_client_id")) {
+        if (!Config.getInstance().hasValue("api_client_id")) {
             console.error(chalk.red("API client id not set, can't setup axios"));
             return;
         }
@@ -766,6 +766,8 @@ export class TwitchHelper {
             Log.logAdvanced(Log.Level.FATAL, "tw.helper.setupAxios", "Could not get access token!");
             throw new Error("Could not get access token!");
         }
+
+        Log.censoredWords.add(token);
 
         if (TwitchHelper.accessTokenType === "user") {
             const validateResult = await TwitchHelper.validateOAuth();
@@ -796,6 +798,7 @@ export class TwitchHelper {
             return false;
         }
         TwitchHelper.axios.defaults.headers.common["Authorization"] = `Bearer ${TwitchHelper.accessToken}`;
+        Log.censoredWords.add(TwitchHelper.accessToken);
         console.log(chalk.green(`✔ Axios token updated with ${TwitchHelper.accessTokenType} token.`));
         return true;
     }

@@ -1,6 +1,5 @@
 <template>
     <button
-        class="button"
         :class="buttonClass"
         @click="onClick"
     >
@@ -9,7 +8,7 @@
             class="icon"
         >
             <font-awesome-icon
-                :icon="icon"
+                :icon="properIcon"
                 :spin="iconSpin"
             />
         </span>
@@ -25,11 +24,13 @@ const slots = useSlots();
 
 const props = defineProps<{
     onClick: () => void;
-    buttonClass: string;
+    color?: string;
+    // buttonClass: string;
     icon?: string;
     iconSpin?: boolean;
     loading?: boolean;
     text?: string;
+    size?: 'small';
 }>();
 
 const properIcon = computed(() => {
@@ -37,6 +38,18 @@ const properIcon = computed(() => {
         return 'spinner';
     }
     return props.icon;
+});
+
+const buttonClass = computed((): Record<string, boolean> => {
+    const classes: Record<string, boolean> = {
+        button: true,
+        // 'is-loading': props.loading,
+        'is-small': props.size === 'small',
+    };
+    if (props.color) {
+        classes[`is-${props.color}`] = true;
+    }
+    return classes;
 });
 
 </script>

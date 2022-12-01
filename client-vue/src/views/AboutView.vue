@@ -108,22 +108,24 @@
                 <div class="block">
                     <h3>{{ t('about.subscriptions') }}</h3>
                     <p class="buttons">
-                        <button
-                            class="button is-confirm is-small"
+                        <d-button
+                            color="success"
+                            size="small"
+                            icon="sync"
                             :disabled="subscriptionsLoading"
                             @click="fetchSubscriptions"
                         >
-                            <span class="icon"><font-awesome-icon icon="sync" /></span>
-                            <span>{{ t("buttons.fetch") }}</span>
-                        </button>
-                        <button
-                            class="button is-confirm is-small"
+                            {{ t("buttons.fetch") }}
+                        </d-button>
+                        <d-button
+                            color="success"
+                            size="small"
+                            icon="rss"
                             :disabled="subscriptionsLoading"
                             @click="subscribeAll"
                         >
-                            <span class="icon"><font-awesome-icon icon="rss" /></span>
-                            <span>{{ t("buttons.subscribe") }} </span>
-                        </button>
+                            {{ t("buttons.subscribe") }}
+                        </d-button>
                     </p>
                     <!--<button class="button is-confirm is-small" @click="unsubscribeAll" :disabled="subscriptionsLoading">Unsubscribe</button>-->
                     <LoadingBox v-if="subscriptionsLoading" />
@@ -155,14 +157,15 @@
                                     <small class="is-dark-gray">{{ subscription.callback }}</small>
                                 </td>
                                 <td>
-                                    <button
-                                        class="button is-confirm is-small"
+                                    <d-button
+                                        color="danger"
+                                        size="small"
+                                        icon="ban"
                                         :disabled="subscriptionsLoading"
                                         @click="unsubscribe(subscription.id)"
                                     >
-                                        <span class="icon"><font-awesome-icon icon="ban" /></span>
-                                        <span>Unsubscribe</span>
-                                    </button>
+                                        {{ t('buttons.unsubscribe') }}
+                                    </d-button>
                                 </td>
                             </tr>
                         </tbody>

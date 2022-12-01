@@ -345,7 +345,8 @@ export class TwitchChannel extends BaseChannel {
     }
 
     public checkStaleVodsInMemory(): void {
-        if (!this.login) return;
+
+        Log.logAdvanced(Log.Level.DEBUG, "channel", `Check stale VODs in memory for ${this.internalName}`);
 
         // const vods_on_disk = fs.readdirSync(Helper.vodFolder(this.login)).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".json") && !f.endsWith("_chat.json"));
         const vods_on_disk = this.rescanVods();
@@ -360,10 +361,11 @@ export class TwitchChannel extends BaseChannel {
                 undefined,
                 "system"
             );
+            // console.log("Removed VODs: ", removedVods.map(v => v.basename).join(", "));
             Log.logAdvanced(Log.Level.ERROR, "channel", `Vod on disk and vod in memory are not the same for ${this.internalName}`, {
                 vods_on_disk,
-                vods_in_channel_memory,
-                vods_in_main_memory,
+                vods_in_channel_memory: vods_in_channel_memory.map(v => v.basename),
+                vods_in_main_memory: vods_in_main_memory.map(v => v.basename),
             });
         }
 
@@ -375,10 +377,11 @@ export class TwitchChannel extends BaseChannel {
                 undefined,
                 "system"
             );
+            // console.log("Removed VODs: ", removedVods.map(v => v.basename).join(", "));
             Log.logAdvanced(Log.Level.ERROR, "channel", `Vod on disk and vod in main memory are not the same for ${this.internalName}`, {
                 vods_on_disk,
-                vods_in_channel_memory,
-                vods_in_main_memory,
+                vods_in_channel_memory: vods_in_channel_memory.map(v => v.basename),
+                vods_in_main_memory: vods_in_main_memory.map(v => v.basename),
             });
         }
 
@@ -390,10 +393,11 @@ export class TwitchChannel extends BaseChannel {
                 undefined,
                 "system"
             );
+            // console.log("Removed VODs: ", removedVods.map(v => v.basename).join(", "));
             Log.logAdvanced(Log.Level.ERROR, "channel", `Vod in memory and vod in main memory are not the same for ${this.internalName}`, {
                 vods_on_disk,
-                vods_in_channel_memory,
-                vods_in_main_memory,
+                vods_in_channel_memory: vods_in_channel_memory.map(v => v.basename),
+                vods_in_main_memory: vods_in_main_memory.map(v => v.basename),
             });
         }
 
@@ -1051,7 +1055,7 @@ export class TwitchChannel extends BaseChannel {
             try {
                 await channel.subscribe();
             } catch (error) {
-                Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`);
+                Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to subscribe to channel ${channel.internalName}: ${(error as Error).message}`);
                 LiveStreamDVR.getInstance().channels_config = LiveStreamDVR.getInstance().channels_config.filter(ch => ch.provider == "twitch" && ch.login !== config.login); // remove channel from config
                 LiveStreamDVR.getInstance().saveChannelsConfig();
                 // throw new Error(`Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`, { cause: error });
@@ -1608,10 +1612,11 @@ export class TwitchChannel extends BaseChannel {
      * @test disable
      * @param channel_id
      * @param force
+     * @throws
      */
     public static async subscribeToIdWithWebhook(channel_id: string, force = false): Promise<boolean> {
 
-        if (!Config.getInstance().cfg("app_url")) {
+        if (!Config.getInstance().hasValue("app_url")) {
             throw new Error("app_url is not set");
         }
 
@@ -1621,11 +1626,11 @@ export class TwitchChannel extends BaseChannel {
 
         let hook_callback = `${Config.getInstance().cfg("app_url")}/api/v0/hook/twitch`;
 
-        if (Config.getInstance().cfg("instance_id")) {
+        if (Config.getInstance().hasValue("instance_id")) {
             hook_callback += "?instance=" + Config.getInstance().cfg("instance_id");
         }
 
-        if (!Config.getInstance().cfg("eventsub_secret")) {
+        if (!Config.getInstance().hasValue("eventsub_secret")) {
             throw new Error("eventsub_secret is not set");
         }
 
@@ -1634,11 +1639,11 @@ export class TwitchChannel extends BaseChannel {
         for (const sub_type of TwitchHelper.CHANNEL_SUB_TYPES) {
 
             if (KeyValue.getInstance().get(`${channel_id}.sub.${sub_type}`) && !force) {
-                Log.logAdvanced(Log.Level.INFO, "channel", `Skip subscription to ${channel_id}:${sub_type} (${streamer_login}), in cache.`);
+                Log.logAdvanced(Log.Level.INFO, "tw.ch.subWebhook", `Skip subscription to ${channel_id}:${sub_type} (${streamer_login}), in cache.`);
                 continue; // todo: alert
             }
 
-            Log.logAdvanced(Log.Level.INFO, "channel", `Subscribe to ${channel_id}:${sub_type} (${streamer_login})`);
+            Log.logAdvanced(Log.Level.INFO, "tw.ch.subWebhook", `Subscribe to ${channel_id}:${sub_type} (${streamer_login})`);
 
             const payload: SubscriptionRequest = {
                 type: sub_type,
@@ -1663,7 +1668,7 @@ export class TwitchChannel extends BaseChannel {
                 response = await TwitchHelper.postRequest<SubscriptionResponse>("/helix/eventsub/subscriptions", payload);
             } catch (err) {
                 if (axios.isAxiosError(err)) {
-                    Log.logAdvanced(Log.Level.ERROR, "channel", `Could not subscribe to ${channel_id}:${sub_type}: ${err.message} / ${err.response?.data.message}`);
+                    Log.logAdvanced(Log.Level.ERROR, "tw.ch.subWebhook", `Could not subscribe to ${channel_id}:${sub_type}: ${err.message} / ${err.response?.data.message}`);
 
                     if (err.response?.data.status == 409) { // duplicate
                         const sub_id = await TwitchChannel.getSubscriptionId(channel_id, sub_type);
@@ -1677,7 +1682,7 @@ export class TwitchChannel extends BaseChannel {
                     continue;
                 }
 
-                Log.logAdvanced(Log.Level.ERROR, "channel", `Subscription request for ${channel_id} exceptioned: ${err}`);
+                Log.logAdvanced(Log.Level.ERROR, "tw.ch.subWebhook", `Subscription request for ${channel_id} exceptioned: ${err}`);
                 console.log(err);
                 continue;
             }
@@ -1692,7 +1697,7 @@ export class TwitchChannel extends BaseChannel {
             if (http_code == 202) {
 
                 if (json.data[0].status !== "webhook_callback_verification_pending") {
-                    Log.logAdvanced(Log.Level.ERROR, "channel", `Got 202 return for subscription request for ${channel_id}:${sub_type} but did not get callback verification.`);
+                    Log.logAdvanced(Log.Level.ERROR, "tw.ch.subWebhook", `Got 202 return for subscription request for ${channel_id}:${sub_type} but did not get callback verification.`);
                     return false;
                     // continue;
                 }
@@ -1700,13 +1705,47 @@ export class TwitchChannel extends BaseChannel {
                 KeyValue.getInstance().set(`${channel_id}.sub.${sub_type}`, json.data[0].id);
                 KeyValue.getInstance().set(`${channel_id}.substatus.${sub_type}`, SubStatus.WAITING);
 
-                Log.logAdvanced(Log.Level.SUCCESS, "channel", `Subscribe for ${channel_id}:${sub_type} (${streamer_login}) sent. Check logs for a 'subscription active' message.`);
+                Log.logAdvanced(Log.Level.INFO, "tw.ch.subWebhook", `Subscribe request for ${channel_id}:${sub_type} (${streamer_login}) sent, awaiting response...`);
+
+                await new Promise((resolve, reject) => {
+                    let kvResponse: boolean | undefined = undefined;
+                    KeyValue.getInstance().once("set", (key, value) => {
+                        if (key === `${channel_id}.substatus.${sub_type}` && value === SubStatus.SUBSCRIBED) {
+                            Log.logAdvanced(Log.Level.SUCCESS, "tw.ch.subWebhook", `Subscription for ${channel_id}:${sub_type} (${streamer_login}) active.`);
+                            kvResponse = true;
+                            resolve(true);
+                            return;
+                        } else if (key === `${channel_id}.substatus.${sub_type}` && value === SubStatus.FAILED) {
+                            Log.logAdvanced(Log.Level.ERROR, "tw.ch.subWebhook", `Subscription for ${channel_id}:${sub_type} (${streamer_login}) failed.`);
+                            kvResponse = true;
+                            reject(new Error("Subscription failed, check logs for details."));
+                            return;
+                        } else if (key === `${channel_id}.substatus.${sub_type}` && value === SubStatus.WAITING) {
+                            // this one shouldn't happen?
+                            Log.logAdvanced(Log.Level.ERROR, "tw.ch.subWebhook", `Subscription for ${channel_id}:${sub_type} (${streamer_login}) failed, no response received.`);
+                            kvResponse = true;
+                            reject(new Error("Subscription failed, check logs for details."));
+                            return;
+                        }
+                        kvResponse = false;
+                        reject(new Error("Unknown error"));
+                    });
+                    // timeout and reject, remove if we get a response
+                    setTimeout(() => {
+                        if (kvResponse === undefined) {
+                            Log.logAdvanced(Log.Level.ERROR, "tw.ch.subWebhook", `Subscription for ${channel_id}:${sub_type} (${streamer_login}) failed, no response received within 10 seconds.`);
+                            reject(new Error("Timeout, no response received within 10 seconds."));
+                        }
+                    }, 10000);
+                });
+
             } else if (http_code == 409) {
-                Log.logAdvanced(Log.Level.ERROR, "channel", `Duplicate sub for ${channel_id}:${sub_type} detected.`);
+                Log.logAdvanced(Log.Level.ERROR, "tw.ch.subWebhook", `Duplicate sub for ${channel_id}:${sub_type} detected.`);
             } else {
-                Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to send subscription request for ${channel_id}:${sub_type}: ${json}, HTTP ${http_code})`);
-                return false;
+                Log.logAdvanced(Log.Level.ERROR, "tw.ch.subWebhook", `Failed to send subscription request for ${channel_id}:${sub_type}: ${json}, HTTP ${http_code})`);
+                // return false;
                 // continue;
+                throw new Error(`Failed to send subscription request for ${channel_id}:${sub_type}: ${json}, HTTP ${http_code})`);
             }
 
         }
@@ -1739,12 +1778,12 @@ export class TwitchChannel extends BaseChannel {
             const unsub = await TwitchHelper.eventSubUnsubscribe(sub.id);
 
             if (unsub) {
-                Log.logAdvanced(Log.Level.SUCCESS, "channel", `Unsubscribed from ${channel_id}:${sub.type} (${streamer_login})`);
+                Log.logAdvanced(Log.Level.SUCCESS, "tw.ch.unsubWebhook", `Unsubscribed from ${channel_id}:${sub.type} (${streamer_login})`);
                 unsubbed++;
                 KeyValue.getInstance().delete(`${channel_id}.sub.${sub.type}`);
                 KeyValue.getInstance().delete(`${channel_id}.substatus.${sub.type}`);
             } else {
-                Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to unsubscribe from ${channel_id}:${sub.type} (${streamer_login})`);
+                Log.logAdvanced(Log.Level.ERROR, "tw.ch.unsubWebhook", `Failed to unsubscribe from ${channel_id}:${sub.type} (${streamer_login})`);
             }
 
         }
@@ -1767,7 +1806,7 @@ export class TwitchChannel extends BaseChannel {
             let selectedWebsocket: EventWebsocket | undefined = undefined;
             for (const ws of TwitchHelper.eventWebsockets) {
                 if (ws.isAvailable(1)) { // estimated cost
-                    Log.logAdvanced(Log.Level.DEBUG, "channel", `Using existing websocket ${ws.id} for ${channel_id}:${sub_type} sub (${streamer_login})`);
+                    Log.logAdvanced(Log.Level.DEBUG, "tw.ch.subscribeToIdWithWebsocket", `Using existing websocket ${ws.id} for ${channel_id}:${sub_type} sub (${streamer_login})`);
                     selectedWebsocket = ws;
                     break;
                 }
@@ -1776,11 +1815,11 @@ export class TwitchChannel extends BaseChannel {
             if (!selectedWebsocket) {
                 // throw new Error("No websocket available for subscription");
                 selectedWebsocket = await TwitchHelper.createNewWebsocket(TwitchHelper.eventWebsocketUrl);
-                Log.logAdvanced(Log.Level.DEBUG, "channel", `Using new websocket ${selectedWebsocket.id}/${selectedWebsocket.sessionId} for ${channel_id}:${sub_type} sub (${streamer_login})`);
+                Log.logAdvanced(Log.Level.DEBUG, "tw.ch.subscribeToIdWithWebsocket", `Using new websocket ${selectedWebsocket.id}/${selectedWebsocket.sessionId} for ${channel_id}:${sub_type} sub (${streamer_login})`);
             }
 
             if (!selectedWebsocket) {
-                Log.logAdvanced(Log.Level.ERROR, "channel", `Could not create websocket for ${channel_id}:${sub_type} subscription, aborting`);
+                Log.logAdvanced(Log.Level.ERROR, "tw.ch.subscribeToIdWithWebsocket", `Could not create websocket for ${channel_id}:${sub_type} subscription, aborting`);
                 throw new Error("Could not create websocket for subscription");
             }
 
@@ -1789,7 +1828,7 @@ export class TwitchChannel extends BaseChannel {
             }
 
             // if (KeyValue.getInstance().get(`${channel_id}.sub.${sub_type}`) && !force) {
-            //     Log.logAdvanced(Log.Level.INFO, "channel", `Skip subscription to ${channel_id}:${sub_type} (${streamer_login}), in cache.`);
+            //     Log.logAdvanced(Log.Level.INFO, "tw.ch.subscribeToIdWithWebsocket", `Skip subscription to ${channel_id}:${sub_type} (${streamer_login}), in cache.`);
             //     continue; // todo: alert
             // }
 
@@ -1906,7 +1945,7 @@ export class TwitchChannel extends BaseChannel {
             const unsub = await TwitchHelper.eventSubUnsubscribe(sub.id);
 
             if (unsub) {
-                Log.logAdvanced(Log.Level.SUCCESS, "channel", `Unsubscribed from ${channel_id}:${sub.type} (${streamer_login})`);
+                Log.logAdvanced(Log.Level.SUCCESS, "tw.ch.unsubscribeToIdWithWebsocket", `Unsubscribed from ${channel_id}:${sub.type} (${streamer_login})`);
                 unsubbed++;
                 // KeyValue.getInstance().delete(`${channel_id}.sub.${sub.type}`);
                 // KeyValue.getInstance().delete(`${channel_id}.substatus.${sub.type}`);
@@ -1915,7 +1954,7 @@ export class TwitchChannel extends BaseChannel {
                     ws.removeSubscription(sub.id);
                 }
             } else {
-                Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to unsubscribe from ${channel_id}:${sub.type} (${streamer_login})`);
+                Log.logAdvanced(Log.Level.ERROR, "tw.ch.unsubscribeToIdWithWebsocket", `Failed to unsubscribe from ${channel_id}:${sub.type} (${streamer_login})`);
             }
 
         }

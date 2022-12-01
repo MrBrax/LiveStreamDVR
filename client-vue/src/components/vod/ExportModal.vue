@@ -353,14 +353,14 @@
 
     <div class="field">
         <div class="control">
-            <button
-                class="button is-confirm"
+            <d-button
+                color="success"
+                icon="upload"
+                :loading="loading"
                 @click="doExportVod"
-                :disabled="loading"
             >
-                <span class="icon"><font-awesome-icon :icon="loading ? 'spinner' : 'upload'" :spin="loading" /></span>
-                <span>{{ t("buttons.export") }}</span>
-            </button>
+                {{ t("buttons.export") }}
+            </d-button>
         </div>
     </div>
 </template>

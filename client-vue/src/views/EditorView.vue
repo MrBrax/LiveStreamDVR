@@ -125,76 +125,80 @@
 
                 <div class="video-editor-controls">
                     <div class="buttons no-margin">
-                        <button
-                            class="button is-confirm"
+                        <d-button
+                            type="button"
+                            color="success"
+                            icon="play"
                             @click="play"
                         >
-                            <span class="icon"><font-awesome-icon icon="play" /></span>
-                            <span>{{ t('views.editor.buttons.play') }}</span>
-                        </button>
-                        <button
-                            class="button is-confirm"
+                            {{ t('views.editor.buttons.play') }}
+                        </d-button>
+                        <d-button
+                            type="button"
+                            color="success"
+                            icon="pause"
                             @click="pause"
                         >
-                            <span class="icon"><font-awesome-icon icon="pause" /></span>
-                            <span>{{ t('views.editor.buttons.pause') }}</span>
-                        </button>
-                        <button
+                            {{ t('views.editor.buttons.pause') }}
+                        </d-button>
+                        <d-button
                             type="button"
-                            class="button is-confirm"
+                            color="success"
+                            icon="backward-step"
                             @click="seekRelative(-1)"
                         >
-                            <span class="icon"><font-awesome-icon icon="backward-step" /></span>
-                            <span>{{ t('views.editor.buttons.step-back') }}</span>
-                        </button>
-                        <button
+                            {{ t('views.editor.buttons.step-back') }}
+                        </d-button>
+                        <d-button
                             type="button"
-                            class="button is-confirm"
+                            color="success"
+                            icon="forward-step"
                             @click="seekRelative(1)"
                         >
-                            <span class="icon"><font-awesome-icon icon="forward-step" /></span>
-                            <span>{{ t('views.editor.buttons.step-forward') }}</span>
-                        </button>
-                        <button
+                            {{ t('views.editor.buttons.step-forward') }}
+                        </d-button>
+                        <d-button
                             type="button"
-                            class="button is-confirm"
+                            color="success"
+                            icon="fast-backward"
                             :disabled="secondsIn == Math.round(currentVideoTime)"
                             @click="setFrameIn(currentVideoTime)"
                         >
-                            <span class="icon"><font-awesome-icon icon="fast-backward" /></span>
-                            <span>{{ t('views.editor.buttons.mark-in') }}</span>
-                        </button>
-                        <button
+                            {{ t('views.editor.buttons.mark-in') }}
+                        </d-button>
+                        <d-button
                             type="button"
-                            class="button is-confirm"
+                            color="success"
+                            icon="fast-forward"
                             :disabled="secondsOut == Math.round(currentVideoTime)"
                             @click="setFrameOut(currentVideoTime)"
                         >
-                            <span class="icon"><font-awesome-icon icon="fast-forward" /></span>
-                            <span>{{ t('views.editor.buttons.mark-out') }}</span>
-                        </button>
-                        <button
-                            class="button is-confirm"
+                            {{ t('views.editor.buttons.mark-out') }}
+                        </d-button>
+                        <d-button
+                            type="button"
+                            color="success"
+                            icon="bookmark"
                             @click="addBookmark"
                         >
-                            <span class="icon"><font-awesome-icon icon="bookmark" /></span>
-                            <span>{{ t('views.editor.buttons.add-bookmark') }}</span>
-                        </button>
-                        <button
-                            class="button is-confirm"
+                            {{ t('views.editor.buttons.add-bookmark') }}
+                        </d-button>
+                        <d-button
+                            type="button"
+                            color="success"
+                            icon="expand"
                             @click="fullscreen"
                         >
-                            <span class="icon"><font-awesome-icon icon="expand" /></span>
-                            <span>{{ t('views.editor.buttons.fullscreen') }}</span>
-                        </button>
-                        <button
-                            class="button"
+                            {{ t('views.editor.buttons.fullscreen') }}
+                        </d-button>
+                        <d-button
+                            type="button"
+                            :icon="previewClip ? 'eye' : 'eye-slash'"
                             :class="{ 'is-confirm': previewClip, 'is-danger': !previewClip }"
                             @click="previewClip = !previewClip"
                         >
-                            <span class="icon"><font-awesome-icon :icon="previewClip ? 'eye' : 'eye-slash'" /></span>
-                            <span>{{ t('views.editor.buttons.preview') }}</span>
-                        </button>
+                            {{ t('views.editor.buttons.preview') }}
+                        </d-button>
                     </div>
                 </div>
 
@@ -332,25 +336,17 @@
                         :form-status-text="formStatusText"
                     >
                         <div class="control">
-                            <button
+                            <d-button
                                 type="submit"
-                                class="button is-confirm"
+                                color="success"
+                                icon="scissors"
+                                :disabled="!cutSegmentlength"
                             >
-                                <span class="icon"><font-awesome-icon icon="scissors" /></span>
-                                <span>{{ t('views.editor.buttons.submit-cut') }}</span>
-                            </button>
+                                {{ t('views.editor.buttons.submit-cut') }}
+                            </d-button>
                         </div>
                     </FormSubmit>
                 </form>
-
-                <!--
-                <form method="post" action="{{ url_for('api_vod_export', { 'vod': vodclass.basename }) }}">
-                    <select name="destination">
-                        <option>YouTube</option>
-                    </select>
-                    <button type="submit" class="button" onclick="submit_cut();">Upload</button>
-                </form>
-                -->
             </div>
         </div>
         <LoadingBox v-else />

@@ -73,14 +73,13 @@
             <div class="section-content">
                 <div class="field">
                     <div class="control">
-                        <button
+                        <d-button
                             type="button"
-                            class="button is-danger"
-                            @click="resetChannels"
+                            color="danger"
+                            icon="sync"
                         >
-                            <span class="icon"><font-awesome-icon icon="sync" /></span>
-                            <span>{{ t('views.tools.reset-channels') }}</span>
-                        </button>
+                            {{ t('views.tools.reset-channels') }}
+                        </d-button>
                         <p class="input-help">
                             {{ t('messages.this-is-a-bad-idea-if-any-of-your-channels-are-live') }}
                         </p>
@@ -88,26 +87,26 @@
                 </div>
                 <div class="field">
                     <div class="control">
-                        <button
+                        <d-button
                             type="button"
-                            class="button is-danger"
+                            color="danger"
+                            icon="power-off"
                             @click="shutdown"
                         >
-                            <span class="icon"><font-awesome-icon icon="power-off" /></span>
-                            <span>{{ t('views.tools.shutdown') }}</span>
-                        </button>
+                            {{ t('views.tools.shutdown') }}
+                        </d-button>
                     </div>
                 </div>
                 <div class="field">
                     <div class="control">
-                        <button
+                        <d-button
                             type="button"
-                            class="button is-confirm"
+                            color="success"
+                            icon="sync"
                             @click="buildClient"
                         >
-                            <span class="icon"><font-awesome-icon icon="sync" /></span>
-                            <span>{{ t('views.tools.build-client') }}</span>
-                        </button>
+                            {{ t('views.tools.build-client') }}
+                        </d-button>
                     </div>
                 </div>
             </div>

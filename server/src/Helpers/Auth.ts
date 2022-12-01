@@ -20,7 +20,7 @@ export function Auth(req: express.Request, res: express.Response, next: express.
         `${basepath}/api/v0/cron/playlist_dump`,
     ];
 
-    if (Config.getInstance().cfg("password") !== undefined) {
+    if (Config.getInstance().hasValue("password")) {
 
         if (ignored_paths.includes(req.path)) {
             next();
