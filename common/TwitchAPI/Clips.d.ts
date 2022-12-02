@@ -17,7 +17,8 @@ export interface Clip {
     created_at: string;
     thumbnail_url: string;
     duration: number;
-    vod_offset: number; // added 2022‑07‑20
+    /** 2022‑07‑20 - added */
+    vod_offset: number;
 }
 
 export interface ClipsResponse {
