@@ -14,6 +14,7 @@ import axios from "axios";
 import { parseJSON } from "date-fns";
 import { defineStore } from "pinia";
 import type { ChannelTypes } from "@/twitchautomator";
+import type { settingsFields } from "@common/ServerConfig";
 
 
 interface StoreType {
@@ -21,7 +22,7 @@ interface StoreType {
     streamerList: ChannelTypes[];
     streamerListLoaded: boolean;
     jobList: ApiJob[];
-    config: Record<string, any> | null;
+    config: Record<keyof typeof settingsFields, any> | null;
     favourite_games: string[];
     version: string;
     clientConfig: ClientSettings | undefined;
@@ -79,7 +80,7 @@ export const useStore = defineStore("twitchAutomator", {
         };
     },
     actions: {
-        cfg<T>(key: string, def?: T): T {
+        cfg<T>(key: keyof typeof settingsFields, def?: T): T {
             if (!this.config) {
                 console.error(`Config is not loaded, tried to get key: ${key}`);
                 return <T><unknown>undefined;

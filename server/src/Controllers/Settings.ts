@@ -13,10 +13,11 @@ export function GetSettings(req: express.Request, res: express.Response): void {
     const is_guest = Config.getInstance().cfg<boolean>("guest_mode", false) && !req.session.authenticated;
 
     const config: Record<string, any> = {};
-    for (const field of Config.settingsFields) {
+    for (const key in Config.settingsFields) {
+        const field = Config.settingsFields[key];
         // if (field.secret) continue;
         if (is_guest && !field.guest) continue;
-        config[field.key] = Config.getInstance().cfg(field.key);
+        config[key] = Config.getInstance().cfg(key);
     }
 
     const websocketQuotas = TwitchHelper.eventWebsockets.map((ws) => {
@@ -70,8 +71,8 @@ export function SaveSettings(req: express.Request, res: express.Response): void 
     }
 
     let fields = 0;
-    for (const setting of Config.settingsFields) {
-        const key = setting.key;
+    for (const key in Config.settingsFields) {
+        const setting = Config.settingsFields[key];
         if (setting.required && postConfig[key] === undefined) {
             res.status(400).send({
                 status: "ERROR",
@@ -92,8 +93,8 @@ export function SaveSettings(req: express.Request, res: express.Response): void 
         return;
     }
 
-    for (const setting of Config.settingsFields) {
-        const key = setting.key;
+    for (const key in Config.settingsFields) {
+        const setting = Config.settingsFields[key];
         if (setting.type === "boolean") {
             Config.getInstance().setConfig<boolean>(key, postConfig[key]);
         } else if (setting.type === "number") {

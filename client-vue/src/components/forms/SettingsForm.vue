@@ -1,6 +1,6 @@
 <template>
     <form
-        v-if="!loading && settingsFields && formData"
+        v-if="!loading && fetchedSettingsFields && formData"
         method="POST"
         enctype="multipart/form-data"
         action="#"
@@ -23,8 +23,8 @@
             </h3>
             <ul>
                 <li
-                    v-for="setting in newAndInterestingSettings"
-                    :key="setting.key"
+                    v-for="(setting, key) of newAndInterestingSettings"
+                    :key="key"
                 >
                     Under <strong>{{ setting.group }}</strong>: {{ setting.text }} ({{ setting.help }})
                 </li>
@@ -38,16 +38,16 @@
         >
             <summary>{{ te('configgroup.' + groupData.name) ? t('configgroup.' + groupData.name) : groupData.name }}</summary>
             <div
-                v-for="(data, index) in groupData.fields"
-                :key="index"
+                v-for="(data, key) of groupData.fields"
+                :key="key"
                 class="field"
             >
                 <label
                     v-if="data.type != 'boolean'"
                     class="label"
-                    :for="`input_${data.key}`"
+                    :for="`input_${key}`"
                 >
-                    {{ te('config.' + data.key) ? t('config.' + data.key) : data.text }} <span
+                    {{ te('config.' + key) ? t('config.' + key) : data.text }} <span
                         v-if="data.required"
                         class="required"
                     >*</span>
@@ -64,10 +64,10 @@
                 >
                     <label class="checkbox">
                         <input
-                            :id="`input_${data.key}`"
-                            v-model="(formData.config[data.key] as boolean)"
+                            :id="`input_${key}`"
+                            v-model="(formData.config[key] as boolean)"
                             type="checkbox"
-                            :name="data.key"
+                            :name="key"
                         >
                         {{ data.text }}
                     </label>
@@ -80,20 +80,20 @@
                 >
                     <input
                         v-if="!data.multiline"
-                        :id="`input_${data.key}`"
-                        v-model="formData.config[data.key]"
+                        :id="`input_${key}`"
+                        v-model="formData.config[key]"
                         class="input"
                         type="text"
-                        :name="data.key"
+                        :name="key.toString()"
                         :title="data.help"
                         :pattern="data.pattern"
                     >
                     <textarea
                         v-if="data.multiline"
-                        :id="`input_${data.key}`"
-                        v-model="(formData.config[data.key] as string)"
+                        :id="`input_${key}`"
+                        v-model="(formData.config[key] as string)"
                         class="input textarea"
-                        :name="data.key"
+                        :name="key.toString()"
                         :title="data.help"
                         :pattern="data.pattern"
                     />
@@ -105,11 +105,11 @@
                     class="control"
                 >
                     <input
-                        :id="`input_${data.key}`"
-                        v-model.number="formData.config[data.key]"
+                        :id="`input_${key}`"
+                        v-model.number="formData.config[key]"
                         class="input"
                         type="number"
-                        :name="data.key"
+                        :name="key"
                     >
                 </div>
 
@@ -122,10 +122,10 @@
                     <div class="select">
                         <select
                             v-if="data.choices"
-                            :id="`input_${data.key}`"
-                            v-model="formData.config[data.key]"
+                            :id="`input_${key}`"
+                            v-model="formData.config[key]"
                             class="input"
-                            :name="data.key"
+                            :name="key"
                             :data-is-array="data.choices && Array.isArray(data.choices)"
                         >
                             <template v-if="data.choices && Array.isArray(data.choices)">
@@ -133,8 +133,8 @@
                                     v-for="(item, ix) in data.choices"
                                     :key="ix"
                                     :selected="
-                                        (formData.config[data.key] !== undefined && formData.config[data.key] === item) ||
-                                            (formData.config[data.key] === undefined && item === data.default)
+                                        (formData.config[key] !== undefined && formData.config[key] === item) ||
+                                            (formData.config[key] === undefined && item === data.default)
                                     "
                                 >
                                     {{ item }}
@@ -146,8 +146,8 @@
                                     :key="ix"
                                     :value="ix"
                                     :selected="
-                                        (formData.config[data.key] !== undefined && formData.config[data.key] === item) ||
-                                            (formData.config[data.key] === undefined && ix === data.default)
+                                        (formData.config[key] !== undefined && formData.config[key] === item) ||
+                                            (formData.config[key] === undefined && ix === data.default)
                                     "
                                 >
                                     {{ item }}
@@ -165,19 +165,19 @@
                 >
                     <textarea
                         v-if="data.multiline"
-                        :id="`input_${data.key}`"
-                        v-model="(formData.config[data.key] as string)"
+                        :id="`input_${key}`"
+                        v-model="(formData.config[key] as string)"
                         class="input"
                         type="text"
-                        :name="data.key"
+                        :name="key"
                     />
                     <input
                         v-else
-                        :id="`input_${data.key}`"
-                        v-model="formData.config[data.key]"
+                        :id="`input_${key}`"
+                        v-model="formData.config[key]"
                         class="input"
                         type="text"
-                        :name="data.key"
+                        :name="key"
                     >
                     <ul class="template-replacements">
                         <li
@@ -189,21 +189,21 @@
                                 type="button"
                                 class="deprecated"
                                 title="Deprecated"
-                                @click="insertReplacement(data.key, ix)"
+                                @click="insertReplacement(key, ix)"
                             >
                                 <span class="strikethrough">&lbrace;{{ ix }}&rbrace;</span>
                             </button>
                             <button
                                 v-else
                                 type="button"
-                                @click="insertReplacement(data.key, ix)"
+                                @click="insertReplacement(key, ix)"
                             >
                                 &lbrace;{{ ix }}&rbrace;
                             </button>
                         </li>
                     </ul>
                     <p class="template-preview">
-                        {{ templatePreview(data, formData.config[data.key] as string) }}
+                        {{ templatePreview(data, formData.config[key] as string) }}
                     </p>
                 </div>
 
@@ -270,6 +270,7 @@ import { formatString } from "@common/Format";
 import YoutubeAuth from "@/components/YoutubeAuth.vue";
 import TwitchAuth from "@/components/TwitchAuth.vue";
 import FormSubmit from "@/components/reusables/FormSubmit.vue";
+import type { settingsFields } from "@common/ServerConfig";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGlobe, faSave } from "@fortawesome/free-solid-svg-icons";
@@ -279,7 +280,7 @@ library.add(faGlobe, faSave);
 
 interface SettingsGroup {
     name: string;
-    fields: SettingField<string | number | boolean>[];
+    fields: Record<string, SettingField<string | number | boolean>>;
 }
 
 // emit
@@ -293,27 +294,29 @@ const { t, te } = useI18n();
 const formStatusText = ref<string>("Ready");
 const formStatus = ref<FormStatus>("IDLE");
 const formData = ref<{ config: Record<string, string | number | boolean> }>({ config: {} });
-const settingsFields = ref<SettingField<string | number | boolean>[]>([]);
+const fetchedSettingsFields = ref<typeof settingsFields>({});
 const loading = ref<boolean>(false);
 const searchText = ref<string>("");
 
 // computed
 const settingsGroups = computed((): SettingsGroup[] => {
-    if (!settingsFields.value) return [];
+    if (!fetchedSettingsFields.value) return [];
     const groups: Record<string, SettingsGroup> = {};
-    for (const field of settingsFields.value) {
+    for (const key in fetchedSettingsFields.value) {
+        const field = fetchedSettingsFields.value[key];
         if (!field.group) continue;
         if (searchText.value) {
             if (
-                !field.key.toLowerCase().includes(searchText.value.toLowerCase()) &&
+                !key.toLowerCase().includes(searchText.value.toLowerCase()) &&
                 !field.help?.toLowerCase().includes(searchText.value.toLowerCase()) &&
                 !field.text?.toLowerCase().includes(searchText.value.toLowerCase())
             ) continue;
         }
-        if (!groups[field.group]) groups[field.group] = { name: field.group, fields: [] };
-        groups[field.group].fields.push(field);
+        if (!groups[field.group]) groups[field.group] = { name: field.group, fields: {} };
+        groups[field.group].fields[key] = field;
     }
-    return Object.values(groups).filter((group) => group.fields.length > 0);
+    // return Object.values(groups).filter((group) => group.fields.length > 0);
+    return Object.values(groups);
 
     /*
     return Object.values(groups).filter((group) => {
@@ -325,8 +328,14 @@ const settingsGroups = computed((): SettingsGroup[] => {
     */
 });
 
-const newAndInterestingSettings = computed((): SettingField<string | number | boolean>[] => {
-    return settingsFields.value.filter((field) => field.new);
+const newAndInterestingSettings = computed((): typeof settingsFields => {
+    const newSettings: typeof settingsFields = {};
+    for (const key in fetchedSettingsFields.value) {
+        const field = fetchedSettingsFields.value[key];
+        if (field.new) newSettings[key] = field;
+    }
+    return newSettings;
+    // return fetchedSettingsFields.value.filter((field) => field.new);
 });
 
 /*
@@ -367,12 +376,13 @@ function fetchData(): void {
     axios.get<ApiSettingsResponse>("/api/v0/settings").then((response) => {
         const data = response.data;
         formData.value.config = data.data.config;
-        settingsFields.value = data.data.fields;
+        fetchedSettingsFields.value = data.data.fields;
 
         // set defaults
-        for (const field of settingsFields.value) {
-            if (field.default !== undefined && formData.value.config[field.key] === undefined) {
-                formData.value.config[field.key] = field.default;
+        for (const key in fetchedSettingsFields.value) {
+            const field = fetchedSettingsFields.value[key];
+            if (field.default !== undefined && formData.value.config[key] === undefined) {
+                formData.value.config[key] = field.default;
             }
         }
 

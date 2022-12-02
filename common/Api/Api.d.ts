@@ -1,6 +1,7 @@
 import { ChannelConfig, SettingField } from "../Config";
 import { AboutData } from "./About";
 import { ApiTwitchChannel, ApiGame, ApiJob, ApiLogLine, ApiTwitchVod, ApiChannels, ApiVods, ApiFile } from "./Client";
+import { settingsFields } from "@common/ServerConfig";
 
 interface ApiResponse {
     data: any;
@@ -35,7 +36,7 @@ export interface ApiSettingsResponse extends ApiResponse {
         channels: ChannelConfig[];
         favourite_games: string[];
         // fields: Record<string, SettingField<any>>;
-        fields: SettingField<string | number | boolean>[];
+        fields: typeof settingsFields,
         version: string;
         server: string;
         websocket_url: string;
