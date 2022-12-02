@@ -32,6 +32,21 @@
     <div class="field">
         <label
             class="label"
+            for="stream-number"
+        >{{ t('vod.edit.absolute-stream-number') }}</label>
+        <div class="control">
+            <input
+                id="stream-number"
+                v-model.number="editVodSettings.absolute_stream_number"
+                class="input"
+                type="number"
+            >
+        </div>
+    </div>
+
+    <div class="field">
+        <label
+            class="label"
             for="comment"
         >{{ t('vod.edit.comment') }}</label>
         <div class="control">
@@ -329,6 +344,7 @@ const emit = defineEmits<{
 const editVodSettings = ref<{
     absolute_season: number;
     stream_number: number;
+    absolute_stream_number: number;
     comment: string;
     prevent_deletion: boolean;
     segments: string;
@@ -338,6 +354,7 @@ const editVodSettings = ref<{
 }>({
     absolute_season: 0,
     stream_number: 0,
+    absolute_stream_number: 0,
     comment: "",
     prevent_deletion: false,
     segments: "",
@@ -446,6 +463,7 @@ onMounted(() => {
     editVodSettings.value = {
         absolute_season: props.vod.stream_absolute_season ?? 0,
         stream_number: props.vod.stream_number ?? 0,
+        absolute_stream_number: props.vod.stream_absolute_number ?? 0,
         comment: props.vod.comment ?? "",
         prevent_deletion: props.vod.prevent_deletion ?? false,
         segments: props.vod.segments.map((s) => s.basename).join("\n"),

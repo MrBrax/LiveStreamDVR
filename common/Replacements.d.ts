@@ -13,6 +13,8 @@ export interface VodBasenameTemplate extends Record<string, string> {
     id: string;
     season: string;
     episode: string;
+    absolute_season: string;
+    absolute_episode: string;
 }
 
 export interface ExporterFilenameTemplate extends Record<string, string> {
@@ -28,6 +30,10 @@ export interface ExporterFilenameTemplate extends Record<string, string> {
     day: string;
     resolution: string;
     id: string;
+    season: string;
+    episode: string;
+    absolute_season: string;
+    absolute_episode: string;
 }
 
 // export interface ExporterTitleTemplate extends VodBasenameTemplate {

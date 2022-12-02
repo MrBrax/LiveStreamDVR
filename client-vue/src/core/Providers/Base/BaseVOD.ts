@@ -51,6 +51,7 @@ export default class BaseVOD {
     stream_number?: number;
     stream_season?: string;
     stream_absolute_season?: number;
+    stream_absolute_number?: number;
 
     comment?: string;
     prevent_deletion = false;

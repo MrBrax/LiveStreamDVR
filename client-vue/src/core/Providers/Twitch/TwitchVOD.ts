@@ -81,6 +81,7 @@ export default class TwitchVOD extends BaseVOD {
         vod.stream_number = apiResponse.stream_number;
         vod.stream_season = apiResponse.stream_season;
         vod.stream_absolute_season = apiResponse.stream_absolute_season;
+        vod.stream_absolute_number = apiResponse.stream_absolute_number;
         vod.comment = apiResponse.comment;
         vod.prevent_deletion = apiResponse.prevent_deletion;
         vod.failed = apiResponse.failed || false;

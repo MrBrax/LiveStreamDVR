@@ -787,6 +787,7 @@ export class TwitchVOD extends BaseVOD {
             stream_number: this.stream_number,
             stream_season: this.stream_season,
             stream_absolute_season: this.stream_absolute_season,
+            stream_absolute_number: this.stream_absolute_number,
 
             comment: this.comment,
 
@@ -898,6 +899,7 @@ export class TwitchVOD extends BaseVOD {
         generated.stream_number = this.stream_number;
         generated.stream_season = this.stream_season;
         generated.stream_absolute_season = this.stream_absolute_season;
+        generated.stream_absolute_number = this.stream_absolute_number;
 
         generated.comment = this.comment;
 
@@ -1382,7 +1384,9 @@ export class TwitchVOD extends BaseVOD {
         }
 
         if (channel && channel.current_stream_number !== undefined && this.stream_number === undefined) {
-            this.stream_number = channel.incrementStreamNumber();
+            const s = channel.incrementStreamNumber();
+            this.stream_number = s.stream_number;
+            // this.stream_season = s.season;
             // this.stream_number = channel.current_stream_number;
             // channel.current_stream_number++;
             this.saveJSON("default stream_number set");

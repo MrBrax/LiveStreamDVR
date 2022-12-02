@@ -79,6 +79,7 @@ export class BaseVOD {
 
     stream_number?: number;
     stream_absolute_season?: number;
+    stream_absolute_number?: number;
 
     comment?: string;
 
@@ -1122,6 +1123,7 @@ export class BaseVOD {
 
         this.stream_number = this.json.stream_number !== undefined ? this.json.stream_number : undefined;
         this.stream_absolute_season = this.json.stream_absolute_season !== undefined ? this.json.stream_absolute_season : undefined;
+        this.stream_absolute_number = this.json.stream_absolute_number !== undefined ? this.json.stream_absolute_number : undefined;
 
     }
 

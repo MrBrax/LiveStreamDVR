@@ -105,6 +105,8 @@ export class YouTubeVOD extends BaseVOD {
 
             stream_number: this.stream_number,
             stream_season: this.stream_season,
+            stream_absolute_number: this.stream_absolute_number,
+            stream_absolute_season: this.stream_absolute_season,
 
             comment: this.comment,
 
@@ -196,6 +198,7 @@ export class YouTubeVOD extends BaseVOD {
         generated.stream_number = this.stream_number;
         generated.stream_season = this.stream_season;
         generated.stream_absolute_season = this.stream_absolute_season;
+        generated.stream_absolute_number = this.stream_absolute_number;
 
         generated.comment = this.comment;
 
