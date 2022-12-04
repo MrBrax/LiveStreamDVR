@@ -305,7 +305,7 @@ import type { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
 import { formatString } from "@common/Format";
 import { format } from "date-fns";
 import axios from "axios";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { isTwitchVOD } from "@/mixins/newhelpers";
 import VodItemControls from "./VodItemControls.vue";
 import type { VODTypes } from "@/twitchautomator";
@@ -346,6 +346,7 @@ const emit = defineEmits(["forceFetchData", "refresh", "toggleMinimize"]);
 const store = useStore();
 
 const route = useRoute();
+const router = useRouter();
 
 const { t } = useI18n();
 
@@ -534,22 +535,23 @@ function doFixIssues(): void {
 
 function openPlayer(): void {
     if (!props.vod) return;
-    let url = `${store.cfg<string>("basepath", "")}/vodplayer/index.html#&`;
-    url += "source=file_http";
+    // let url = `${store.cfg<string>("basepath", "")}/vodplayer#&`;
+    let hash = "#&source=file_http";
     if (playerSettings.value.vodSource == "captured"){
-        url += `&video_path=${props.vod.webpath}/${props.vod.basename}.mp4`;
+        hash += `&video_path=${props.vod.webpath}/${props.vod.basename}.mp4`;
     } else {
-        url += `&video_path=${props.vod.webpath}/${props.vod.basename}_vod.mp4`;
+        hash += `&video_path=${props.vod.webpath}/${props.vod.basename}_vod.mp4`;
     }
 
     if (playerSettings.value.chatSource == "captured"){
-        url += `&chatfile=${props.vod.webpath}/${props.vod.basename}.chatdump`;
+        hash += `&chatfile=${props.vod.webpath}/${props.vod.basename}.chatdump`;
     } else {
-        url += `&chatfile=${props.vod.webpath}/${props.vod.basename}_chat.json`;
+        hash += `&chatfile=${props.vod.webpath}/${props.vod.basename}_chat.json`;
     }
 
     // url.searchParams.set("offset", this.playerSettings.offset.toString());
-    window.open(url.toString(), "_blank");
+    // window.open(url.toString(), "_blank");
+    router.push({ name: "VODPlayer", hash });
 
 }
 

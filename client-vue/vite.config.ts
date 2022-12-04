@@ -14,9 +14,9 @@ process.env.VITE_APP_GIT_HASH = gitDescribeSync(__dirname, {
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  define: {
-    '__VUE_OPTIONS_API__': false,
-  },
+  // define: {
+  //   '__VUE_OPTIONS_API__': false,
+  // },
   plugins: [
     vue(),
     VitePWA({
@@ -75,6 +75,7 @@ export default defineConfig({
       '@': path.resolve(__dirname, 'src'),
       '@common': path.resolve(__dirname, '..', 'common'),
     },
+    dedupe: ['vue'],
   },
   server: {
     port: 8081,
@@ -85,7 +86,7 @@ export default defineConfig({
       '/vods': 'http://localhost:8080',
       '/logs': 'http://localhost:8080',
       '/cache': 'http://localhost:8080',
-      '/vodplayer': 'http://localhost:8080',
+      // '/vodplayer': 'http://localhost:8080',
     },
   },
   test: {

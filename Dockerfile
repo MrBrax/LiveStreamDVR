@@ -52,6 +52,7 @@ COPY --chown=node:node --chmod=775 ./twitch-vod-chat /usr/local/share/twitchauto
 RUN cd /usr/local/share/twitchautomator/twitch-vod-chat \
     && yarn install --immutable --immutable-cache \
     && yarn build --base=/vodplayer \
+    && yarn buildlib
     && rm -rf node_modules \
     && rm -rf .yarn/cache \
     && yarn cache clean --all
