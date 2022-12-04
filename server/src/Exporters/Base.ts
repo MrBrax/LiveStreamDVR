@@ -97,7 +97,13 @@ export class BaseExporter {
             month: this.vod.started_at ? format(this.vod.started_at, "MM") : "", 
             day: this.vod.started_at ? format(this.vod.started_at, "dd") : "", 
             comment: this.vod.comment || "",
-            stream_number: this.vod.stream_number?.toString() || "",
+            
+            stream_number: this.vod.stream_number ? this.vod.stream_number.toString() : "", // deprecated
+            episode: this.vod.stream_number?.toString() || "",
+            absolute_episode: this.vod.stream_absolute_number?.toString() || "",
+            season: this.vod.stream_season?.toString() || "",
+            absolute_season: this.vod.stream_absolute_season?.toString() || "",
+            
             resolution: "",
             id: this.vod.capture_id,
         };

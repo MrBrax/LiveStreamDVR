@@ -284,7 +284,7 @@ function playerLink(offset = 0, chatdownload = false): string {
     if (!props.vod || !store.config) return "#";
     const video_path = `${props.vod.webpath}/${props.vod.basename}.mp4`;
     const chat_path = `${props.vod.webpath}/${props.vod.basename}.${chatdownload ? "chat" : "chatdump"}`;
-    return `${store.cfg<string>("basepath", "")}/vodplayer/index.html#source=file_http&video_path=${video_path}&chatfile=${chat_path}&offset=${offset}`;
+    return `${store.cfg<string>("basepath", "")}/vodplayer#source=file_http&video_path=${video_path}&chatfile=${chat_path}&offset=${offset}`;
 }
 
 function twitchVideoLink(video_id: string): string {

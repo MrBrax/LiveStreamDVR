@@ -542,12 +542,13 @@ export class LiveStreamDVR {
         if (!Helper.path_streamlink()) errors.push("Failed to find streamlink");
         if (!Helper.path_mediainfo()) errors.push("Failed to find mediainfo");
 
-        for (const field of Config.settingsFields) {
-            if (field.deprecated && Config.getInstance().cfg(field.key) !== field.default) {
+        for (const key in Config.settingsFields) {
+            const field = Config.settingsFields[key];
+            if (field.deprecated && Config.getInstance().cfg(key) !== field.default) {
                 if (typeof field.deprecated === "string") {
-                    errors.push(`${field.key} is deprecated: ${field.deprecated}`);
+                    errors.push(`${key} is deprecated: ${field.deprecated}`);
                 } else {
-                    errors.push(`'${field.key}' is deprecated and will be removed in the future.`);
+                    errors.push(`'${key}' is deprecated and will be removed in the future.`);
                 }
             }
         }

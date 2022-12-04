@@ -91,9 +91,10 @@ describe("settings", () => {
         expect(res.body).toHaveProperty("data.config");
 
         const fields = Config.settingsFields;
-        for (const field of fields) {
+        for (const key in fields) {
+            const field = fields[key];
             if (!field.default) continue;
-            expect(res.body.data.config[field.key]).toBeDefined();
+            expect(res.body.data.config[key]).toBeDefined();
         }
 
         expect(res.body.data.app_name).toBe(AppName);

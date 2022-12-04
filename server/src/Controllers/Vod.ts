@@ -53,6 +53,7 @@ export async function EditVod(req: express.Request, res: express.Response): Prom
 
     const stream_number = req.body.stream_number as number;
     const absolute_season = req.body.absolute_season as number;
+    const absolute_number = req.body.absolute_number as number;
     const comment = req.body.comment as string;
     const prevent_deletion = req.body.prevent_deletion as boolean;
     const segments = req.body.segments as string;
@@ -69,6 +70,11 @@ export async function EditVod(req: express.Request, res: express.Response): Prom
 
     if (absolute_season !== vod.stream_absolute_season) {
         vod.stream_absolute_season = absolute_season;
+        changed = true;
+    }
+
+    if (absolute_number !== vod.stream_absolute_number) {
+        vod.stream_absolute_number = absolute_number;
         changed = true;
     }
 
@@ -796,6 +802,8 @@ export async function RenameVod(req: express.Request, res: express.Response): Pr
         id: vod.capture_id || "",
         season: vod.stream_season || "",
         episode: vod.stream_number ? vod.stream_number.toString() : "",
+        absolute_season: vod.stream_absolute_season ? vod.stream_absolute_season.toString() : "",
+        absolute_episode: vod.stream_absolute_number ? vod.stream_absolute_number.toString() : "",
     };
 
     const basename = sanitize(formatString(template || Config.getInstance().cfg("filename_vod"), variables));

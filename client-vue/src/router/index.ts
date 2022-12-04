@@ -128,6 +128,15 @@ const routes: Array<RouteRecordRaw> = [
         },
     },
 
+    {
+        path: "/vodplayer",
+        name: "VODPlayer",
+        component: () => import(/* webpackChunkName: "files" */ "../views/VodPlayerView.vue"),
+        meta: {
+            title: "VODPlayer",
+        },
+    },
+
     // catch all 404
     {
         path: "/:pathMatch(.*)*",

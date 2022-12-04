@@ -98,7 +98,8 @@
       "chapters": "Chapters",
       "reset-chapters": "Reset chapters",
       "edit-chapters": "Edit chapters",
-      "edit-chapters-warning": "Editing chapters can cause loss of data. Back up the JSON if you want to be sure."
+      "edit-chapters-warning": "Editing chapters can cause loss of data. Back up the JSON if you want to be sure.",
+      "absolute-stream-number": "Absolute stream number"
     },
     "export": {
       "title-template": "Title template",

@@ -83,8 +83,18 @@ export class KeyValue extends EventEmitter {
         return this.get(key) === "true";
     }
 
-    getInt(key: string): number {
-        return parseInt(this.get(key) || "0");
+    getInt(key: string, def?: number): number {
+        const value = this.get(key);
+        if (value === false) {
+            if (def !== undefined) {
+                return def;
+            } else {
+                return 0;
+            }
+        } else {
+            return parseInt(value);
+        }
+        // return parseInt(this.get(key) || "0");
     }
 
     /**

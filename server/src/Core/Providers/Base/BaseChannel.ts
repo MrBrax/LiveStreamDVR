@@ -198,7 +198,7 @@ export class BaseChannel {
         throw new Error("Method not implemented.");
     }
 
-    public incrementStreamNumber(): number {
+    public incrementStreamNumber(): { season: string, absolute_season: number, stream_number: number, absolute_stream_number: number } {
 
         // relative season
         const seasonIdentifier = KeyValue.getInstance().get(`${this.internalName}.season_identifier`);
@@ -220,7 +220,17 @@ export class BaseChannel {
             KeyValue.getInstance().setInt(`${this.internalName}.absolute_season_identifier`, this.current_absolute_season);
         }
 
-        return this.current_stream_number;
+        // absolute stream number
+        const absoluteStreamNumber = KeyValue.getInstance().getInt(`${this.internalName}.absolute_stream_number`, 0);
+        KeyValue.getInstance().setInt(`${this.internalName}.absolute_stream_number`, absoluteStreamNumber + 1);
+
+        // return this.current_stream_number;
+        return {
+            season: this.current_season,
+            absolute_season: this.current_absolute_season ?? 0,
+            stream_number: this.current_stream_number,
+            absolute_stream_number: absoluteStreamNumber + 1,
+        };
     }
 
     public async downloadLatestVod(quality: VideoQuality): Promise<string> {

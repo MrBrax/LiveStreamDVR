@@ -6,6 +6,7 @@ export interface Channel {
     game_id: string
     broadcaster_language: string
     title: string
+    /** 2022-11-29 - requires user access token */
     delay: number;
 }
 

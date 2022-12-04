@@ -61,15 +61,15 @@ describe("VOD", () => {
         expect(channel.current_season).toBe(format(new Date(), Config.SeasonFormat));
 
         expect(channel.current_stream_number).toBe(1);
-        expect(channel.incrementStreamNumber()).toBe(2);
-        expect(channel.incrementStreamNumber()).toBe(3);
-        expect(channel.incrementStreamNumber()).toBe(4);
+        expect(channel.incrementStreamNumber()).toMatchObject({ stream_number: 2 });
+        expect(channel.incrementStreamNumber()).toMatchObject({ stream_number: 3 });
+        expect(channel.incrementStreamNumber()).toMatchObject({ stream_number: 4 });
         
         KeyValue.getInstance().set("testuser.season_identifier", "ayylmao");
-        expect(channel.incrementStreamNumber()).toBe(1);
-        expect(channel.incrementStreamNumber()).toBe(2);
-        expect(channel.incrementStreamNumber()).toBe(3);
-        expect(channel.incrementStreamNumber()).toBe(4);
+        expect(channel.incrementStreamNumber()).toMatchObject({ stream_number: 1 });
+        expect(channel.incrementStreamNumber()).toMatchObject({ stream_number: 2 });
+        expect(channel.incrementStreamNumber()).toMatchObject({ stream_number: 3 });
+        expect(channel.incrementStreamNumber()).toMatchObject({ stream_number: 4 });
 
         /*
         const vod = await channel.createVOD("test");

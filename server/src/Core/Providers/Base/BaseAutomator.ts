@@ -62,6 +62,7 @@ export class BaseAutomator {
     private vod_season?: string; // why is this a string
     private vod_absolute_season?: number;
     private vod_episode?: number;
+    private vod_absolute_episode?: number;
 
     public basedir(): string {
         if (Config.getInstance().cfg<boolean>("vod_folders")) {
@@ -102,6 +103,7 @@ export class BaseAutomator {
             season: this.vod_season || "",
             absolute_season: this.vod_absolute_season ? this.vod_absolute_season.toString().padStart(2, "0") : "",
             episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
+            absolute_episode: this.vod_absolute_episode ? this.vod_absolute_episode.toString().padStart(2, "0") : "",
         };
 
         return sanitize(formatString(Config.getInstance().cfg("filename_vod_folder"), variables));
@@ -135,6 +137,7 @@ export class BaseAutomator {
             season: this.vod_season || "",
             absolute_season: this.vod_absolute_season ? this.vod_absolute_season.toString().padStart(2, "0") : "",
             episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
+            absolute_episode: this.vod_absolute_episode ? this.vod_absolute_episode.toString().padStart(2, "0") : "",
         };
 
         return sanitize(formatString(Config.getInstance().cfg("filename_vod"), variables));
@@ -477,9 +480,11 @@ export class BaseAutomator {
 
     public applySeasonEpisode() {
         if (!this.channel) throw new Error("No channel");
-        this.vod_season = this.channel.current_season;
-        this.vod_absolute_season = this.channel.current_absolute_season;
-        this.vod_episode = this.channel.incrementStreamNumber();
+        const s = this.channel.incrementStreamNumber();
+        this.vod_season = s.season;
+        this.vod_absolute_season = s.absolute_season;
+        this.vod_episode = s.stream_number;
+        this.vod_absolute_episode = s.absolute_stream_number;
     }
 
     public async download(tries = 0): Promise<boolean> {
@@ -597,6 +602,7 @@ export class BaseAutomator {
         this.vod.stream_number = this.vod_episode;
         // this.vod.stream_season = this.vod_season;
         this.vod.stream_absolute_season = this.vod_absolute_season;
+
 
         if (this.force_record) this.vod.force_record = true;
 
