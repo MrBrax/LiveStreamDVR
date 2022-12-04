@@ -86,7 +86,7 @@ describe("Config", () => {
     it("setting exists", () => {
         expect(Config.settingExists("app_url")).toBe(true);
         expect(Config.settingExists("app_url1")).toBe(false);
-        expect(Config.getSettingField("app_url")).toHaveProperty("key");
+        expect(Config.getSettingField("app_url")).toHaveProperty("text");
         expect(Config.getSettingField("app_url1")).toBeUndefined();
     });
 

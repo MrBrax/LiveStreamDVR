@@ -19,7 +19,9 @@ jobs:
       matrix:
         node-version: [18.x]
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
+        with:
+          submodules: "true"
       - name: Node.js
         uses: actions/setup-node@v1
         with:
@@ -27,7 +29,10 @@ jobs:
       - run: npm install -g yarn    
       - name: yarn install, lint and build
         run: | 
-          cd ./client-vue
+          cd ./twitch-vod-chat
+          yarn install --immutable --immutable-cache
+          yarn buildlib
+          cd ../client-vue
           yarn install --immutable --immutable-cache
           yarn lint
           yarn test
