@@ -48,6 +48,16 @@ export class Helper {
         return false;
     }
 
+    public static path_python(): string | false {
+        if (Config.getInstance().hasValue("bin_path.python")) return Config.getInstance().cfg<string>("bin_path.python");
+        return false;
+    }
+
+    // public static path_python3(): string | false {
+    //     if (Config.getInstance().hasValue("bin_path.python3")) return Config.getInstance().cfg<string>("bin_path.python3");
+    //     return false;
+    // }
+
     // very bad
     public static path_ffprobe(): string | false {
         const f = this.path_ffmpeg();

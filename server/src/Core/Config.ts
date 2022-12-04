@@ -117,7 +117,7 @@ export class Config {
             console.warn(chalk.red(`Setting '${key}' does not exist.`));
         }
 
-        if (process.env[`TCD_${key.toUpperCase()}`] !== undefined) {
+        if (process.env[`TCD_${key.toUpperCase().replaceAll(".", "_")}`] !== undefined) {
             return true;
         }
 
@@ -330,6 +330,7 @@ export class Config {
         Scheduler.restartScheduler();
         await YouTubeHelper.setupClient();
         await TwitchHelper.setupWebsocket();
+        LiveStreamDVR.binaryVersions = {}; // reset binary versions for the next page visit
     }
 
     backupConfig() {

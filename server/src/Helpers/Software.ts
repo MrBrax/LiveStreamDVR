@@ -18,8 +18,8 @@ export function DVRBinaries(): Record<string, BinaryDef> {
         ffmpeg: { binary: Helper.path_ffmpeg(), version_args: ["-version"], version_regex: /ffmpeg version ([\w0-9\-_.+]+) Copyright/m },
         mediainfo: { binary: Helper.path_mediainfo(), version_args: ["--Version"], version_regex: /v(\d+\.\d+)/m },
         twitchdownloader: { binary: Helper.path_twitchdownloader(), version_args: ["--version", "2>&1"], version_regex: /TwitchDownloaderCLI (\d+\.\d+\.\d+)/m },
-        python: { binary: "python", version_args: ["--version"], version_regex: /Python ([\d.]+)/m },
-        python3: { binary: "python3", version_args: ["--version"], version_regex: /Python ([\d.]+)/m },
+        python: { binary: Helper.path_python(), version_args: ["--version"], version_regex: /Python ([\d.]+)/m },
+        // python3: { binary: Helper.path_python3(), version_args: ["--version"], version_regex: /Python ([\d.]+)/m },
         node: { binary: Helper.path_node(), version_args: ["--version"], version_regex: /v([\d.]+)/m },
         // php: { binary: "php", version_args: ["-v"], version_regex: /PHP Version ([\d.]+)/m }, // deprecated
     };

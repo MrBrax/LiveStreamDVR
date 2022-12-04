@@ -112,6 +112,7 @@ COPY ./docker/fonts /home/node/.fonts
 # twitchautomator docker specific configs
 ENV TCD_BIN_DIR=/usr/local/bin
 ENV TCD_FFMPEG_PATH=/usr/bin/ffmpeg
+ENV TCD_BIN_PATH_PYTHON=/usr/bin/python
 ENV TCD_MEDIAINFO_PATH=/usr/bin/mediainfo
 ENV TCD_NODE_PATH=/usr/local/bin/node
 ENV TCD_DOCKER=1
