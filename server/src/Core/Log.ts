@@ -137,8 +137,12 @@ export class Log {
             text = text.replace(word, "*".repeat(word.length));
         }
 
+        let ident = "";
+        if (process.pid) ident += process.pid;
+        if (Config.getInstance().gitHash) ident += `+${Config.getInstance().gitHash?.substring(0, 4)}`;
+
         // write cleartext
-        const textOutput = `${dateString} ${process.pid}+${Config.getInstance().gitHash?.substring(0, 4)} | ${module} <${level}> ${text}`;
+        const textOutput = `TXT ${dateString} ${ident} | ${module} <${level}> ${text}`;
         fs.appendFileSync(filepath_combined, `${textOutput}\n`);
         // fs.appendFileSync(filepath_separate, textOutput + "\n");
         // fs.appendFileSync(filepath_level, textOutput + "\n");
