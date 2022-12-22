@@ -951,6 +951,14 @@ export class BaseAutomator {
 
         if (data.includes("Read timeout, exiting")) {
             Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Read timeout, exiting for ${basename}!`);
+            if (KeyValue.getInstance().getBool(`${this.broadcaster_user_login}.online`)) {
+                this.fallbackCapture().then(() => {
+                    Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", `Fallback capture finished for ${this.getLogin()}`);
+                }).catch(error => {
+                    Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Fallback capture failed for ${this.getLogin()}: ${(error as Error).message}`);
+                    console.error(error);
+                });
+            }
         }
 
         if (data.includes("Stream ended")) {
