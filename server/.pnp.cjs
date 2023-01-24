@@ -3402,10 +3402,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["cookiejar", [\
-        ["npm:2.1.3", {\
-          "packageLocation": "./.yarn/cache/cookiejar-npm-2.1.3-ec18b65dd0-88259983eb.zip/node_modules/cookiejar/",\
+        ["npm:2.1.4", {\
+          "packageLocation": "./.yarn/cache/cookiejar-npm-2.1.4-e418c49b9e-c444211196.zip/node_modules/cookiejar/",\
           "packageDependencies": [\
-            ["cookiejar", "npm:2.1.3"]\
+            ["cookiejar", "npm:2.1.4"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -8250,7 +8250,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageDependencies": [\
             ["superagent", "npm:8.0.3"],\
             ["component-emitter", "npm:1.3.0"],\
-            ["cookiejar", "npm:2.1.3"],\
+            ["cookiejar", "npm:2.1.4"],\
             ["debug", "virtual:7aacf32ea01f1c758a9d0d4a25d700b3bcfff7375ecb0894ff8a92d28210f719c44b175d3a338863ee060df8ae035d511d1d0e352a798355f8d44e456f2f0ced#npm:4.3.4"],\
             ["fast-safe-stringify", "npm:2.1.1"],\
             ["form-data", "npm:4.0.0"],\
