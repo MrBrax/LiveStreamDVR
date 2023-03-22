@@ -977,6 +977,8 @@ export class TwitchVOD extends BaseVOD {
             if (fs.existsSync(file_from)) {
                 Log.logAdvanced(Log.Level.DEBUG, "vod.move", `Move ${file_from} to ${file_to}`);
                 fs.renameSync(file_from, file_to);
+            } else {
+                Log.logAdvanced(Log.Level.ERROR, "vod.move", `File ${file_from} does not exist`);
             }
         }
 
