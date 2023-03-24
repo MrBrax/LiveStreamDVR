@@ -30,7 +30,7 @@ export function DVRPipPackages(): Record<string, BinaryDef> {
         tcd: { binary: Helper.path_tcd(), version_args: ["--version", "--settings-file", path.join(BaseConfigDataFolder.config, "tcd_settings.json")], version_regex: /^Twitch Chat Downloader\s+([0-9.]+)$/m },
         streamlink: { binary: Helper.path_streamlink(), version_args: ["--version"], version_regex: /^streamlink\s+([0-9.]+)$/m, on_boot: true },
         "yt-dlp": { binary: Helper.path_youtubedl(), version_args: ["--version"], version_regex: /^([0-9.]+)$/m },
-        pipenv: { binary: Helper.path_pipenv(), version_args: ["--version"], version_regex: /^pipenv, version ([0-9.]+)$/m },
+        // pipenv: { binary: Helper.path_pipenv(), version_args: ["--version"], version_regex: /^pipenv, version ([0-9.]+)$/m },
     };
 }
 

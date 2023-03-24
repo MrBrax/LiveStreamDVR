@@ -104,18 +104,19 @@ export class Helper {
         return exists ? full_path : false;
     }
 
-    public static path_pipenv(): string | false {
-        if (!Config.getInstance().hasValue("bin_dir")) return false;
-        const full_path = path.join(Config.getInstance().cfg("bin_dir"), `pipenv${this.is_windows() ? ".exe" : ""}`);
-        const exists = fs.existsSync(full_path);
+    /* Not used */
+    // public static path_pipenv(): string | false {
+    //     if (!Config.getInstance().hasValue("bin_dir")) return false;
+    //     const full_path = path.join(Config.getInstance().cfg("bin_dir"), `pipenv${this.is_windows() ? ".exe" : ""}`);
+    //     const exists = fs.existsSync(full_path);
 
-        if (!exists) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `pipenv binary not found at: ${full_path}`);
-            return false;
-        }
+    //     if (!exists) {
+    //         Log.logAdvanced(Log.Level.ERROR, "helper", `pipenv binary not found at: ${full_path}`);
+    //         return false;
+    //     }
 
-        return exists ? full_path : false;
-    }
+    //     return exists ? full_path : false;
+    // }
 
     public static path_twitchdownloader(): string | false {
         if (Config.getInstance().hasValue("twitchdownloader_path")) return Config.getInstance().cfg<string>("twitchdownloader_path");
