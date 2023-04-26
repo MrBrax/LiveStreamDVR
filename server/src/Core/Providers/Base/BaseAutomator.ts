@@ -24,7 +24,7 @@ import { Config } from "../../Config";
 import { Helper } from "../../Helper";
 import { Job } from "../../Job";
 import { KeyValue } from "../../KeyValue";
-import { ChannelTypes, VODTypes } from "../../LiveStreamDVR";
+import { ChannelTypes, LiveStreamDVR, VODTypes } from "../../LiveStreamDVR";
 import { Log } from "../../Log";
 import { Webhook } from "../../Webhook";
 import { TwitchChannel } from "../Twitch/TwitchChannel";
@@ -753,51 +753,63 @@ export class BaseAutomator {
 
         if (!Config.getInstance().cfg("no_vod_convert", false)) {
 
-            this.vod.is_converting = true;
-            await this.vod.saveJSON("is_converting set");
+            // check for free space
+            await LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
 
-            // convert with ffmpeg
-            await this.convertVideo();
+            // check if we have enough space, ts is about the same size as the mp4
+            if (LiveStreamDVR.getInstance().freeStorageDiskSpace < fs.statSync(this.capture_filename).size) {
 
-            // sleep(10);
-            await Sleep(10 * 1000);
+                Log.logAdvanced(Log.Level.ERROR, "automator.download", `Not enough free space for remuxing ${basename}, skipping...`);
 
-            const convert_success =
-                fs.existsSync(this.capture_filename) &&
-                fs.existsSync(this.converted_filename) &&
-                fs.statSync(this.converted_filename).size > 0
-                ;
-
-            // send internal webhook for convert start
-            Webhook.dispatch("end_convert", {
-                "vod": await this.vod.toAPI(),
-                "success": convert_success,
-            });
-
-            // remove ts if both files exist
-            if (convert_success) {
-                Log.logAdvanced(Log.Level.DEBUG, "automator.download", `Remove ts file for ${basename}`);
-                fs.unlinkSync(this.capture_filename);
             } else {
-                Log.logAdvanced(Log.Level.FATAL, "automator.download", `Missing conversion files for ${basename}`);
-                // this.vod.automator_fail = true;
+
+                this.vod.is_converting = true;
+                await this.vod.saveJSON("is_converting set");
+
+                // convert with ffmpeg
+                await this.convertVideo();
+
+                // sleep(10);
+                await Sleep(10 * 1000);
+
+                const convert_success =
+                    fs.existsSync(this.capture_filename) &&
+                    fs.existsSync(this.converted_filename) &&
+                    fs.statSync(this.converted_filename).size > 0
+                    ;
+
+                // send internal webhook for convert start
+                Webhook.dispatch("end_convert", {
+                    "vod": await this.vod.toAPI(),
+                    "success": convert_success,
+                });
+
+                // remove ts if both files exist
+                if (convert_success) {
+                    Log.logAdvanced(Log.Level.DEBUG, "automator.download", `Remove ts file for ${basename}`);
+                    fs.unlinkSync(this.capture_filename);
+                } else {
+                    Log.logAdvanced(Log.Level.FATAL, "automator.download", `Missing conversion files for ${basename}`);
+                    // this.vod.automator_fail = true;
+                    this.vod.is_converting = false;
+                    await this.vod.saveJSON("automator fail");
+                    return false;
+                }
+
+                // add the captured segment to the vod info
+                Log.logAdvanced(Log.Level.INFO, "automator.download", `Conversion done, add segment '${this.converted_filename}' to '${basename}'`);
+
                 this.vod.is_converting = false;
-                await this.vod.saveJSON("automator fail");
-                return false;
+                this.vod.addSegment(path.basename(this.converted_filename));
+
+                if (this.vod.segments.length > 1) {
+                    Log.logAdvanced(Log.Level.WARNING, "automator.download", `More than one segment (${this.vod.segments.length}) for ${basename}, this should not happen!`);
+                    ClientBroker.notify("Segment error", `More than one segment (${this.vod.segments.length}) for ${basename}, this should not happen!`, "", "system");
+                }
+
+                await this.vod.saveJSON("add segment");
+
             }
-
-            // add the captured segment to the vod info
-            Log.logAdvanced(Log.Level.INFO, "automator.download", `Conversion done, add segment '${this.converted_filename}' to '${basename}'`);
-
-            this.vod.is_converting = false;
-            this.vod.addSegment(path.basename(this.converted_filename));
-
-            if (this.vod.segments.length > 1) {
-                Log.logAdvanced(Log.Level.WARNING, "automator.download", `More than one segment (${this.vod.segments.length}) for ${basename}, this should not happen!`);
-                ClientBroker.notify("Segment error", `More than one segment (${this.vod.segments.length}) for ${basename}, this should not happen!`, "", "system");
-            }
-
-            await this.vod.saveJSON("add segment");
 
         } else {
             Log.logAdvanced(Log.Level.INFO, "automator.download", `No conversion for ${basename}, just add segments`);
