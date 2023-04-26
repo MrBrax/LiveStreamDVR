@@ -12,12 +12,13 @@ import type { UserData } from "@common/User";
 import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
 import chokidar from "chokidar";
-import { format, parseJSON } from "date-fns";
+import { format, isValid, parseJSON } from "date-fns";
 import { encode as htmlentities } from "html-entities";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { pipeline } from "node:stream/promises";
+import sanitize from "sanitize-filename";
 import { Readable } from "stream";
 import { formatBytes } from "../../../Helpers/Format";
 import { isTwitchChannel } from "../../../Helpers/Types";
@@ -35,6 +36,8 @@ import { Webhook } from "../../Webhook";
 import { BaseChannel } from "../Base/BaseChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
+import { formatString } from "@common/Format";
+import { VodBasenameTemplate } from "@common/Replacements";
 
 export class TwitchChannel extends BaseChannel {
     public provider: Providers = "twitch";
@@ -751,7 +754,9 @@ export class TwitchChannel extends BaseChannel {
         const latestVodDuration = TwitchHelper.parseTwitchDuration(latestVodData.duration);
         const latestVodDateTotal = new Date(latestVodDate.getTime() + (latestVodDuration * 1000));
         const latestVodDateDiff = Math.abs(now.getTime() - latestVodDateTotal.getTime());
+        const latestVodId = latestVodData.id;
 
+        // check locally captured vods for a base vod object to use instead of downloading a new one
         const localVod = this.getVods().find((v) => v.twitch_vod_id === latestVodData.id || (v.created_at?.getTime() && now.getTime() - v.created_at?.getTime() < latestVodDateDiff));
         if (localVod) {
             await localVod.downloadVod(quality);
@@ -762,13 +767,87 @@ export class TwitchChannel extends BaseChannel {
             throw new Error(`Latest vod is older than 15 minutes (${Math.floor(latestVodDateDiff / 1000 / 60)} minutes, ${latestVodDateTotal.toISOString()})`);
         }
 
-        const basename = `${this.login}_${latestVodData.created_at.replaceAll(":", "-")}_${latestVodData.stream_id}`;
-        const file_path = path.join(this.getFolder(), `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`);
+        const channel_basepath = this.getFolder();
+        let basepath = "";
+
+        // const basename = `${this.login}_${latestVodData.created_at.replaceAll(":", "-")}_${latestVodData.stream_id}`;
+
+        if (Config.getInstance().cfg<boolean>("vod_folders")) {
+
+            const vod_folder_template_variables: VodBasenameTemplate = {
+                login: this.internalName,
+                internalName: this.internalName,
+                displayName: this.displayName,
+                date: latestVodData.created_at.replaceAll(":", "_"),
+                year: isValid(latestVodDate) ? format(latestVodDate, "yyyy") : "",
+                year_short: isValid(latestVodDate) ? format(latestVodDate, "yy") : "",
+                month: isValid(latestVodDate) ? format(latestVodDate, "MM") : "",
+                day: isValid(latestVodDate) ? format(latestVodDate, "dd") : "",
+                hour: isValid(latestVodDate) ? format(latestVodDate, "HH") : "",
+                minute: isValid(latestVodDate) ? format(latestVodDate, "mm") : "",
+                second: isValid(latestVodDate) ? format(latestVodDate, "ss") : "",
+                id: latestVodId.toString(),
+                // season: this.vod_season || "",
+                // absolute_season: this.vod_absolute_season ? this.vod_absolute_season.toString().padStart(2, "0") : "",
+                // episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
+                // absolute_episode: this.vod_absolute_episode ? this.vod_absolute_episode.toString().padStart(2, "0") : "",
+
+                // TODO: add season and episode
+                season: "",
+                absolute_season: "",
+                episode: "",
+                absolute_episode: "",
+            };
+
+            const vod_folder_base = sanitize(formatString(Config.getInstance().cfg("filename_vod_folder"), vod_folder_template_variables));
+
+            basepath = path.join(channel_basepath, vod_folder_base);
+
+        } else {
+
+            basepath = channel_basepath;
+
+        }
+
+        if (!fs.existsSync(basepath)) {
+            fs.mkdirSync(basepath, { recursive: true });
+        }
+
+        const vod_filename_template_variables: VodBasenameTemplate = {
+            login: this.internalName,
+            internalName: this.internalName,
+            displayName: this.displayName,
+            date: latestVodData.created_at.replaceAll(":", "_"),
+            year: isValid(latestVodDate) ? format(latestVodDate, "yyyy") : "",
+            year_short: isValid(latestVodDate) ? format(latestVodDate, "yy") : "",
+            month: isValid(latestVodDate) ? format(latestVodDate, "MM") : "",
+            day: isValid(latestVodDate) ? format(latestVodDate, "dd") : "",
+            hour: isValid(latestVodDate) ? format(latestVodDate, "HH") : "",
+            minute: isValid(latestVodDate) ? format(latestVodDate, "mm") : "",
+            second: isValid(latestVodDate) ? format(latestVodDate, "ss") : "",
+            id: latestVodId.toString(),
+            // season: this.vod_season || "",
+            // absolute_season: this.vod_absolute_season ? this.vod_absolute_season.toString().padStart(2, "0") : "",
+            // episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
+            // absolute_episode: this.vod_absolute_episode ? this.vod_absolute_episode.toString().padStart(2, "0") : "",
+
+            // TODO: add season and episode
+            season: "",
+            absolute_season: "",
+            episode: "",
+            absolute_episode: "",
+        };
+
+        const vod_filename_base = sanitize(formatString(Config.getInstance().cfg("filename_vod"), vod_filename_template_variables));
+
+        const basename = `${vod_filename_base}`;
+
+        const video_file_path = path.join(basepath, `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`);
 
         let success;
 
         try {
-            success = await TwitchVOD.downloadVideo(latestVodData.id, quality, file_path);
+            success = await TwitchVOD.downloadVideo(latestVodData.id, quality, video_file_path);
         } catch (e) {
             throw new Error(`Failed to download vod: ${(e as Error).message}`);
         }
@@ -777,14 +856,14 @@ export class TwitchChannel extends BaseChannel {
             throw new Error("Failed to download vod");
         }
 
-        const vod = await this.createVOD(path.join(this.getFolder(), `${basename}.json`));
+        const vod = await this.createVOD(path.join(basepath, `${basename}.json`));
         vod.started_at = parseJSON(latestVodData.created_at);
 
         const duration = TwitchHelper.parseTwitchDuration(latestVodData.duration);
         vod.ended_at = new Date(vod.started_at.getTime() + (duration * 1000));
         await vod.saveJSON("manual creation");
 
-        await vod.addSegment(path.basename(file_path));
+        await vod.addSegment(path.basename(video_file_path));
         await vod.finalize();
         await vod.saveJSON("manual finalize");
 
@@ -792,7 +871,7 @@ export class TwitchChannel extends BaseChannel {
             vod: await vod.toAPI(),
         });
 
-        return file_path;
+        return video_file_path;
 
     }
 
