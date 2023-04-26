@@ -324,6 +324,16 @@ export class LiveStreamDVR {
         return search as T;
     }
 
+    /**
+     * Get channel by internal name aka login. If there are multiple channels with the same login, the first one will be returned.
+     * @param login 
+     * @returns 
+     */
+    public getChannelByInternalName<T extends ChannelTypes>(internalName: string): T | false {
+        const search = this.channels.find(c => c.internalName == internalName);
+        return search as T;
+    }
+
     public addVod(vod: VODTypes): void {
         this.vods.push(vod);
     }
