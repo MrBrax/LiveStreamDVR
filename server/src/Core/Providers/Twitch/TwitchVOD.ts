@@ -314,6 +314,12 @@ export class TwitchVOD extends BaseVOD {
         return this.chapters[this.chapters.length - 1].game;
     }
 
+    // getter for game_name, which is the first game in the chapters
+    public get game_name(): string {
+        if (!this.chapters || this.chapters.length == 0) return "";
+        return this.chapters[0].game_name;
+    }
+
     get associatedFiles(): string[] {
 
         if (!this.directory) return [];

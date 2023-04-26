@@ -104,6 +104,8 @@ export class BaseAutomator {
             absolute_season: this.vod_absolute_season ? this.vod_absolute_season.toString().padStart(2, "0") : "",
             episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
             absolute_episode: this.vod_absolute_episode ? this.vod_absolute_episode.toString().padStart(2, "0") : "",
+            title: this.getTitle(),
+            game_name: this.getGameName(),
         };
 
         return sanitize(formatString(Config.getInstance().cfg("filename_vod_folder"), variables));
@@ -138,6 +140,8 @@ export class BaseAutomator {
             absolute_season: this.vod_absolute_season ? this.vod_absolute_season.toString().padStart(2, "0") : "",
             episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
             absolute_episode: this.vod_absolute_episode ? this.vod_absolute_episode.toString().padStart(2, "0") : "",
+            title: this.getTitle(),
+            game_name: this.getGameName(),
         };
 
         return sanitize(formatString(Config.getInstance().cfg("filename_vod"), variables));
@@ -172,6 +176,26 @@ export class BaseAutomator {
 
     public getStartDate(): string {
         return KeyValue.getInstance().get(`${this.getLogin()}.vod.started_at`) || "";
+    }
+
+    public getTitle(): string {
+        if (KeyValue.getInstance().has(`${this.getLogin()}.chapterdata`)) {
+            const data = KeyValue.getInstance().getObject<TwitchVODChapterJSON>(`${this.getLogin()}.chapterdata`);
+            if (data && data.title) {
+                return data.title || "";
+            }
+        }
+        return "";
+    }
+
+    public getGameName(): string {
+        if (KeyValue.getInstance().has(`${this.getLogin()}.chapterdata`)) {
+            const data = KeyValue.getInstance().getObject<TwitchVODChapterJSON>(`${this.getLogin()}.chapterdata`);
+            if (data && data.game_name) {
+                return data.game_name || "";
+            }
+        }
+        return "";
     }
 
     public streamURL(): string {

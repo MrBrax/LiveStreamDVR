@@ -15,6 +15,8 @@ export interface VodBasenameTemplate extends Record<string, string> {
     episode: string;
     absolute_season: string;
     absolute_episode: string;
+    title: string;
+    game_name: string;
 }
 
 export interface ExporterFilenameTemplate extends Record<string, string> {

@@ -456,6 +456,8 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
             absolute_episode: "0", // episode won't work with random downloads
             // episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
             episode: "0", // episode won't work with random downloads
+            title: video.title || "",
+            game_name: "", // not exposed by twitch api
         };
 
         return sanitize(formatString(Config.getInstance().cfg(what), variables));

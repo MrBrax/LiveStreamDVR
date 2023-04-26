@@ -797,6 +797,9 @@ export class TwitchChannel extends BaseChannel {
                 absolute_season: "",
                 episode: "",
                 absolute_episode: "",
+
+                title: latestVodData.title,
+                game_name: "", // not exposed by twitch api
             };
 
             const vod_folder_base = sanitize(formatString(Config.getInstance().cfg("filename_vod_folder"), vod_folder_template_variables));
@@ -836,6 +839,9 @@ export class TwitchChannel extends BaseChannel {
             absolute_season: "",
             episode: "",
             absolute_episode: "",
+
+            title: latestVodData.title,
+            game_name: "", // not exposed by twitch api
         };
 
         const vod_filename_base = sanitize(formatString(Config.getInstance().cfg("filename_vod"), vod_filename_template_variables));

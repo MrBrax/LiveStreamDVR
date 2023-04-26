@@ -1846,4 +1846,9 @@ export class BaseVOD {
 
     }
 
+    // getter for game_name
+    public get game_name(): string {
+        return ""; // base vod does not have game_name
+    }
+
 }
