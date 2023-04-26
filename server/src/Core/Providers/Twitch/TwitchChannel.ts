@@ -873,7 +873,7 @@ export class TwitchChannel extends BaseChannel {
         await vod.finalize();
         await vod.saveJSON("manual finalize");
 
-        Webhook.dispatch("end_download", {
+        Webhook.dispatchAll("end_download", {
             vod: await vod.toAPI(),
         });
 

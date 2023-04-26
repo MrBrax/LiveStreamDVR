@@ -2,16 +2,21 @@ import type { ApiJob, ApiTwitchVod, ApiVodBaseChapter, ApiVods, ApiChannels } fr
 
 export type WebhookAction =
     "chapter_update" |
+
     "start_download" |
+    "end_download" |
+
+    "start_capture" |
     "end_capture" |
+
     "start_convert" |
     "end_convert" |
-    "end_download" |
-    "start_capture" |
+
     "job_save" |
     "job_clear" |
     "job_update" |
     "job_progress" |
+
     "video_download" |
     "vod_removed" |
     "vod_updated" |

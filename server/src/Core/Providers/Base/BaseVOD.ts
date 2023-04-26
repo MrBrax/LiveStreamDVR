@@ -638,7 +638,7 @@ export class BaseVOD {
         }
         this._updateTimer = setTimeout(async () => {
             const vod = await this.toAPI();
-            Webhook.dispatch("vod_updated", {
+            Webhook.dispatchAll("vod_updated", {
                 vod: vod,
             } as VodUpdated);
             this._updateTimer = undefined;

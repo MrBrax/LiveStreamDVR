@@ -412,7 +412,7 @@ export class LiveStreamDVR {
         if (vod) {
             this.vods = this.vods.filter(vod => vod.uuid != uuid);
             Log.logAdvanced(Log.Level.INFO, "dvr.removeVod", `VOD ${vod.basename} removed from memory!`);
-            Webhook.dispatch("vod_removed", { basename: vod.basename });
+            Webhook.dispatchAll("vod_removed", { basename: vod.basename });
             return true;
         }
         return false;

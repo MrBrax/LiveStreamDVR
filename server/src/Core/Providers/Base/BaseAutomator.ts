@@ -634,7 +634,7 @@ export class BaseAutomator {
 
         // this.vod.saveJSON("stream download");
 
-        Webhook.dispatch("start_download", {
+        Webhook.dispatchAll("start_download", {
             "vod": await this.vod.toAPI(),
         });
 
@@ -695,7 +695,7 @@ export class BaseAutomator {
         const capture_success = fs.existsSync(this.capture_filename) && fs.statSync(this.capture_filename).size > 0;
 
         // send internal webhook for capture start
-        Webhook.dispatch("end_capture", {
+        Webhook.dispatchAll("end_capture", {
             "vod": await this.vod.toAPI(),
             "success": capture_success,
         });
@@ -779,7 +779,7 @@ export class BaseAutomator {
                     ;
 
                 // send internal webhook for convert start
-                Webhook.dispatch("end_convert", {
+                Webhook.dispatchAll("end_convert", {
                     "vod": await this.vod.toAPI(),
                     "success": convert_success,
                 });
@@ -854,7 +854,7 @@ export class BaseAutomator {
         Log.logAdvanced(Log.Level.SUCCESS, "automator.download", `All done for ${basename}`);
 
         // finally send internal webhook for capture finish
-        Webhook.dispatch("end_download", {
+        Webhook.dispatchAll("end_download", {
             "vod": await this.vod.toAPI(),
         });
 
@@ -1208,7 +1208,7 @@ export class BaseAutomator {
 
             // send internal webhook for capture start
             this.vod.toAPI().then(vod => {
-                Webhook.dispatch("start_capture", {
+                Webhook.dispatchAll("start_capture", {
                     "vod": vod,
                 });
             });
@@ -1418,7 +1418,7 @@ export class BaseAutomator {
 
         if (!this.vod) throw new Error("VOD not set");
 
-        Webhook.dispatch("start_convert", {
+        Webhook.dispatchAll("start_convert", {
             vod: await this.vod.toAPI(),
         });
 
@@ -1442,7 +1442,7 @@ export class BaseAutomator {
             Log.logAdvanced(Log.Level.ERROR, "automator.convertVideo", `Failed to convert video ${this.capture_filename} to ${this.converted_filename}`);
         }
 
-        Webhook.dispatch("end_convert", {
+        Webhook.dispatchAll("end_convert", {
             vod: await this.vod.toAPI(),
             success: result && result.success,
         });

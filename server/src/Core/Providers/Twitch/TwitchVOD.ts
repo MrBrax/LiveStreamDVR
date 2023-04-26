@@ -1821,7 +1821,7 @@ export class TwitchVOD extends BaseVOD {
 
         Log.logAdvanced(Log.Level.INFO, "vod.downloadVideo", `Download of ${basename} successful`);
 
-        Webhook.dispatch("video_download", {
+        Webhook.dispatchAll("video_download", {
             "success": true,
             "path": converted_filename,
         });
@@ -1964,7 +1964,7 @@ export class TwitchVOD extends BaseVOD {
 
         Log.logAdvanced(Log.Level.INFO, "vod.downloadClip", `Download of ${basename} successful`);
 
-        Webhook.dispatch("video_download", {
+        Webhook.dispatchAll("video_download", {
             "success": true,
             "path": converted_filename,
         });

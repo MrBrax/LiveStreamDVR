@@ -592,7 +592,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
             await vod.finalize();
             await vod.saveJSON("manual finalize");
 
-            Webhook.dispatch("end_download", {
+            Webhook.dispatchAll("end_download", {
                 vod: await vod.toAPI(),
             });
 
@@ -702,7 +702,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
                 return;
             }
 
-            Webhook.dispatch("end_download", {
+            Webhook.dispatchAll("end_download", {
                 vod: await vod.toAPI(),
             });
 

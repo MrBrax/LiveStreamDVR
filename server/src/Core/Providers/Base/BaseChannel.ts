@@ -119,7 +119,7 @@ export class BaseChannel {
         }
         this._updateTimer = setTimeout(async () => {
             const channel = await this.toAPI();
-            Webhook.dispatch("channel_updated", {
+            Webhook.dispatchAll("channel_updated", {
                 channel: channel,
             } as ChannelUpdated);
             this._updateTimer = undefined;

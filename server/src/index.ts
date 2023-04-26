@@ -213,7 +213,7 @@ LiveStreamDVR.init().then(() => {
         websocketServer = new WebSocketServer({ server, path: `${basepath}/socket/` });
         ClientBroker.attach(websocketServer);
 
-        Webhook.dispatch("init", {
+        Webhook.dispatchAll("init", {
             "hello": "world",
         });
 

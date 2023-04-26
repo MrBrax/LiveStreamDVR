@@ -1,8 +1,8 @@
 # LiveStreamDVR Webhooks
 
-JSON format sent over POST. `action` key contains the action and other keys/values are action specific.
+JSON format sent over POST. `action` key contains the action, and payload data is contained in `data`.
 
-This really needs a rework, seems to be used both for websockets and webhooks.
+This really needs a rework, since all of these are sent both on websockets and webhooks.
 
 ## chapter_update
 | Key     | Type          | Description  |
@@ -29,7 +29,7 @@ At the end of the entire download. After capture and conversion.
 |---------|---------------|--------------|
 | vod     | BaseVOD       | Assigned VOD |
 
-Just at the start of conversion of the video.
+Just at the start of conversion/remux of the video.
 
 ## end_convert
 | Key     | Type          | Description  |
@@ -37,7 +37,7 @@ Just at the start of conversion of the video.
 | vod     | BaseVOD       | Assigned VOD |
 | success | boolean       | Success?     |
 
-Just at the end of conversion of the video.
+Just at the end of conversion/remux of the video.
 
 ## start_capture
 | Key     | Type          | Description  |
@@ -72,9 +72,8 @@ On a log event
 ## job_clear
 ## job_update
 ## job_progress
-
-
 ## video_download
+On some video downloads
 ## vod_removed
 ## vod_updated
 ## channel_updated
