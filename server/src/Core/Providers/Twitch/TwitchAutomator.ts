@@ -413,6 +413,23 @@ export class TwitchAutomator extends BaseAutomator {
             cmd.push("--twitch-access-token-param", Config.getInstance().cfg<string>("capture.twitch-access-token-param"));
         }
 
+        // streamlink-ttvlol plugin
+        if (Config.getInstance().cfg("capture.twitch-ttv-lol-plugin")) {
+
+            cmd.push("--plugin-dirs", BaseConfigDataFolder.streamlink_plugins);
+
+            if (Config.getInstance().hasValue("capture.twitch-proxy-playlist")) {
+                cmd.push("--twitch-proxy-playlist", Config.getInstance().cfg<string>("capture.twitch-proxy-playlist"));
+            } else {
+                Log.logAdvanced(Log.Level.WARNING, "automator.providerArgs", "Twitch proxy playlist is enabled but no URL is set.");
+            }
+
+            if (Config.getInstance().hasValue("capture.twitch-proxy-playlist-exclude")) {
+                cmd.push("--twitch-proxy-playlist-exclude", Config.getInstance().cfg<string>("capture.twitch-proxy-playlist-exclude"));
+            }
+
+        }
+
         return cmd;
 
     }

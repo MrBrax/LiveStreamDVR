@@ -80,12 +80,16 @@ export const settingsFields: Record<string, SettingField<string> | SettingField<
     "capture.use_cache": { group: "Capture", text: "Use cache", type: "boolean", default: false, help: "Use cache directory for in-progress captures" },
     "capture.retry_on_error": { group: "Capture", text: "Retry on error", type: "boolean", default: true, help: "Retry on any kind of error. If an eventsub message is missed, it will be retried." },
 
-    "capture.viewercount": { group: "Capture", text: "Capture viewercount", type: "boolean", default: false, help: "Capture viewercount", new: true },
+    "capture.viewercount": { group: "Capture", text: "Capture viewercount", type: "boolean", default: false, help: "Capture viewercount", },
     "capture.killendedstream": { group: "Capture", text: "Kill ended stream", type: "boolean", default: false, help: "Kill the capture process when the notification is received that the stream has ended", new: true },
     "capture.fallbackcapture": { group: "Capture", text: "Fallback capture", type: "boolean", default: false, help: "Capture to saved_vods if any of the capture methods fail", new: true },
 
-    "capture.twitch-api-header": {  group: "Capture", text: "Twitch API header", type: "string", new: true },
-    "capture.twitch-access-token-param": { group: "Capture", text: "Twitch access token param", type: "string", new: true },
+    "capture.twitch-api-header": {  group: "Capture", text: "Twitch API header", type: "string", },
+    "capture.twitch-access-token-param": { group: "Capture", text: "Twitch access token param", type: "string", },
+
+    "capture.twitch-ttv-lol-plugin": { group: "Capture", text: "Enable TTV LOL plugin", type: "boolean", default: false, new: true },
+    "capture.twitch-proxy-playlist": { group: "Capture", text: "Proxy playlist URL", help: "Separate by commas", type: "string", default: false, new: true },
+    "capture.twitch-proxy-playlist-exclude": { group: "Capture", text: "Proxy username exclude", help: "Separate by commas", type: "string", default: false, new: true },
 
     // sub_lease: { group: "Advanced", text: "Subscription lease", type: "number", default: 604800 },
     api_client_id: { group: "Twitch", text: "Twitch client ID", type: "string", "required": true },
