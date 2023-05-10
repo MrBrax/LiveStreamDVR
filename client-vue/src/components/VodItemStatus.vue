@@ -43,7 +43,7 @@
             <template v-if="vod.is_converting">
                 <em>
                     <span class="icon"><font-awesome-icon icon="file-signature" /></span>
-                    Converting <strong>{{ vod.basename }}.ts</strong> to <strong>{{ vod.basename }}.mp4</strong>
+                    Converting <strong>{{ vod.basename }}.ts</strong> to <strong>{{ vod.basename }}.{{ store.cfg("vod_container", "mp4") }}</strong>
                 </em>
                 <br>
                 <em>

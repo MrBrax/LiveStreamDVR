@@ -290,7 +290,7 @@ export class TwitchAutomator extends BaseAutomator {
             vod.addChapter(chapter);
             await vod.saveJSON("game update");
 
-            Webhook.dispatch("chapter_update", {
+            Webhook.dispatchAll("chapter_update", {
                 "chapter": chapter.toAPI(),
                 "vod": await vod.toAPI(),
             } as ChapterUpdateData);

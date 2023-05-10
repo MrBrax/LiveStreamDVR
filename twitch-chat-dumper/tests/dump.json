@@ -1,0 +1,77 @@
+{
+  "streamer": {
+    "name": "REDACTED",
+    "id": 0
+  },
+  "comments": [
+    {
+      "_id": "0",
+      "created_at": "2022-11-11T01:02:33.752Z",
+      "updated_at": "2022-11-11T01:02:33.752Z",
+      "channel_id": "0",
+      "content_type": "video",
+      "content_id": "0",
+      "content_offset_seconds": 1954.052,
+      "commenter": {
+        "display_name": "REDACTED",
+        "_id": "0",
+        "name": "REDACTED",
+        "type": "user",
+        "bio": "washington washington",
+        "created_at": "2015-07-14T00:13:49.360937Z",
+        "updated_at": "2022-10-20T23:03:04.67115Z",
+        "logo": "0"
+      },
+      "source": "chat",
+      "state": "published",
+      "message": {
+        "body": "REDACTED",
+        "bits_spent": 0,
+        "fragments": [{ "text": "HES GONNA DIE", "emoticon": null }],
+        "is_action": false,
+        "user_badges": null,
+        "user_color": "#FF69B4",
+        "user_notice_params": { "msg_id": null },
+        "emoticons": null
+      },
+      "more_replies": false
+    },
+    {
+      "_id": "0",
+      "created_at": "2022-11-11T01:02:33.791Z",
+      "updated_at": "2022-11-11T01:02:33.791Z",
+      "channel_id": "0",
+      "content_type": "video",
+      "content_id": "0",
+      "content_offset_seconds": 1954.091,
+      "commenter": {
+        "display_name": "REDACTED",
+        "_id": "0",
+        "name": "REDACTED",
+        "type": "user",
+        "bio": null,
+        "created_at": "2020-05-09T01:59:53.216619Z",
+        "updated_at": "2022-11-10T23:03:33.524107Z",
+        "logo": "0"
+      },
+      "source": "chat",
+      "state": "published",
+      "message": {
+        "body": "REDACTED",
+        "bits_spent": 0,
+        "fragments": [{ "text": "GAS LIGHTING", "emoticon": null }],
+        "is_action": false,
+        "user_badges": [
+          { "_id": "0" },
+          { "_id": "0" }
+        ],
+        "user_color": "#FF0000",
+        "user_notice_params": { "msg_id": null },
+        "emoticons": null
+      },
+      "more_replies": false
+    }
+  ],
+  "video": { "start": 1954.0, "end": 2004.0 },
+  "emotes": null
+}

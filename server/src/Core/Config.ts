@@ -75,8 +75,8 @@ export class Config {
         }
 
         // return from env if set
-        if (process.env[`TCD_${key.toUpperCase()}`] !== undefined) {
-            const val: string | undefined = process.env[`TCD_${key.toUpperCase()}`];
+        if (this.hasEnvVar(key)) {
+            const val: string | undefined = this.envVarValue(key);
             if (val === undefined) {
                 return <T>defaultValue; // should not happen
             }
@@ -117,7 +117,7 @@ export class Config {
             console.warn(chalk.red(`Setting '${key}' does not exist.`));
         }
 
-        if (process.env[`TCD_${key.toUpperCase().replaceAll(".", "_")}`] !== undefined) {
+        if (this.hasEnvVar(key)) {
             return true;
         }
 
@@ -645,6 +645,16 @@ export class Config {
 
     get dateFormat() {
         return this.cfg("date_format", "yyyy-MM-dd"); // if you're crazy enough to not use ISO8601
+    }
+
+    hasEnvVar(key: keyof typeof settingsFields): boolean
+    {
+        return process.env[`TCD_${key.toUpperCase().replaceAll(".", "_")}`] !== undefined;
+    }
+
+    envVarValue(key: keyof typeof settingsFields): string | undefined
+    {
+        return process.env[`TCD_${key.toUpperCase().replaceAll(".", "_")}`];
     }
 
 }

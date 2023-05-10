@@ -16,6 +16,8 @@ export const VodBasenameFields: Record<keyof VodBasenameTemplate, TemplateField>
     season: { display: "202212" },
     absolute_season: { display: "5" },
     episode: { display: "3" },
+    title: { display: "Moose crosses river HOT NEW CONTENT COME LOOK" },
+    game_name: { display: "Moose Simulator 2022" },
 };
 
 export const ClipBasenameFields: Record<keyof ClipBasenameTemplate, TemplateField> = {

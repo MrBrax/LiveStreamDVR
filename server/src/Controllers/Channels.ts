@@ -48,9 +48,24 @@ export async function ListChannels(req: express.Request, res: express.Response):
     } as ApiChannelsResponse);
 }
 
+const getChannelFromRequest = (req: express.Request): TwitchChannel | YouTubeChannel | undefined => {
+
+    if (req.params.uuid) {
+        return LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid) || undefined;
+    }
+
+    if (req.params.name) {
+        return LiveStreamDVR.getInstance().getChannelByInternalName(req.params.internalname) || undefined;
+    }
+
+    return undefined;
+
+};
+
+
 export async function GetChannel(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
+    const channel = getChannelFromRequest(req);
 
     if (!channel) {
         res.status(400).send({
@@ -69,7 +84,7 @@ export async function GetChannel(req: express.Request, res: express.Response): P
 
 export function UpdateChannel(req: express.Request, res: express.Response): void {
 
-    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
+    const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
         res.status(400).send({
@@ -154,7 +169,7 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
 
 export async function DeleteChannel(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
+    const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
 
@@ -416,7 +431,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
 
 export async function DownloadVideo(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
+    const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
         res.status(400).send({
@@ -456,6 +471,8 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
             absolute_episode: "0", // episode won't work with random downloads
             // episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
             episode: "0", // episode won't work with random downloads
+            title: video.title || "",
+            game_name: "", // not exposed by twitch api
         };
 
         return sanitize(formatString(Config.getInstance().cfg(what), variables));
@@ -575,7 +592,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
             await vod.finalize();
             await vod.saveJSON("manual finalize");
 
-            Webhook.dispatch("end_download", {
+            Webhook.dispatchAll("end_download", {
                 vod: await vod.toAPI(),
             });
 
@@ -685,7 +702,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
                 return;
             }
 
-            Webhook.dispatch("end_download", {
+            Webhook.dispatchAll("end_download", {
                 vod: await vod.toAPI(),
             });
 
@@ -709,7 +726,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
 
 export async function SubscribeToChannel(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
+    const channel = getChannelFromRequest(req);
 
     if (!channel || !(channel instanceof TwitchChannel) || !channel.userid) {
         res.status(400).send({
@@ -733,7 +750,7 @@ export async function SubscribeToChannel(req: express.Request, res: express.Resp
 
 export async function CheckSubscriptions(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
+    const channel = getChannelFromRequest(req);
 
     if (!channel || !(channel instanceof TwitchChannel) || !channel.userid) {
         res.status(400).send({
@@ -767,7 +784,7 @@ export async function CheckSubscriptions(req: express.Request, res: express.Resp
 
 export async function CleanupChannelVods(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
+    const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
         res.status(400).send({
@@ -789,7 +806,7 @@ export async function CleanupChannelVods(req: express.Request, res: express.Resp
 
 export async function RefreshChannel(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
+    const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
         res.status(400).send({
@@ -843,7 +860,7 @@ export async function RefreshChannel(req: express.Request, res: express.Response
 
 export async function ForceRecord(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
+    const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalId) {
         res.status(400).send({
@@ -985,7 +1002,7 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
 
 export async function RenameChannel(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
+    const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
         res.status(400).send({
@@ -1016,7 +1033,7 @@ export async function RenameChannel(req: express.Request, res: express.Response)
 
 export async function DeleteAllChannelVods(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
+    const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
         res.status(400).send({
@@ -1065,7 +1082,7 @@ type HistoryEntry = TwitchVODChapterJSON | StreamEvent;
 
 export function GetHistory(req: express.Request, res: express.Response): void {
 
-    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
+    const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
         res.status(400).send({
@@ -1106,7 +1123,7 @@ export function GetHistory(req: express.Request, res: express.Response): void {
 
 export async function ScanVods(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
+    const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
         res.status(400).send({
@@ -1150,7 +1167,7 @@ export async function ScanVods(req: express.Request, res: express.Response): Pro
 
 export function ScanLocalVideos(req: express.Request, res: express.Response): void {
 
-    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
+    const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
         res.status(400).send({
@@ -1176,7 +1193,7 @@ export function ScanLocalVideos(req: express.Request, res: express.Response): vo
 
 export async function GetClips(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
+    const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
         res.status(400).send({
@@ -1205,7 +1222,7 @@ export async function GetClips(req: express.Request, res: express.Response): Pro
 
 export async function ExportAllVods(req: express.Request, res: express.Response): Promise<void> {
 
-    const channel = LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid);
+    const channel = getChannelFromRequest(req);
     const force = req.query.force === "true";
 
     if (!channel || !channel.internalName) {

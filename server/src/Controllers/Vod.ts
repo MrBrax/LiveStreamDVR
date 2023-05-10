@@ -804,6 +804,8 @@ export async function RenameVod(req: express.Request, res: express.Response): Pr
         episode: vod.stream_number ? vod.stream_number.toString() : "",
         absolute_season: vod.stream_absolute_season ? vod.stream_absolute_season.toString() : "",
         absolute_episode: vod.stream_absolute_number ? vod.stream_absolute_number.toString() : "",
+        title: vod.stream_title || "",
+        game_name: vod.game_name || "",
     };
 
     const basename = sanitize(formatString(template || Config.getInstance().cfg("filename_vod"), variables));

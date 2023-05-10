@@ -1,7 +1,7 @@
 import path from "node:path";
 import fs from "node:fs";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "./BaseConfig";
-import {  Log } from "./Log";
+import { Log } from "./Log";
 import { parseJSON } from "date-fns";
 import { ChildProcessWithoutNullStreams } from "node:child_process";
 import { EventEmitter } from "node:events";
@@ -89,7 +89,7 @@ export class Job extends EventEmitter {
                 job.clear();
                 continue;
             }
-            
+
             let status;
             try {
                 status = await job.getStatus(true);
@@ -97,7 +97,7 @@ export class Job extends EventEmitter {
                 Log.logAdvanced(Log.Level.ERROR, "job", `Job ${job.name} stale status error: ${(error as Error).message}`);
                 job.clear();
                 continue;
-            } 
+            }
 
             if (status == JobStatus.STOPPED || status == JobStatus.ERROR) {
                 Log.logAdvanced(Log.Level.WARNING, "job", `Job ${job.name} is stale, no process found. Clearing.`);
@@ -237,7 +237,7 @@ export class Job extends EventEmitter {
         }
 
         if (this.dummy) {
-            Webhook.dispatch("job_save", {
+            Webhook.dispatchAll("job_save", {
                 "job_name": this.name,
                 "job": this.toAPI(),
             });
@@ -252,7 +252,7 @@ export class Job extends EventEmitter {
 
         Log.logAdvanced(Log.Level.INFO, "job", `Save job ${this.name} with PID ${this.pid} to ${this.pidfile}`, this.metadata);
 
-        Webhook.dispatch("job_save", {
+        Webhook.dispatchAll("job_save", {
             "job_name": this.name,
             "job": this.toAPI(),
         });
@@ -312,7 +312,7 @@ export class Job extends EventEmitter {
         if (fs.existsSync(this.pidfile)) {
             Log.logAdvanced(Log.Level.INFO, "job", `Clear job ${this.name} with PID ${this.pid}`, this.metadata);
 
-            Webhook.dispatch("job_clear", {
+            Webhook.dispatchAll("job_clear", {
                 "job_name": this.name,
                 "job": this.toAPI(),
             });
@@ -708,13 +708,13 @@ export class Job extends EventEmitter {
                 // console.debug(`Job ${this.name} cancel update`);
                 clearTimeout(this._progressTimer);
                 this.progressUpdatesCleared++;
-            } 
+            }
             if (this.progressUpdatesCleared > 5) {
                 this.updateProgress(progress);
                 this.progressUpdatesCleared = 0;
             } else {
                 this._progressTimer = setTimeout(() => {
-                    if (!this || (!this.dummy && this.status !== JobStatus.RUNNING)) return; 
+                    if (!this || (!this.dummy && this.status !== JobStatus.RUNNING)) return;
                     this.updateProgress(progress);
                     this.progressUpdatesCleared = 0;
                 }, 2000);
@@ -726,7 +726,7 @@ export class Job extends EventEmitter {
 
     public updateProgress(progress: number): void {
         this.progress = progress;
-        Webhook.dispatch("job_progress", {
+        Webhook.dispatchAll("job_progress", {
             "job_name": this.name || "",
             "progress": progress,
         });
@@ -775,7 +775,7 @@ export class Job extends EventEmitter {
         if (!noTimer) {
             this._updateTimer = setTimeout(async () => {
                 // console.debug(`Broadcasting job update for ${this.name}: ${this.status}`);
-                
+
                 try {
                     await this.getStatus();
                 } catch (error) {
@@ -784,7 +784,7 @@ export class Job extends EventEmitter {
 
                 this.emit("update", this.toAPI());
                 this._updateTimer = undefined;
-                Webhook.dispatch(Job.hasJob(this.name) ? "job_update" : "job_clear", {
+                Webhook.dispatchAll(Job.hasJob(this.name) ? "job_update" : "job_clear", {
                     "job_name": this.name,
                     "job": this.toAPI(),
                 });
@@ -793,7 +793,7 @@ export class Job extends EventEmitter {
             // (async () => {
             // await this.getStatus();
             this.emit("update", this.toAPI());
-            Webhook.dispatch(Job.hasJob(this.name) ? "job_update" : "job_clear", {
+            Webhook.dispatchAll(Job.hasJob(this.name) ? "job_update" : "job_clear", {
                 "job_name": this.name,
                 "job": this.toAPI(),
             });

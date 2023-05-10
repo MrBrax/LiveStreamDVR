@@ -314,6 +314,12 @@ export class TwitchVOD extends BaseVOD {
         return this.chapters[this.chapters.length - 1].game;
     }
 
+    // getter for game_name, which is the first game in the chapters
+    public get game_name(): string {
+        if (!this.chapters || this.chapters.length == 0) return "";
+        return this.chapters[0].game_name;
+    }
+
     get associatedFiles(): string[] {
 
         if (!this.directory) return [];
@@ -977,6 +983,8 @@ export class TwitchVOD extends BaseVOD {
             if (fs.existsSync(file_from)) {
                 Log.logAdvanced(Log.Level.DEBUG, "vod.move", `Move ${file_from} to ${file_to}`);
                 fs.renameSync(file_from, file_to);
+            } else {
+                Log.logAdvanced(Log.Level.ERROR, "vod.move", `File ${file_from} does not exist`);
             }
         }
 
@@ -1813,7 +1821,7 @@ export class TwitchVOD extends BaseVOD {
 
         Log.logAdvanced(Log.Level.INFO, "vod.downloadVideo", `Download of ${basename} successful`);
 
-        Webhook.dispatch("video_download", {
+        Webhook.dispatchAll("video_download", {
             "success": true,
             "path": converted_filename,
         });
@@ -1956,7 +1964,7 @@ export class TwitchVOD extends BaseVOD {
 
         Log.logAdvanced(Log.Level.INFO, "vod.downloadClip", `Download of ${basename} successful`);
 
-        Webhook.dispatch("video_download", {
+        Webhook.dispatchAll("video_download", {
             "success": true,
             "path": converted_filename,
         });
@@ -2014,7 +2022,7 @@ export class TwitchVOD extends BaseVOD {
         let response;
 
         try {
-            response = await TwitchHelper.getRequest<VideosResponse>(`/helix/videos?user_id=${channel_id}`);
+            response = await TwitchHelper.getRequest<VideosResponse>(`/helix/videos?first=100&user_id=${channel_id}`);
         } catch (e) {
             Log.logAdvanced(Log.Level.ERROR, "vod.getVideos", `Tried to get videos for channel id ${channel_id} but got error ${e}`);
             return false;
@@ -2040,7 +2048,7 @@ export class TwitchVOD extends BaseVOD {
         let response;
 
         try {
-            response = await TwitchHelper.getRequest<VideosResponse>(`/helix/videos?user_id=${channel_id}`);
+            response = await TwitchHelper.getRequest<VideosResponse>(`/helix/videos?first=100&user_id=${channel_id}`);
         } catch (e) {
             Log.logAdvanced(Log.Level.ERROR, "vod.getVideosProxy", `Tried to get videos for channel id ${channel_id} but got error ${e}`);
             return false;

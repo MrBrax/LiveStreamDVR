@@ -24,7 +24,7 @@ import { Config } from "../../Config";
 import { Helper } from "../../Helper";
 import { Job } from "../../Job";
 import { KeyValue } from "../../KeyValue";
-import { ChannelTypes, VODTypes } from "../../LiveStreamDVR";
+import { ChannelTypes, LiveStreamDVR, VODTypes } from "../../LiveStreamDVR";
 import { Log } from "../../Log";
 import { Webhook } from "../../Webhook";
 import { TwitchChannel } from "../Twitch/TwitchChannel";
@@ -104,6 +104,8 @@ export class BaseAutomator {
             absolute_season: this.vod_absolute_season ? this.vod_absolute_season.toString().padStart(2, "0") : "",
             episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
             absolute_episode: this.vod_absolute_episode ? this.vod_absolute_episode.toString().padStart(2, "0") : "",
+            title: this.getTitle(),
+            game_name: this.getGameName(),
         };
 
         return sanitize(formatString(Config.getInstance().cfg("filename_vod_folder"), variables));
@@ -138,6 +140,8 @@ export class BaseAutomator {
             absolute_season: this.vod_absolute_season ? this.vod_absolute_season.toString().padStart(2, "0") : "",
             episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
             absolute_episode: this.vod_absolute_episode ? this.vod_absolute_episode.toString().padStart(2, "0") : "",
+            title: this.getTitle(),
+            game_name: this.getGameName(),
         };
 
         return sanitize(formatString(Config.getInstance().cfg("filename_vod"), variables));
@@ -172,6 +176,26 @@ export class BaseAutomator {
 
     public getStartDate(): string {
         return KeyValue.getInstance().get(`${this.getLogin()}.vod.started_at`) || "";
+    }
+
+    public getTitle(): string {
+        if (KeyValue.getInstance().has(`${this.getLogin()}.chapterdata`)) {
+            const data = KeyValue.getInstance().getObject<TwitchVODChapterJSON>(`${this.getLogin()}.chapterdata`);
+            if (data && data.title) {
+                return data.title || "";
+            }
+        }
+        return "";
+    }
+
+    public getGameName(): string {
+        if (KeyValue.getInstance().has(`${this.getLogin()}.chapterdata`)) {
+            const data = KeyValue.getInstance().getObject<TwitchVODChapterJSON>(`${this.getLogin()}.chapterdata`);
+            if (data && data.game_name) {
+                return data.game_name || "";
+            }
+        }
+        return "";
     }
 
     public streamURL(): string {
@@ -610,7 +634,7 @@ export class BaseAutomator {
 
         // this.vod.saveJSON("stream download");
 
-        Webhook.dispatch("start_download", {
+        Webhook.dispatchAll("start_download", {
             "vod": await this.vod.toAPI(),
         });
 
@@ -671,7 +695,7 @@ export class BaseAutomator {
         const capture_success = fs.existsSync(this.capture_filename) && fs.statSync(this.capture_filename).size > 0;
 
         // send internal webhook for capture start
-        Webhook.dispatch("end_capture", {
+        Webhook.dispatchAll("end_capture", {
             "vod": await this.vod.toAPI(),
             "success": capture_success,
         });
@@ -729,51 +753,63 @@ export class BaseAutomator {
 
         if (!Config.getInstance().cfg("no_vod_convert", false)) {
 
-            this.vod.is_converting = true;
-            await this.vod.saveJSON("is_converting set");
+            // check for free space
+            await LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
 
-            // convert with ffmpeg
-            await this.convertVideo();
+            // check if we have enough space, ts is about the same size as the mp4
+            if (LiveStreamDVR.getInstance().freeStorageDiskSpace < fs.statSync(this.capture_filename).size) {
 
-            // sleep(10);
-            await Sleep(10 * 1000);
+                Log.logAdvanced(Log.Level.ERROR, "automator.download", `Not enough free space for remuxing ${basename}, skipping...`);
 
-            const convert_success =
-                fs.existsSync(this.capture_filename) &&
-                fs.existsSync(this.converted_filename) &&
-                fs.statSync(this.converted_filename).size > 0
-                ;
-
-            // send internal webhook for convert start
-            Webhook.dispatch("end_convert", {
-                "vod": await this.vod.toAPI(),
-                "success": convert_success,
-            });
-
-            // remove ts if both files exist
-            if (convert_success) {
-                Log.logAdvanced(Log.Level.DEBUG, "automator.download", `Remove ts file for ${basename}`);
-                fs.unlinkSync(this.capture_filename);
             } else {
-                Log.logAdvanced(Log.Level.FATAL, "automator.download", `Missing conversion files for ${basename}`);
-                // this.vod.automator_fail = true;
+
+                this.vod.is_converting = true;
+                await this.vod.saveJSON("is_converting set");
+
+                // convert with ffmpeg
+                await this.convertVideo();
+
+                // sleep(10);
+                await Sleep(10 * 1000);
+
+                const convert_success =
+                    fs.existsSync(this.capture_filename) &&
+                    fs.existsSync(this.converted_filename) &&
+                    fs.statSync(this.converted_filename).size > 0
+                    ;
+
+                // send internal webhook for convert start
+                Webhook.dispatchAll("end_convert", {
+                    "vod": await this.vod.toAPI(),
+                    "success": convert_success,
+                });
+
+                // remove ts if both files exist
+                if (convert_success) {
+                    Log.logAdvanced(Log.Level.DEBUG, "automator.download", `Remove ts file for ${basename}`);
+                    fs.unlinkSync(this.capture_filename);
+                } else {
+                    Log.logAdvanced(Log.Level.FATAL, "automator.download", `Missing conversion files for ${basename}`);
+                    // this.vod.automator_fail = true;
+                    this.vod.is_converting = false;
+                    await this.vod.saveJSON("automator fail");
+                    return false;
+                }
+
+                // add the captured segment to the vod info
+                Log.logAdvanced(Log.Level.INFO, "automator.download", `Conversion done, add segment '${this.converted_filename}' to '${basename}'`);
+
                 this.vod.is_converting = false;
-                await this.vod.saveJSON("automator fail");
-                return false;
+                this.vod.addSegment(path.basename(this.converted_filename));
+
+                if (this.vod.segments.length > 1) {
+                    Log.logAdvanced(Log.Level.WARNING, "automator.download", `More than one segment (${this.vod.segments.length}) for ${basename}, this should not happen!`);
+                    ClientBroker.notify("Segment error", `More than one segment (${this.vod.segments.length}) for ${basename}, this should not happen!`, "", "system");
+                }
+
+                await this.vod.saveJSON("add segment");
+
             }
-
-            // add the captured segment to the vod info
-            Log.logAdvanced(Log.Level.INFO, "automator.download", `Conversion done, add segment '${this.converted_filename}' to '${basename}'`);
-
-            this.vod.is_converting = false;
-            this.vod.addSegment(path.basename(this.converted_filename));
-
-            if (this.vod.segments.length > 1) {
-                Log.logAdvanced(Log.Level.WARNING, "automator.download", `More than one segment (${this.vod.segments.length}) for ${basename}, this should not happen!`);
-                ClientBroker.notify("Segment error", `More than one segment (${this.vod.segments.length}) for ${basename}, this should not happen!`, "", "system");
-            }
-
-            await this.vod.saveJSON("add segment");
 
         } else {
             Log.logAdvanced(Log.Level.INFO, "automator.download", `No conversion for ${basename}, just add segments`);
@@ -818,7 +854,7 @@ export class BaseAutomator {
         Log.logAdvanced(Log.Level.SUCCESS, "automator.download", `All done for ${basename}`);
 
         // finally send internal webhook for capture finish
-        Webhook.dispatch("end_download", {
+        Webhook.dispatchAll("end_download", {
             "vod": await this.vod.toAPI(),
         });
 
@@ -951,6 +987,14 @@ export class BaseAutomator {
 
         if (data.includes("Read timeout, exiting")) {
             Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Read timeout, exiting for ${basename}!`);
+            if (KeyValue.getInstance().getBool(`${this.broadcaster_user_login}.online`)) {
+                this.fallbackCapture().then(() => {
+                    Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", `Fallback capture finished for ${this.getLogin()}`);
+                }).catch(error => {
+                    Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Fallback capture failed for ${this.getLogin()}: ${(error as Error).message}`);
+                    console.error(error);
+                });
+            }
         }
 
         if (data.includes("Stream ended")) {
@@ -1164,7 +1208,7 @@ export class BaseAutomator {
 
             // send internal webhook for capture start
             this.vod.toAPI().then(vod => {
-                Webhook.dispatch("start_capture", {
+                Webhook.dispatchAll("start_capture", {
                     "vod": vod,
                 });
             });
@@ -1374,7 +1418,7 @@ export class BaseAutomator {
 
         if (!this.vod) throw new Error("VOD not set");
 
-        Webhook.dispatch("start_convert", {
+        Webhook.dispatchAll("start_convert", {
             vod: await this.vod.toAPI(),
         });
 
@@ -1398,7 +1442,7 @@ export class BaseAutomator {
             Log.logAdvanced(Log.Level.ERROR, "automator.convertVideo", `Failed to convert video ${this.capture_filename} to ${this.converted_filename}`);
         }
 
-        Webhook.dispatch("end_convert", {
+        Webhook.dispatchAll("end_convert", {
             vod: await this.vod.toAPI(),
             success: result && result.success,
         });

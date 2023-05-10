@@ -638,7 +638,7 @@ export class BaseVOD {
         }
         this._updateTimer = setTimeout(async () => {
             const vod = await this.toAPI();
-            Webhook.dispatch("vod_updated", {
+            Webhook.dispatchAll("vod_updated", {
                 vod: vod,
             } as VodUpdated);
             this._updateTimer = undefined;
@@ -1844,6 +1844,11 @@ export class BaseVOD {
 
         return true;
 
+    }
+
+    // getter for game_name
+    public get game_name(): string {
+        return ""; // base vod does not have game_name
     }
 
 }
