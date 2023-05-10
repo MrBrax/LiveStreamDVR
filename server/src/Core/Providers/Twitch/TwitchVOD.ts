@@ -2231,7 +2231,7 @@ export class TwitchVOD extends BaseVOD {
             const args: string[] = [];
             args.push("--mode", "ChatDownload");
             args.push("--temp-path", BaseConfigCacheFolder.cache);
-            args.push("--ffmpeg-path", Helper.path_ffmpeg() || "");
+            // args.push("--ffmpeg-path", Helper.path_ffmpeg() || ""); // ffmpeg is not needed for chat download
             args.push("--id", vod_id);
             args.push("-o", output);
 
