@@ -85,6 +85,7 @@ export const BaseConfigDataFolder = {
     saved_clips: path.join(DataRoot, "storage", "saved_clips"),
     vods_db: path.join(DataRoot, "config", "vods_db"),
     backup: path.join(DataRoot, "backup"),
+    streamlink_plugins: path.join(DataRoot, "streamlink_plugins"),
 };
 
 export const BaseConfigCacheFolder = {

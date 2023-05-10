@@ -88,8 +88,12 @@ RUN cd /usr/local/share/twitchautomator/client-vue \
 
 # download twitchdownloader, is this legal? lmao
 COPY ./docker/fetch-tdl.sh /tmp/fetch-tdl.sh
-RUN sh /tmp/fetch-tdl.sh
+RUN bash /tmp/fetch-tdl.sh
 ENV TCD_TWITCHDOWNLOADER_PATH=/usr/local/bin/TwitchDownloaderCLI
+
+# download ttv-lol-plugin
+COPY ./docker/fetch-ttv-lol.sh /tmp/fetch-ttv-lol.sh
+RUN bash /tmp/fetch-ttv-lol.sh
 
 # application folder permissions
 # seems like docker does not support recursive chown in the copy command
