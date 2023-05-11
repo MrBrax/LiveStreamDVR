@@ -788,6 +788,16 @@ export class TwitchHelper {
             },
         });
 
+        // interceptor for authorization header
+        TwitchHelper.axios.interceptors.request.use((config) => {
+            if (!config.headers) {
+                console.debug("No headers in config");
+                return config; // ???
+            }
+            config.headers["Authorization"] = `Bearer ${TwitchHelper.accessToken}`;
+            return config;
+        });
+
         console.log(chalk.green(`✔ Axios setup with ${TwitchHelper.accessTokenType} token.`));
 
     }
@@ -797,7 +807,10 @@ export class TwitchHelper {
             Log.logAdvanced(Log.Level.ERROR, "config", "Axios not initialized, can't update token");
             return false;
         }
+
+        // set authorization header for both default and instance
         TwitchHelper.axios.defaults.headers.common["Authorization"] = `Bearer ${TwitchHelper.accessToken}`;
+
         Log.censoredWords.add(TwitchHelper.accessToken);
         console.log(chalk.green(`✔ Axios token updated with ${TwitchHelper.accessTokenType} token.`));
         return true;
