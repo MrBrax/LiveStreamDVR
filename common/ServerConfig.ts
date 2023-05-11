@@ -88,8 +88,8 @@ export const settingsFields: Record<string, SettingField<string> | SettingField<
     "capture.twitch-access-token-param": { group: "Capture", text: "Twitch access token param", type: "string", },
 
     "capture.twitch-ttv-lol-plugin": { group: "Capture", text: "Enable TTV LOL plugin", type: "boolean", default: false, new: true },
-    "capture.twitch-proxy-playlist": { group: "Capture", text: "Proxy playlist URL", help: "Separate by commas", type: "string", default: false, new: true },
-    "capture.twitch-proxy-playlist-exclude": { group: "Capture", text: "Proxy username exclude", help: "Separate by commas", type: "string", default: false, new: true },
+    "capture.twitch-proxy-playlist": { group: "Capture", text: "Proxy playlist URL", help: "Separate by commas", type: "string", new: true },
+    "capture.twitch-proxy-playlist-exclude": { group: "Capture", text: "Proxy username exclude", help: "Separate by commas", type: "string", new: true },
 
     // sub_lease: { group: "Advanced", text: "Subscription lease", type: "number", default: 604800 },
     api_client_id: { group: "Twitch", text: "Twitch client ID", type: "string", "required": true },
