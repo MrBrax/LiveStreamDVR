@@ -79,7 +79,7 @@ export class TwitchHelper {
     static readonly TWITCH_DATE_FORMAT_MS = "yyyy-MM-dd'T'HH:mm:ss'.'SSS'Z'";
 
 
-    public static readonly eventWebsocketUrl = "wss://eventsub-beta.wss.twitch.tv/ws";
+    public static readonly eventWebsocketUrl = "wss://eventsub.wss.twitch.tv/ws";
     /** @deprecated */
     public static eventWebsocket: WebSocket | undefined;
     public static eventWebsockets: EventWebsocket[] = [];
