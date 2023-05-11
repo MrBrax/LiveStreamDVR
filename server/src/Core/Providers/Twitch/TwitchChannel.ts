@@ -721,7 +721,7 @@ export class TwitchChannel extends BaseChannel {
     public async checkIfChannelSavesVods(): Promise<boolean> {
         if (!this.internalId) return false;
         Log.logAdvanced(Log.Level.DEBUG, "channel", `Checking if channel ${this.internalName} saves vods`);
-        const videos = await TwitchVOD.getVideos(this.internalId);
+        const videos = await TwitchVOD.getLatestVideos(this.internalId);
         const state = videos && videos.length > 0;
         KeyValue.getInstance().setBool(`${this.internalName}.saves_vods`, state);
         if (state) {
@@ -742,7 +742,7 @@ export class TwitchChannel extends BaseChannel {
             throw new Error("Cannot download latest vod without userid");
         }
 
-        const vods = await TwitchVOD.getVideos(this.internalId);
+        const vods = await TwitchVOD.getLatestVideos(this.internalId);
 
         if (!vods || vods.length === 0) {
             throw new Error("No vods found");
@@ -886,7 +886,7 @@ export class TwitchChannel extends BaseChannel {
      */
     public async getVideos() {
         if (!this.userid) return false;
-        return await TwitchVOD.getVideos(this.userid);
+        return await TwitchVOD.getLatestVideos(this.userid);
     }
 
 

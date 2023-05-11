@@ -537,7 +537,7 @@ export class TwitchVOD extends BaseVOD {
 
         Log.logAdvanced(Log.Level.INFO, "vod.matchProviderVod", `Trying to match ${this.basename} to provider...`);
 
-        const channel_videos = await TwitchVOD.getVideos(this.getChannel().internalId);
+        const channel_videos = await TwitchVOD.getLatestVideos(this.getChannel().internalId);
         if (!channel_videos) {
             Log.logAdvanced(Log.Level.ERROR, "vod.matchProviderVod", `No videos returned from streamer of ${this.basename}`);
             this.twitch_vod_neversaved = true;
@@ -1053,6 +1053,26 @@ export class TwitchVOD extends BaseVOD {
         }
 
         return false;
+
+    }
+
+    public static async checkValidVods(ids: string[]): Promise<Record<string, boolean>> {
+
+        const results: Record<string, boolean> = {};
+
+        const videos = await TwitchVOD.getVideos(ids);
+
+        if (!videos) throw new Error("No videos returned from Twitch");
+
+        for (const id of ids) {
+
+            const video = videos.find((v) => v.id == id);
+
+            results[id] = video ? true : false;
+
+        }
+
+        return results;
 
     }
 
@@ -2012,7 +2032,44 @@ export class TwitchVOD extends BaseVOD {
 
     }
 
-    static async getVideos(channel_id: string): Promise<false | Video[]> {
+    static async getVideos(ids: string[]): Promise<false | Video[]> {
+
+        if (!ids || ids.length == 0) throw new Error("No video ids");
+
+        if (!TwitchHelper.axios) {
+            throw new Error("Axios is not initialized");
+        }
+
+        let response;
+
+        try {
+            response = await TwitchHelper.getRequest<VideosResponse>(`/helix/videos/?id=${ids.join("&id=")}`);
+        } catch (err) {
+            Log.logAdvanced(Log.Level.ERROR, "vod.getVideos", `Tried to get videos ${ids.join(", ")} but got error ${(err as Error).message}`);
+            if (axios.isAxiosError(err)) {
+                if (err.response && err.response.status === 404) {
+                    return false;
+                }
+                throw new Error(`Tried to get videos ${ids.join(", ")} but got error: ${(err as Error).message}`);
+
+            }
+
+            return false;
+
+        }
+
+        const json = response.data;
+
+        if (json.data.length === 0) {
+            Log.logAdvanced(Log.Level.ERROR, "vod.getVideos", `Tried to get videos ${ids.join(", ")} but got no data`);
+            return false;
+        }
+
+        return json.data;
+
+    }
+
+    static async getLatestVideos(channel_id: string): Promise<false | Video[]> {
         if (!channel_id) throw new Error("No channel id");
 
         if (!TwitchHelper.axios) {
