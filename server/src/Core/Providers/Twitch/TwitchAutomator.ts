@@ -434,4 +434,21 @@ export class TwitchAutomator extends BaseAutomator {
 
     }
 
+    public captureTicker(source: "stdout" | "stderr", raw_data: Buffer): void {
+
+        super.captureTicker(source, raw_data); // call parent
+
+        const data = raw_data.toString();
+
+        if (data.includes("2bc4 fork")) {
+            Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", "Twitch streamlink-ttvlol plugin detected.");
+        }
+
+        const proxy_match = data.match(/Using playlist proxy: '(.*)'/);
+        if (proxy_match) {
+            Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", `Using playlist proxy: ${proxy_match[1]}`);
+        }
+        
+    }
+
 }
