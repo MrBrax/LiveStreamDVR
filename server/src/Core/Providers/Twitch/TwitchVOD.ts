@@ -1060,16 +1060,12 @@ export class TwitchVOD extends BaseVOD {
 
         const results: Record<string, boolean> = {};
 
-        const videos = await TwitchVOD.getVideos(ids);
+        const videos = await TwitchVOD.getVideosRecord(ids);
 
         if (!videos) throw new Error("No videos returned from Twitch");
 
         for (const id of ids) {
-
-            const video = videos.find((v) => v.id == id);
-
-            results[id] = video ? true : false;
-
+            results[id] = videos[id] !== false;
         }
 
         return results;
@@ -2032,6 +2028,11 @@ export class TwitchVOD extends BaseVOD {
 
     }
 
+    /**
+     * Get information about multiple videos in a single request, returns an array of videos
+     * @param ids 
+     * @returns
+     */
     static async getVideos(ids: string[]): Promise<false | Video[]> {
 
         if (!ids || ids.length == 0) throw new Error("No video ids");
@@ -2039,6 +2040,8 @@ export class TwitchVOD extends BaseVOD {
         if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
         }
+
+        Log.logAdvanced(Log.Level.DEBUG, "vod.getVideos", `Getting videos ${ids.join(", ")}`);
 
         let response;
 
@@ -2066,6 +2069,27 @@ export class TwitchVOD extends BaseVOD {
         }
 
         return json.data;
+
+    }
+
+    /**
+     * Get information about multiple videos in a single request, returns a record with the video id as key and the video as value
+     * @param ids 
+     * @returns 
+     */
+    static async getVideosRecord(ids: string[]): Promise<Record<string, Video | false> | false> {
+
+        const videos = await TwitchVOD.getVideos(ids);
+
+        if (!videos) return false;
+
+        const ret: Record<string, Video | false> = {};
+
+        for (const video of videos) {
+            ret[video.id] = video;
+        }
+
+        return ret;
 
     }
 
