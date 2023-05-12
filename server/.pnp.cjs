@@ -3424,7 +3424,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/cron-npm-2.1.0-80a1fa89dd-9395875c09.zip/node_modules/cron/",\
           "packageDependencies": [\
             ["cron", "npm:2.1.0"],\
-            ["luxon", "npm:1.28.0"]\
+            ["luxon", "npm:1.28.1"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -6727,10 +6727,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["luxon", [\
-        ["npm:1.28.0", {\
-          "packageLocation": "./.yarn/cache/luxon-npm-1.28.0-51c0607a71-5250cb9f13.zip/node_modules/luxon/",\
+        ["npm:1.28.1", {\
+          "packageLocation": "./.yarn/cache/luxon-npm-1.28.1-0f675125b8-2c62999ade.zip/node_modules/luxon/",\
           "packageDependencies": [\
-            ["luxon", "npm:1.28.0"]\
+            ["luxon", "npm:1.28.1"]\
           ],\
           "linkType": "HARD"\
         }]\
