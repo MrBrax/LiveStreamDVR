@@ -2002,7 +2002,7 @@ export class TwitchVOD extends BaseVOD {
     static async getVideo(video_id: string): Promise<false | Video> {
         if (!video_id) throw new Error("No video id");
 
-        if (!TwitchHelper.axios) {
+        if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
         }
 
@@ -2036,7 +2036,7 @@ export class TwitchVOD extends BaseVOD {
 
         if (!ids || ids.length == 0) throw new Error("No video ids");
 
-        if (!TwitchHelper.axios) {
+        if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
         }
 
@@ -2072,7 +2072,7 @@ export class TwitchVOD extends BaseVOD {
     static async getLatestVideos(channel_id: string): Promise<false | Video[]> {
         if (!channel_id) throw new Error("No channel id");
 
-        if (!TwitchHelper.axios) {
+        if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
         }
 
@@ -2098,7 +2098,7 @@ export class TwitchVOD extends BaseVOD {
     static async getVideosProxy(channel_id: string): Promise<false | ProxyVideo[]> {
         if (!channel_id) throw new Error("No channel id");
 
-        if (!TwitchHelper.axios) {
+        if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
         }
 
@@ -2137,7 +2137,7 @@ export class TwitchVOD extends BaseVOD {
     static async getVideoProxy(video_id: string): Promise<false | ProxyVideo> {
         if (!video_id) throw new Error("No video id");
 
-        if (!TwitchHelper.axios) {
+        if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
         }
 
@@ -2184,7 +2184,7 @@ export class TwitchVOD extends BaseVOD {
 
         if (!broadcaster_id && !game_id && !id) throw new Error("No broadcaster id, game id or id provided");
 
-        if (!TwitchHelper.axios) {
+        if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
         }
 

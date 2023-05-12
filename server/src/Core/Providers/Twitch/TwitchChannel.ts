@@ -1159,7 +1159,7 @@ export class TwitchChannel extends BaseChannel {
 
         LiveStreamDVR.getInstance().addChannel(channel);
 
-        if (TwitchHelper.axios) { // bad hack?
+        if (TwitchHelper.hasAxios()) { // bad hack?
             const streams = await TwitchChannel.getStreams(channel.internalId);
             if (streams && streams.length > 0) {
                 KeyValue.getInstance().setBool(`${channel.internalName}.online`, true);
@@ -1311,7 +1311,7 @@ export class TwitchChannel extends BaseChannel {
     public static async getStreams(streamer_id: string): Promise<Stream[] | false> {
         let response;
 
-        if (!TwitchHelper.axios) {
+        if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
         }
 
@@ -1433,7 +1433,7 @@ export class TwitchChannel extends BaseChannel {
         }
         */
 
-        if (!TwitchHelper.axios) {
+        if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
         }
 
@@ -1618,7 +1618,7 @@ export class TwitchChannel extends BaseChannel {
         }
         */
 
-        if (!TwitchHelper.axios) {
+        if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
         }
 
@@ -1743,7 +1743,7 @@ export class TwitchChannel extends BaseChannel {
                 },
             };
 
-            if (!TwitchHelper.axios) {
+            if (!TwitchHelper.hasAxios()) {
                 throw new Error("Axios is not initialized");
             }
 
@@ -1931,7 +1931,7 @@ export class TwitchChannel extends BaseChannel {
                 },
             };
 
-            if (!TwitchHelper.axios) {
+            if (!TwitchHelper.hasAxios()) {
                 throw new Error("Axios is not initialized");
             }
 

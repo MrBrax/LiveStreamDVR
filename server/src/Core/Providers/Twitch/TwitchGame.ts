@@ -98,7 +98,7 @@ export class TwitchGame {
 
         Log.logAdvanced(Log.Level.DEBUG, "game", `Game id ${game_id} not in cache, fetching...`);
 
-        if (!TwitchHelper.axios) {
+        if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
         }
 

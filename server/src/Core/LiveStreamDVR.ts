@@ -542,7 +542,7 @@ export class LiveStreamDVR {
 
     public static getErrors(): string[] {
         const errors = [];
-        if (!TwitchHelper.axios) errors.push("Axios is not initialized. Make sure the client id and secret are set in the config.");
+        if (!TwitchHelper.hasAxios()) errors.push("Axios is not initialized. Make sure the client id and secret are set in the config.");
         if (!Config.getInstance().cfg("app_url") && Config.getInstance().cfg("app_url") !== "debug") errors.push("No app url set in the config."); // FIXME: contradicting
         if (!Config.getInstance().cfg("api_client_id")) errors.push("No client id set in the config.");
         if (!Config.getInstance().cfg("api_secret")) errors.push("No client secret set in the config.");

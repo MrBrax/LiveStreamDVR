@@ -34,7 +34,7 @@ export interface RemuxReturn {
 }
 
 export class TwitchHelper {
-    static axios: Axios | undefined;
+    private static axios: Axios | undefined;
 
     static accessToken = "";
     static accessTokenType?: "user" | "app";
@@ -113,6 +113,14 @@ export class TwitchHelper {
         } else {
             return await this.getAccessTokenUser(force);
         }
+    }
+
+    static getAxios(): Axios | undefined {
+        return this.axios;
+    }
+
+    static hasAxios(): boolean {
+        return this.getAxios() !== undefined;
     }
 
     static async getAccessTokenApp(force = false): Promise<string> {
@@ -818,13 +826,13 @@ export class TwitchHelper {
 
     public static async getRequest<T>(url: string, config: AxiosRequestConfig = {}, retried = false): Promise<AxiosResponse<T>> {
 
-        if (!TwitchHelper.axios) {
+        if (!TwitchHelper.axios) { // TODO: use hasAxios() and getAxios() instead, but that won't type guard against undefined
             throw new Error("Axios is not initialized");
         }
 
         Log.logAdvanced(Log.Level.DEBUG, "tw.helper.getRequest", `Requesting GET ${url} with config ${JSON.stringify(config)}, retried: ${retried}`);
 
-        let response;
+        let response: AxiosResponse<T>;
         try {
             response = await TwitchHelper.axios.get<T>(url, config);
         } catch (error) {
