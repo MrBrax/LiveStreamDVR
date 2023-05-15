@@ -1869,6 +1869,13 @@ export class TwitchChannel extends BaseChannel {
                 KeyValue.getInstance().delete(`${channel_id}.substatus.${sub.type}`);
             } else {
                 Log.logAdvanced(Log.Level.ERROR, "tw.ch.unsubWebhook", `Failed to unsubscribe from ${channel_id}:${sub.type} (${streamer_login})`);
+
+                if (KeyValue.getInstance().has(`${channel_id}.sub.${sub.type}`)) {
+                    KeyValue.getInstance().delete(`${channel_id}.sub.${sub.type}`);
+                    KeyValue.getInstance().delete(`${channel_id}.substatus.${sub.type}`);
+                    Log.logAdvanced(Log.Level.WARNING, "tw.ch.unsubWebhook", `Removed subscription from cache for ${channel_id}:${sub.type} (${streamer_login})`);
+                }
+
             }
 
         }
