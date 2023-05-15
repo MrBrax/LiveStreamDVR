@@ -66,6 +66,7 @@
     "html-entities": "^2.3.3",
     "i18next": "^22.0.4",
     "i18next-http-middleware": "^3.2.1",
+    "minimatch": "^9.0.0",
     "minimist": "^1.2.7",
     "morgan": "^1.10.0",
     "sanitize-filename": "^1.6.3",

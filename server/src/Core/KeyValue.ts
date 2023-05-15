@@ -1,10 +1,12 @@
 import chalk from "chalk";
+import { isDate } from "date-fns";
+import { minimatch } from "minimatch";
+import EventEmitter from "node:events";
 import fs from "node:fs";
 import path from "node:path";
 import { BaseConfigCacheFolder, BaseConfigPath } from "./BaseConfig";
-import EventEmitter from "node:events";
 import { Config } from "./Config";
-import { isDate } from "date-fns";
+import { Log } from "./Log";
 
 export class KeyValue extends EventEmitter {
 
@@ -160,17 +162,41 @@ export class KeyValue extends EventEmitter {
     }
 
     cleanWildcard(keyWildcard: string, limitSeconds: number) {
+
+        let deleted = 0;
+
         const keys = Object.keys(this.data);
+
         for (const key of keys) {
+
+            // match the key with wildcard, which uses * as a wildcard
+            if (minimatch(key, keyWildcard)) {
+                const date = this.getDate(key);
+                if (date !== false) {
+                    if (date.getTime() < Date.now() - (limitSeconds * 1000)) {
+                        this.delete(key);
+                        deleted++;
+                    }
+                }
+            }
+
+            /*
             if (key.startsWith(keyWildcard) && key.endsWith(".time")) {
                 const date = this.getDate(key);
                 if (date !== false) {
                     if (date.getTime() < Date.now() - (limitSeconds * 1000)) {
                         this.delete(key);
+                        deleted++;
                     }
                 }
             }
+            */
         }
+
+        if (deleted == 0) {
+            Log.logAdvanced(Log.Level.WARNING, "keyvalue", `No keys deleted for wildcard ${keyWildcard}`);
+        }
+
     }
 
     /**

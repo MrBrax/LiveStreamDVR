@@ -67,7 +67,8 @@ export class TwitchAutomator extends BaseAutomator {
         try {
             KeyValue.getInstance().setBool(`tw.eventsub.${messageId}.ack`, true);
             KeyValue.getInstance().setDate(`tw.eventsub.${messageId}.time`, new Date());
-            KeyValue.getInstance().cleanWildcard("tw.eventsub.", 60 * 60 * 24);
+            KeyValue.getInstance().cleanWildcard("tw.eventsub.*.ack", 60 * 60 * 24);
+            KeyValue.getInstance().cleanWildcard("tw.eventsub.*.time", 60 * 60 * 24);
         } catch (error) {
             Log.logAdvanced(Log.Level.WARNING, "automator.handle", `Failed to set eventsub message ${messageId} KeyValues: ${(error as Error).message}`);
         }
