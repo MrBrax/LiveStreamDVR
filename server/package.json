@@ -1,6 +1,6 @@
 {
   "name": "livestreamdvr-server",
-  "version": "1.4.10",
+  "version": "1.4.11",
   "description": "",
   "main": "index.ts",
   "scripts": {
@@ -67,6 +67,7 @@
     "i18next": "^22.0.4",
     "i18next-http-middleware": "^3.2.1",
     "minimist": "^1.2.8",
+    "minimatch": "^9.0.0",
     "morgan": "^1.10.0",
     "sanitize-filename": "^1.6.3",
     "true-case-path": "^2.2.1",
