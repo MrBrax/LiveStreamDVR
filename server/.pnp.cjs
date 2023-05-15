@@ -6934,9 +6934,10 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["html-entities", "npm:2.3.3"],\
             ["i18next", "npm:22.0.4"],\
             ["i18next-http-middleware", "npm:3.2.1"],\
-            ["jest", "virtual:d78a2ce42d5279889122669697987a3f9ba038f8d2a01bb5bb7cc449b44eb1ac843364d15adc7813894c4f6884ebaf23a3b942d248859563cf369b98d76414a7#npm:29.3.1"],\
-            ["jest-environment-node", "npm:29.3.1"],\
-            ["minimist", "npm:1.2.7"],\
+            ["jest", "virtual:d78a2ce42d5279889122669697987a3f9ba038f8d2a01bb5bb7cc449b44eb1ac843364d15adc7813894c4f6884ebaf23a3b942d248859563cf369b98d76414a7#npm:29.5.0"],\
+            ["jest-environment-node", "npm:29.5.0"],\
+            ["minimatch", "npm:9.0.0"],\
+            ["minimist", "npm:1.2.8"],\
             ["morgan", "npm:1.10.0"],\
             ["nodemon", "npm:2.0.20"],\
             ["sanitize-filename", "npm:1.6.3"],\
