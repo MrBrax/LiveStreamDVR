@@ -146,6 +146,8 @@ export class TwitchChat extends EventEmitter {
     public static chalk = new chalk.Instance({ level: 3 });
     public hideAbuseUsers = true;
 
+    public comedyScore = 0;
+
     get bannedUserCount() {
         return Object.values(this.users).filter(u => u.ban_date && u.ban_date.getTime() + ((u.ban_duration || 0) * 1000) > Date.now()).length;
     }
@@ -278,6 +280,21 @@ export class TwitchChat extends EventEmitter {
                 this.emit("chat", messageClass);
             } else {
                 this.emit("command", messageClass);
+            }
+
+            // match +2 and -2 messages to comedy score
+            if (messageClass.getCommandName() === "PRIVMSG") {
+                const comedyMatch = messageClass.parameters?.match(/(\+|-)(\d+)/);
+                if (comedyMatch) {
+                    const comedyScore = parseInt(comedyMatch[2]);
+                    if (comedyMatch[1] === "+") {
+                        this.comedyScore += comedyScore;
+                    } else {
+                        this.comedyScore -= comedyScore;
+                    }
+                    // console.log(TwitchChat.chalk.green(`Comedy score: ${this.comedyScore}`));
+                    this.emit("comedy", this.comedyScore, comedyScore, messageClass);
+                }
             }
 
             this.emit("message", messageClass);
@@ -1139,4 +1156,6 @@ export declare interface TwitchChat {
     on(event: "connected", listener: () => void): this;
 
     on(event: "pong", listener: () => void): this;
+    
+    on(event: "comedy", listener: (totalScore: number, deltaScore: number, message: TwitchMessage) => void): this;
 }
