@@ -146,6 +146,8 @@ export class LiveStreamDVR {
 
         LiveStreamDVR.checkBinaryVersions();
 
+        LiveStreamDVR.checkPythonVirtualEnv();
+
         // monitor for program exit
         // let saidGoobye = false;
         // const goodbye = () => {
@@ -704,4 +706,24 @@ export class LiveStreamDVR {
         }
 
     }
+
+    public static async checkPythonVirtualEnv() {
+
+        const path = await Helper.path_venv();
+
+        if (!path && Helper.path_pipenv()) {
+            console.log(chalk.red("Python virtual environment is enabled but not found."));
+            console.log(chalk.red("Please run 'pipenv install' in the root folder."));
+            process.exit(1);
+        }
+
+        if (path !== Config.getInstance().cfg("python.virtualenv_path")) {
+            Config.getInstance().setConfig("python.virtualenv_path", path);
+            Config.getInstance().saveConfig();
+        }
+
+        Log.logAdvanced(Log.Level.INFO, "dvr", `Python virtual environment path: ${path}`);
+
+    }
+
 }

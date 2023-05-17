@@ -11,6 +11,8 @@ export const settingsFields: Record<string, SettingField<string> | SettingField<
     "bin_path.python": { group: "Binaries", text: "Python path", type: "string", "required": false },
     "bin_path.python3": { group: "Binaries", text: "Python3 path", type: "string", "required": false },
 
+    "python.virtualenv_path": { group: "Python", text: "Virtualenv path", type: "string", "required": false },
+
     server_port: { group: "Basic", text: "Server port", type: "number", default: 8080 },
     basepath: { group: "Basic", text: "Base path", type: "string", help: "No trailing slash. For reverse proxy etc", "stripslash": true },
     instance_id: { group: "Basic", text: "Instance ID", type: "string", help: "Unique ID for this instance. Used for hook callbacks." },

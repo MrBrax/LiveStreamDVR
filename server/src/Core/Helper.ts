@@ -49,6 +49,11 @@ export class Helper {
     }
 
     public static path_python(): string | false {
+
+        if (Config.getInstance().hasValue("python.virtualenv_path")) {
+            return path.join(Config.getInstance().cfg<string>("python.virtualenv_path"), "Scripts", `python${this.is_windows() ? ".exe" : ""}`);
+        }
+
         if (Config.getInstance().hasValue("bin_path.python")) return Config.getInstance().cfg<string>("bin_path.python");
         return false;
     }
@@ -58,6 +63,48 @@ export class Helper {
         return false;
     }
 
+    /**
+     * Get the path to the pipenv virtualenv, if it exists. Executes `pipenv --venv` to get the path.
+     * @returns 
+     */
+    public static async path_venv(): Promise<string | false> {
+
+        const bin = this.path_pipenv();
+
+        if (!bin) return false;
+
+        const out = await Helper.execSimple(bin, ["--venv"], "pipenv --venv");
+
+        if (out.code !== 0) {
+            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get pipenv path: ${out.stderr.join("\n")}`);
+            return false;
+        }
+
+        const path = out.stdout.join("\n").trim();
+
+        return path;
+
+    }
+
+
+    public static async path_python_venv(): Promise<string | false> {
+        if (Config.getInstance().hasValue("python.virtualenv_path")) return Config.getInstance().cfg<string>("python.virtualenv_path");
+
+        const pipenv_path = await this.path_venv();
+
+        if (!pipenv_path) return false;
+
+        const python_venv = path.join(pipenv_path, "Scripts", "python.exe");
+
+        if (!fs.existsSync(python_venv)) {
+            Log.logAdvanced(Log.Level.ERROR, "helper", `Python venv not found at: ${python_venv}`);
+            return false;
+        }
+
+        return python_venv;
+
+    }
+
     // very bad
     public static path_ffprobe(): string | false {
         const f = this.path_ffmpeg();
@@ -65,9 +112,19 @@ export class Helper {
         return f.replace("ffmpeg.exe", "ffprobe.exe");
     }
 
+    public static bin_dir(): string {
+
+        if (Config.getInstance().hasValue("python.virtualenv_path")) {
+            return path.join(Config.getInstance().cfg<string>("python.virtualenv_path"), "Scripts");
+        }
+
+        if (Config.getInstance().hasValue("bin_dir")) return Config.getInstance().cfg<string>("bin_dir");
+        return "";
+    }
+
     public static path_streamlink(): string | false {
-        if (!Config.getInstance().hasValue("bin_dir")) return false;
-        const full_path = path.join(Config.getInstance().cfg("bin_dir"), `streamlink${this.is_windows() ? ".exe" : ""}`);
+        if (!this.bin_dir()) return false;
+        const full_path = path.join(this.bin_dir(), `streamlink${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
         if (!exists) {
@@ -79,8 +136,8 @@ export class Helper {
     }
 
     public static path_youtubedl(): string | false {
-        if (!Config.getInstance().hasValue("bin_dir")) return false;
-        const full_path = path.join(Config.getInstance().cfg("bin_dir"), `yt-dlp${this.is_windows() ? ".exe" : ""}`);
+        if (!this.bin_dir()) return false;
+        const full_path = path.join(this.bin_dir(), `yt-dlp${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
         if (!exists) {
@@ -92,8 +149,8 @@ export class Helper {
     }
 
     public static path_tcd(): string | false {
-        if (!Config.getInstance().hasValue("bin_dir")) return false;
-        const full_path = path.join(Config.getInstance().cfg("bin_dir"), `tcd${this.is_windows() ? ".exe" : ""}`);
+        if (!this.bin_dir()) return false;
+        const full_path = path.join(this.bin_dir(), `tcd${this.is_windows() ? ".exe" : ""}`);
         const exists = fs.existsSync(full_path);
 
         if (!exists) {
