@@ -152,9 +152,24 @@ export const settingsFields: Record<string, SettingField<string> | SettingField<
     discord_webhook: { group: "Notifications (Discord)", text: "Discord webhook", type: "string" },
 
     // pushover
-    "notifications.pushover.enabled": { group: "Notifications (Pushover)", text: "Enable Pushover notifications", type: "boolean", default: false },
-    "notifications.pushover.token": { group: "Notifications (Pushover)", text: "Pushover token", type: "string" },
-    "notifications.pushover.user": { group: "Notifications (Pushover)", text: "Pushover user", type: "string" },
+    "notifications.pushover.enabled": {
+        group: "Notifications (Pushover)",
+        text: "Enable Pushover notifications",
+        type: "boolean",
+        default: false
+    },
+    "notifications.pushover.token": {
+        group: "Notifications (Pushover)",
+        text: "Pushover token",
+        type: "string",
+        help: "API token",
+    },
+    "notifications.pushover.user": {
+        group: "Notifications (Pushover)",
+        text: "Pushover user",
+        type: "string",
+        help: "User recipient key",
+    },
 
     schedule_muted_vods: { group: "Schedules", text: "Check muted vods", type: "boolean", default: true },
     schedule_deleted_vods: { group: "Schedules", text: "Check deleted vods", type: "boolean", default: true },
