@@ -44,7 +44,7 @@ export class Webhook {
         // send webhook
         if (Config.getInstance().hasValue("webhook_url")) {
             Log.logAdvanced(Log.Level.DEBUG, "webhook", `Dispatching webhook for ${action}...`);
-            const url = Config.getInstance().cfg("webhook_url");
+            const url = Config.getInstance().cfg<string>("webhook_url");
             axios.post(url, payload).then(response => {
                 Log.logAdvanced(Log.Level.DEBUG, "webhook", `Webhook response from '${url}': ${response.status} ${response.statusText}`);
             }).catch(error => {
