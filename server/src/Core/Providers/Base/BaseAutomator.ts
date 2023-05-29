@@ -261,6 +261,16 @@ export class BaseAutomator {
             title = `${channel.displayName} changed title, still playing/streaming ${current_chapter.game_name}!`;
         }
 
+        if (!title) {
+            Log.logAdvanced(Log.Level.WARNING, "automator.notifyChapterChange", `No title generated for ${channel.displayName} chapter change.`, {
+                previous_chapter,
+                current_chapter,
+                body,
+                icon,
+                category,
+            });
+        }
+
         ClientBroker.notify(title, body, icon, category, this.channel?.livestreamUrl);
 
     }

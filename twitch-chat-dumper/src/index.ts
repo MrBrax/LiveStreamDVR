@@ -116,6 +116,9 @@ function main(argv: Record<string, string>): void {
                 }
                 console.log(`${TwitchChat.chalk.red(message.getTime())} <${dumper.channel_login}:${dumper.userCount}>${message.getUser()?.displayBadges()}${message.getFormattedUser()}${message.isAbuse ? '⚠️' : ''}: ${message.getFormattedText()}`);
             });
+            dumper.on("comedy", (total, delta, message) => {
+                console.log(`${TwitchChat.chalk.red(message.getTime())} <${dumper.channel_login}:${dumper.userCount}> ${TwitchChat.chalk.yellow(`Comedy: ${total} (+${delta})`)}`);
+            });
         }
 
         if (show_bans) {

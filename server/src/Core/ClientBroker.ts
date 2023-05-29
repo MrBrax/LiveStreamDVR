@@ -230,6 +230,14 @@ export class ClientBroker {
 
         console.log(chalk.bgBlue.whiteBright(`Notifying clients: ${title}: ${body}, category ${category}`));
 
+        if (!title) {
+            Log.logAdvanced(Log.Level.WARNING, "notify", "No title specified", { title: title, body: body, icon: icon, category: category, url: url, tts: tts });
+        }
+
+        if (!body) {
+            Log.logAdvanced(Log.Level.WARNING, "notify", "No body specified", { title: title, body: body, icon: icon, category: category, url: url, tts: tts });
+        }
+
         if (ClientBroker.getNotificationSettingForProvider(category, NotificationProvider.WEBSOCKET)) {
             this.broadcast({
                 action: "notify",

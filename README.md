@@ -86,7 +86,7 @@ If you want the public webapp to have a custom base folder, you must provide `BA
 ### Main requirements
 - [node.js](https://nodejs.org/) 18+
 - npm and yarn 3+
-- Python 3.8+
+- Python 3.11+
 - [pip](https://pypi.org/project/pip/)
 - [FFmpeg](https://ffmpeg.org/download.html)
 - [MediaInfo](https://mediaarea.net/en/MediaInfo)
