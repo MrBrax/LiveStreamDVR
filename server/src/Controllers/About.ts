@@ -4,6 +4,7 @@ import express from "express";
 import { Helper } from "../Core/Helper";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { DVRBinaries, DVRPipPackages, getBinaryVersion, PipRequirements } from "../Helpers/Software";
+import process from "node:process";
 
 export async function About(req: express.Request, res: express.Response): Promise<void> {
 
@@ -50,6 +51,7 @@ export async function About(req: express.Request, res: express.Response): Promis
             bins: bins,
             pip: PipRequirements,
             is_docker: Helper.is_docker(),
+            memory: process.memoryUsage(),
             // keyvalue: KeyValue.getInstance().data,
         },
         status: "OK",

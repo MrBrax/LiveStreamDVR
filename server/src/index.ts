@@ -242,28 +242,33 @@ LiveStreamDVR.init().then(() => {
             LiveStreamDVR.shutdown("uncaught exception");
             // throw err;
         });
-        /*
-        process.on("unhandledRejection", function(err: Error, promise) {
+
+    }
+
+    if (Config.getInstance().cfg<boolean>("debug.catch_global_rejections")) {
+        process.on("unhandledRejection", function(reason: Error, promise) {
             console.error("Fatal error; Uncaught rejection");
-            console.error(err);
+            console.error("Error: ");
+            console.error(reason);
+            console.error("\nPromise: ");
             console.error(promise);
+            console.error("\nStack: ");
+            console.error(reason.stack);
             ClientBroker.broadcast({
                 action: "alert",
                 data: "Uncaught rejection, server will exit.",
             });
             ClientBroker.notify(
                 "Uncaught rejection, server will exit.",
-                err + "\n" + promise,
+                reason + "\n" + promise,
                 undefined,
                 "system"
             );
-            const errorText = `[${AppName} ${version} ${Config.getInstance().gitHash}]\nUNCAUGHT REJECTION\n${err.name}: ${err.message}\n${err.stack}\n\n${promise}`;
+            const errorText = `[${AppName} ${version} ${Config.getInstance().gitHash}]\nUNCAUGHT REJECTION\n${reason.name}: ${reason.message}\n${reason.stack}\n\n${promise}`;
             fs.writeFileSync(path.join(BaseConfigDataFolder.logs, "crash.log"), errorText);
-            shutdown();
+            LiveStreamDVR.shutdown("uncaught rejection");
             // throw err;
         });
-        */
-
         // Promise.reject("test");
     }
 

@@ -105,6 +105,23 @@
                     </ul>
                 </div>
 
+                <!-- memory -->
+                <div class="block">
+                    <h3>{{ t('about.memory') }}</h3>
+                    <ul v-if="'memory' in aboutData">
+                        <li><strong>Array buffers:</strong> {{ formatBytes(aboutData.memory.arrayBuffers) }}</li>
+                        <li><strong>External:</strong> {{ formatBytes(aboutData.memory.external) }}</li>
+                        <li><strong>Heap total:</strong> {{ formatBytes(aboutData.memory.heapTotal) }}</li>
+                        <li><strong>Heap used:</strong> {{ formatBytes(aboutData.memory.heapUsed) }}</li>
+                    </ul>
+                    <span
+                        v-else
+                        class="text-is-error"
+                    >
+                        {{ t('messages.data-error') }}
+                    </span>
+                </div>
+
                 <div class="block">
                     <h3>{{ t('about.subscriptions') }}</h3>
                     <p class="buttons">
@@ -244,6 +261,7 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faRss, faBan, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from "vue-i18n";
 import axios from "axios";
+import { formatBytes } from "@/mixins/newhelpers";
 library.add(faRss, faBan, faSpinner);
 
 

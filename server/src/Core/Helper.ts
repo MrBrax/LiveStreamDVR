@@ -73,7 +73,14 @@ export class Helper {
 
         if (!bin) return false;
 
-        const out = await Helper.execSimple(bin, ["--venv"], "pipenv --venv");
+        let out;
+
+        try {
+            out = await Helper.execSimple(bin, ["--venv"], "pipenv --venv");
+        } catch (error) {
+            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get pipenv path: ${error}`);
+            return false;
+        }
 
         if (out.code !== 0) {
             Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get pipenv path: ${out.stderr.join("\n")}`);
@@ -199,7 +206,7 @@ export class Helper {
 
             process.on("error", (err) => {
                 Log.logAdvanced(Log.Level.ERROR, "helper.execSimple", `Process ${pid} for '${what}' error: ${err}`);
-                reject({ code: -1, stdout, stderr });
+                reject({ code: -1, stdout, stderr, bin, args, what });
             });
 
             const pid = process.pid;
@@ -253,7 +260,7 @@ export class Helper {
 
             process.on("error", (err) => {
                 Log.logAdvanced(Log.Level.ERROR, "helper.execAdvanced", `Process ${process.pid} error: ${err}`);
-                reject({ code: -1, stdout, stderr });
+                reject({ code: -1, stdout, stderr, bin, args, jobName });
             });
 
             Log.logAdvanced(Log.Level.EXEC, "helper.execAdvanced", `Executing job '${jobName}': $ ${bin} ${args.join(" ")}`);

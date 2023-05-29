@@ -17,7 +17,8 @@
     "login": "You need to be logged in to view this resource.",
     "local-videos": "Local videos",
     "none": "None",
-    "loading-takes-longer-than-expected": "Loading takes longer than expected..."
+    "loading-takes-longer-than-expected": "Loading takes longer than expected...",
+    "data-error": "Data error"
   },
   "vod": {
     "add_comment": "Add a comment",
@@ -333,7 +334,8 @@
     "installed-utilities": "Installed utilities",
     "software": "Software",
     "subscriptions": "Subscriptions",
-    "links": "Links"
+    "links": "Links",
+    "memory": "Memory"
   },
   "metadata": {
     "file-duration": "File duration",
