@@ -256,6 +256,11 @@ export class BaseAutomator {
                 }
 
             }
+        } else if (previous_chapter?.game_id && !current_chapter.game_id) {
+            title = `${channel.displayName} is now streaming without a game!`;
+
+        } else if (!previous_chapter?.game_id && !current_chapter.game_id) {
+            title = `${channel.displayName} is still streaming without a game!`;
 
         } else if (previous_chapter?.title !== current_chapter.title) {
             title = `${channel.displayName} changed title, still playing/streaming ${current_chapter.game_name}!`;
