@@ -28,6 +28,10 @@ export class Helper {
         return process.env.TCD_DOCKER !== undefined;
     }
 
+    public static executable_name(basename: string): string {
+        return basename + (this.is_windows() ? ".exe" : "");
+    }
+
     public static path_node(): string | false {
         if (Config.getInstance().hasValue("node_path")) return Config.getInstance().cfg<string>("node_path");
 
@@ -51,7 +55,7 @@ export class Helper {
     public static path_python(): string | false {
 
         if (Config.getInstance().hasValue("python.virtualenv_path")) {
-            return path.join(Config.getInstance().cfg<string>("python.virtualenv_path"), "Scripts", `python${this.is_windows() ? ".exe" : ""}`);
+            return path.join(Config.getInstance().cfg<string>("python.virtualenv_path"), this.python_scripts_dir_name(), this.executable_name("python"));
         }
 
         if (Config.getInstance().hasValue("bin_path.python")) return Config.getInstance().cfg<string>("bin_path.python");
@@ -101,7 +105,7 @@ export class Helper {
 
         if (!pipenv_path) return false;
 
-        const python_venv = path.join(pipenv_path, "Scripts", "python.exe");
+        const python_venv = path.join(pipenv_path, this.python_scripts_dir_name(), this.executable_name("python"));
 
         if (!fs.existsSync(python_venv)) {
             Log.logAdvanced(Log.Level.ERROR, "helper", `Python venv not found at: ${python_venv}`);
@@ -119,10 +123,14 @@ export class Helper {
         return f.replace("ffmpeg.exe", "ffprobe.exe");
     }
 
+    public static python_scripts_dir_name(): string {
+        return this.is_windows() ? "Scripts" : "bin";
+    }
+
     public static bin_dir(): string {
 
         if (Config.getInstance().hasValue("python.virtualenv_path")) {
-            return path.join(Config.getInstance().cfg<string>("python.virtualenv_path"), "Scripts");
+            return path.join(Config.getInstance().cfg<string>("python.virtualenv_path"), this.python_scripts_dir_name());
         }
 
         if (Config.getInstance().hasValue("bin_dir")) return Config.getInstance().cfg<string>("bin_dir");
@@ -131,7 +139,7 @@ export class Helper {
 
     public static path_streamlink(): string | false {
         if (!this.bin_dir()) return false;
-        const full_path = path.join(this.bin_dir(), `streamlink${this.is_windows() ? ".exe" : ""}`);
+        const full_path = path.join(this.bin_dir(), this.executable_name("streamlink"));
         const exists = fs.existsSync(full_path);
 
         if (!exists) {
@@ -144,7 +152,7 @@ export class Helper {
 
     public static path_youtubedl(): string | false {
         if (!this.bin_dir()) return false;
-        const full_path = path.join(this.bin_dir(), `yt-dlp${this.is_windows() ? ".exe" : ""}`);
+        const full_path = path.join(this.bin_dir(), this.executable_name("yt-dlp"));
         const exists = fs.existsSync(full_path);
 
         if (!exists) {
@@ -157,7 +165,7 @@ export class Helper {
 
     public static path_tcd(): string | false {
         if (!this.bin_dir()) return false;
-        const full_path = path.join(this.bin_dir(), `tcd${this.is_windows() ? ".exe" : ""}`);
+        const full_path = path.join(this.bin_dir(), this.executable_name("tcd"));
         const exists = fs.existsSync(full_path);
 
         if (!exists) {
@@ -170,7 +178,7 @@ export class Helper {
 
     public static path_pipenv(): string | false {
         if (!Config.getInstance().hasValue("bin_dir")) return false;
-        const full_path = path.join(Config.getInstance().cfg("bin_dir"), `pipenv${this.is_windows() ? ".exe" : ""}`);
+        const full_path = path.join(Config.getInstance().cfg("bin_dir"), this.executable_name("pipenv"));
         const exists = fs.existsSync(full_path);
 
         if (!exists) {
