@@ -82,7 +82,7 @@ export class Helper {
         try {
             out = await Helper.execSimple(bin, ["--venv"], "pipenv --venv");
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get pipenv path: ${error}`);
+            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get pipenv path: ${(error as Error).message}`, error);
             return false;
         }
 
@@ -238,9 +238,9 @@ export class Helper {
                 Log.logAdvanced(Log.Level.INFO, "helper.execSimple", `Process ${pid} for '${what}' exited with code ${code}`);
 
                 if (code == 0) {
-                    resolve({ code, stdout, stderr });
+                    resolve({ code, stdout, stderr, bin, args, what });
                 } else {
-                    reject({ code, stdout, stderr });
+                    reject({ code, stdout, stderr, bin, args, what });
                 }
             });
 

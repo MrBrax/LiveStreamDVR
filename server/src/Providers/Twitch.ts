@@ -24,6 +24,9 @@ export interface ExecReturn {
     stdout: string[];
     stderr: string[];
     code: number;
+    bin?: string;
+    args?: string[];
+    what?: string;
 }
 
 export interface RemuxReturn {

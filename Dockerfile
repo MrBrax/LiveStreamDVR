@@ -1,4 +1,20 @@
-FROM node:18-bullseye-slim
+FROM python:3.11-slim-bullseye
+
+# make app folder
+RUN mkdir -p /usr/local/share/twitchautomator \
+    && chown -R node:node /usr/local/share/twitchautomator \
+    && chmod -R 775 /usr/local/share/twitchautomator
+# COPY --chown=node:node --chmod=775 . /usr/local/share/twitchautomator/
+# RUN git clone https://github.com/MrBrax/TwitchAutomator /var/www/twitchautomator/
+
+# pipenv
+
+COPY ./Pipfile /usr/local/share/twitchautomator/
+COPY ./Pipfile.lock /usr/local/share/twitchautomator/
+RUN pip install pipenv && cd /usr/local/share/twitchautomator && pipenv install --deploy --ignore-pipfile && pip cache purge
+
+# node
+FROM node:19-bullseye-slim
 # USER root
 
 # system packages
@@ -12,7 +28,6 @@ FROM node:18-bullseye-slim
 #    bash icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib fontconfig
 
 RUN apt-get update && apt-get install -y \
-    python3 python3-pip \
     ffmpeg mediainfo \
     bash git curl unzip rclone \
     && apt-get clean
@@ -27,18 +42,6 @@ RUN apt-get update && apt-get install -y \
 # RUN pip install -r /tmp/requirements.txt \
 #     && rm /tmp/requirements.txt \
 #     && pip cache purge
-
-# copy app
-RUN mkdir -p /usr/local/share/twitchautomator \
-    && chown -R node:node /usr/local/share/twitchautomator \
-    && chmod -R 775 /usr/local/share/twitchautomator
-# COPY --chown=node:node --chmod=775 . /usr/local/share/twitchautomator/
-# RUN git clone https://github.com/MrBrax/TwitchAutomator /var/www/twitchautomator/
-
-# pipenv
-COPY ./Pipfile /usr/local/share/twitchautomator/Pipfile
-COPY ./Pipfile.lock /usr/local/share/twitchautomator/Pipfile.lock
-RUN pip install pipenv && cd /usr/local/share/twitchautomator && pipenv install --system --deploy --ignore-pipfile
 
 # common
 COPY --chown=node:node --chmod=775 ./common /usr/local/share/twitchautomator/common
