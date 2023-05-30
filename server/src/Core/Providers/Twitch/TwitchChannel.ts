@@ -1,11 +1,13 @@
 import type { ApiTwitchChannel } from "@common/Api/Client";
 import { TwitchChannelConfig, VideoQuality } from "@common/Config";
 import { MuteStatus, Providers, SubStatus } from "@common/Defs";
+import { formatString } from "@common/Format";
 import type { LocalVideo } from "@common/LocalVideo";
 import { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
+import { VodBasenameTemplate } from "@common/Replacements";
 import type { Channel, ChannelsResponse } from "@common/TwitchAPI/Channels";
 import type { ErrorResponse, EventSubTypes } from "@common/TwitchAPI/Shared";
-import type { Stream, StreamsResponse } from "@common/TwitchAPI/Streams";
+import type { StreamRequestParams, Stream, StreamsResponse } from "@common/TwitchAPI/Streams";
 import type { SubscriptionRequest, SubscriptionResponse } from "@common/TwitchAPI/Subscriptions";
 import type { BroadcasterType, UsersResponse } from "@common/TwitchAPI/Users";
 import type { UserData } from "@common/User";
@@ -36,8 +38,6 @@ import { Webhook } from "../../Webhook";
 import { BaseChannel } from "../Base/BaseChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
-import { formatString } from "@common/Format";
-import { VodBasenameTemplate } from "@common/Replacements";
 
 export class TwitchChannel extends BaseChannel {
     public provider: Providers = "twitch";
@@ -1316,7 +1316,11 @@ export class TwitchChannel extends BaseChannel {
         }
 
         try {
-            response = await TwitchHelper.getRequest<StreamsResponse>(`/helix/streams?user_id=${streamer_id}`);
+            response = await TwitchHelper.getRequest<StreamsResponse>("/helix/streams", {
+                params: {
+                    user_id: streamer_id,
+                } as StreamRequestParams,
+            });
         } catch (error) {
             Log.logAdvanced(Log.Level.ERROR, "channel", `Could not get streams for ${streamer_id}: ${error}`);
             return false;

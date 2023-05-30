@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import chalk from "chalk";
 import { LiveStreamDVR } from "./Core/LiveStreamDVR";
 import dotenv from "dotenv";

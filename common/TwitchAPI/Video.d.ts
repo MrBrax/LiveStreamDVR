@@ -1,5 +1,30 @@
 import { Pagination } from "./Shared";
 
+interface VideoRequestParamsBase {
+    language?: string;
+    period?: "all" | "day" | "week" | "month";
+    sort?: "time" | "trending" | "views";
+    type?: "all" | "upload" | "archive" | "highlight";
+    first?: number;
+    before?: string;
+    after?: string;
+}
+
+interface VideoRequestParamsWithID extends VideoRequestParamsBase {
+    id: string | string[];
+}
+
+interface VideoRequestParamsWithUserID extends VideoRequestParamsBase {
+    user_id: string;
+}
+
+interface VideoRequestParamsWithGameID extends VideoRequestParamsBase {
+    game_id: string;
+}
+
+export type VideoRequestParams = VideoRequestParamsWithID | VideoRequestParamsWithUserID | VideoRequestParamsWithGameID;
+
+
 export interface MutedSegment {
     duration: number;
     offset: number;

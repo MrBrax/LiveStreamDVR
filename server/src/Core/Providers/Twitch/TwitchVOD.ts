@@ -7,7 +7,7 @@ import { AudioStream, FFProbe, VideoStream } from "@common/FFProbe";
 import { VideoMetadata } from "@common/MediaInfo";
 import { ProxyVideo } from "@common/Proxies/Video";
 import { Clip, ClipsResponse } from "@common/TwitchAPI/Clips";
-import { Video, VideosResponse } from "@common/TwitchAPI/Video";
+import { VideoRequestParams, Video, VideosResponse } from "@common/TwitchAPI/Video";
 import axios from "axios";
 import chalk from "chalk";
 import chokidar from "chokidar";
@@ -2005,7 +2005,11 @@ export class TwitchVOD extends BaseVOD {
         let response;
 
         try {
-            response = await TwitchHelper.getRequest<VideosResponse>(`/helix/videos/?id=${video_id}`);
+            response = await TwitchHelper.getRequest<VideosResponse>("/helix/videos/", {
+                params: {
+                    id: video_id,
+                } as VideoRequestParams,
+            });
         } catch (err) {
             Log.logAdvanced(Log.Level.ERROR, "vod.getVideo", `Tried to get video id ${video_id} but got error ${(err as Error).message}`);
             if (axios.isAxiosError(err)) {
@@ -2046,7 +2050,11 @@ export class TwitchVOD extends BaseVOD {
         let response;
 
         try {
-            response = await TwitchHelper.getRequest<VideosResponse>(`/helix/videos/?id=${ids.join("&id=")}`);
+            response = await TwitchHelper.getRequest<VideosResponse>("/helix/videos/", {
+                params: {
+                    id: ids,
+                } as VideoRequestParams,
+            });
         } catch (err) {
             Log.logAdvanced(Log.Level.ERROR, "vod.getVideos", `Tried to get videos ${ids.join(", ")} but got error ${(err as Error).message}`);
             if (axios.isAxiosError(err)) {
@@ -2103,7 +2111,13 @@ export class TwitchVOD extends BaseVOD {
         let response;
 
         try {
-            response = await TwitchHelper.getRequest<VideosResponse>(`/helix/videos?first=100&user_id=${channel_id}`);
+            response = await TwitchHelper.getRequest<VideosResponse>("/helix/videos/", {
+                params: {
+                    user_id: channel_id,
+                    first: 100,
+                    // type: "archive",
+                } as VideoRequestParams,
+            });
         } catch (e) {
             Log.logAdvanced(Log.Level.ERROR, "vod.getVideos", `Tried to get videos for channel id ${channel_id} but got error ${e}`);
             return false;
@@ -2129,7 +2143,13 @@ export class TwitchVOD extends BaseVOD {
         let response;
 
         try {
-            response = await TwitchHelper.getRequest<VideosResponse>(`/helix/videos?first=100&user_id=${channel_id}`);
+            response = await TwitchHelper.getRequest<VideosResponse>("/helix/videos/", {
+                params: {
+                    user_id: channel_id,
+                    first: 100,
+                    // type: "archive",
+                } as VideoRequestParams,
+            });
         } catch (e) {
             Log.logAdvanced(Log.Level.ERROR, "vod.getVideosProxy", `Tried to get videos for channel id ${channel_id} but got error ${e}`);
             return false;
@@ -2168,7 +2188,11 @@ export class TwitchVOD extends BaseVOD {
         let response;
 
         try {
-            response = await TwitchHelper.getRequest<VideosResponse>(`/helix/videos/?id=${video_id}`);
+            response = await TwitchHelper.getRequest<VideosResponse>("/helix/videos/", {
+                params: {
+                    id: video_id,
+                } as VideoRequestParams,
+            });
         } catch (err) {
             Log.logAdvanced(Log.Level.ERROR, "vod.getVideoProxy", `Tried to get video id ${video_id} but got error ${(err as Error).message}`);
             if (axios.isAxiosError(err)) {
