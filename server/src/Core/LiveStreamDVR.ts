@@ -717,7 +717,13 @@ export class LiveStreamDVR {
             process.exit(1);
         }
 
+        if (!path) {
+            Log.logAdvanced(Log.Level.WARNING, "dvr", "Python virtual environment is not enabled.");
+            return;
+        }
+
         if (path !== Config.getInstance().cfg("python.virtualenv_path")) {
+            Log.logAdvanced(Log.Level.INFO, "dvr", "Updating python virtual environment path in config.");
             Config.getInstance().setConfig("python.virtualenv_path", path);
             Config.getInstance().saveConfig();
         }

@@ -129,6 +129,10 @@ export class Config {
             return false;
         }
 
+        if (this.config[key] === null) {
+            return false;
+        }
+
         return true;
 
     }
@@ -286,6 +290,16 @@ export class Config {
             // TwitchConfig.saveConfig();
             */
 
+        }
+    }
+
+    unsetConfig(key: keyof typeof settingsFields): void {
+        if (!this.config) {
+            throw new Error("Config not loaded");
+        }
+
+        if (this.config[key] !== undefined) {
+            delete this.config[key];
         }
     }
 
@@ -649,7 +663,12 @@ export class Config {
 
     hasEnvVar(key: keyof typeof settingsFields): boolean
     {
-        return process.env[`TCD_${key.toUpperCase().replaceAll(".", "_")}`] !== undefined;
+        const val = process.env[`TCD_${key.toUpperCase().replaceAll(".", "_")}`];
+
+        if (val === undefined) return false;
+        if (val === "") return false;
+
+        return true;
     }
 
     envVarValue(key: keyof typeof settingsFields): string | undefined

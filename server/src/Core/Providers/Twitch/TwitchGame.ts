@@ -209,14 +209,17 @@ export class TwitchGame {
             } else {
                 const writer = fs.createWriteStream(file);
                 writer.on("finish", () => {
+                    Log.logAdvanced(Log.Level.SUCCESS, "game", `Box art saved to cache: ${this.name}`);
                     resolve(file);
                 });
                 writer.on("error", (err) => {
+                    Log.logAdvanced(Log.Level.ERROR, "game", `Failed to save box art to cache: ${err}`, err);
                     reject(err);
                 });
                 axios.get(url, { responseType: "stream" }).then((response) => {
                     response.data.pipe(writer);
                 }).catch((err) => {
+                    Log.logAdvanced(Log.Level.ERROR, "game", `Failed to fetch box art: ${err}`, err);
                     reject(err);
                 });
             }
