@@ -121,7 +121,7 @@ LiveStreamDVR.init().then(() => {
     baserouter.use("/api/v0", ApiRouter);
 
     // static files and storage
-    baserouter.use("/vodplayer", express.static(BaseConfigFolder.vodplayer));
+    // baserouter.use("/vodplayer", express.static(BaseConfigFolder.vodplayer));
     baserouter.use("/vods", express.static(BaseConfigDataFolder.vod));
     baserouter.use("/saved_vods", express.static(BaseConfigDataFolder.saved_vods));
     baserouter.use("/saved_clips", express.static(BaseConfigDataFolder.saved_clips));
@@ -164,10 +164,10 @@ LiveStreamDVR.init().then(() => {
             return;
         }
 
-        if (fpath.startsWith(`${basepath}/vodplayer/`)) {
-            res.sendFile(path.join(BaseConfigFolder.vodplayer, "index.html"));
-            return;
-        }
+        // if (fpath.startsWith(`${basepath}/vodplayer/`)) {
+        //     res.sendFile(path.join(BaseConfigFolder.vodplayer, "index.html"));
+        //     return;
+        // }
 
         res.sendFile(path.join(BaseConfigFolder.client, "index.html"));
         // next();

@@ -6,7 +6,7 @@ export function GetAllKeyValues(req: express.Request, res: express.Response) {
 
     res.send({
         status: "OK",
-        data: KeyValue.getInstance().getAll(),
+        data: KeyValue.getInstance().getAllRaw(),
     });
 
 }
@@ -23,7 +23,7 @@ export function GetKeyValue(req: express.Request, res: express.Response): void {
 
     res.send({
         status: "OK",
-        data: KeyValue.getInstance().get(req.params.key),
+        data: KeyValue.getInstance().getRaw(req.params.key),
     });
 
 }

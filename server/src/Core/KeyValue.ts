@@ -8,9 +8,15 @@ import { BaseConfigCacheFolder, BaseConfigPath } from "./BaseConfig";
 import { Config } from "./Config";
 import { Log } from "./Log";
 
+export interface KeyValueData {
+    value: string;
+    created: Date;
+    expires?: Date;
+}
+
 export class KeyValue extends EventEmitter {
 
-    public data: Record<string, string> = {};
+    private data: Record<string, KeyValueData> = {};
     // public static events = new EventEmitter();
 
     public static instance: KeyValue | undefined;
@@ -30,8 +36,21 @@ export class KeyValue extends EventEmitter {
         this.instance = undefined;
     }
 
+    getAllRaw(): Record<string, KeyValueData> {
+        const filteredExpired = Object.entries(this.data).filter(([key, value]) => {
+            if (value.expires) {
+                return value.expires.getTime() > Date.now();
+            } else {
+                return true;
+            }
+        });
+        return Object.fromEntries(filteredExpired);
+    }
+
     getAll(): Record<string, string> {
-        return this.data;
+        // entries that are not expired
+        const entries = Object.entries(this.getAllRaw());
+        return Object.fromEntries(entries.map(([key, value]) => [key, value.value]));
     }
 
     /**
@@ -40,7 +59,31 @@ export class KeyValue extends EventEmitter {
      * @returns 
      */
     has(key: string): boolean {
-        return key in this.data;
+        key = key.replaceAll("/", "");
+
+        // check if the key exists and is not expired
+        if (key in this.data) {
+            const val = this.data[key];
+            if (val.expires) {
+                return val.expires.getTime() > Date.now();
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
+    }
+
+    getRaw(key: string): KeyValueData | false {
+
+        key = key.replaceAll("/", "");
+
+        if (!this.has(key) || this.data[key] === undefined) {
+            return false;
+        }
+
+        return this.data[key];
+
     }
 
     /**
@@ -50,13 +93,13 @@ export class KeyValue extends EventEmitter {
      */
     get(key: string): string | false {
 
-        key = key.replaceAll("/", "");
+        const raw = this.getRaw(key);
 
-        const data = this.data[key] !== undefined ? this.data[key] : false;
+        if (raw === false) {
+            return false;
+        }
 
-        // if (Config.debug) console.debug(`Getting key-value pair: ${key} = ${data}`);
-
-        return data;
+        return raw.value;
 
     }
 
@@ -67,14 +110,14 @@ export class KeyValue extends EventEmitter {
      */
     getObject<T>(key: string): T | false {
 
-        key = key.replaceAll("/", "");
+        const value = this.get(key);
 
-        if (this.data[key] === undefined) {
+        if (value === false) {
             return false;
         }
 
         try {
-            return JSON.parse(this.data[key]);
+            return JSON.parse(value);
         } catch (error) {
             return false;
         }
@@ -109,7 +152,28 @@ export class KeyValue extends EventEmitter {
         key = key.replaceAll("/", "");
 
         if (Config.debug) console.debug(`[debug] Setting key-value pair: ${key} = ${value}`);
-        this.data[key] = value;
+        // this.data[key] = value;
+        this.data[key] = {
+            value: value,
+            created: new Date(),
+        };
+        this.emit("set", key, value);
+
+        this.save();
+
+    }
+
+    setExpiring(key: string, value: string, seconds: number): void {
+
+        key = key.replaceAll("/", "");
+
+        if (Config.debug) console.debug(`[debug] Setting expiring key-value pair: ${key} = ${value} (expires in ${seconds} seconds)`);
+
+        this.data[key] = {
+            value: value,
+            created: new Date(),
+            expires: new Date(Date.now() + (seconds * 1000)),
+        };
         this.emit("set", key, value);
 
         this.save();
@@ -161,7 +225,15 @@ export class KeyValue extends EventEmitter {
         return new Date(value);
     }
 
-    cleanWildcard(keyWildcard: string, limitSeconds: number) {
+    setExpiry(key: string, seconds: number) {
+        if (!this.has(key)) {
+            throw new Error("Key does not exist");
+        }
+
+        this.data[key].expires = new Date(Date.now() + (seconds * 1000));
+    }
+
+    cleanWildcard(keyWildcard: string /* limitSeconds: number */) {
 
         let deleted = 0;
 
@@ -170,6 +242,7 @@ export class KeyValue extends EventEmitter {
         for (const key of keys) {
 
             // match the key with wildcard, which uses * as a wildcard
+            /*
             if (minimatch(key, keyWildcard)) {
                 const date = this.getDate(key);
                 if (date !== false) {
@@ -178,6 +251,12 @@ export class KeyValue extends EventEmitter {
                         deleted++;
                     }
                 }
+            }
+            */
+
+            if (minimatch(key, keyWildcard)) {
+                this.delete(key);
+                deleted++;
             }
 
             /*
@@ -197,6 +276,18 @@ export class KeyValue extends EventEmitter {
             Log.logAdvanced(Log.Level.WARNING, "keyvalue", `No keys deleted for wildcard ${keyWildcard}`);
         }
 
+    }
+
+    filterExpired() {
+        // filter out expired keys
+        const keys = Object.keys(this.data);
+        for (const key of keys) {
+            const value = this.data[key];
+            if (value.expires && value.expires.getTime() < Date.now()) {
+                Log.logAdvanced(Log.Level.DEBUG, "keyvalue", `Deleting expired key ${key} (expired at ${value.expires.toISOString()})`);
+                delete this.data[key];
+            }
+        }
     }
 
     /**
@@ -226,14 +317,27 @@ export class KeyValue extends EventEmitter {
      * Save the key-value store to disk.
      */
     save() {
-        fs.writeFileSync(BaseConfigPath.keyvalue, JSON.stringify(this.data, null, 4));
+        this.filterExpired();
+        fs.writeFileSync(BaseConfigPath.keyvalueDatabase, JSON.stringify(this.data, null, 4));
     }
 
     load() {
         console.log(chalk.blue("Loading key-value pairs..."));
-        if (fs.existsSync(BaseConfigPath.keyvalue)) {
-            this.data = JSON.parse(fs.readFileSync(BaseConfigPath.keyvalue, "utf8"));
+        if (fs.existsSync(BaseConfigPath.keyvalueDatabase)) {
+            this.data = JSON.parse(fs.readFileSync(BaseConfigPath.keyvalueDatabase, "utf8"), (key, value) => {
+                if (key === "created" || key === "expires") {
+                    return new Date(value);
+                } else {
+                    return value;
+                }
+            });
+            this.filterExpired();
             console.log(chalk.green(`Loaded ${Object.keys(this.data).length} key-value pairs`));
+        } else if (fs.existsSync(BaseConfigPath.keyvalue)) {
+            console.log("Key-value pairs found in old format, migrating...");
+            this.migrateFromFlatKeyValue();
+            // this.data = JSON.parse(fs.readFileSync(BaseConfigPath.keyvalue, "utf8"));
+            // console.log(chalk.green(`Loaded ${Object.keys(this.data).length} key-value pairs`));
         } else {
             console.log("No key-value pairs found in storage.");
             this.migrateFromFileBasedKeyValue();
@@ -257,6 +361,30 @@ export class KeyValue extends EventEmitter {
         } else {
             console.log("No key-value pairs found to migrate.");
         }
+    }
+
+    migrateFromFlatKeyValue() {
+        console.log(chalk.blue("Migrating key-value pairs from flat key-value store..."));
+        const data = JSON.parse(fs.readFileSync(BaseConfigPath.keyvalue, "utf8"));
+
+        const newData: Record<string, KeyValueData> = {};
+
+        for (const key of Object.keys(data)) {
+            newData[key] = {
+                value: data[key],
+                created: new Date(),
+            };
+        }
+
+        this.data = newData;
+
+        console.log(chalk.green(`Migrated ${Object.keys(this.data).length} key-value pairs`));
+
+        this.save();
+
+        // fs.unlinkSync(BaseConfigPath.keyvalue);
+        fs.renameSync(BaseConfigPath.keyvalue, BaseConfigPath.keyvalue + ".old");
+
     }
 
     // on(event: "set", listener: (key: string, value: string) => void): this;
