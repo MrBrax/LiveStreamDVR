@@ -228,7 +228,20 @@ export class ClientBroker {
         tts = false
     ) {
 
-        console.log(chalk.bgBlue.whiteBright(`Notifying clients: ${title}: ${body}, category ${category}`));
+        // console.log(chalk.bgBlue.whiteBright(`Notifying clients: ${title}: ${body}, category ${category}`));
+
+        Log.logAdvanced(
+            Log.Level.INFO,
+            "notify",
+            `(${category}) ${title}: ${body}`,
+            {
+                title: title,
+                body: body,
+                icon: icon,
+                category: category,
+                url: url,
+                tts: tts,
+            });
 
         if (!title) {
             Log.logAdvanced(Log.Level.WARNING, "notify", "No title specified", { title: title, body: body, icon: icon, category: category, url: url, tts: tts });

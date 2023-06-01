@@ -347,12 +347,15 @@ function fetchSubscriptions() {
 function unsubscribe(id: string) {
     subscriptionsLoading.value = true;
     axios
-        .delete(`/api/v0/subscriptions/${id}`)
+        .delete<ApiResponse>(`/api/v0/subscriptions/${id}`)
         .then((response) => {
             const json = response.data;
             console.debug("unsubscribe", json);
             subscriptionsLoading.value = false;
-            fetchSubscriptions();
+            if (json.status == "OK") {
+                // fetchSubscriptions();
+                subscriptions.value = subscriptions.value.filter((sub) => sub.id != id);
+            }
         })
         .catch((err) => {
             console.error("about error", err.response);

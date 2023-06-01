@@ -87,8 +87,9 @@ export async function HookTwitch(req: express.Request, res: express.Response): P
     const messageTimestamp      = req.header("Twitch-Eventsub-Message-Timestamp");
     const subscriptionType      = req.header("Twitch-Eventsub-Subscription-Type");
     const subscriptionVersion   = req.header("Twitch-Eventsub-Subscription-Version");
+    const subscriptionBatching  = req.header("Twitch-Eventsub-Subscription-Is-Batching-Enabled");
 
-    Log.logAdvanced(Log.Level.INFO, "hook", `Hook called with message ID ${messageId}, version ${subscriptionVersion}, type ${subscriptionType} (retry ${messageRetry}, type ${messageType}, date ${messageTimestamp})`, debugMeta);
+    Log.logAdvanced(Log.Level.INFO, "hook", `Hook called with message ID ${messageId}, s-version ${subscriptionVersion}, s-type ${subscriptionType}, b ${subscriptionBatching} (m-retry ${messageRetry}, m-type ${messageType}, m-date ${messageTimestamp})`, debugMeta);
 
     if (Config.getInstance().hasValue("instance_id")) {
         if (!req.query.instance || req.query.instance != Config.getInstance().cfg("instance_id")) {
@@ -112,6 +113,7 @@ export async function HookTwitch(req: express.Request, res: express.Response): P
             return;
         }
 
+        // handle challenge, return challenge string
         if ("challenge" in data_json && data_json.challenge !== null) {
 
             const challenge = data_json.challenge;
@@ -148,6 +150,7 @@ export async function HookTwitch(req: express.Request, res: express.Response): P
             return;
         }
 
+        // dump payload
         if (Config.debug || Config.getInstance().cfg<boolean>("dump_payloads")) {
             let payload_filename = `tw_${new Date().toISOString().replaceAll(/[-:.]/g, "_")}`;
             if (data_json.subscription.type) payload_filename += `_${data_json.subscription.type}`;
@@ -179,6 +182,7 @@ export async function HookTwitch(req: express.Request, res: express.Response): P
             return;
         }
 
+        // handle message with automator
         if ("event" in data_json) {
             Log.logAdvanced(Log.Level.DEBUG, "hook", `Signature checked, no challenge, retry ${messageRetry}. Run handle...`);
 

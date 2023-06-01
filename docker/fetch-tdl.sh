@@ -8,10 +8,11 @@
 # https://github.com/lay295/TwitchDownloader
 
 set -euxo pipefail
+TD_VERSION=1.52.8
 cd /tmp/
-curl -fsSLO https://github.com/lay295/TwitchDownloader/releases/download/1.52.8/TwitchDownloaderCLI-1.52.8-Linux-x64.zip
-unzip TwitchDownloaderCLI-1.52.8-Linux-x64.zip
+curl -fsSLO https://github.com/lay295/TwitchDownloader/releases/download/${TD_VERSION}/TwitchDownloaderCLI-${TD_VERSION}-Linux-x64.zip
+unzip TwitchDownloaderCLI-${TD_VERSION}-Linux-x64.zip
 mv TwitchDownloaderCLI /usr/local/bin/TwitchDownloaderCLI
 chmod +x /usr/local/bin/TwitchDownloaderCLI
-rm -rf /tmp/TwitchDownloaderCLI-1.52.8-Linux-x64.zip
+rm -rf /tmp/TwitchDownloaderCLI-${TD_VERSION}-Linux-x64.zip
 export TCD_TWITCHDOWNLOADER_PATH=/usr/local/bin/TwitchDownloaderCLI
