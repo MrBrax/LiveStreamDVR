@@ -574,6 +574,9 @@ export class TwitchChannel extends BaseChannel {
             // this.profile_image_url = channel_data.profile_image_url;
             this.broadcaster_type = channel_data.broadcaster_type;
             // this.description = channel_data.description;
+
+            await this.checkIfChannelSavesVods();
+
             return true;
         }
 
