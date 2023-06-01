@@ -144,9 +144,9 @@ export class LiveStreamDVR {
         await LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
         LiveStreamDVR.getInstance().startDiskSpaceInterval();
 
-        LiveStreamDVR.checkBinaryVersions();
-
         LiveStreamDVR.checkPythonVirtualEnv();
+
+        LiveStreamDVR.checkBinaryVersions();
 
         // monitor for program exit
         // let saidGoobye = false;
