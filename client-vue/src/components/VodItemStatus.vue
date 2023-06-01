@@ -123,7 +123,7 @@
     </div>
     
     <div
-        v-if="vod.is_capturing && vod.getDurationLive() > 86400"
+        v-if="vod.is_capturing && durationIsLongerThan24Hours(vod)"
         class="video-block video-error"
     >
         <!-- capture length warning -->
@@ -160,6 +160,11 @@ const emit = defineEmits<{
 
 const store = useStore();
 const { t } = useI18n();
+
+function durationIsLongerThan24Hours(vod: VODTypes) {
+    const dur = vod.getDurationLive();
+    return dur && dur > 86400;
+}
 
 </script>
 
