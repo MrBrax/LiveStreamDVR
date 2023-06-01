@@ -193,6 +193,16 @@ LiveStreamDVR.init().then(() => {
             console.log(chalk.greenBright(`Build date: ${fs.statSync(__filename).mtime.toLocaleString()} (${path.basename(__filename)})`));
         }
         console.log(chalk.greenBright(`Version: ${process.env.npm_package_version} running on node ${process.version} ${process.platform} 🦄`));
+
+        if (process.env.BUILD_DATE) {
+            console.log(chalk.greenBright("~ Detected CI build ~"));
+            console.log(chalk.greenBright(`Build date: ${process.env.BUILD_DATE}`));
+            console.log(chalk.greenBright(`Version: ${process.env.VERSION}`));
+            console.log(chalk.greenBright(`VCS ref: ${process.env.VCS_REF}`));
+        } else {
+            console.log(chalk.greenBright("~ Detected local build ~"));
+        }
+
     });
 
     server.on("error", (err) => {
