@@ -356,6 +356,11 @@ export class TwitchChannel extends BaseChannel {
         const vods_in_channel_memory = this.getVods();
         const vods_in_main_memory = LiveStreamDVR.getInstance().getVodsByChannelUUID(this.uuid);
 
+        /**
+         * // TODO: rewrite all of this, it's a mess. it doesn't make any sense anymore when vods can be stored in customised folders.
+         * It always assumes the vod is in the channel folder and as such counts are not correct anymore.
+        /*
+
         if (vods_on_disk.length !== vods_in_channel_memory.length) {
             const removedVods = vods_in_channel_memory.filter(v => !vods_on_disk.includes(v.basename));
             ClientBroker.notify(
@@ -403,6 +408,7 @@ export class TwitchChannel extends BaseChannel {
                 vods_in_main_memory: vods_in_main_memory.map(v => v.basename),
             });
         }
+        */
 
     }
 

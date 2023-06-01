@@ -255,7 +255,7 @@ export class KeyValue extends EventEmitter {
             */
 
             if (minimatch(key, keyWildcard)) {
-                this.delete(key);
+                this.delete(key, true);
                 deleted++;
             }
 
@@ -294,12 +294,12 @@ export class KeyValue extends EventEmitter {
      * Delete a value from the key-value store.
      * @param key
      */
-    delete(key: string) {
+    delete(key: string, dontSave = false) {
         if (this.data[key]) {
             if (Config.debug) console.debug(`Deleting key-value pair: ${key}`);
             delete this.data[key];
             this.emit("delete", key);
-            this.save();
+            if (!dontSave) this.save();
         }
     }
 
@@ -342,6 +342,8 @@ export class KeyValue extends EventEmitter {
             console.log("No key-value pairs found in storage.");
             this.migrateFromFileBasedKeyValue();
         }
+
+        this.cleanWildcard("tw.eventsub.*"); // clean up old eventsub acks
     }
 
     migrateFromFileBasedKeyValue() {

@@ -408,12 +408,19 @@ export class TwitchAutomator extends BaseAutomator {
         // disable reruns
         cmd.push("--twitch-disable-reruns");
 
+        // one custom api header
         if (Config.getInstance().hasValue("capture.twitch-api-header")) {
             cmd.push("--twitch-api-header", Config.getInstance().cfg<string>("capture.twitch-api-header"));
         }
 
+        // access token param
         if (Config.getInstance().hasValue("capture.twitch-access-token-param")) {
             cmd.push("--twitch-access-token-param", Config.getInstance().cfg<string>("capture.twitch-access-token-param"));
+        }
+
+        // client id
+        if (Config.getInstance().hasValue("capture.twitch-client-id")) {
+            cmd.push("--twitch-api-header", `Client-ID=${Config.getInstance().cfg<string>("capture.twitch-client-id")}`);
         }
 
         // streamlink-ttvlol plugin

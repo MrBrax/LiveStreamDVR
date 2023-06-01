@@ -88,6 +88,7 @@ export const settingsFields: Record<string, SettingField<string> | SettingField<
 
     "capture.twitch-api-header": {  group: "Capture", text: "Twitch API header", type: "string", },
     "capture.twitch-access-token-param": { group: "Capture", text: "Twitch access token param", type: "string", },
+    "capture.twitch-client-id": { group: "Capture", text: "Twitch client ID", type: "string", },
 
     "capture.twitch-ttv-lol-plugin": { group: "Capture", text: "Enable TTV LOL plugin", type: "boolean", default: false, new: true },
     "capture.twitch-proxy-playlist": { group: "Capture", text: "Proxy playlist URL", help: "Separate by commas", type: "string", new: true },
