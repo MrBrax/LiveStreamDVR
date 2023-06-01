@@ -102,6 +102,14 @@ export class Config {
             }
         }
 
+        // internal type conversion/fixing
+        const field = Config.getSettingField(key);
+        if (field && field.type === "string") {
+            if (this.config[key] === false || this.config[key] === true) {
+                return undefined as unknown as T;
+            }
+        }
+
         return <T>this.config[key]; // return value
 
     }
@@ -131,6 +139,13 @@ export class Config {
 
         if (this.config[key] === null) {
             return false;
+        }
+
+        const field = Config.getSettingField(key);
+        if (field && field.type === "string") {
+            if (this.config[key] === false || this.config[key] === true) {
+                return false; // strings should not be booleans, must be a mistake
+            }
         }
 
         return true;
@@ -474,6 +489,7 @@ export class Config {
         }
 
         // check if the vodplayer is built before starting the server
+        /*
         if (!fs.existsSync(path.join(BaseConfigFolder.vodplayer, "index.html"))) {
             console.error(chalk.red("VOD player is not built. Please run yarn build inside the twitch-vod-chat folder."));
             console.error(chalk.red(`Expected path: ${path.join(BaseConfigFolder.vodplayer, "index.html")}`));
@@ -482,6 +498,7 @@ export class Config {
         } else {
             console.log(chalk.green("VOD player is built: " + path.join(BaseConfigFolder.vodplayer, "index.html")));
         }
+        */
 
         // check if the chat dumper is built before starting the server
         if (!fs.existsSync(path.join(AppRoot, "twitch-chat-dumper", "build", "index.js"))) {

@@ -36,7 +36,7 @@ export const BaseConfigFolder = {
     server: path.join(AppRoot, "server"),
     public: path.join(AppRoot, "public"),
     client: path.join(AppRoot, "client-vue", "dist"),
-    vodplayer: path.join(AppRoot, "twitch-vod-chat", "dist"),
+    // vodplayer: path.join(AppRoot, "twitch-vod-chat", "dist"),
 };
 
 /**
@@ -113,6 +113,7 @@ export const BaseConfigPath = {
     streamerCache: path.join(BaseConfigDataFolder.cache, "streamers_v2.json"),
     streamerYouTubeCache: path.join(BaseConfigDataFolder.cache, "streamers_youtube.json"),
     keyvalue: path.join(BaseConfigDataFolder.keyvalue, "kv.json"),
+    keyvalueDatabase: path.join(BaseConfigDataFolder.keyvalue, "kv2.json"),
     notifications: path.join(BaseConfigDataFolder.config, "notifications.json"),
     clientSettings: path.join(BaseConfigDataFolder.config, "client_settings.json"),
 };

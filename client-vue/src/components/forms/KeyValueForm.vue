@@ -19,24 +19,28 @@
                 <tr>
                     <th>Key</th>
                     <th>Value</th>
+                    <th>Created</th>
+                    <th>Expires</th>
                     <th>Actions</th>
                 </tr>
             </thead>
             <tr
-                v-for="(value, key) in sortedKeyValues"
+                v-for="(kvdata, key) in sortedKeyValues"
                 :key="key"
             >
                 <td>{{ key }}</td>
                 <td>
-                    {{ value }}
+                    {{ kvdata }}
                     <button
                         class="icon-button"
                         title="Edit"
-                        @click="editKeyValue(key, value)"
+                        @click="editKeyValue(key, kvdata.value)"
                     >
                         <span><font-awesome-icon icon="pencil" /></span>
                     </button>
                 </td>
+                <td>{{ kvdata.created }}</td>
+                <td>{{ kvdata.expires }}</td>
                 <td>
                     <d-button
                         icon="trash"
@@ -131,14 +135,20 @@ const emit = defineEmits(["formSuccess"]);
 const store = useStore();
 const { t } = useI18n();
 
+interface KeyValueData {
+    value: string;
+    created: Date;
+    expires?: Date;
+}
+
 // data
-const keyvalue = ref<Record<string, string>>();
+const keyvalue = ref<Record<string, KeyValueData>>();
 const initialLoad = ref(true);
 const searchText = ref("");
 const addForm = ref<{ key: string; value: string }>({ key: "", value: "" });
 
 // computed
-const sortedKeyValues = computed((): Record<string, string> => {
+const sortedKeyValues = computed((): Record<string, KeyValueData> => {
     if (!keyvalue.value) return {};
     let entries = Object.entries(keyvalue.value);
     if (searchText.value !== "") entries = entries.filter(e => e[0].includes(searchText.value));
@@ -149,7 +159,6 @@ onMounted(() => {
     fetchData();
 });
 
-    
 function fetchData(): void {
     axios
         .get<ApiResponse>(`/api/v0/keyvalue`)
