@@ -24,7 +24,7 @@
                         class="title"
                         :title="verboseVersion"
                     >
-                        <span>{{ store.app_name }}</span> <template v-if="store.serverGitBranch == 'develop-ts'">
+                        <span>{{ store.app_name }}</span> <template v-if="isDevelopmentBranch">
                             <span
                                 class="githash"
                                 @click="copyDebugStuff"
@@ -255,6 +255,11 @@ const debugVersionString = computed(() => {
     }
 });
 
+const isDevelopmentBranch = computed(() => {
+    if (store.serverGitBranch == 'develop-ts') return true;
+    if (import.meta.env.IS_DEV) return true;
+    return false;
+});
 
 onMounted(() => {
     keySub.value = store.$onAction(({ name, args }) => {
