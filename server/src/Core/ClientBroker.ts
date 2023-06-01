@@ -48,6 +48,24 @@ interface DiscordSendMessagePayload {
     flags?: number;
 }
 
+interface PushoverSendMessagePayload {
+    token: string;
+    user: string;
+    message: string;
+    attachment?: string;
+    attachment_base64?: string;
+    attachment_type?: string;
+    device?: string;
+    html?: 1;
+    priority?: -2 | -1 | 0 | 1 | 2;
+    sound?: string;
+    timestamp?: number;
+    title?: string;
+    ttl?: number;
+    url?: string;
+    url_title?: string;
+}
+
 export class ClientBroker {
 
     static clients: Client[] = [];
@@ -349,7 +367,7 @@ export class ClientBroker {
                 message: body,
                 url: url,
                 // html: 1,
-            }).then((res) => {
+            } as PushoverSendMessagePayload).then((res) => {
                 Log.logAdvanced(Log.Level.DEBUG, "notify", "Pushover response", res.data);
             }).catch((err: Error) => {
                 if (axios.isAxiosError(err)) {
