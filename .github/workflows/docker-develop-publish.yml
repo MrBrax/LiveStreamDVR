@@ -47,10 +47,10 @@ jobs:
             VCS_REF=${{ github.sha }}
             VERSION=${{ github.ref }}
             IS_DEV=true
-            VUE_APP_IS_DEV=true
-            VUE_APP_BUILD_DATE=${{ github.event.head_commit.timestamp }}
-            VUE_APP_VERSION=${{ github.ref }}
-            VUE_APP_VCS_REF=${{ github.sha }}
+            VITE_IS_DEV=true
+            VITE_BUILD_DATE=${{ github.event.head_commit.timestamp }}
+            VITE_VERSION=${{ github.ref }}
+            VITE_VCS_REF=${{ github.sha }}
           tags: mrbrax/twitchautomator:develop
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=local,src=/tmp/.buildx-cache

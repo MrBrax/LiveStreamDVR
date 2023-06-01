@@ -19,8 +19,9 @@ FROM node:19-bullseye-slim
 ARG IS_DEV
 ARG BUILD_DATE
 ENV IS_DEV=${IS_DEV}
-ENV VUE_APP_IS_DEV=${IS_DEV}
+ENV VITE_IS_DEV=${IS_DEV}
 ENV BUILD_DATE=${BUILD_DATE}
+ENV VITE_BUILD_DATE=${BUILD_DATE}
 
 # system packages
 #RUN apk --no-cache add \
