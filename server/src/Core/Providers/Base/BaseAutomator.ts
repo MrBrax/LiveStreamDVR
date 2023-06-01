@@ -1026,6 +1026,12 @@ export class BaseAutomator {
 
         if (data.includes("error: No playable streams found on this URL:")) {
             Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Capturing of ${basename} failed, no streams available!`);
+            ClientBroker.notify(
+                "Streamlink error",
+                `Capturing of ${basename} failed, no streams available!\nIs there a configuration error?`,
+                "",
+                "system"
+            );
         }
 
 

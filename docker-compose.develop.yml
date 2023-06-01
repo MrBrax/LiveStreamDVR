@@ -1,0 +1,16 @@
+version: "3.8"
+services:
+  web:
+    build: .
+    image: mrbrax/twitchautomator:develop
+    ports:
+      - "8082:8080"
+    volumes:
+      - ./data:/usr/local/share/twitchautomator/data
+    environment:
+      - NODE_ENV=production
+      - TCD_ENABLE_FILES_API=0
+      - TCD_EXPOSE_LOGS_TO_PUBLIC=0
+      - TCD_MIGRATE_OLD_VOD_JSON=0
+      - IS_DEV=true
+      - VITE_IS_DEV=true
