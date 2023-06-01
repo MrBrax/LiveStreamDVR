@@ -196,6 +196,7 @@ LiveStreamDVR.init().then(() => {
 
         if (process.env.BUILD_DATE) {
             console.log(chalk.greenBright("~ Detected CI build ~"));
+            console.log(chalk.greenBright(`Development: ${process.env.IS_DEV}`));
             console.log(chalk.greenBright(`Build date: ${process.env.BUILD_DATE}`));
             console.log(chalk.greenBright(`Version: ${process.env.VERSION}`));
             console.log(chalk.greenBright(`VCS ref: ${process.env.VCS_REF}`));

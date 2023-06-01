@@ -46,6 +46,7 @@ jobs:
             BUILD_DATE=${{ github.event.head_commit.timestamp }}
             VCS_REF=${{ github.sha }}
             VERSION=${{ github.ref }}
+            IS_DEV=true
             VUE_APP_IS_DEV=true
             VUE_APP_BUILD_DATE=${{ github.event.head_commit.timestamp }}
             VUE_APP_VERSION=${{ github.ref }}

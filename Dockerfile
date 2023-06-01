@@ -8,7 +8,6 @@ RUN mkdir -p /usr/local/share/twitchautomator \
 # RUN git clone https://github.com/MrBrax/TwitchAutomator /var/www/twitchautomator/
 
 # pipenv
-
 COPY ./Pipfile /usr/local/share/twitchautomator/
 COPY ./Pipfile.lock /usr/local/share/twitchautomator/
 RUN pip install pipenv && cd /usr/local/share/twitchautomator && pipenv install --deploy --ignore-pipfile && pip cache purge
@@ -16,6 +15,12 @@ RUN pip install pipenv && cd /usr/local/share/twitchautomator && pipenv install 
 # node
 FROM node:19-bullseye-slim
 # USER root
+
+ARG IS_DEV
+ARG BUILD_DATE
+ENV IS_DEV=${IS_DEV}
+ENV VUE_APP_IS_DEV=${IS_DEV}
+ENV BUILD_DATE=${BUILD_DATE}
 
 # system packages
 #RUN apk --no-cache add \
