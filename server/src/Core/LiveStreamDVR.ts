@@ -144,9 +144,9 @@ export class LiveStreamDVR {
         await LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
         LiveStreamDVR.getInstance().startDiskSpaceInterval();
 
-        LiveStreamDVR.checkPythonVirtualEnv();
+        await LiveStreamDVR.checkPythonVirtualEnv();
 
-        LiveStreamDVR.checkBinaryVersions();
+        await LiveStreamDVR.checkBinaryVersions();
 
         // monitor for program exit
         // let saidGoobye = false;
@@ -682,6 +682,7 @@ export class LiveStreamDVR {
 
     public static binaryVersions: Record<string, BinaryStatus> = {};
     public static async checkBinaryVersions() {
+        Log.logAdvanced(Log.Level.INFO, "dvr.bincheck", "Checking binary versions...");
         const bins = DVRBinaries();
         const pkgs = DVRPipPackages();
         for (const key in bins) {
@@ -709,6 +710,22 @@ export class LiveStreamDVR {
 
     public static async checkPythonVirtualEnv() {
 
+        Log.logAdvanced(Log.Level.INFO, "dvr.venvcheck", "Checking python virtual environment...");
+
+        const is_enabled = Config.getInstance().cfg<boolean>("python.enable_pipenv");
+
+        if (!is_enabled) {
+            Log.logAdvanced(Log.Level.INFO, "dvr.venvcheck", "Python virtual environment is not enabled (disabled).");
+            return;
+        }
+
+        const has_pipenv = await Helper.path_pipenv();
+
+        if (!has_pipenv) {
+            Log.logAdvanced(Log.Level.WARNING, "dvr.venvcheck", "Python virtual environment is enabled but pipenv is not found.");
+            return;
+        }
+
         const path = await Helper.path_venv();
 
         if (!path && Helper.path_pipenv()) {
@@ -718,17 +735,17 @@ export class LiveStreamDVR {
         }
 
         if (!path) {
-            Log.logAdvanced(Log.Level.WARNING, "dvr", "Python virtual environment is not enabled.");
+            Log.logAdvanced(Log.Level.WARNING, "dvr.venvcheck", "Python virtual environment is not enabled (not found).");
             return;
         }
 
         if (path !== Config.getInstance().cfg("python.virtualenv_path")) {
-            Log.logAdvanced(Log.Level.INFO, "dvr", "Updating python virtual environment path in config.");
+            Log.logAdvanced(Log.Level.INFO, "dvr.venvcheck", "Updating python virtual environment path in config.");
             Config.getInstance().setConfig("python.virtualenv_path", path);
             Config.getInstance().saveConfig();
         }
 
-        Log.logAdvanced(Log.Level.INFO, "dvr", `Python virtual environment path: ${path}`);
+        Log.logAdvanced(Log.Level.INFO, "dvr.venvcheck", `Python virtual environment path: ${path}`);
 
     }
 

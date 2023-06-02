@@ -11,6 +11,7 @@ export const settingsFields: Record<string, SettingField<string> | SettingField<
     "bin_path.python": { group: "Binaries", text: "Python path", type: "string", "required": false },
     "bin_path.python3": { group: "Binaries", text: "Python3 path", type: "string", "required": false },
 
+    "python.enable_pipenv": { group: "Python", text: "Enable pipenv", type: "boolean", default: false },
     "python.virtualenv_path": { group: "Python", text: "Virtualenv path", type: "string", "required": false },
 
     server_port: { group: "Basic", text: "Server port", type: "number", default: 8080 },

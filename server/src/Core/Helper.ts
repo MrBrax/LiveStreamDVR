@@ -54,7 +54,10 @@ export class Helper {
 
     public static path_python(): string | false {
 
-        if (Config.getInstance().hasValue("python.virtualenv_path")) {
+        if (
+            Config.getInstance().cfg<boolean>("python.enable_pipenv") &&
+            Config.getInstance().hasValue("python.virtualenv_path")
+        ) {
             return path.join(Config.getInstance().cfg<string>("python.virtualenv_path"), this.python_scripts_dir_name(), this.executable_name("python"));
         }
 
@@ -129,7 +132,10 @@ export class Helper {
 
     public static bin_dir(): string {
 
-        if (Config.getInstance().hasValue("python.virtualenv_path")) {
+        if (
+            Config.getInstance().cfg<boolean>("python.enable_pipenv") &&
+            Config.getInstance().hasValue("python.virtualenv_path")
+        ) {
             return path.join(Config.getInstance().cfg<string>("python.virtualenv_path"), this.python_scripts_dir_name());
         }
 

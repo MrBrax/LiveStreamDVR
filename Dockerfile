@@ -8,8 +8,7 @@ RUN mkdir -p /usr/local/share/twitchautomator \
 # RUN git clone https://github.com/MrBrax/TwitchAutomator /var/www/twitchautomator/
 
 # pipenv
-COPY ./Pipfile /usr/local/share/twitchautomator/
-COPY ./Pipfile.lock /usr/local/share/twitchautomator/
+COPY ./Pipfile ./Pipfile.lock ./requirements.txt ./binaries.txt /usr/local/share/twitchautomator/
 RUN pip install pipenv && cd /usr/local/share/twitchautomator && pipenv install --deploy --ignore-pipfile && pip cache purge
 
 # node
@@ -138,6 +137,7 @@ ENV TCD_DOCKER=1
 ENV TCD_WEBSOCKET_ENABLED=1
 # ENV TCD_CA_PATH=/tmp/cacert.pem
 ENV TCD_SERVER_PORT=8080
+ENV TCD_PYTHON_ENABLE_PIPENV=1
 
 # USER node
 WORKDIR /usr/local/share/twitchautomator/server
