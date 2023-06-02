@@ -1,20 +1,12 @@
-FROM python:3.11-slim-bullseye
+# syntax=docker/dockerfile:1.4
+FROM node:19-bullseye-slim
 
 # make app folder
 RUN mkdir -p /usr/local/share/twitchautomator \
     && chown -R node:node /usr/local/share/twitchautomator \
     && chmod -R 775 /usr/local/share/twitchautomator
-# COPY --chown=node:node --chmod=775 . /usr/local/share/twitchautomator/
-# RUN git clone https://github.com/MrBrax/TwitchAutomator /var/www/twitchautomator/
 
-# pipenv
-COPY ./Pipfile ./Pipfile.lock ./requirements.txt ./binaries.txt /usr/local/share/twitchautomator/
-RUN pip install pipenv && cd /usr/local/share/twitchautomator && pipenv install --deploy --ignore-pipfile && pip cache purge
-
-# node
-FROM node:19-bullseye-slim
-# USER root
-
+# internal docker build args for build date and dev mode
 ARG IS_DEV
 ARG BUILD_DATE
 ENV IS_DEV=${IS_DEV}
@@ -34,8 +26,17 @@ ENV VITE_BUILD_DATE=${BUILD_DATE}
 
 RUN apt-get update && apt-get install -y \
     ffmpeg mediainfo \
+    python3 python3-pip python3-wheel \
     bash git curl unzip rclone \
     && apt-get clean
+
+# copy over pipenv files and install dependencies for python
+WORKDIR /usr/local/share/twitchautomator
+COPY ./Pipfile ./Pipfile.lock ./requirements.txt ./binaries.txt /usr/local/share/twitchautomator/
+RUN pip install pipenv && cd /usr/local/share/twitchautomator && pipenv install --deploy --ignore-pipfile && pip cache purge
+
+# verify pipenv install
+RUN pipenv run python -c "import streamlink; print(streamlink.__version__)"
 
 # install yarn
 # RUN npm install -g yarn
