@@ -85,7 +85,7 @@ export class Helper {
         try {
             out = await Helper.execSimple(bin, ["--venv"], "pipenv --venv");
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get pipenv path: ${(error as Error).message}`, error);
+            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get pipenv path: ${(error as ExecReturn).stderr}`, error);
             return false;
         }
 
@@ -95,6 +95,11 @@ export class Helper {
         }
 
         const path = out.stdout.join("\n").trim();
+
+        if (!fs.existsSync(path)) {
+            Log.logAdvanced(Log.Level.ERROR, "helper", `Returned pipenv path does not exist: ${path}`);
+            return false;
+        }
 
         return path;
 
