@@ -39,7 +39,7 @@ RUN pip install pipenv && pip cache purge
 USER node 
 ENV PATH="${PATH}:/home/node/.local/bin"
 RUN cd /usr/local/share/twitchautomator && \
-    pipenv install --deploy --system --ignore-pipfile --verbose && \
+    pipenv install --deploy --ignore-pipfile --verbose && \
     pipenv --version && \
     pipenv run python --version && \
     pipenv run streamlink --version
