@@ -103,6 +103,10 @@ export class LiveStreamDVR {
 
         Config.createFolders();
 
+        if (fs.existsSync(path.join(BaseConfigCacheFolder.cache, "is_running"))) {
+            console.error(chalk.red("Application did not exit cleanly, please check logs for more information. Will continue to run."));
+        }
+
         KeyValue.getInstance().load();
 
         Config.getInstance().loadConfig(); // load config, calls after this will work if config is required
@@ -163,6 +167,8 @@ export class LiveStreamDVR {
         Log.logAdvanced(Log.Level.SUCCESS, "config", "Loading config stuff done.");
 
         Config.getInstance().initialised = true;
+
+        fs.writeFileSync(path.join(BaseConfigCacheFolder.cache, "is_running"), "true");
 
         // TwitchHelper.refreshUserAccessToken();
 
@@ -474,6 +480,7 @@ export class LiveStreamDVR {
             TwitchHelper.removeAllEventWebsockets();
             if (timeout !== undefined) clearTimeout(timeout);
             if (LiveStreamDVR.getInstance().diskSpaceInterval) clearInterval(LiveStreamDVR.getInstance().diskSpaceInterval);
+            if (fs.existsSync(path.join(BaseConfigCacheFolder.cache, "is_running"))) fs.unlinkSync(path.join(BaseConfigCacheFolder.cache, "is_running"));
             console.log(chalk.red("Finished tasks, bye bye."));
             // process.exit(0);
         });

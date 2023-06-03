@@ -1342,7 +1342,7 @@ export class TwitchChannel extends BaseChannel {
             return false;
         }
 
-        Log.logAdvanced(Log.Level.INFO, "channel", `Querying streams for streamer id ${streamer_id}`);
+        Log.logAdvanced(Log.Level.INFO, "channel", `Querying streams for streamer id ${streamer_id} returned ${json.data.length} streams`);
 
         return json.data ?? false;
     }
