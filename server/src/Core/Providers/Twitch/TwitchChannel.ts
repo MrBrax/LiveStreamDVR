@@ -1861,17 +1861,21 @@ export class TwitchChannel extends BaseChannel {
         const subscriptions = await TwitchHelper.getSubsList();
 
         if (!subscriptions) {
+            Log.logAdvanced(Log.Level.ERROR, "tw.ch.unsubWebhook", "Failed to get subscriptions list, or no subscriptions found.");
             return false;
         }
 
         const streamer_login = await TwitchChannel.channelLoginFromId(channel_id);
 
+        let user_subscriptions_amount = 0;
         let unsubbed = 0;
         for (const sub of subscriptions) {
 
             if (sub.condition.broadcaster_user_id !== channel_id) {
                 continue;
             }
+
+            user_subscriptions_amount++;
 
             const unsub = await TwitchHelper.eventSubUnsubscribe(sub.id);
 
@@ -1893,7 +1897,9 @@ export class TwitchChannel extends BaseChannel {
 
         }
 
-        return unsubbed === subscriptions.length;
+        Log.logAdvanced(Log.Level.INFO, "tw.ch.unsubWebhook", `Unsubscribed from ${unsubbed}/${user_subscriptions_amount} subscriptions for ${channel_id} (${streamer_login})`);
+
+        return unsubbed === user_subscriptions_amount;
 
     }
 
