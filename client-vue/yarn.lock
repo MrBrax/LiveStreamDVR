@@ -5362,7 +5362,7 @@ __metadata:
     sass: ^1.55.0
     typescript: ^5.0.4
     vite: ^4.3.9
-    vite-plugin-pwa: ^0.16.0
+    vite-plugin-pwa: ^0.16.3
     vitest: ^0.25.1
     vue: ^3.3.4
     vue-chartjs: ^4.1.2
@@ -7355,9 +7355,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"vite-plugin-pwa@npm:^0.16.0":
-  version: 0.16.0
-  resolution: "vite-plugin-pwa@npm:0.16.0"
+"vite-plugin-pwa@npm:^0.16.3":
+  version: 0.16.3
+  resolution: "vite-plugin-pwa@npm:0.16.3"
   dependencies:
     debug: ^4.3.4
     fast-glob: ^3.2.12
@@ -7368,7 +7368,7 @@ __metadata:
     vite: ^3.1.0 || ^4.0.0
     workbox-build: ^7.0.0
     workbox-window: ^7.0.0
-  checksum: d02e04d85636210a8a1a7337577de335e9bbfa9c4ca4626b2a1626603b0021bd5f713eff5ee20dd0afa97ff38564ac81fcf0b553046ad2b4dca7d41433339444
+  checksum: 45d4cc3bbda0e5a9e162c49b83dbe7aaae48aa0aedeee77591904334f8526f6ca9a8bb14e4eb144b449c692d677dc94f401d4b11676b0160ace4b7be1cd16893
   languageName: node
   linkType: hard
 

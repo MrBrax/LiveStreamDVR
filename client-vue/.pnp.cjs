@@ -65,7 +65,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["sass", "npm:1.55.0"],\
             ["typescript", "patch:typescript@npm%3A5.0.4#~builtin<compat/typescript>::version=5.0.4&hash=b5f058"],\
             ["vite", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:4.3.9"],\
-            ["vite-plugin-pwa", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:0.16.0"],\
+            ["vite-plugin-pwa", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:0.16.3"],\
             ["vitest", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:0.25.1"],\
             ["vue", "npm:3.3.4"],\
             ["vue-chartjs", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:4.1.2"],\
@@ -7150,7 +7150,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["sass", "npm:1.55.0"],\
             ["typescript", "patch:typescript@npm%3A5.0.4#~builtin<compat/typescript>::version=5.0.4&hash=b5f058"],\
             ["vite", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:4.3.9"],\
-            ["vite-plugin-pwa", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:0.16.0"],\
+            ["vite-plugin-pwa", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:0.16.3"],\
             ["vitest", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:0.25.1"],\
             ["vue", "npm:3.3.4"],\
             ["vue-chartjs", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:4.1.2"],\
@@ -9451,17 +9451,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["vite-plugin-pwa", [\
-        ["npm:0.16.0", {\
-          "packageLocation": "./.yarn/cache/vite-plugin-pwa-npm-0.16.0-748a92712c-d02e04d856.zip/node_modules/vite-plugin-pwa/",\
+        ["npm:0.16.3", {\
+          "packageLocation": "./.yarn/cache/vite-plugin-pwa-npm-0.16.3-685462ef3c-45d4cc3bbd.zip/node_modules/vite-plugin-pwa/",\
           "packageDependencies": [\
-            ["vite-plugin-pwa", "npm:0.16.0"]\
+            ["vite-plugin-pwa", "npm:0.16.3"]\
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:0.16.0", {\
-          "packageLocation": "./.yarn/__virtual__/vite-plugin-pwa-virtual-15e776663c/0/cache/vite-plugin-pwa-npm-0.16.0-748a92712c-d02e04d856.zip/node_modules/vite-plugin-pwa/",\
+        ["virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:0.16.3", {\
+          "packageLocation": "./.yarn/__virtual__/vite-plugin-pwa-virtual-8f8bcf7b66/0/cache/vite-plugin-pwa-npm-0.16.3-685462ef3c-45d4cc3bbd.zip/node_modules/vite-plugin-pwa/",\
           "packageDependencies": [\
-            ["vite-plugin-pwa", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:0.16.0"],\
+            ["vite-plugin-pwa", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:0.16.3"],\
             ["@types/vite", null],\
             ["@types/workbox-build", null],\
             ["@types/workbox-window", null],\
