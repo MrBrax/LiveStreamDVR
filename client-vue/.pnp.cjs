@@ -47,7 +47,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@vue/tsconfig", "npm:0.4.0"],\
             ["axios", "npm:1.4.0"],\
             ["c8", "npm:7.12.0"],\
-            ["chart.js", "npm:3.9.1"],\
+            ["chart.js", "npm:4.3.0"],\
             ["core-js", "npm:3.30.2"],\
             ["date-fns", "npm:2.30.0"],\
             ["eslint", "npm:8.41.0"],\
@@ -68,7 +68,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["vite-plugin-pwa", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:0.16.3"],\
             ["vitest", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:0.25.1"],\
             ["vue", "npm:3.3.4"],\
-            ["vue-chartjs", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:4.1.2"],\
+            ["vue-chartjs", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:5.2.0"],\
             ["vue-i18n", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:9.3.0-beta.11"],\
             ["vue-observe-visibility", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:2.0.0-alpha.1"],\
             ["vue-router", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:4.2.2"],\
@@ -2860,6 +2860,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "linkType": "HARD"\
         }]\
       ]],\
+      ["@kurkle/color", [\
+        ["npm:0.3.2", {\
+          "packageLocation": "./.yarn/cache/@kurkle-color-npm-0.3.2-98f2086013-79e97b31f8.zip/node_modules/@kurkle/color/",\
+          "packageDependencies": [\
+            ["@kurkle/color", "npm:0.3.2"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
       ["@nodelib/fs.scandir", [\
         ["npm:2.1.5", {\
           "packageLocation": "./.yarn/cache/@nodelib-fs.scandir-npm-2.1.5-89c67370dd-a970d595bd.zip/node_modules/@nodelib/fs.scandir/",\
@@ -4577,10 +4586,11 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["chart.js", [\
-        ["npm:3.9.1", {\
-          "packageLocation": "./.yarn/cache/chart.js-npm-3.9.1-931bfaba91-9ab0c0ac01.zip/node_modules/chart.js/",\
+        ["npm:4.3.0", {\
+          "packageLocation": "./.yarn/cache/chart.js-npm-4.3.0-8c27842bcb-157ceaa381.zip/node_modules/chart.js/",\
           "packageDependencies": [\
-            ["chart.js", "npm:3.9.1"]\
+            ["chart.js", "npm:4.3.0"],\
+            ["@kurkle/color", "npm:0.3.2"]\
           ],\
           "linkType": "HARD"\
         }]\
@@ -7132,7 +7142,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["@vue/tsconfig", "npm:0.4.0"],\
             ["axios", "npm:1.4.0"],\
             ["c8", "npm:7.12.0"],\
-            ["chart.js", "npm:3.9.1"],\
+            ["chart.js", "npm:4.3.0"],\
             ["core-js", "npm:3.30.2"],\
             ["date-fns", "npm:2.30.0"],\
             ["eslint", "npm:8.41.0"],\
@@ -7153,7 +7163,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["vite-plugin-pwa", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:0.16.3"],\
             ["vitest", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:0.25.1"],\
             ["vue", "npm:3.3.4"],\
-            ["vue-chartjs", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:4.1.2"],\
+            ["vue-chartjs", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:5.2.0"],\
             ["vue-i18n", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:9.3.0-beta.11"],\
             ["vue-observe-visibility", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:2.0.0-alpha.1"],\
             ["vue-router", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:4.2.2"],\
@@ -9548,20 +9558,20 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["vue-chartjs", [\
-        ["npm:4.1.2", {\
-          "packageLocation": "./.yarn/cache/vue-chartjs-npm-4.1.2-be2d6d06a0-94d4c7c83f.zip/node_modules/vue-chartjs/",\
+        ["npm:5.2.0", {\
+          "packageLocation": "./.yarn/cache/vue-chartjs-npm-5.2.0-ca4b106330-e707bcbe44.zip/node_modules/vue-chartjs/",\
           "packageDependencies": [\
-            ["vue-chartjs", "npm:4.1.2"]\
+            ["vue-chartjs", "npm:5.2.0"]\
           ],\
           "linkType": "SOFT"\
         }],\
-        ["virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:4.1.2", {\
-          "packageLocation": "./.yarn/__virtual__/vue-chartjs-virtual-fa0077ad59/0/cache/vue-chartjs-npm-4.1.2-be2d6d06a0-94d4c7c83f.zip/node_modules/vue-chartjs/",\
+        ["virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:5.2.0", {\
+          "packageLocation": "./.yarn/__virtual__/vue-chartjs-virtual-ab6b5fb378/0/cache/vue-chartjs-npm-5.2.0-ca4b106330-e707bcbe44.zip/node_modules/vue-chartjs/",\
           "packageDependencies": [\
-            ["vue-chartjs", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:4.1.2"],\
+            ["vue-chartjs", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:5.2.0"],\
             ["@types/chart.js", null],\
             ["@types/vue", null],\
-            ["chart.js", "npm:3.9.1"],\
+            ["chart.js", "npm:4.3.0"],\
             ["vue", "npm:3.3.4"]\
           ],\
           "packagePeers": [\

@@ -1,7 +1,7 @@
 <template>
     <Line
-        :chart-options="chartOptions"
-        :chart-data="chartData"
+        :options="chartOptions"
+        :data="chartData"
         :chart-id="chartId"
         :dataset-id-key="datasetIdKey"
         :plugins="plugins"
@@ -28,7 +28,7 @@ const props = withDefaults(defineProps<{
     styles?: Partial<CSSStyleDeclaration>;
     width?: number;
     height?: number;
-    plugins?: Plugin<'line'>[];
+    plugins: Plugin<'line'>[];
 }>(), {
     width: 400,
     height: 400,
@@ -37,8 +37,8 @@ const props = withDefaults(defineProps<{
     plugins: () => [],
     datasetIdKey: 'id',
     chartId: 'chart',
-    chartData: () => ({ datasets: [] }),
-    chartOptions: () => ({}),
+    data: () => ({ datasets: [] }),
+    options: () => ({}),
 });
 
 /*
