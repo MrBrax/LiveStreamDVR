@@ -34,6 +34,5 @@ jobs:
           yarn buildlib
           cd ../client-vue
           yarn install --immutable --immutable-cache
-          yarn lint
           yarn test
           yarn build

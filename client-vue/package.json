@@ -4,8 +4,6 @@
   "private": true,
   "homepage": "https://github.com/MrBrax/LiveStreamDVR",
   "scripts": {
-    "lint": "vue-tsc --noEmit",
-    "eslint": "eslint",
     "dev": "vite",
     "build": "run-p type-check build-only",
     "preview": "vite preview",
