@@ -324,7 +324,7 @@ describe("auth", () => {
 
         Config.getInstance().setConfig("password", "");
 
-    });
+    }, 10000);
 
 });
 

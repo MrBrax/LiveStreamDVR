@@ -167,7 +167,9 @@ export class LiveStreamDVR {
 
         Config.getInstance().initialised = true;
 
-        fs.writeFileSync(path.join(BaseConfigCacheFolder.cache, "is_running"), "true");
+        if (fs.existsSync(BaseConfigCacheFolder.cache)) {
+            fs.writeFileSync(path.join(BaseConfigCacheFolder.cache, "is_running"), "true");
+        }
 
         // TwitchHelper.refreshUserAccessToken();
 

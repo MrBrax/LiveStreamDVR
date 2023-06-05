@@ -142,11 +142,18 @@ export class Config {
         }
 
         const field = Config.getSettingField(key);
-        if (field && field.type === "string") {
-            if (this.config[key] === false || this.config[key] === true) {
-                return false; // strings should not be booleans, must be a mistake
+        if (field) {
+            if (field.type === "string") {
+                if (this.config[key] === false || this.config[key] === true) {
+                    return false; // strings should not be booleans, must be a mistake
+                }
+            } else if (field.type === "boolean") {
+                if (this.config[key] === false) {
+                    return false; // not sure if this is a good idea
+                }
             }
         }
+
 
         return true;
 

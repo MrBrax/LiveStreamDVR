@@ -97,20 +97,20 @@ describe("Config", () => {
         expect(config.hasValue("password")).toBe(false);
 
         // config value is false
-        config.setConfig("password", false as any);
-        expect(config.hasValue("password")).toBe(true);
+        config.setConfig("trust_proxy", false);
+        expect(config.hasValue("trust_proxy")).toBe(false);
 
         // config value is true
-        config.setConfig("password", true as any);
-        expect(config.hasValue("password")).toBe(true);
+        config.setConfig("trust_proxy", true);
+        expect(config.hasValue("trust_proxy")).toBe(true);
 
         // config value is 0
-        config.setConfig("password", 0);
-        expect(config.hasValue("password")).toBe(true);
+        config.setConfig("server_port", 0);
+        expect(config.hasValue("server_port")).toBe(true);
 
         // config value is 1
-        config.setConfig("password", 1);
-        expect(config.hasValue("password")).toBe(true);
+        config.setConfig("server_port", 1);
+        expect(config.hasValue("server_port")).toBe(true);
 
         // env value is set
         config.unsetConfig("password");
