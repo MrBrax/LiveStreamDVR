@@ -1,5 +1,17 @@
 import { Pagination } from "./Shared";
 
+export interface StreamRequestParams {
+    user_id?: string;
+    user_login?: string;
+    game_id?: string;
+    type?: "all" | "live";
+    language?: string;
+    first?: number;
+    before?: string;
+    after?: string;
+}
+
+
 export interface Stream {
     id: string;
     user_id: string;

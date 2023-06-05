@@ -1,5 +1,18 @@
-FROM node:18-bullseye-slim
-# USER root
+# syntax=docker/dockerfile:1.4
+FROM node:19-bullseye-slim
+
+# make app folder
+RUN mkdir -p /usr/local/share/twitchautomator \
+    && chown -R node:node /usr/local/share/twitchautomator \
+    && chmod -R 775 /usr/local/share/twitchautomator
+
+# internal docker build args for build date and dev mode
+ARG IS_DEV
+ARG BUILD_DATE
+ENV IS_DEV=${IS_DEV}
+ENV VITE_IS_DEV=${IS_DEV}
+ENV BUILD_DATE=${BUILD_DATE}
+ENV VITE_BUILD_DATE=${BUILD_DATE}
 
 # system packages
 #RUN apk --no-cache add \
@@ -12,10 +25,26 @@ FROM node:18-bullseye-slim
 #    bash icu-libs krb5-libs libgcc libintl libssl1.1 libstdc++ zlib fontconfig
 
 RUN apt-get update && apt-get install -y \
-    python3 python3-pip \
     ffmpeg mediainfo \
+    python3 python3-pip python3-wheel \
     bash git curl unzip rclone \
     && apt-get clean
+
+# copy over pipenv files and install dependencies for python
+# WORKDIR /usr/local/share/twitchautomator
+COPY ./Pipfile ./Pipfile.lock ./requirements.txt ./binaries.txt /usr/local/share/twitchautomator/
+# install pipenv globally
+RUN pip install pipenv && pip cache purge
+# switch to node user to install pipenv dependencies
+USER node 
+ENV PATH="${PATH}:/home/node/.local/bin"
+RUN cd /usr/local/share/twitchautomator && \
+    pipenv install --deploy --ignore-pipfile --verbose && \
+    pipenv --version && \
+    pipenv run python --version && \
+    pipenv run streamlink --version
+
+USER root
 
 # install yarn
 # RUN npm install -g yarn
@@ -23,17 +52,10 @@ RUN apt-get update && apt-get install -y \
 # libfontconfig1 can't be found
 
 # pip packages
-COPY ./requirements.txt /tmp/requirements.txt
-RUN pip install -r /tmp/requirements.txt \
-    && rm /tmp/requirements.txt \
-    && pip cache purge
-
-# copy app
-RUN mkdir -p /usr/local/share/twitchautomator \
-    && chown -R node:node /usr/local/share/twitchautomator \
-    && chmod -R 775 /usr/local/share/twitchautomator
-# COPY --chown=node:node --chmod=775 . /usr/local/share/twitchautomator/
-# RUN git clone https://github.com/MrBrax/TwitchAutomator /var/www/twitchautomator/
+# COPY ./requirements.txt /tmp/requirements.txt
+# RUN pip install -r /tmp/requirements.txt \
+#     && rm /tmp/requirements.txt \
+#     && pip cache purge
 
 # common
 COPY --chown=node:node --chmod=775 ./common /usr/local/share/twitchautomator/common
@@ -124,6 +146,7 @@ ENV TCD_DOCKER=1
 ENV TCD_WEBSOCKET_ENABLED=1
 # ENV TCD_CA_PATH=/tmp/cacert.pem
 ENV TCD_SERVER_PORT=8080
+ENV TCD_PYTHON_ENABLE_PIPENV=1
 
 # USER node
 WORKDIR /usr/local/share/twitchautomator/server

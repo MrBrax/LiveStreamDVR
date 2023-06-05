@@ -9,7 +9,7 @@ interface StreamOnlineEvent {
     broadcaster_user_id: string;
     broadcaster_user_login: string;
     broadcaster_user_name: string;
-    type: string;
+    type: "live" | "playlist" | "watch_party" | "premiere" | "rerun";
 
     /** Date, 2022-02-23T00:47:32Z */
     started_at: string;

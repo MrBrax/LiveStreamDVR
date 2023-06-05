@@ -77,7 +77,7 @@ Hub: https://hub.docker.com/r/mrbrax/twitchautomator
 ### Manual build
 Run `docker-compose up --build -d` in the app directory. The `docker-compose.yml` file is required.
 
-If you want the public webapp to have a custom base folder, you must provide `BASE_URL` and `VUE_APP_BASE_URL` in the environment variable settings.
+If you want the public webapp to have a custom base folder, you must provide `BASE_URL` and `VITE_BASE_URL` in the environment variable settings.
 
 ---
 
@@ -86,7 +86,7 @@ If you want the public webapp to have a custom base folder, you must provide `BA
 ### Main requirements
 - [node.js](https://nodejs.org/) 18+
 - npm and yarn 3+
-- Python 3.8+
+- Python 3.11+
 - [pip](https://pypi.org/project/pip/)
 - [FFmpeg](https://ffmpeg.org/download.html)
 - [MediaInfo](https://mediaarea.net/en/MediaInfo)

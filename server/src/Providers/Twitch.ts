@@ -24,6 +24,9 @@ export interface ExecReturn {
     stdout: string[];
     stderr: string[];
     code: number;
+    bin?: string;
+    args?: string[];
+    what?: string;
 }
 
 export interface RemuxReturn {
@@ -34,7 +37,7 @@ export interface RemuxReturn {
 }
 
 export class TwitchHelper {
-    static axios: Axios | undefined;
+    private static axios: Axios | undefined;
 
     static accessToken = "";
     static accessTokenType?: "user" | "app";
@@ -79,7 +82,7 @@ export class TwitchHelper {
     static readonly TWITCH_DATE_FORMAT_MS = "yyyy-MM-dd'T'HH:mm:ss'.'SSS'Z'";
 
 
-    public static readonly eventWebsocketUrl = "wss://eventsub-beta.wss.twitch.tv/ws";
+    public static readonly eventWebsocketUrl = "wss://eventsub.wss.twitch.tv/ws";
     /** @deprecated */
     public static eventWebsocket: WebSocket | undefined;
     public static eventWebsockets: EventWebsocket[] = [];
@@ -113,6 +116,14 @@ export class TwitchHelper {
         } else {
             return await this.getAccessTokenUser(force);
         }
+    }
+
+    static getAxios(): Axios | undefined {
+        return this.axios;
+    }
+
+    static hasAxios(): boolean {
+        return this.getAxios() !== undefined;
     }
 
     static async getAccessTokenApp(force = false): Promise<string> {
@@ -788,6 +799,16 @@ export class TwitchHelper {
             },
         });
 
+        // interceptor for authorization header
+        TwitchHelper.axios.interceptors.request.use((config) => {
+            if (!config.headers) {
+                console.debug("No headers in config");
+                return config; // ???
+            }
+            config.headers["Authorization"] = `Bearer ${TwitchHelper.accessToken}`;
+            return config;
+        });
+
         console.log(chalk.green(`✔ Axios setup with ${TwitchHelper.accessTokenType} token.`));
 
     }
@@ -797,7 +818,10 @@ export class TwitchHelper {
             Log.logAdvanced(Log.Level.ERROR, "config", "Axios not initialized, can't update token");
             return false;
         }
+
+        // set authorization header for both default and instance
         TwitchHelper.axios.defaults.headers.common["Authorization"] = `Bearer ${TwitchHelper.accessToken}`;
+
         Log.censoredWords.add(TwitchHelper.accessToken);
         console.log(chalk.green(`✔ Axios token updated with ${TwitchHelper.accessTokenType} token.`));
         return true;
@@ -805,13 +829,13 @@ export class TwitchHelper {
 
     public static async getRequest<T>(url: string, config: AxiosRequestConfig = {}, retried = false): Promise<AxiosResponse<T>> {
 
-        if (!TwitchHelper.axios) {
+        if (!TwitchHelper.axios) { // TODO: use hasAxios() and getAxios() instead, but that won't type guard against undefined
             throw new Error("Axios is not initialized");
         }
 
         Log.logAdvanced(Log.Level.DEBUG, "tw.helper.getRequest", `Requesting GET ${url} with config ${JSON.stringify(config)}, retried: ${retried}`);
 
-        let response;
+        let response: AxiosResponse<T>;
         try {
             response = await TwitchHelper.axios.get<T>(url, config);
         } catch (error) {

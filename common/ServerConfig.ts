@@ -11,6 +11,9 @@ export const settingsFields: Record<string, SettingField<string> | SettingField<
     "bin_path.python": { group: "Binaries", text: "Python path", type: "string", "required": false },
     "bin_path.python3": { group: "Binaries", text: "Python3 path", type: "string", "required": false },
 
+    "python.enable_pipenv": { group: "Python", text: "Enable pipenv", type: "boolean", default: false },
+    "python.virtualenv_path": { group: "Python", text: "Virtualenv path", type: "string", "required": false },
+
     server_port: { group: "Basic", text: "Server port", type: "number", default: 8080 },
     basepath: { group: "Basic", text: "Base path", type: "string", help: "No trailing slash. For reverse proxy etc", "stripslash": true },
     instance_id: { group: "Basic", text: "Instance ID", type: "string", help: "Unique ID for this instance. Used for hook callbacks." },
@@ -86,10 +89,11 @@ export const settingsFields: Record<string, SettingField<string> | SettingField<
 
     "capture.twitch-api-header": {  group: "Capture", text: "Twitch API header", type: "string", },
     "capture.twitch-access-token-param": { group: "Capture", text: "Twitch access token param", type: "string", },
+    "capture.twitch-client-id": { group: "Capture", text: "Twitch client ID", type: "string", },
 
     "capture.twitch-ttv-lol-plugin": { group: "Capture", text: "Enable TTV LOL plugin", type: "boolean", default: false, new: true },
-    "capture.twitch-proxy-playlist": { group: "Capture", text: "Proxy playlist URL", help: "Separate by commas", type: "string", default: false, new: true },
-    "capture.twitch-proxy-playlist-exclude": { group: "Capture", text: "Proxy username exclude", help: "Separate by commas", type: "string", default: false, new: true },
+    "capture.twitch-proxy-playlist": { group: "Capture", text: "Proxy playlist URL", help: "Separate by commas", type: "string", new: true },
+    "capture.twitch-proxy-playlist-exclude": { group: "Capture", text: "Proxy username exclude", help: "Separate by commas", type: "string", new: true },
 
     // sub_lease: { group: "Advanced", text: "Subscription lease", type: "number", default: 604800 },
     api_client_id: { group: "Twitch", text: "Twitch client ID", type: "string", "required": true },
@@ -112,7 +116,8 @@ export const settingsFields: Record<string, SettingField<string> | SettingField<
     debug: { group: "Developer", text: "Debug", type: "boolean", default: false, help: "Verbose logging, extra file outputs, more information available. Not for general use.", "guest": true },
     app_verbose: { group: "Developer", text: "Verbose app output", type: "boolean", help: "Only verbose output" },
     dump_payloads: { group: "Developer", text: "Dump payloads", type: "boolean", default: false },
-    "debug.catch_global_exceptions": { group: "Developer", text: "Catch global exceptions", type: "boolean", default: false },
+    "debug.catch_global_exceptions": { group: "Developer", text: "Catch global exceptions", type: "boolean", default: false, help: "Requires restart" },
+    "debug.catch_global_rejections": { group: "Developer", text: "Catch global rejections", type: "boolean", default: false, help: "Requires restart" },
 
     // chat_compress: { group: "Advanced", text: "Compress chat with gzip (untested)", type: "boolean" },
     // relative_time: { group: "Interface", text: "Relative time", type: "boolean", help: "\"1 hour ago\" instead of 2020-01-01" },
@@ -152,9 +157,24 @@ export const settingsFields: Record<string, SettingField<string> | SettingField<
     discord_webhook: { group: "Notifications (Discord)", text: "Discord webhook", type: "string" },
 
     // pushover
-    "notifications.pushover.enabled": { group: "Notifications (Pushover)", text: "Enable Pushover notifications", type: "boolean", default: false },
-    "notifications.pushover.token": { group: "Notifications (Pushover)", text: "Pushover token", type: "string" },
-    "notifications.pushover.user": { group: "Notifications (Pushover)", text: "Pushover user", type: "string" },
+    "notifications.pushover.enabled": {
+        group: "Notifications (Pushover)",
+        text: "Enable Pushover notifications",
+        type: "boolean",
+        default: false
+    },
+    "notifications.pushover.token": {
+        group: "Notifications (Pushover)",
+        text: "Pushover token",
+        type: "string",
+        help: "API token",
+    },
+    "notifications.pushover.user": {
+        group: "Notifications (Pushover)",
+        text: "Pushover user",
+        type: "string",
+        help: "User recipient key",
+    },
 
     schedule_muted_vods: { group: "Schedules", text: "Check muted vods", type: "boolean", default: true },
     schedule_deleted_vods: { group: "Schedules", text: "Check deleted vods", type: "boolean", default: true },

@@ -256,9 +256,24 @@ export class BaseAutomator {
                 }
 
             }
+        } else if (previous_chapter?.game_id && !current_chapter.game_id) {
+            title = `${channel.displayName} is now streaming without a game!`;
+
+        } else if (!previous_chapter?.game_id && !current_chapter.game_id) {
+            title = `${channel.displayName} is still streaming without a game!`;
 
         } else if (previous_chapter?.title !== current_chapter.title) {
             title = `${channel.displayName} changed title, still playing/streaming ${current_chapter.game_name}!`;
+        }
+
+        if (!title) {
+            Log.logAdvanced(Log.Level.WARNING, "automator.notifyChapterChange", `No title generated for ${channel.displayName} chapter change.`, {
+                previous_chapter,
+                current_chapter,
+                body,
+                icon,
+                category,
+            });
         }
 
         ClientBroker.notify(title, body, icon, category, this.channel?.livestreamUrl);
@@ -1011,6 +1026,12 @@ export class BaseAutomator {
 
         if (data.includes("error: No playable streams found on this URL:")) {
             Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Capturing of ${basename} failed, no streams available!`);
+            ClientBroker.notify(
+                "Streamlink error",
+                `Capturing of ${basename} failed, no streams available!\nIs there a configuration error?`,
+                "",
+                "system"
+            );
         }
 
 

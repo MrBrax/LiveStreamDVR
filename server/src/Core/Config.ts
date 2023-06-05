@@ -102,6 +102,14 @@ export class Config {
             }
         }
 
+        // internal type conversion/fixing
+        const field = Config.getSettingField(key);
+        if (field && field.type === "string") {
+            if (this.config[key] === false || this.config[key] === true) {
+                return undefined as unknown as T;
+            }
+        }
+
         return <T>this.config[key]; // return value
 
     }
@@ -128,6 +136,24 @@ export class Config {
         if (this.config[key] === "") {
             return false;
         }
+
+        if (this.config[key] === null) {
+            return false;
+        }
+
+        const field = Config.getSettingField(key);
+        if (field) {
+            if (field.type === "string") {
+                if (this.config[key] === false || this.config[key] === true) {
+                    return false; // strings should not be booleans, must be a mistake
+                }
+            } else if (field.type === "boolean") {
+                if (this.config[key] === false) {
+                    return false; // not sure if this is a good idea
+                }
+            }
+        }
+
 
         return true;
 
@@ -286,6 +312,16 @@ export class Config {
             // TwitchConfig.saveConfig();
             */
 
+        }
+    }
+
+    unsetConfig(key: keyof typeof settingsFields): void {
+        if (!this.config) {
+            throw new Error("Config not loaded");
+        }
+
+        if (this.config[key] !== undefined) {
+            delete this.config[key];
         }
     }
 
@@ -460,6 +496,7 @@ export class Config {
         }
 
         // check if the vodplayer is built before starting the server
+        /*
         if (!fs.existsSync(path.join(BaseConfigFolder.vodplayer, "index.html"))) {
             console.error(chalk.red("VOD player is not built. Please run yarn build inside the twitch-vod-chat folder."));
             console.error(chalk.red(`Expected path: ${path.join(BaseConfigFolder.vodplayer, "index.html")}`));
@@ -468,6 +505,7 @@ export class Config {
         } else {
             console.log(chalk.green("VOD player is built: " + path.join(BaseConfigFolder.vodplayer, "index.html")));
         }
+        */
 
         // check if the chat dumper is built before starting the server
         if (!fs.existsSync(path.join(AppRoot, "twitch-chat-dumper", "build", "index.js"))) {
@@ -649,7 +687,12 @@ export class Config {
 
     hasEnvVar(key: keyof typeof settingsFields): boolean
     {
-        return process.env[`TCD_${key.toUpperCase().replaceAll(".", "_")}`] !== undefined;
+        const val = process.env[`TCD_${key.toUpperCase().replaceAll(".", "_")}`];
+
+        if (val === undefined) return false;
+        if (val === "") return false;
+
+        return true;
     }
 
     envVarValue(key: keyof typeof settingsFields): string | undefined

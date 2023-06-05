@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 import chalk from "chalk";
 import { LiveStreamDVR } from "./Core/LiveStreamDVR";
 import dotenv from "dotenv";
@@ -120,7 +121,7 @@ LiveStreamDVR.init().then(() => {
     baserouter.use("/api/v0", ApiRouter);
 
     // static files and storage
-    baserouter.use("/vodplayer", express.static(BaseConfigFolder.vodplayer));
+    // baserouter.use("/vodplayer", express.static(BaseConfigFolder.vodplayer));
     baserouter.use("/vods", express.static(BaseConfigDataFolder.vod));
     baserouter.use("/saved_vods", express.static(BaseConfigDataFolder.saved_vods));
     baserouter.use("/saved_clips", express.static(BaseConfigDataFolder.saved_clips));
@@ -163,10 +164,10 @@ LiveStreamDVR.init().then(() => {
             return;
         }
 
-        if (fpath.startsWith(`${basepath}/vodplayer/`)) {
-            res.sendFile(path.join(BaseConfigFolder.vodplayer, "index.html"));
-            return;
-        }
+        // if (fpath.startsWith(`${basepath}/vodplayer/`)) {
+        //     res.sendFile(path.join(BaseConfigFolder.vodplayer, "index.html"));
+        //     return;
+        // }
 
         res.sendFile(path.join(BaseConfigFolder.client, "index.html"));
         // next();
@@ -192,6 +193,17 @@ LiveStreamDVR.init().then(() => {
             console.log(chalk.greenBright(`Build date: ${fs.statSync(__filename).mtime.toLocaleString()} (${path.basename(__filename)})`));
         }
         console.log(chalk.greenBright(`Version: ${process.env.npm_package_version} running on node ${process.version} ${process.platform} 🦄`));
+
+        if (process.env.BUILD_DATE) {
+            console.log(chalk.greenBright("~ Detected CI build ~"));
+            console.log(chalk.greenBright(`Development: ${process.env.IS_DEV}`));
+            console.log(chalk.greenBright(`Build date: ${process.env.BUILD_DATE}`));
+            console.log(chalk.greenBright(`Version: ${process.env.VERSION}`));
+            console.log(chalk.greenBright(`VCS ref: ${process.env.VCS_REF}`));
+        } else {
+            console.log(chalk.greenBright("~ Detected local build ~"));
+        }
+
     });
 
     server.on("error", (err) => {
@@ -242,28 +254,33 @@ LiveStreamDVR.init().then(() => {
             LiveStreamDVR.shutdown("uncaught exception");
             // throw err;
         });
-        /*
-        process.on("unhandledRejection", function(err: Error, promise) {
+
+    }
+
+    if (Config.getInstance().cfg<boolean>("debug.catch_global_rejections")) {
+        process.on("unhandledRejection", function(reason: Error, promise) {
             console.error("Fatal error; Uncaught rejection");
-            console.error(err);
+            console.error("Error: ");
+            console.error(reason);
+            console.error("\nPromise: ");
             console.error(promise);
+            console.error("\nStack: ");
+            console.error(reason.stack);
             ClientBroker.broadcast({
                 action: "alert",
                 data: "Uncaught rejection, server will exit.",
             });
             ClientBroker.notify(
                 "Uncaught rejection, server will exit.",
-                err + "\n" + promise,
+                reason + "\n" + promise,
                 undefined,
                 "system"
             );
-            const errorText = `[${AppName} ${version} ${Config.getInstance().gitHash}]\nUNCAUGHT REJECTION\n${err.name}: ${err.message}\n${err.stack}\n\n${promise}`;
+            const errorText = `[${AppName} ${version} ${Config.getInstance().gitHash}]\nUNCAUGHT REJECTION\n${reason.name}: ${reason.message}\n${reason.stack}\n\n${promise}`;
             fs.writeFileSync(path.join(BaseConfigDataFolder.logs, "crash.log"), errorText);
-            shutdown();
+            LiveStreamDVR.shutdown("uncaught rejection");
             // throw err;
         });
-        */
-
         // Promise.reject("test");
     }
 

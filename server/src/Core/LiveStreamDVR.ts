@@ -102,6 +102,10 @@ export class LiveStreamDVR {
 
         Config.createFolders();
 
+        if (fs.existsSync(path.join(BaseConfigCacheFolder.cache, "is_running"))) {
+            console.error(chalk.red("Application did not exit cleanly, please check logs for more information. Will continue to run."));
+        }
+
         KeyValue.getInstance().load();
 
         Config.getInstance().loadConfig(); // load config, calls after this will work if config is required
@@ -144,7 +148,9 @@ export class LiveStreamDVR {
         await LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
         LiveStreamDVR.getInstance().startDiskSpaceInterval();
 
-        LiveStreamDVR.checkBinaryVersions();
+        await LiveStreamDVR.checkPythonVirtualEnv();
+
+        await LiveStreamDVR.checkBinaryVersions();
 
         // monitor for program exit
         // let saidGoobye = false;
@@ -160,6 +166,10 @@ export class LiveStreamDVR {
         Log.logAdvanced(Log.Level.SUCCESS, "config", "Loading config stuff done.");
 
         Config.getInstance().initialised = true;
+
+        if (fs.existsSync(BaseConfigCacheFolder.cache)) {
+            fs.writeFileSync(path.join(BaseConfigCacheFolder.cache, "is_running"), "true");
+        }
 
         // TwitchHelper.refreshUserAccessToken();
 
@@ -471,6 +481,7 @@ export class LiveStreamDVR {
             TwitchHelper.removeAllEventWebsockets();
             if (timeout !== undefined) clearTimeout(timeout);
             if (LiveStreamDVR.getInstance().diskSpaceInterval) clearInterval(LiveStreamDVR.getInstance().diskSpaceInterval);
+            if (fs.existsSync(path.join(BaseConfigCacheFolder.cache, "is_running"))) fs.unlinkSync(path.join(BaseConfigCacheFolder.cache, "is_running"));
             console.log(chalk.red("Finished tasks, bye bye."));
             // process.exit(0);
         });
@@ -542,7 +553,7 @@ export class LiveStreamDVR {
 
     public static getErrors(): string[] {
         const errors = [];
-        if (!TwitchHelper.axios) errors.push("Axios is not initialized. Make sure the client id and secret are set in the config.");
+        if (!TwitchHelper.hasAxios()) errors.push("Axios is not initialized. Make sure the client id and secret are set in the config.");
         if (!Config.getInstance().cfg("app_url") && Config.getInstance().cfg("app_url") !== "debug") errors.push("No app url set in the config."); // FIXME: contradicting
         if (!Config.getInstance().cfg("api_client_id")) errors.push("No client id set in the config.");
         if (!Config.getInstance().cfg("api_secret")) errors.push("No client secret set in the config.");
@@ -680,6 +691,7 @@ export class LiveStreamDVR {
 
     public static binaryVersions: Record<string, BinaryStatus> = {};
     public static async checkBinaryVersions() {
+        Log.logAdvanced(Log.Level.INFO, "dvr.bincheck", "Checking binary versions...");
         const bins = DVRBinaries();
         const pkgs = DVRPipPackages();
         for (const key in bins) {
@@ -704,4 +716,44 @@ export class LiveStreamDVR {
         }
 
     }
+
+    public static async checkPythonVirtualEnv() {
+
+        Log.logAdvanced(Log.Level.INFO, "dvr.venvcheck", "Checking python virtual environment...");
+
+        const is_enabled = Config.getInstance().cfg<boolean>("python.enable_pipenv");
+
+        if (!is_enabled) {
+            Log.logAdvanced(Log.Level.INFO, "dvr.venvcheck", "Python virtual environment is not enabled in config.");
+            return;
+        }
+
+        const has_pipenv = Helper.path_pipenv();
+        if (!has_pipenv) {
+            Log.logAdvanced(Log.Level.ERROR, "dvr.venvcheck", "Python virtual environment is enabled but pipenv is not found. Is it installed?");
+            return;
+        }
+
+        const venv_path = await Helper.path_venv();
+        if (!venv_path && Helper.path_pipenv()) {
+            console.log(chalk.red("Python virtual environment is enabled but not found."));
+            console.log(chalk.red("Please run 'pipenv install' in the root folder."));
+            process.exit(1);
+        }
+
+        if (!venv_path) {
+            Log.logAdvanced(Log.Level.ERROR, "dvr.venvcheck", "Python virtual environment is not enabled (not found).");
+            return;
+        }
+
+        if (venv_path !== Config.getInstance().cfg("python.virtualenv_path")) {
+            Log.logAdvanced(Log.Level.INFO, "dvr.venvcheck", "Updating python virtual environment path in config.");
+            Config.getInstance().setConfig("python.virtualenv_path", venv_path);
+            Config.getInstance().saveConfig();
+        }
+
+        Log.logAdvanced(Log.Level.INFO, "dvr.venvcheck", `Python virtual environment path: ${venv_path}`);
+
+    }
+
 }

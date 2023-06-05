@@ -7,7 +7,7 @@ import { AudioStream, FFProbe, VideoStream } from "@common/FFProbe";
 import { VideoMetadata } from "@common/MediaInfo";
 import { ProxyVideo } from "@common/Proxies/Video";
 import { Clip, ClipsResponse } from "@common/TwitchAPI/Clips";
-import { Video, VideosResponse } from "@common/TwitchAPI/Video";
+import { VideoRequestParams, Video, VideosResponse } from "@common/TwitchAPI/Video";
 import axios from "axios";
 import chalk from "chalk";
 import chokidar from "chokidar";
@@ -537,7 +537,7 @@ export class TwitchVOD extends BaseVOD {
 
         Log.logAdvanced(Log.Level.INFO, "vod.matchProviderVod", `Trying to match ${this.basename} to provider...`);
 
-        const channel_videos = await TwitchVOD.getVideos(this.getChannel().internalId);
+        const channel_videos = await TwitchVOD.getLatestVideos(this.getChannel().internalId);
         if (!channel_videos) {
             Log.logAdvanced(Log.Level.ERROR, "vod.matchProviderVod", `No videos returned from streamer of ${this.basename}`);
             this.twitch_vod_neversaved = true;
@@ -1053,6 +1053,22 @@ export class TwitchVOD extends BaseVOD {
         }
 
         return false;
+
+    }
+
+    public static async checkValidVods(ids: string[]): Promise<Record<string, boolean>> {
+
+        const results: Record<string, boolean> = {};
+
+        const videos = await TwitchVOD.getVideosRecord(ids);
+
+        if (!videos) throw new Error("No videos returned from Twitch");
+
+        for (const id of ids) {
+            results[id] = videos[id] !== false;
+        }
+
+        return results;
 
     }
 
@@ -1982,14 +1998,18 @@ export class TwitchVOD extends BaseVOD {
     static async getVideo(video_id: string): Promise<false | Video> {
         if (!video_id) throw new Error("No video id");
 
-        if (!TwitchHelper.axios) {
+        if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
         }
 
         let response;
 
         try {
-            response = await TwitchHelper.getRequest<VideosResponse>(`/helix/videos/?id=${video_id}`);
+            response = await TwitchHelper.getRequest<VideosResponse>("/helix/videos/", {
+                params: {
+                    id: video_id,
+                } as VideoRequestParams,
+            });
         } catch (err) {
             Log.logAdvanced(Log.Level.ERROR, "vod.getVideo", `Tried to get video id ${video_id} but got error ${(err as Error).message}`);
             if (axios.isAxiosError(err)) {
@@ -2012,17 +2032,92 @@ export class TwitchVOD extends BaseVOD {
 
     }
 
-    static async getVideos(channel_id: string): Promise<false | Video[]> {
+    /**
+     * Get information about multiple videos in a single request, returns an array of videos
+     * @param ids 
+     * @returns
+     */
+    static async getVideos(ids: string[]): Promise<false | Video[]> {
+
+        if (!ids || ids.length == 0) throw new Error("No video ids");
+
+        if (!TwitchHelper.hasAxios()) {
+            throw new Error("Axios is not initialized");
+        }
+
+        Log.logAdvanced(Log.Level.DEBUG, "vod.getVideos", `Getting videos ${ids.join(", ")}`);
+
+        let response;
+
+        try {
+            response = await TwitchHelper.getRequest<VideosResponse>("/helix/videos/", {
+                params: {
+                    id: ids,
+                } as VideoRequestParams,
+            });
+        } catch (err) {
+            Log.logAdvanced(Log.Level.ERROR, "vod.getVideos", `Tried to get videos ${ids.join(", ")} but got error ${(err as Error).message}`);
+            if (axios.isAxiosError(err)) {
+                if (err.response && err.response.status === 404) {
+                    return false;
+                }
+                throw new Error(`Tried to get videos ${ids.join(", ")} but got error: ${(err as Error).message}`);
+
+            }
+
+            return false;
+
+        }
+
+        const json = response.data;
+
+        if (json.data.length === 0) {
+            Log.logAdvanced(Log.Level.ERROR, "vod.getVideos", `Tried to get videos ${ids.join(", ")} but got no data`);
+            return false;
+        }
+
+        return json.data;
+
+    }
+
+    /**
+     * Get information about multiple videos in a single request, returns a record with the video id as key and the video as value
+     * @param ids 
+     * @returns 
+     */
+    static async getVideosRecord(ids: string[]): Promise<Record<string, Video | false> | false> {
+
+        const videos = await TwitchVOD.getVideos(ids);
+
+        if (!videos) return false;
+
+        const ret: Record<string, Video | false> = {};
+
+        for (const video of videos) {
+            ret[video.id] = video;
+        }
+
+        return ret;
+
+    }
+
+    static async getLatestVideos(channel_id: string): Promise<false | Video[]> {
         if (!channel_id) throw new Error("No channel id");
 
-        if (!TwitchHelper.axios) {
+        if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
         }
 
         let response;
 
         try {
-            response = await TwitchHelper.getRequest<VideosResponse>(`/helix/videos?first=100&user_id=${channel_id}`);
+            response = await TwitchHelper.getRequest<VideosResponse>("/helix/videos/", {
+                params: {
+                    user_id: channel_id,
+                    first: 100,
+                    // type: "archive",
+                } as VideoRequestParams,
+            });
         } catch (e) {
             Log.logAdvanced(Log.Level.ERROR, "vod.getVideos", `Tried to get videos for channel id ${channel_id} but got error ${e}`);
             return false;
@@ -2041,14 +2136,20 @@ export class TwitchVOD extends BaseVOD {
     static async getVideosProxy(channel_id: string): Promise<false | ProxyVideo[]> {
         if (!channel_id) throw new Error("No channel id");
 
-        if (!TwitchHelper.axios) {
+        if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
         }
 
         let response;
 
         try {
-            response = await TwitchHelper.getRequest<VideosResponse>(`/helix/videos?first=100&user_id=${channel_id}`);
+            response = await TwitchHelper.getRequest<VideosResponse>("/helix/videos/", {
+                params: {
+                    user_id: channel_id,
+                    first: 100,
+                    // type: "archive",
+                } as VideoRequestParams,
+            });
         } catch (e) {
             Log.logAdvanced(Log.Level.ERROR, "vod.getVideosProxy", `Tried to get videos for channel id ${channel_id} but got error ${e}`);
             return false;
@@ -2080,14 +2181,18 @@ export class TwitchVOD extends BaseVOD {
     static async getVideoProxy(video_id: string): Promise<false | ProxyVideo> {
         if (!video_id) throw new Error("No video id");
 
-        if (!TwitchHelper.axios) {
+        if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
         }
 
         let response;
 
         try {
-            response = await TwitchHelper.getRequest<VideosResponse>(`/helix/videos/?id=${video_id}`);
+            response = await TwitchHelper.getRequest<VideosResponse>("/helix/videos/", {
+                params: {
+                    id: video_id,
+                } as VideoRequestParams,
+            });
         } catch (err) {
             Log.logAdvanced(Log.Level.ERROR, "vod.getVideoProxy", `Tried to get video id ${video_id} but got error ${(err as Error).message}`);
             if (axios.isAxiosError(err)) {
@@ -2127,7 +2232,7 @@ export class TwitchVOD extends BaseVOD {
 
         if (!broadcaster_id && !game_id && !id) throw new Error("No broadcaster id, game id or id provided");
 
-        if (!TwitchHelper.axios) {
+        if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
         }
 

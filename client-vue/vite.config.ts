@@ -61,6 +61,7 @@ export default defineConfig({
           /\/saved_clips\//,
           /\/cache\//,
           /\/logs\//,
+          /\/about\/license/,
         ],
         mode: process.env.NODE_ENV === 'development' ? 'development' : 'production',
         globPatterns: [

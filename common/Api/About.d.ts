@@ -21,6 +21,7 @@ export interface AboutData {
         [key: string]: BinaryStatus;
     };
     pip: Record<string, { comparator: string; version: string; }>;
+    memory: NodeJS.MemoryUsage;
 }
 
 export interface BinaryStatus {

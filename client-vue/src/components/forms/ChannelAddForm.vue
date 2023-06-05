@@ -306,6 +306,11 @@
         </div>
 
         <p><em>{{ t('forms.channel.live-channels-warning') }}</em></p>
+
+        <div class="notice is-warning">
+            <p>{{ t('forms.channel.subscriptions-warning') }}</p>
+        </div>
+
         <FormSubmit
             :form-status="formStatus"
             :form-status-text="formStatusText"

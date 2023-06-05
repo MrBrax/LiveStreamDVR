@@ -75,12 +75,52 @@ describe("Config", () => {
 
     it("hasValue", () => {
         const config = Config.getCleanInstance();
+        
         config.config = {};
+        
         expect(config.hasValue("password")).toBe(false);
+        
+        // config value is set
         config.setConfig("password", "test");
         expect(config.hasValue("password")).toBe(true);
+       
+        // config value is empty string
         config.setConfig("password", "");
         expect(config.hasValue("password")).toBe(false);
+
+        // config value is undefined
+        config.setConfig("password", undefined as any);
+        expect(config.hasValue("password")).toBe(false);
+
+        // config value is null
+        config.setConfig("password", null as any);
+        expect(config.hasValue("password")).toBe(false);
+
+        // config value is false
+        config.setConfig("trust_proxy", false);
+        expect(config.hasValue("trust_proxy")).toBe(false);
+
+        // config value is true
+        config.setConfig("trust_proxy", true);
+        expect(config.hasValue("trust_proxy")).toBe(true);
+
+        // config value is 0
+        config.setConfig("server_port", 0);
+        expect(config.hasValue("server_port")).toBe(true);
+
+        // config value is 1
+        config.setConfig("server_port", 1);
+        expect(config.hasValue("server_port")).toBe(true);
+
+        // env value is set
+        config.unsetConfig("password");
+        process.env.TCD_PASSWORD = "test";
+        expect(config.hasValue("password")).toBe(true);
+
+        // env value is undefined
+        process.env.TCD_PASSWORD = "";
+        expect(config.hasValue("password")).toBe(false);
+        
     });
 
     it("setting exists", () => {

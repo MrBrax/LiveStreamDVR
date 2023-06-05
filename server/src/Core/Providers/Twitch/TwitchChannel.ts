@@ -1,11 +1,13 @@
 import type { ApiTwitchChannel } from "@common/Api/Client";
 import { TwitchChannelConfig, VideoQuality } from "@common/Config";
 import { MuteStatus, Providers, SubStatus } from "@common/Defs";
+import { formatString } from "@common/Format";
 import type { LocalVideo } from "@common/LocalVideo";
 import { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
+import { VodBasenameTemplate } from "@common/Replacements";
 import type { Channel, ChannelsResponse } from "@common/TwitchAPI/Channels";
 import type { ErrorResponse, EventSubTypes } from "@common/TwitchAPI/Shared";
-import type { Stream, StreamsResponse } from "@common/TwitchAPI/Streams";
+import type { StreamRequestParams, Stream, StreamsResponse } from "@common/TwitchAPI/Streams";
 import type { SubscriptionRequest, SubscriptionResponse } from "@common/TwitchAPI/Subscriptions";
 import type { BroadcasterType, UsersResponse } from "@common/TwitchAPI/Users";
 import type { UserData } from "@common/User";
@@ -36,8 +38,6 @@ import { Webhook } from "../../Webhook";
 import { BaseChannel } from "../Base/BaseChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
-import { formatString } from "@common/Format";
-import { VodBasenameTemplate } from "@common/Replacements";
 
 export class TwitchChannel extends BaseChannel {
     public provider: Providers = "twitch";
@@ -356,6 +356,11 @@ export class TwitchChannel extends BaseChannel {
         const vods_in_channel_memory = this.getVods();
         const vods_in_main_memory = LiveStreamDVR.getInstance().getVodsByChannelUUID(this.uuid);
 
+        /**
+         * // TODO: rewrite all of this, it's a mess. it doesn't make any sense anymore when vods can be stored in customised folders.
+         * It always assumes the vod is in the channel folder and as such counts are not correct anymore.
+        /*
+
         if (vods_on_disk.length !== vods_in_channel_memory.length) {
             const removedVods = vods_in_channel_memory.filter(v => !vods_on_disk.includes(v.basename));
             ClientBroker.notify(
@@ -403,6 +408,7 @@ export class TwitchChannel extends BaseChannel {
                 vods_in_main_memory: vods_in_main_memory.map(v => v.basename),
             });
         }
+        */
 
     }
 
@@ -574,6 +580,9 @@ export class TwitchChannel extends BaseChannel {
             // this.profile_image_url = channel_data.profile_image_url;
             this.broadcaster_type = channel_data.broadcaster_type;
             // this.description = channel_data.description;
+
+            await this.checkIfChannelSavesVods();
+
             return true;
         }
 
@@ -721,7 +730,7 @@ export class TwitchChannel extends BaseChannel {
     public async checkIfChannelSavesVods(): Promise<boolean> {
         if (!this.internalId) return false;
         Log.logAdvanced(Log.Level.DEBUG, "channel", `Checking if channel ${this.internalName} saves vods`);
-        const videos = await TwitchVOD.getVideos(this.internalId);
+        const videos = await TwitchVOD.getLatestVideos(this.internalId);
         const state = videos && videos.length > 0;
         KeyValue.getInstance().setBool(`${this.internalName}.saves_vods`, state);
         if (state) {
@@ -742,7 +751,7 @@ export class TwitchChannel extends BaseChannel {
             throw new Error("Cannot download latest vod without userid");
         }
 
-        const vods = await TwitchVOD.getVideos(this.internalId);
+        const vods = await TwitchVOD.getLatestVideos(this.internalId);
 
         if (!vods || vods.length === 0) {
             throw new Error("No vods found");
@@ -886,7 +895,7 @@ export class TwitchChannel extends BaseChannel {
      */
     public async getVideos() {
         if (!this.userid) return false;
-        return await TwitchVOD.getVideos(this.userid);
+        return await TwitchVOD.getLatestVideos(this.userid);
     }
 
 
@@ -1159,7 +1168,7 @@ export class TwitchChannel extends BaseChannel {
 
         LiveStreamDVR.getInstance().addChannel(channel);
 
-        if (TwitchHelper.axios) { // bad hack?
+        if (TwitchHelper.hasAxios()) { // bad hack?
             const streams = await TwitchChannel.getStreams(channel.internalId);
             if (streams && streams.length > 0) {
                 KeyValue.getInstance().setBool(`${channel.internalName}.online`, true);
@@ -1311,12 +1320,16 @@ export class TwitchChannel extends BaseChannel {
     public static async getStreams(streamer_id: string): Promise<Stream[] | false> {
         let response;
 
-        if (!TwitchHelper.axios) {
+        if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
         }
 
         try {
-            response = await TwitchHelper.getRequest<StreamsResponse>(`/helix/streams?user_id=${streamer_id}`);
+            response = await TwitchHelper.getRequest<StreamsResponse>("/helix/streams", {
+                params: {
+                    user_id: streamer_id,
+                } as StreamRequestParams,
+            });
         } catch (error) {
             Log.logAdvanced(Log.Level.ERROR, "channel", `Could not get streams for ${streamer_id}: ${error}`);
             return false;
@@ -1329,7 +1342,7 @@ export class TwitchChannel extends BaseChannel {
             return false;
         }
 
-        Log.logAdvanced(Log.Level.INFO, "channel", `Querying streams for streamer id ${streamer_id}`);
+        Log.logAdvanced(Log.Level.INFO, "channel", `Querying streams for streamer id ${streamer_id} returned ${json.data.length} streams`);
 
         return json.data ?? false;
     }
@@ -1433,7 +1446,7 @@ export class TwitchChannel extends BaseChannel {
         }
         */
 
-        if (!TwitchHelper.axios) {
+        if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
         }
 
@@ -1618,7 +1631,7 @@ export class TwitchChannel extends BaseChannel {
         }
         */
 
-        if (!TwitchHelper.axios) {
+        if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
         }
 
@@ -1743,7 +1756,7 @@ export class TwitchChannel extends BaseChannel {
                 },
             };
 
-            if (!TwitchHelper.axios) {
+            if (!TwitchHelper.hasAxios()) {
                 throw new Error("Axios is not initialized");
             }
 
@@ -1848,17 +1861,21 @@ export class TwitchChannel extends BaseChannel {
         const subscriptions = await TwitchHelper.getSubsList();
 
         if (!subscriptions) {
+            Log.logAdvanced(Log.Level.ERROR, "tw.ch.unsubWebhook", "Failed to get subscriptions list, or no subscriptions found.");
             return false;
         }
 
         const streamer_login = await TwitchChannel.channelLoginFromId(channel_id);
 
+        let user_subscriptions_amount = 0;
         let unsubbed = 0;
         for (const sub of subscriptions) {
 
             if (sub.condition.broadcaster_user_id !== channel_id) {
                 continue;
             }
+
+            user_subscriptions_amount++;
 
             const unsub = await TwitchHelper.eventSubUnsubscribe(sub.id);
 
@@ -1869,11 +1886,20 @@ export class TwitchChannel extends BaseChannel {
                 KeyValue.getInstance().delete(`${channel_id}.substatus.${sub.type}`);
             } else {
                 Log.logAdvanced(Log.Level.ERROR, "tw.ch.unsubWebhook", `Failed to unsubscribe from ${channel_id}:${sub.type} (${streamer_login})`);
+
+                if (KeyValue.getInstance().has(`${channel_id}.sub.${sub.type}`)) {
+                    KeyValue.getInstance().delete(`${channel_id}.sub.${sub.type}`);
+                    KeyValue.getInstance().delete(`${channel_id}.substatus.${sub.type}`);
+                    Log.logAdvanced(Log.Level.WARNING, "tw.ch.unsubWebhook", `Removed subscription from cache for ${channel_id}:${sub.type} (${streamer_login})`);
+                }
+
             }
 
         }
 
-        return unsubbed === subscriptions.length;
+        Log.logAdvanced(Log.Level.INFO, "tw.ch.unsubWebhook", `Unsubscribed from ${unsubbed}/${user_subscriptions_amount} subscriptions for ${channel_id} (${streamer_login})`);
+
+        return unsubbed === user_subscriptions_amount;
 
     }
 
@@ -1931,7 +1957,7 @@ export class TwitchChannel extends BaseChannel {
                 },
             };
 
-            if (!TwitchHelper.axios) {
+            if (!TwitchHelper.hasAxios()) {
                 throw new Error("Axios is not initialized");
             }
 

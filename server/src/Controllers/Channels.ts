@@ -748,6 +748,27 @@ export async function SubscribeToChannel(req: express.Request, res: express.Resp
 
 }
 
+export async function UnsubscribeFromChannel(req: express.Request, res: express.Response): Promise<void> {
+
+    const channel = getChannelFromRequest(req);
+
+    if (!channel || !(channel instanceof TwitchChannel) || !channel.userid) {
+        res.status(400).send({
+            status: "ERROR",
+            message: req.t("route.channels.channel-uuid-not-found"),
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const sub = await channel.unsubscribe();
+
+    res.send({
+        status: "OK",
+        message: sub ? "Unsubscribed" : "ERROR",
+    });
+
+}
+
 export async function CheckSubscriptions(req: express.Request, res: express.Response): Promise<void> {
 
     const channel = getChannelFromRequest(req);

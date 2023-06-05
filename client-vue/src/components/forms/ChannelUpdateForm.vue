@@ -283,6 +283,13 @@
             </d-button>
             <d-button
                 size="small"
+                icon="trash"
+                @click="unsubscribeChannel"
+            >
+                {{ t('buttons.unsubscribe') }}
+            </d-button>
+            <d-button
+                size="small"
                 icon="list"
                 @click="checkSubscriptions"
             >
@@ -513,6 +520,23 @@ function subscribeChannel() {
 
     axios
         .post<ApiResponse>(`/api/v0/channels/${props.channel.uuid}/subscribe`)
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            emit("formSuccess", json);
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data && err.response.data.message) {
+                alert(err.response.data.message);
+            }
+        });
+}
+
+function unsubscribeChannel() {
+    axios
+        .post<ApiResponse>(`/api/v0/channels/${props.channel.uuid}/unsubscribe`)
         .then((response) => {
             const json = response.data;
             if (json.message) alert(json.message);

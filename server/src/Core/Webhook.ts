@@ -44,8 +44,15 @@ export class Webhook {
         // send webhook
         if (Config.getInstance().hasValue("webhook_url")) {
             Log.logAdvanced(Log.Level.DEBUG, "webhook", `Dispatching webhook for ${action}...`);
-            axios.post(Config.getInstance().cfg("webhook_url"), payload).catch(error => {
-                Log.logAdvanced(Log.Level.ERROR, "webhook", `Webhook error: ${error}`);
+            const url = Config.getInstance().cfg<string>("webhook_url");
+            axios.post(url, payload).then(response => {
+                Log.logAdvanced(Log.Level.DEBUG, "webhook", `Webhook response from '${url}': ${response.status} ${response.statusText}`);
+            }).catch(error => {
+                if (axios.isAxiosError(error)) {
+                    Log.logAdvanced(Log.Level.ERROR, "webhook", `Webhook error to '${url}': ${error.response?.status} ${error.response?.statusText}`, error);
+                } else {
+                    Log.logAdvanced(Log.Level.ERROR, "webhook", `Webhook error to '${url}': ${error}`, error);
+                }
             });
         } else {
             Log.logAdvanced(Log.Level.DEBUG, "webhook", `Not dispatching webhook for ${action} because no webhook_url is set.`);

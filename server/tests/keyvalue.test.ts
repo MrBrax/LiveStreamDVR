@@ -58,4 +58,30 @@ describe("keyvalue", () => {
         expect(kv.has("test6")).toBe(false);
     });
 
+    it("should wildcard delete", () => {
+        kv.set("test1", "test");
+        kv.set("test1a", "test");
+        kv.set("test1b", "test");
+        kv.set("test2", "test");
+        kv.set("test2a", "test");
+        kv.cleanWildcard("test1*");
+        expect(kv.has("test1")).toBe(false);
+        expect(kv.has("test1a")).toBe(false);
+        expect(kv.has("test1b")).toBe(false);
+        expect(kv.has("test2")).toBe(true);
+        expect(kv.has("test2a")).toBe(true);
+        kv.cleanWildcard("test2*");
+        expect(kv.has("test2")).toBe(false);
+        expect(kv.has("test2a")).toBe(false);
+    });
+
+    it("should set expiry", () => {
+        kv.set("expirytest", "test");
+        kv.setExpiry("expirytest", 1);
+        expect(kv.has("expirytest")).toBe(true);
+        setTimeout(() => {
+            expect(kv.has("expirytest")).toBe(false);
+        }, 1000);
+    });
+
 });

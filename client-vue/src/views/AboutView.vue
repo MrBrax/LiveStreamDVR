@@ -15,6 +15,7 @@
                             <tr>
                                 <th>Name</th>
                                 <th>Path</th>
+                                <th>License</th>
                                 <th>Min. version</th>
                                 <th>Version</th>
                                 <th>Status</th>
@@ -27,6 +28,12 @@
                             >
                                 <td>{{ id }}</td>
                                 <td>{{ bin.path }}</td>
+                                <td>
+                                    <a
+                                        :href="licensePath(id)"
+                                        target="_blank"
+                                    >Open</a>
+                                </td>
                                 <td>{{ bin.min_version || "?" }}</td>
                                 <td>{{ bin.version }}</td>
                                 <td
@@ -103,6 +110,23 @@
                         <li><strong>Frontend build:</strong> {{ clientMode }}</li>
                         <li><strong>Frontend verbose:</strong> {{ verboseClientVersion }}</li>
                     </ul>
+                </div>
+
+                <!-- memory -->
+                <div class="block">
+                    <h3>{{ t('about.memory') }}</h3>
+                    <ul v-if="'memory' in aboutData">
+                        <li><strong>Array buffers:</strong> {{ formatBytes(aboutData.memory.arrayBuffers) }}</li>
+                        <li><strong>External:</strong> {{ formatBytes(aboutData.memory.external) }}</li>
+                        <li><strong>Heap total:</strong> {{ formatBytes(aboutData.memory.heapTotal) }}</li>
+                        <li><strong>Heap used:</strong> {{ formatBytes(aboutData.memory.heapUsed) }}</li>
+                    </ul>
+                    <span
+                        v-else
+                        class="text-is-error"
+                    >
+                        {{ t('messages.data-error') }}
+                    </span>
                 </div>
 
                 <div class="block">
@@ -244,6 +268,7 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faRss, faBan, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from "vue-i18n";
 import axios from "axios";
+import { formatBytes } from "@/mixins/newhelpers";
 library.add(faRss, faBan, faSpinner);
 
 
@@ -273,6 +298,11 @@ const pipKeys = computed((): string => {
     }
     return Object.keys(aboutData.value.pip).join(" ");
 });
+
+function licensePath(id: string | number): string {
+    // return this.store.cfg("basepath") + "/LICENSES.txt#" + id;
+    return new URL("/api/v0/about/license?package_name=" + id, import.meta.url).href;
+}
 
 const licenseUrl = computed((): string => {
     // return this.store.cfg("basepath") + "/LICENSES.txt";
@@ -329,12 +359,15 @@ function fetchSubscriptions() {
 function unsubscribe(id: string) {
     subscriptionsLoading.value = true;
     axios
-        .delete(`/api/v0/subscriptions/${id}`)
+        .delete<ApiResponse>(`/api/v0/subscriptions/${id}`)
         .then((response) => {
             const json = response.data;
             console.debug("unsubscribe", json);
             subscriptionsLoading.value = false;
-            fetchSubscriptions();
+            if (json.status == "OK") {
+                // fetchSubscriptions();
+                subscriptions.value = subscriptions.value.filter((sub) => sub.id != id);
+            }
         })
         .catch((err) => {
             console.error("about error", err.response);

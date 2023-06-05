@@ -4,12 +4,16 @@ import { MuteStatus } from "@common/Defs";
 import { ClientBroker } from "../Core/ClientBroker";
 import {  Log } from "../Core/Log";
 import { generateStreamerList } from "../Helpers/StreamerList";
+import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 
 export async function fCheckDeletedVods(): Promise<string> {
 
     const streamerList = generateStreamerList();
 
     let output = "";
+
+    const videosToCheck: string[] = [];
+    // const videoStatusList: Record<string, boolean> = {};
 
     for (const channel of streamerList.channels) {
 
@@ -20,13 +24,42 @@ export async function fCheckDeletedVods(): Promise<string> {
 
             if (!vod.is_finalized) continue;
 
-            // if (!force && isInNotifyCache(`deleted_${vod.basename}`)) {
-            // 
-            // }
+            if (vod.twitch_vod_id) {
+                videosToCheck.push(vod.twitch_vod_id);
+            } else { // fallback
+                const check = await vod.checkValidVod(true);
+                if (vod.twitch_vod_id && check === false) {
+                    // notify
+                    // $this->sendNotify("{$vod->basename} deleted");
+                    output += `${vod.basename} deleted<br>\n`;
 
-            const check = await vod.checkValidVod(true);
+                    ClientBroker.notify(`${vod.basename} deleted`, "", "", "vodDeleted");
 
-            if (vod.twitch_vod_id && check === false) {
+                    // $this->addToNotifyCache("deleted_{$vod->basename}");
+                    Log.logAdvanced(Log.Level.INFO, "cron", `Cronjob deleted check: ${vod.basename} deleted`);
+                }
+
+            }
+
+        }
+
+    }
+
+    if (videosToCheck.length == 0) return "No vods to check";
+
+    const checkedVodsRecord = await TwitchVOD.checkValidVods(videosToCheck);
+
+    // DRY?
+    for (const channel of streamerList.channels) {
+
+        if (!(channel instanceof TwitchChannel)) continue;
+        if (!channel.getVods() || channel.getVods().length == 0) continue;
+
+        for (const vod of channel.getVods()) {
+
+            if (!vod.is_finalized) continue;
+
+            if (vod.twitch_vod_id && checkedVodsRecord[vod.twitch_vod_id] === false) {
                 // notify
                 // $this->sendNotify("{$vod->basename} deleted");
                 output += `${vod.basename} deleted<br>\n`;

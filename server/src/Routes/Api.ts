@@ -47,6 +47,7 @@ router.put("/channels/:uuid", AuthAdmin, Channels.UpdateChannel);
 router.delete("/channels/:uuid", AuthAdmin, Channels.DeleteChannel);
 router.get("/channels/:uuid/download/:video_id", AuthAdmin, Channels.DownloadVideo);
 router.post("/channels/:uuid/subscribe", AuthAdmin, Channels.SubscribeToChannel);
+router.post("/channels/:uuid/unsubscribe", AuthAdmin, Channels.UnsubscribeFromChannel);
 router.get("/channels/:uuid/checksubscriptions", AuthAdmin, Channels.CheckSubscriptions);
 router.post("/channels/:uuid/cleanup", AuthAdmin, Channels.CleanupChannelVods);
 router.post("/channels/:uuid/refresh", AuthAdmin, Channels.RefreshChannel);
@@ -92,6 +93,7 @@ router.put("/favourites", AuthAdmin, Favourites.SaveFavourites);
 router.patch("/favourites", AuthAdmin, Favourites.AddFavourite);
 
 router.get("/about", AuthAdmin, About.About);
+router.get("/about/license", AuthAdmin, About.License);
 
 router.get("/log/:filename/:startFrom(\\d+)", AuthAdmin, Log.GetLog);
 router.get("/log/:filename", AuthAdmin, Log.GetLog);

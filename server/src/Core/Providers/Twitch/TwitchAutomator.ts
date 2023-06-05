@@ -67,7 +67,10 @@ export class TwitchAutomator extends BaseAutomator {
         try {
             KeyValue.getInstance().setBool(`tw.eventsub.${messageId}.ack`, true);
             KeyValue.getInstance().setDate(`tw.eventsub.${messageId}.time`, new Date());
-            KeyValue.getInstance().cleanWildcard("tw.eventsub.", 60 * 60 * 24);
+            KeyValue.getInstance().setExpiry(`tw.eventsub.${messageId}.ack`, 60 * 60); // 1 hour
+            KeyValue.getInstance().setExpiry(`tw.eventsub.${messageId}.time`, 60 * 60); // 1 hour
+            // KeyValue.getInstance().cleanWildcard("tw.eventsub.*.ack");
+            // KeyValue.getInstance().cleanWildcard("tw.eventsub.*.time");
         } catch (error) {
             Log.logAdvanced(Log.Level.WARNING, "automator.handle", `Failed to set eventsub message ${messageId} KeyValues: ${(error as Error).message}`);
         }
@@ -405,12 +408,19 @@ export class TwitchAutomator extends BaseAutomator {
         // disable reruns
         cmd.push("--twitch-disable-reruns");
 
+        // one custom api header
         if (Config.getInstance().hasValue("capture.twitch-api-header")) {
             cmd.push("--twitch-api-header", Config.getInstance().cfg<string>("capture.twitch-api-header"));
         }
 
+        // access token param
         if (Config.getInstance().hasValue("capture.twitch-access-token-param")) {
             cmd.push("--twitch-access-token-param", Config.getInstance().cfg<string>("capture.twitch-access-token-param"));
+        }
+
+        // client id
+        if (Config.getInstance().hasValue("capture.twitch-client-id")) {
+            cmd.push("--twitch-api-header", `Client-ID=${Config.getInstance().cfg<string>("capture.twitch-client-id")}`);
         }
 
         // streamlink-ttvlol plugin
@@ -432,6 +442,23 @@ export class TwitchAutomator extends BaseAutomator {
 
         return cmd;
 
+    }
+
+    public captureTicker(source: "stdout" | "stderr", raw_data: Buffer): void {
+
+        super.captureTicker(source, raw_data); // call parent
+
+        const data = raw_data.toString();
+
+        if (data.includes("2bc4 fork")) {
+            Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", "Twitch streamlink-ttvlol plugin detected.");
+        }
+
+        const proxy_match = data.match(/Using playlist proxy: '(.*)'/);
+        if (proxy_match) {
+            Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", `Using playlist proxy: ${proxy_match[1]}`);
+        }
+        
     }
 
 }
