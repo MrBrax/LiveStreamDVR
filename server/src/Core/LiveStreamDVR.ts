@@ -76,7 +76,6 @@ export class LiveStreamDVR {
         console.log(chalk.green("Initialising..."));
         console.log(chalk.magenta(`Environment: ${process.env.NODE_ENV}`));
         console.log(chalk.magenta(`Running as user ${process.env.USER}`));
-        console.debug(process.env);
 
         console.log(`AppRoot: ${AppRoot}`);
         console.log(`DataRoot: ${DataRoot}`);

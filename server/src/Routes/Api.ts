@@ -93,6 +93,7 @@ router.put("/favourites", AuthAdmin, Favourites.SaveFavourites);
 router.patch("/favourites", AuthAdmin, Favourites.AddFavourite);
 
 router.get("/about", AuthAdmin, About.About);
+router.get("/about/license", AuthAdmin, About.License);
 
 router.get("/log/:filename/:startFrom(\\d+)", AuthAdmin, Log.GetLog);
 router.get("/log/:filename", AuthAdmin, Log.GetLog);

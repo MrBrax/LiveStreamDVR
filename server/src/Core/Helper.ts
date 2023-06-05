@@ -124,6 +124,67 @@ export class Helper {
 
     }
 
+    public static async get_pip_package_distinfo(package_name: string): Promise<string | false> {
+
+        let output;
+
+        package_name = package_name.toLowerCase().trim().replaceAll("-", "_");
+
+        try {
+            output = await Helper.execSimple("pip", ["show", package_name], `pip show ${package_name}`);
+        } catch (error) {
+            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get pip package info for ${package_name}: ${(error as ExecReturn).stderr}`, error);
+            return false;
+        }
+
+        if (output.code !== 0) {
+            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get pip package info for ${package_name}: ${output.stderr.join("\n")}`);
+            return false;
+        }
+
+        const lines = output.stdout.join("\n").split("\n");
+
+        const kv: Record<string, string> = lines.reduce((acc, line) => {
+            if (!line.includes(": ")) return acc;
+            const [key, value] = line.split(": ");
+            if (!key || !value) return acc;
+            acc[key.trim()] = value.trim();
+            return acc;
+        }, {} as Record<string, string>);
+
+        if (!kv["Location"]) {
+            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get pip package info for ${package_name}: Location not found`);
+            return false;
+        }
+
+        const distinfo_path = path.join(kv["Location"], `${package_name}-${kv["Version"]}.dist-info`);
+
+        if (!fs.existsSync(distinfo_path)) {
+            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get pip package info for ${package_name}: dist-info not found at '${distinfo_path}'`);
+            return false;
+        }
+
+        return distinfo_path;
+
+    }
+
+    public static async get_pip_package_license(package_name: string): Promise<string | false> {
+
+        const distinfo_path = await this.get_pip_package_distinfo(package_name);
+
+        if (!distinfo_path) return false;
+
+        const license_path = path.join(distinfo_path, "LICENSE");
+
+        if (!fs.existsSync(license_path)) {
+            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get pip package license for ${package_name}: LICENSE not found at ${license_path}`);
+            return false;
+        }
+
+        return license_path;
+
+    }
+
     // very bad
     public static path_ffprobe(): string | false {
         const f = this.path_ffmpeg();

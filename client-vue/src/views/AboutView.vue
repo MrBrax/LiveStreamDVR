@@ -15,6 +15,7 @@
                             <tr>
                                 <th>Name</th>
                                 <th>Path</th>
+                                <th>License</th>
                                 <th>Min. version</th>
                                 <th>Version</th>
                                 <th>Status</th>
@@ -27,6 +28,12 @@
                             >
                                 <td>{{ id }}</td>
                                 <td>{{ bin.path }}</td>
+                                <td>
+                                    <a
+                                        :href="licensePath(id)"
+                                        target="_blank"
+                                    >Open</a>
+                                </td>
                                 <td>{{ bin.min_version || "?" }}</td>
                                 <td>{{ bin.version }}</td>
                                 <td
@@ -291,6 +298,11 @@ const pipKeys = computed((): string => {
     }
     return Object.keys(aboutData.value.pip).join(" ");
 });
+
+function licensePath(id: string | number): string {
+    // return this.store.cfg("basepath") + "/LICENSES.txt#" + id;
+    return new URL("/api/v0/about/license?package_name=" + id, import.meta.url).href;
+}
 
 const licenseUrl = computed((): string => {
     // return this.store.cfg("basepath") + "/LICENSES.txt";
