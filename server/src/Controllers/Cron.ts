@@ -45,6 +45,8 @@ export async function fCheckDeletedVods(): Promise<string> {
 
     }
 
+    if (videosToCheck.length == 0) return "No vods to check";
+
     const checkedVodsRecord = await TwitchVOD.checkValidVods(videosToCheck);
 
     // DRY?

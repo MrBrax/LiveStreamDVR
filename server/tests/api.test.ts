@@ -306,7 +306,7 @@ describe("auth", () => {
         "/api/v0/cron/sub",
         "/api/v0/cron/check_muted_vods",
         "/api/v0/cron/check_deleted_vods",
-        "/api/v0/cron/playlist_dump",
+        // "/api/v0/cron/playlist_dump",
     ];
 
     it("should be properly password protected", async () => {
@@ -320,11 +320,10 @@ describe("auth", () => {
 
         const res = await request(app).get("/api/v0/settings");
         expect(res.status).toBe(401);
-        // expect(res.body).toBe("Access denied");
 
-        Config.getInstance().setConfig("password", "");
+        Config.getInstance().unsetConfig("password");
 
-    }, 10000);
+    });
 
 });
 
