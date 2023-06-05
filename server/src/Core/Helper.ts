@@ -65,11 +65,6 @@ export class Helper {
         return false;
     }
 
-    public static path_python3(): string | false {
-        if (Config.getInstance().hasValue("bin_path.python3")) return Config.getInstance().cfg<string>("bin_path.python3");
-        return false;
-    }
-
     /**
      * Get the path to the pipenv virtualenv, if it exists. Executes `pipenv --venv` to get the path.
      * @returns 
