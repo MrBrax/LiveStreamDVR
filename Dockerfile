@@ -68,7 +68,7 @@ COPY --chown=node:node --chmod=775 ./common /usr/local/share/twitchautomator/com
 # chat dumper
 COPY --chown=node:node --chmod=775 ./twitch-chat-dumper /usr/local/share/twitchautomator/twitch-chat-dumper
 RUN cd /usr/local/share/twitchautomator/twitch-chat-dumper \
-    && yarn install --immutable --immutable-cache \
+    && yarn \
     && yarn build \
     && rm -rf node_modules \
     && rm -rf .yarn/cache \
@@ -77,7 +77,7 @@ RUN cd /usr/local/share/twitchautomator/twitch-chat-dumper \
 # vod player
 COPY --chown=node:node --chmod=775 ./twitch-vod-chat /usr/local/share/twitchautomator/twitch-vod-chat
 RUN cd /usr/local/share/twitchautomator/twitch-vod-chat \
-    && yarn install --immutable --immutable-cache \
+    && yarn \
     && yarn build --base=/vodplayer \
     && yarn buildlib \
     && rm -rf node_modules \
@@ -87,7 +87,7 @@ RUN cd /usr/local/share/twitchautomator/twitch-vod-chat \
 # server
 COPY --chown=node:node --chmod=775 ./server /usr/local/share/twitchautomator/server
 RUN cd /usr/local/share/twitchautomator/server \
-    && yarn install --immutable --immutable-cache \
+    && yarn \
     && yarn lint:ts \
     && yarn build \
     && yarn run generate-licenses \
@@ -98,7 +98,7 @@ RUN cd /usr/local/share/twitchautomator/server \
 # client
 COPY --chown=node:node --chmod=775 ./client-vue /usr/local/share/twitchautomator/client-vue
 RUN cd /usr/local/share/twitchautomator/client-vue \
-    && yarn install --immutable --immutable-cache \
+    && yarn \
     && yarn build \
     && yarn run generate-licenses \
     && rm -rf node_modules \
