@@ -45,6 +45,13 @@ chmod +x /usr/local/bin/TwitchDownloaderCLI
 # clean up
 rm -rf /tmp/${TD_ARCHIVE}
 
+# create doc directory, maybe use local instead of share?
+mkdir -p /usr/share/doc/twitchdownloader
+
+# download readme and copyright (license)
+curl -fsSL https://raw.githubusercontent.com/lay295/TwitchDownloader/master/README.md -o /usr/share/doc/twitchdownloader/README.md
+curl -fsSL https://raw.githubusercontent.com/lay295/TwitchDownloader/master/LICENSE.txt -o /usr/share/doc/twitchdownloader/copyright
+
 # check if TwitchDownloaderCLI is installed, if not, exit with error
 if ! command -v TwitchDownloaderCLI &> /dev/null
 then

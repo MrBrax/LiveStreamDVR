@@ -72,14 +72,17 @@ export async function License(req: express.Request, res: express.Response): Prom
         return;
     }
 
-    const license_path = await Helper.get_pip_package_license(package_name);
+    let license_path = await Helper.get_pip_package_license(package_name);
 
     if (!license_path) {
-        res.status(404).send({
-            status: "ERROR",
-            error: "Package not found",
-        });
-        return;
+        license_path = Helper.get_bin_license(package_name);
+        if (!license_path) {
+            res.status(404).send({
+                status: "ERROR",
+                error: "License not found for either pip or bin package",
+            });
+            return;
+        }
     }
 
     const contents = fs.readFileSync(license_path, "utf-8").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
