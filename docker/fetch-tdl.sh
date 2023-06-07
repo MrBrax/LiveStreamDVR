@@ -8,11 +8,49 @@
 # https://github.com/lay295/TwitchDownloader
 
 set -euxo pipefail
+
+# set version
 TD_VERSION="1.53.0";
+
+# set arch, compatible with Linux-x64, LinuxArm, and LinuxArm64
+if [ "$(uname -m)" = "x86_64" ]; then
+    TD_ARCH="Linux-x64"
+elif [ "$(uname -m)" = "aarch64" ]; then
+    TD_ARCH="LinuxArm64"
+elif [ "$(uname -m)" = "armv7l" ]; then
+    TD_ARCH="LinuxArm"
+else
+    echo "Unsupported architecture"
+    exit
+fi
+
+# set archive name
+TD_ARCHIVE="TwitchDownloaderCLI-${TD_VERSION}-${TD_ARCH}.zip"
+
+# change directory
 cd /tmp/
-curl -fsSLO https://github.com/lay295/TwitchDownloader/releases/download/${TD_VERSION}/TwitchDownloaderCLI-${TD_VERSION}-Linux-x64.zip
-unzip TwitchDownloaderCLI-${TD_VERSION}-Linux-x64.zip
+
+# download
+curl -fsSLO https://github.com/lay295/TwitchDownloader/releases/download/${TD_VERSION}/${TD_ARCHIVE}
+
+# unzip
+unzip ${TD_ARCHIVE}
+
+# move to bin
 mv TwitchDownloaderCLI /usr/local/bin/TwitchDownloaderCLI
+
+# set permission
 chmod +x /usr/local/bin/TwitchDownloaderCLI
-rm -rf /tmp/TwitchDownloaderCLI-${TD_VERSION}-Linux-x64.zip
+
+# clean up
+rm -rf /tmp/${TD_ARCHIVE}
+
+# check if TwitchDownloaderCLI is installed, if not, exit with error
+if ! command -v TwitchDownloaderCLI &> /dev/null
+then
+    echo "TwitchDownloaderCLI could not be found"
+    exit
+fi
+
+# set env
 export TCD_TWITCHDOWNLOADER_PATH=/usr/local/bin/TwitchDownloaderCLI
