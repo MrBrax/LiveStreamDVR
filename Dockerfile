@@ -46,6 +46,11 @@ RUN cd /usr/local/share/twitchautomator && \
 
 USER root
 
+# remove dev packages
+RUN apt-get remove -y \
+    libxml2-dev libxslt-dev python3-dev \
+    && apt-get autoremove -y
+
 # install yarn
 # RUN npm install -g yarn
     
