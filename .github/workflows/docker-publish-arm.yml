@@ -48,9 +48,10 @@ jobs:
         with:
           context: .
           push: true
+          platforms: linux/arm64,linux/arm/v7
           # tags: ${{ steps.meta.outputs.tags }}
           # labels: ${{ steps.meta.outputs.labels }}
-          tags: mrbrax/twitchautomator:latest-arm
+          tags: mrbrax/twitchautomator:latest
 
       # - name: Move cache
       #   run: |

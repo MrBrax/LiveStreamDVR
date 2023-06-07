@@ -48,6 +48,7 @@ jobs:
         with:
           context: .
           push: true
+          platforms: linux/arm64,linux/arm/v7
           build-args: |
             BUILD_DATE=${{ github.event.head_commit.timestamp }}
             VCS_REF=${{ github.sha }}
@@ -57,7 +58,7 @@ jobs:
             VITE_BUILD_DATE=${{ github.event.head_commit.timestamp }}
             VITE_VERSION=${{ github.ref }}
             VITE_VCS_REF=${{ github.sha }}
-          tags: mrbrax/twitchautomator:develop-arm
+          tags: mrbrax/twitchautomator:develop
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
