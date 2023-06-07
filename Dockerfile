@@ -26,7 +26,7 @@ ENV VITE_BUILD_DATE=${BUILD_DATE}
 
 RUN apt-get update && apt-get install -y \
     ffmpeg mediainfo \
-    python3 python3-pip python3-wheel \
+    python3 python3-pip python3-wheel libxml2-dev libxslt-dev python3-dev \
     bash git curl unzip rclone \
     && apt-get clean
 
