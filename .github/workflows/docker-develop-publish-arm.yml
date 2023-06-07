@@ -1,4 +1,4 @@
-name: Publish Develop Docker image
+name: Publish Develop Docker image (ARM)
 
 on:
   push:
