@@ -11,8 +11,9 @@ import { format, parseJSON } from "date-fns";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { BaseVODChapterJSON, VODJSON } from "Storage/JSON";
+import { formatBytes } from "../../../Helpers/Format";
 import { isTwitchVOD, isTwitchVODChapter } from "../../../Helpers/Types";
+import { BaseVODChapterJSON, VODJSON } from "../../../Storage/JSON";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
 import { Config } from "../../Config";
@@ -163,6 +164,11 @@ export class BaseVOD {
         // no blocks in testing
         // if (process.env.NODE_ENV === "test") return false;
 
+        if (Config.getInstance().cfg("storage.no_watch_files", false)) {
+            Log.logAdvanced(Log.Level.DEBUG, "vod.watch", `Not watching files for ${this.basename} due to config setting`);
+            return false;
+        }
+
         const files = this.associatedFiles.map((f) => path.join(this.directory, f));
 
         this.fileWatcher = chokidar.watch(files, {
@@ -186,7 +192,10 @@ export class BaseVOD {
                 }
             }
 
-            if (Config.debug) console.log(`VOD file ${filename} changed (${this._writeJSON ? "internal" : "external"}/${eventType})!`);
+            const mem = process.memoryUsage();
+
+            // if (Config.debug) console.log(`VOD file ${filename} changed (${this._writeJSON ? "internal" : "external"}/${eventType})!`);
+            Log.logAdvanced(Log.Level.DEBUG, "vod.watch", `VOD file ${filename} on ${this.basename} changed (${this._writeJSON ? "internal" : "external"}/${eventType})! RSS ${formatBytes(mem.rss)} Heap ${formatBytes(mem.heapUsed)}`);
 
             if (filename === this.filename) {
                 if (!fs.existsSync(this.filename)) {
