@@ -9,11 +9,13 @@
   "i18n-ally.localesPaths": [
     "./src/Translations"
   ],
+  "i18n-ally.sourceLanguage": "en",
   "i18n-ally.keystyle": "nested",
   "i18n-ally.refactor.templates": [
     {
       "templates": [
-        "req.t(\"{key}\"{args})"
+        "req.t(\"{key}\"{args})",
+        "t(\"{key}\"{args})",
       ],
       "exclude": [
         "src/config/**"

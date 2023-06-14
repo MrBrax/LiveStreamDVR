@@ -29,6 +29,7 @@ import { Log } from "../../Log";
 import { Webhook } from "../../Webhook";
 import { TwitchChannel } from "../Twitch/TwitchChannel";
 import { TwitchVOD } from "../Twitch/TwitchVOD";
+import { t } from "i18next";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 
@@ -238,32 +239,32 @@ export class BaseAutomator {
         ) {
             if (nonGameCategories.includes(current_chapter.game_name)) {
                 if (current_chapter.game?.isFavourite()) {
-                    title = `${channel.displayName} is online with one of your favourite categories: ${current_chapter.game_name}!`;
+                    title = t("notify.channel-displayname-is-online-with-one-of-your-favourite-categories-current_chapter-game_name",channel.displayName,current_chapter.game_name);
                     category = "streamStatusChangeFavourite";
                 } else if (current_chapter.game_name) {
-                    title = `${channel.displayName} is now streaming ${current_chapter.game_name}!`;
+                    title = t("notify.channel-displayname-is-now-streaming-current_chapter-game_name",channel.displayName,current_chapter.game_name);
                 } else {
-                    title = `${channel.displayName} is now streaming without a category!`;
+                    title = t("notify.channel-displayname-is-now-streaming-without-a-category",channel.displayName);
                 }
             } else {
                 if (current_chapter.game?.isFavourite()) {
-                    title = `${channel.displayName} is now playing one of your favourite games: ${current_chapter.game_name}!`;
+                    title = t("notify.channel-displayname-is-now-playing-one-of-your-favourite-games-current_chapter-game_name",channel.displayName,current_chapter.game_name);
                     category = "streamStatusChangeFavourite";
                 } else if (current_chapter.game_name) {
-                    title = `${channel.displayName} is now playing ${current_chapter.game_name}!`;
+                    title = t("notify.channel-displayname-is-now-playing-current_chapter-game_name",channel.displayName,current_chapter.game_name);
                 } else {
-                    title = `${channel.displayName} is now streaming without a game!`;
+                    title = t("notify.channel-displayname-is-now-streaming-without-a-game",channel.displayName);
                 }
 
             }
         } else if (previous_chapter?.game_id && !current_chapter.game_id) {
-            title = `${channel.displayName} is now streaming without a game!`;
+            title = t("notify.channel-displayname-is-now-streaming-without-a-game",channel.displayName);
 
         } else if (!previous_chapter?.game_id && !current_chapter.game_id) {
-            title = `${channel.displayName} is still streaming without a game!`;
+            title = t("notify.channel-displayname-is-still-streaming-without-a-game",channel.displayName);
 
         } else if (previous_chapter?.title !== current_chapter.title) {
-            title = `${channel.displayName} changed title, still playing/streaming ${current_chapter.game_name}!`;
+            title = t("notify.channel-displayname-changed-title-still-playing-streaming-current_chapter-game_name",channel.displayName,current_chapter.game_name);
         }
 
         if (!title) {
@@ -367,8 +368,8 @@ export class BaseAutomator {
         // channel offline notification
         if (this.channel) {
             ClientBroker.notify(
-                `${this.broadcaster_user_login} has gone offline!`,
-                this.channel && this.channel.latest_vod && this.channel.latest_vod.started_at ? `Was streaming for ${formatDistanceToNow(this.channel.latest_vod.started_at)}.` : "",
+                t("notify.this-broadcaster_user_login-has-gone-offline",this.broadcaster_user_login),
+                this.channel && this.channel.latest_vod && this.channel.latest_vod.started_at ? t("notify.was-streaming-for-formatdistancetonow-this-channel-latest_vod-started_at",formatDistanceToNow(this.channel.latest_vod.started_at)) : "",
                 this.channel.profilePictureUrl,
                 "streamOffline",
                 this.channel.livestreamUrl
@@ -1028,7 +1029,7 @@ export class BaseAutomator {
             Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Capturing of ${basename} failed, no streams available!`);
             ClientBroker.notify(
                 "Streamlink error",
-                `Capturing of ${basename} failed, no streams available!\nIs there a configuration error?`,
+                t("notify.capturing-of-basename-failed-no-streams-available-nis-there-a-configuration-error",basename),
                 "",
                 "system"
             );

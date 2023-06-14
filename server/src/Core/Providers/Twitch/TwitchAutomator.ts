@@ -16,6 +16,7 @@ import { TwitchVODChapterJSON } from "Storage/JSON";
 import { ChannelUpdateEvent } from "@common/TwitchAPI/EventSub/ChannelUpdate";
 import { ChapterUpdateData } from "@common/Webhook";
 import { TwitchVODChapter } from "./TwitchVODChapter";
+import { t } from "i18next";
 
 export interface AutomatorMetadata {
     message_id: string;
@@ -182,7 +183,7 @@ export class TwitchAutomator extends BaseAutomator {
                     body = `${chapter.game_name}\n${chapter.title}`;
                 }
                 ClientBroker.notify(
-                    `${this.broadcaster_user_login} is live!`,
+                    t("notify.broadcaster-is-live",this.broadcaster_user_login),
                     body,
                     this.channel.profilePictureUrl,
                     "streamOnline",

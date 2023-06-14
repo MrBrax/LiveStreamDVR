@@ -32,6 +32,7 @@ import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 import { YouTubeVOD } from "./Providers/YouTube/YouTubeVOD";
 import { Scheduler } from "./Scheduler";
 import { Webhook } from "./Webhook";
+import i18next, { t } from "i18next";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -110,6 +111,8 @@ export class LiveStreamDVR {
 
         Config.getInstance().loadConfig(); // load config, calls after this will work if config is required
 
+        i18next.changeLanguage(Config.getInstance().cfg("basic.language", "en"));
+
         await YouTubeHelper.setupClient();
 
         ClientBroker.loadNotificationSettings();
@@ -123,9 +126,7 @@ export class LiveStreamDVR {
         Log.logAdvanced(
             Log.Level.SUCCESS,
             "config",
-            `The time is ${new Date().toISOString()}.` +
-            " Current topside temperature is 93 degrees, with an estimated high of one hundred and five." +
-            " The Black Mesa compound is maintained at a pleasant 68 degrees at all times."
+            t("base.bootmessage",new Date().toISOString())
         );
 
         await Config.getInstance().getGitHash();
