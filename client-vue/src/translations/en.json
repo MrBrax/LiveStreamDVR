@@ -336,7 +336,8 @@
     "software": "Software",
     "subscriptions": "Subscriptions",
     "links": "Links",
-    "memory": "Memory"
+    "memory": "Memory",
+    "debug": "Debug"
   },
   "metadata": {
     "file-duration": "File duration",

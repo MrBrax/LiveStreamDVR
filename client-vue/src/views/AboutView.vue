@@ -72,12 +72,12 @@
                                     v-for="(v2, k2) in v"
                                     :key="k2"
                                 >
-                                    {{ k2 }}: {{ v2 }}
+                                    {{ k2 }}: {{ formatValue(v2) }}
                                 </li>
                             </ul>
                         </li>
                     </ul>
-                    <ul class="list">
+                    <ul class="list" v-if="store.websocket_quotas">
                         <li
                             v-for="(v, k) in store.websocket_quotas"
                             :key="k"
@@ -88,7 +88,7 @@
                                     v-for="(v2, k2) in v"
                                     :key="k2"
                                 >
-                                    {{ k2 }}: {{ v2 }}
+                                    {{ k2 }}: {{ formatValue(v2) }}
                                 </li>
                             </ul>
                         </li>
@@ -127,6 +127,16 @@
                     >
                         {{ t('messages.data-error') }}
                     </span>
+                </div>
+
+                <!-- debug -->
+                <div class="block">
+                    <h3>{{ t('about.debug') }}</h3>
+                    <ul>
+                        <li v-for="(v, k) in aboutData.debug">
+                            <strong>{{ k }}:</strong> {{ formatValue(v) }}
+                        </li>
+                    </ul>
                 </div>
 
                 <div class="block">
@@ -269,6 +279,7 @@ import { faRss, faBan, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from "vue-i18n";
 import axios from "axios";
 import { formatBytes } from "@/mixins/newhelpers";
+import { formatNumber } from "@/mixins/newhelpers";
 library.add(faRss, faBan, faSpinner);
 
 
@@ -278,7 +289,6 @@ const { t } = useI18n();
 const aboutData = ref<AboutData>();
 const subscriptions = ref<ApiSubscription[]>([]);
 const subscriptionsLoading = ref<boolean>(false);
-
 
 const clientVersion = computed((): string => {
     return import.meta.env.VITE_APP_VERSION; // injected
@@ -298,6 +308,17 @@ const pipKeys = computed((): string => {
     }
     return Object.keys(aboutData.value.pip).join(" ");
 });
+
+function formatValue(value: any): string {
+    console.debug( "formatValue", value, typeof value);
+    if (typeof value == "number") {
+        return formatNumber(value);
+    }
+    if (typeof value == "object") {
+        return JSON.stringify(value);
+    }
+    return value;
+}
 
 function licensePath(id: string | number): string {
     // return this.store.cfg("basepath") + "/LICENSES.txt#" + id;

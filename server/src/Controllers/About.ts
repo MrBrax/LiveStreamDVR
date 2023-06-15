@@ -1,9 +1,13 @@
 import type { BinaryStatus } from "@common/Api/About";
 import { ApiAboutResponse } from "@common/Api/Api";
 import express from "express";
+import readdirRecursive from "fs-readdir-recursive";
 import fs from "node:fs";
 import process from "node:process";
+import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../Core/BaseConfig";
+import { Config } from "../Core/Config";
 import { Helper } from "../Core/Helper";
+import { KeyValue } from "../Core/KeyValue";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { DVRBinaries, DVRPipPackages, getBinaryVersion, PipRequirements } from "../Helpers/Software";
 
@@ -51,13 +55,25 @@ export async function About(req: express.Request, res: express.Response): Promis
         return a + (b.fileWatcher ? 1 : 0);
     }, 0);
 
-    const debug = {
-        watcher_amount: watcher_amount,
+    const storage_data_file_count = readdirRecursive(BaseConfigDataFolder.storage).length;
+    const cache_data_file_count = readdirRecursive(BaseConfigCacheFolder.cache).length;
+
+    const debug = Config.debug ? {
+        watcher_amount,
         channel_amount: LiveStreamDVR.getInstance().getChannels().length,
         vod_amount: LiveStreamDVR.getInstance().getChannels().reduce((a, b) => {
             return a + b.vods_list.length;
         }, 0),
-    };
+        keyvalue_amount: KeyValue.getInstance().count(),
+        storage_data_file_count,
+        cache_data_file_count,
+        free_disk_space: LiveStreamDVR.getInstance().freeStorageDiskSpace,
+        arch: process.arch,
+        platform: process.platform,
+        cpu_usage: process.cpuUsage(),
+        date: new Date(),
+        uptime: process.uptime(),
+    } : undefined;
 
     res.send({
         data: {
