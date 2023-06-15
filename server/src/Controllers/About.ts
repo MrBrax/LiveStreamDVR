@@ -47,12 +47,25 @@ export async function About(req: express.Request, res: express.Response): Promis
         }
     }
 
+    const watcher_amount = LiveStreamDVR.getInstance().getChannels().reduce((a, b) => {
+        return a + (b.fileWatcher ? 1 : 0);
+    }, 0);
+
+    const debug = {
+        watcher_amount: watcher_amount,
+        channel_amount: LiveStreamDVR.getInstance().getChannels().length,
+        vod_amount: LiveStreamDVR.getInstance().getChannels().reduce((a, b) => {
+            return a + b.vods_list.length;
+        }, 0),
+    };
+
     res.send({
         data: {
             bins: bins,
             pip: PipRequirements,
             is_docker: Helper.is_docker(),
             memory: process.memoryUsage(),
+            debug: debug,
             // keyvalue: KeyValue.getInstance().data,
         },
         status: "OK",
