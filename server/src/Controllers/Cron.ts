@@ -47,12 +47,20 @@ export async function fCheckDeletedVods(): Promise<string> {
 
     if (videosToCheck.length == 0) return "No vods to check";
 
-    let checkedVodsRecord;
-    
-    try {
-        checkedVodsRecord = await TwitchVOD.checkValidVods(videosToCheck);
-    } catch (error) {
-        return `Error: ${(error as Error).message}`;        
+    let checkedVodsRecord: Record<string, boolean> = {};
+
+    // max ids per request is 100, so split into chunks
+    let i = 0;
+    const chunkSize = 100;
+    while (i < videosToCheck.length) {
+        const chunk = videosToCheck.slice(i, i + chunkSize);
+        try {
+            const checkedVodsRecordChunk = await TwitchVOD.checkValidVods(chunk);
+            checkedVodsRecord = { ...checkedVodsRecord, ...checkedVodsRecordChunk };
+        } catch (error) {
+            return `Error: ${(error as Error).message}`;
+        }
+        i += chunkSize;
     }
 
     // DRY?

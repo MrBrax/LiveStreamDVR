@@ -95,24 +95,7 @@ export class TwitchVOD extends BaseVOD {
 
         super.setupBasic();
 
-        // $this->is_recording = file_exists($this->directory . DIRECTORY_SEPARATOR . $this->basename . '.ts');
-        // $this->is_converted = file_exists($this->directory . DIRECTORY_SEPARATOR . $this->basename . '.mp4');
-
-        // $this->is_capturing 	= isset($this->json['is_capturing']) ? $this->json['is_capturing'] : false;
-        // $this->is_converting 	= isset($this->json['is_converting']) ? $this->json['is_converting'] : false;
-        // $this->is_finalized 	= isset($this->json['is_finalized']) ? $this->json['is_finalized'] : false;
-
-
-        // $this->force_record				= isset($this->json['force_record']) ? $this->json['force_record'] : false;
-        // $this->automator_fail			= isset($this->json['automator_fail']) ? $this->json['automator_fail'] : false;
-        // this.force_record = this.json.force_record == true;
-        // this.automator_fail = this.json.automator_fail == true;
-
-        // $this->stream_resolution		= isset($this->json['stream_resolution']) && gettype($this->json['stream_resolution']) == 'string' ? $this->json['stream_resolution'] : '';
         this.stream_resolution = this.json.stream_resolution;
-
-        // $this->duration 			= $this->json['duration'];
-        // $this->duration_seconds 	= $this->json['duration_seconds'] ? (int)$this->json['duration_seconds'] : null;
 
         // TODO: what
         // const dur = this.getDurationLive();
@@ -2033,7 +2016,8 @@ export class TwitchVOD extends BaseVOD {
     }
 
     /**
-     * Get information about multiple videos in a single request, returns an array of videos
+     * Get information about multiple videos in a single request, returns an array of videos.
+     * MAX 100 ids
      * @param ids 
      * @returns
      */
@@ -2043,6 +2027,10 @@ export class TwitchVOD extends BaseVOD {
 
         if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
+        }
+
+        if (ids.length > 100) {
+            throw new Error("Can only get 100 videos at a time");
         }
 
         Log.logAdvanced(Log.Level.DEBUG, "vod.getVideos", `Getting videos ${ids.join(", ")}`);
@@ -2082,6 +2070,7 @@ export class TwitchVOD extends BaseVOD {
 
     /**
      * Get information about multiple videos in a single request, returns a record with the video id as key and the video as value
+     * MAX 100 ids
      * @param ids 
      * @returns 
      */
