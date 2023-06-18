@@ -1,5 +1,5 @@
-import { ApiTwitchVod } from "@common/Api/Client";
-import { TwitchVODBookmark } from "@common/Bookmark";
+import type { ApiTwitchVod } from "@common/Api/Client";
+import { VODBookmark } from "@common/Bookmark";
 import type { TwitchComment, TwitchCommentDump } from "@common/Comments";
 import { VideoQuality } from "@common/Config";
 import { JobStatus, MuteStatus, Providers } from "@common/Defs";
@@ -55,8 +55,6 @@ export class TwitchVOD extends BaseVOD {
 
     chapters_raw: Array<TwitchVODChapterJSON> = [];
     chapters: Array<TwitchVODChapter> = [];
-
-    bookmarks: Array<TwitchVODBookmark> = [];
 
     twitch_vod_id?: string;
     twitch_vod_duration?: number;
@@ -428,19 +426,7 @@ export class TwitchVOD extends BaseVOD {
         this.calculateChapters();
     }
 
-    public calculateBookmarks(): boolean {
-
-        if (!this.bookmarks || this.bookmarks.length == 0) return false;
-        if (!this.started_at) return false;
-
-        this.bookmarks.forEach((bookmark) => {
-            if (!this.started_at) return false;
-            bookmark.offset = (bookmark.date.getTime() - this.started_at.getTime()) / 1000;
-        });
-
-        return true;
-
-    }
+    
 
     public async generateDefaultChapter(): Promise<void> {
         if (!this.started_at) return;

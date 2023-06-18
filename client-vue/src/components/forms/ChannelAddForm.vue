@@ -20,6 +20,9 @@
                     <option value="youtube">
                         YouTube
                     </option>
+                    <option value="kick">
+                        Kick
+                    </option>
                 </select>
             </div>
             <p class="input-help">
@@ -27,6 +30,7 @@
             </p>
         </div>
 
+        <!-- twitch login -->
         <div
             v-if="formData.provider == 'twitch'"
             class="field"
@@ -58,6 +62,7 @@
             </p>
         </div>
 
+        <!-- youtube url -->
         <div
             v-if="formData.provider == 'youtube'"
             class="field"
@@ -82,6 +87,7 @@
             </div>
         </div>
 
+        <!-- youtube channel id -->
         <div
             v-if="formData.provider == 'youtube'"
             class="field"
@@ -106,6 +112,31 @@
             </div>
             <p class="input-help">
                 {{ t('forms.channel.id_help') }}
+            </p>
+        </div>
+
+        <!-- kick slug -->
+        <div
+            v-if="formData.provider == 'kick'"
+            class="field"
+        >
+            <label class="label">{{ t('forms.channel.slug') }} <span class="required">*</span></label>
+            <div class="control has-addon">
+                <input
+                    ref="slug"
+                    v-model="formData.slug"
+                    class="input"
+                    type="text"
+                    name="slug"
+                    required
+                >
+                <button class="button is-confirm" type="button" @click="fetchKickSlug" :disabled="!formData.slug">
+                    <span class="icon"><font-awesome-icon icon="sync" /></span>
+                    <span>{{ t('forms.channel.check') }}</span>
+                </button>
+            </div>
+            <p class="input-help">
+                {{ t('forms.channel.slug_help') }}
             </p>
         </div>
 
@@ -339,6 +370,7 @@ import type { UserData } from "@common/User";
 import type { ApiResponse, ApiErrorResponse, IApiResponse } from "@common/Api/Api";
 import { useI18n } from "vue-i18n";
 import type { FormStatus } from "@/twitchautomator";
+import type { KickUser } from "@common/KickAPI/Kick";
 library.add(faUserPlus);
 
 // emit
@@ -354,6 +386,7 @@ const formData = ref({
     provider: "twitch",
     login: "",
     channel_id: "",
+    slug: "",
     quality: "",
     match: "",
     download_chat: false,
@@ -413,6 +446,7 @@ function resetForm() {
         provider: "twitch",
         login: "",
         channel_id: "",
+        slug: "",
         quality: "",
         match: "",
         download_chat: false,
@@ -500,6 +534,18 @@ function getChannelId() {
         console.error("channel id error", err.response);
     }).finally(() => {
         fetchingUrl.value = false;
+    });
+}
+
+function fetchKickSlug() {
+    axios.get<IApiResponse<KickUser>>(`/api/v0/kickapi/users/${formData.value.slug}`).then((response) => {
+        const json = response.data;
+        if (json.status == "OK") {
+            // formData.value.slug = json.data;
+            alert(json.data);
+        }
+    }).catch((err: AxiosError) => {
+        console.error("kickslug error", err.response);
     });
 }
 

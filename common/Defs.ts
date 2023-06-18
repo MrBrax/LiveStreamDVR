@@ -41,7 +41,7 @@ export const nonGameCategories = [
     "Fitness & Health",
 ];
 
-export type Providers = "base" | "twitch" | "youtube";
+export type Providers = "base" | "twitch" | "youtube" | "kick";
 
 // twitch vod age is 14 days then it's deleted
 export const TwitchVodAge = 14 * 24 * 60 * 60 * 1000;

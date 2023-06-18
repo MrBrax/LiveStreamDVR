@@ -2,7 +2,7 @@ import type { VideoQuality } from "@common/Config";
 import type { EventSubResponse } from "@common/TwitchAPI/EventSub";
 import type { MuteStatus, Providers } from "@common/Defs";
 import type { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
-import type { TwitchVODBookmark } from "@common/Bookmark";
+import type { VODBookmark } from "@common/Bookmark";
 import type { ExportData } from "@common/Exporter";
 import type { VodViewerEntry, StreamPause } from "@common/Vod";
 
@@ -61,6 +61,8 @@ export interface VODJSON {
     // stream_pauses?: StreamPause[];
     stream_pauses?: { start?: string; end?: string }[];
 
+    bookmarks: VODBookmark[];
+
 }
 export interface TwitchVODJSON extends VODJSON {
     type: "twitch";
@@ -72,7 +74,6 @@ export interface TwitchVODJSON extends VODJSON {
     streamer_login: string;
 
     chapters: TwitchVODChapterJSON[];
-    bookmarks: TwitchVODBookmark[];
 
     twitch_vod_id?: string;
     twitch_vod_duration?: number
@@ -89,6 +90,10 @@ export interface TwitchVODJSON extends VODJSON {
 export interface YouTubeVODJSON extends VODJSON {
     channel_id?: string;
     youtube_vod_id?: string;
+}
+
+export interface KickVODJSON extends VODJSON {
+    kick_vod_id?: string;
 }
 
 export interface BaseVODChapterJSON {

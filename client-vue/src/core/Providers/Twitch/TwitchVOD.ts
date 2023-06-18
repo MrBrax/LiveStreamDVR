@@ -5,7 +5,7 @@ import { TwitchVODChapter } from "./TwitchVODChapter";
 // import { useStore } from "../store";
 import type { TwitchGame } from "./TwitchGame";
 import { BaseVODSegment } from "../Base/BaseVODSegment";
-import type { TwitchVODBookmark } from "@common/Bookmark";
+import type { VODBookmark } from "@common/Bookmark";
 import BaseVOD from "../Base/BaseVOD";
 import type { ApiTwitchVod } from "@common/Api/Client";
 import { humanDuration } from "@/mixins/newhelpers";
@@ -16,7 +16,7 @@ export default class TwitchVOD extends BaseVOD {
     readonly provider = "twitch";
     // segments: BaseVODSegment[] = [];
     chapters: TwitchVODChapter[] = [];
-    bookmarks: TwitchVODBookmark[] = [];
+    bookmarks: VODBookmark[] = [];
 
     twitch_vod_id: string | undefined;
     twitch_vod_duration: number | undefined;

@@ -5,7 +5,7 @@ import { MuteStatus, ExistStatus, JobStatus, Providers } from "../../common/Defs
 import { AudioMetadata, VideoMetadata } from "../MediaInfo";
 import { BroadcasterType } from "../TwitchAPI/Users";
 import { TwitchVODChapterJSON, BaseVODChapterJSON } from "../../server/src/Storage/JSON";
-import { TwitchVODBookmark } from "../Bookmark";
+import { VODBookmark } from "../Bookmark";
 import { LocalVideo } from "../LocalVideo";
 import { LocalClip } from "../LocalClip";
 import { ExportData } from "../Exporter";
@@ -108,6 +108,8 @@ export interface ApiBaseVod {
     viewers: { amount: number; timestamp: string }[];
     stream_pauses: { start: string; end: string }[];
 
+    bookmarks: VODBookmark[];
+
 }
 
 export interface ApiTwitchVod extends ApiBaseVod {
@@ -146,8 +148,6 @@ export interface ApiTwitchVod extends ApiBaseVod {
 
     chapters: ApiVodTwitchChapter[];
 
-    bookmarks: TwitchVODBookmark[];
-
 }
 
 export interface ApiYouTubeVod extends ApiBaseVod {
@@ -155,6 +155,10 @@ export interface ApiYouTubeVod extends ApiBaseVod {
     streamer_id: string;
     provider: "youtube";
 
+}
+
+export interface ApiKickVod extends ApiBaseVod {
+    // streamer_id: string;
 }
 
 export type ApiSettingsField = {

@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import sanitize from "sanitize-filename";
 import { ApiErrorResponse, ApiResponse, ApiVodResponse } from "@common/Api/Api";
-import { TwitchVODBookmark } from "@common/Bookmark";
+import { VODBookmark } from "@common/Bookmark";
 import { VideoQuality } from "@common/Config";
 import { VideoQualityArray } from "@common/Defs";
 import { formatString } from "@common/Format";
@@ -690,7 +690,7 @@ export async function AddBookmark(req: express.Request, res: express.Response): 
         return;
     }
 
-    const bookmark_data: TwitchVODBookmark = {
+    const bookmark_data: VODBookmark = {
         name: req.body.name,
         date: absolute_date,
     };

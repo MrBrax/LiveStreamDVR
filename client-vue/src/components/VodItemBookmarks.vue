@@ -97,7 +97,7 @@ import { humanDuration, isTwitchVOD } from "@/mixins/newhelpers";
 import { onMounted, ref } from 'vue';
 import { useI18n } from 'vue-i18n';
 import type { VODTypes } from '@/twitchautomator';
-import type { TwitchVODBookmark } from "@common/Bookmark";
+import type { VODBookmark } from "@common/Bookmark";
 
 const props = defineProps({
     vod: {
@@ -150,7 +150,7 @@ function doDeleteBookmark(i: number) {
     });
 }
 
-function playerLink(bookmark: TwitchVODBookmark) {
+function playerLink(bookmark: VODBookmark) {
     if (!props.vod) return;
     return {
         name: "Editor",

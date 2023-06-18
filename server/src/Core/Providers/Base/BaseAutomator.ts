@@ -5,8 +5,10 @@ import { formatString } from "@common/Format";
 import { VodBasenameTemplate } from "@common/Replacements";
 import { ChannelUpdateEvent } from "@common/TwitchAPI/EventSub/ChannelUpdate";
 import type { StreamPause } from "@common/Vod";
+import type { EndConvertData, StartDownloadData, VodUpdated, EndCaptureData } from "@common/Webhook";
 import chalk from "chalk";
 import { format, formatDistanceToNow, isValid, parseJSON } from "date-fns";
+import { t } from "i18next";
 import { spawn } from "node:child_process";
 import fs from "node:fs";
 import { IncomingHttpHeaders } from "node:http";
@@ -29,7 +31,6 @@ import { Log } from "../../Log";
 import { Webhook } from "../../Webhook";
 import { TwitchChannel } from "../Twitch/TwitchChannel";
 import { TwitchVOD } from "../Twitch/TwitchVOD";
-import { t } from "i18next";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 
@@ -652,7 +653,7 @@ export class BaseAutomator {
 
         Webhook.dispatchAll("start_download", {
             "vod": await this.vod.toAPI(),
-        });
+        } as StartDownloadData);
 
         this.vod.is_capturing = true;
         await this.vod.saveJSON("is_capturing set");
@@ -714,7 +715,7 @@ export class BaseAutomator {
         Webhook.dispatchAll("end_capture", {
             "vod": await this.vod.toAPI(),
             "success": capture_success,
-        });
+        } as EndCaptureData);
 
         // error handling if nothing got downloaded
         if (!capture_success) {
@@ -798,7 +799,7 @@ export class BaseAutomator {
                 Webhook.dispatchAll("end_convert", {
                     "vod": await this.vod.toAPI(),
                     "success": convert_success,
-                });
+                } as EndConvertData);
 
                 // remove ts if both files exist
                 if (convert_success) {
@@ -872,7 +873,7 @@ export class BaseAutomator {
         // finally send internal webhook for capture finish
         Webhook.dispatchAll("end_download", {
             "vod": await this.vod.toAPI(),
-        });
+        } as VodUpdated);
 
         this.onEndDownload();
 
@@ -1232,7 +1233,7 @@ export class BaseAutomator {
             this.vod.toAPI().then(vod => {
                 Webhook.dispatchAll("start_capture", {
                     "vod": vod,
-                });
+                } as VodUpdated);
             });
 
         });
@@ -1442,7 +1443,7 @@ export class BaseAutomator {
 
         Webhook.dispatchAll("start_convert", {
             vod: await this.vod.toAPI(),
-        });
+        } as VodUpdated);
 
         let mf;
         if (Config.getInstance().cfg("create_video_chapters") && await this.vod.saveFFMPEGChapters()) {
@@ -1467,7 +1468,7 @@ export class BaseAutomator {
         Webhook.dispatchAll("end_convert", {
             vod: await this.vod.toAPI(),
             success: result && result.success,
-        });
+        } as EndConvertData);
 
         return result && result.success;
 

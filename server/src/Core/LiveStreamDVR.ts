@@ -33,11 +33,13 @@ import { YouTubeVOD } from "./Providers/YouTube/YouTubeVOD";
 import { Scheduler } from "./Scheduler";
 import { Webhook } from "./Webhook";
 import i18next, { t } from "i18next";
+import { KickChannel } from "./Providers/Kick/KickChannel";
+import { KickVOD } from "./Providers/Kick/KickVOD";
 
 const argv = minimist(process.argv.slice(2));
 
-export type ChannelTypes = TwitchChannel | YouTubeChannel;
-export type VODTypes = TwitchVOD | YouTubeVOD;
+export type ChannelTypes = TwitchChannel | YouTubeChannel | KickChannel;
+export type VODTypes = TwitchVOD | YouTubeVOD | KickVOD;
 export type ChapterTypes = TwitchVODChapter | BaseVODChapter;
 
 export class LiveStreamDVR {

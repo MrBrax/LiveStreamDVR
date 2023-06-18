@@ -1,4 +1,4 @@
-export interface TwitchVODBookmark {
+export interface VODBookmark {
     date: Date;
     name: string;
     offset?: number;

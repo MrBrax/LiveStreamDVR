@@ -4,6 +4,7 @@ import { JobStatus, MuteStatus, Providers } from "@common/Defs";
 import { ExportData } from "@common/Exporter";
 import { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
 import type { StreamPause, VodViewerEntry } from "@common/Vod";
+import type { VODBookmark } from "@common/Bookmark";
 import { VodUpdated } from "@common/Webhook";
 import chalk from "chalk";
 import chokidar from "chokidar";
@@ -131,6 +132,8 @@ export class BaseVOD {
     public viewers: VodViewerEntry[] = [];
 
     public stream_pauses: StreamPause[] = [];
+
+    public bookmarks: Array<VODBookmark> = [];
 
     /**
      * Set up date related data
@@ -1858,6 +1861,20 @@ export class BaseVOD {
     // getter for game_name
     public get game_name(): string {
         return ""; // base vod does not have game_name
+    }
+
+    public calculateBookmarks(): boolean {
+
+        if (!this.bookmarks || this.bookmarks.length == 0) return false;
+        if (!this.started_at) return false;
+
+        this.bookmarks.forEach((bookmark) => {
+            if (!this.started_at) return false;
+            bookmark.offset = (bookmark.date.getTime() - this.started_at.getTime()) / 1000;
+        });
+
+        return true;
+
     }
 
 }
