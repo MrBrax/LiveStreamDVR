@@ -33,6 +33,7 @@ import { YouTubeVOD } from "./Providers/YouTube/YouTubeVOD";
 import { Scheduler } from "./Scheduler";
 import { Webhook } from "./Webhook";
 import i18next, { t } from "i18next";
+import { terminal } from "terminal-kit";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -52,6 +53,8 @@ export class LiveStreamDVR {
     static websocketServer: WebSocketServer;
     static shutting_down = false;
     static argv: minimist.ParsedArgs;
+
+    public term = terminal;
 
     static getInstance(): LiveStreamDVR {
         if (!this.instance) {
@@ -171,6 +174,8 @@ export class LiveStreamDVR {
         if (fs.existsSync(BaseConfigCacheFolder.cache)) {
             fs.writeFileSync(path.join(BaseConfigCacheFolder.cache, "is_running"), "true");
         }
+
+        LiveStreamDVR.getInstance().startTerminalTicker();
 
         // TwitchHelper.refreshUserAccessToken();
 
@@ -481,6 +486,7 @@ export class LiveStreamDVR {
             Config.getInstance().stopWatchingConfig();
             TwitchHelper.removeAllEventWebsockets();
             if (timeout !== undefined) clearTimeout(timeout);
+            LiveStreamDVR.getInstance().stopTerminalTicker();
             if (LiveStreamDVR.getInstance().diskSpaceInterval) clearInterval(LiveStreamDVR.getInstance().diskSpaceInterval);
             if (fs.existsSync(path.join(BaseConfigCacheFolder.cache, "is_running"))) fs.unlinkSync(path.join(BaseConfigCacheFolder.cache, "is_running"));
             console.log(chalk.red("Finished tasks, bye bye."));
@@ -755,6 +761,44 @@ export class LiveStreamDVR {
 
         Log.logAdvanced(Log.Level.INFO, "dvr.venvcheck", `Python virtual environment path: ${venv_path}`);
 
+    }
+
+    private tickerEnabled = false;
+    private tickerInterval?: NodeJS.Timeout;
+    private tickerOffset = 0;
+    public startTerminalTicker() {
+        if (this.tickerEnabled) return;
+        this.tickerEnabled = true;
+        this.tickerInterval = setInterval(() => {
+            this.ticker();
+        }, 500);
+    }
+
+    public stopTerminalTicker() {
+        if (!this.tickerEnabled) return;
+        this.tickerEnabled = false;
+        if (this.tickerInterval) clearInterval(this.tickerInterval);
+    }
+
+    public tickerText: Record<string, string> = {
+        greeting: "LiveStreamDVR is running",
+        test: "Test",
+        test2: "Test2",
+    };
+
+    // scroll all messages like a marquee infinitely at the top of the terminal with a delimiter, using terminal-kit (this.term).
+    // repeat the text to fill the terminal width
+    public ticker() {
+        if (!this.tickerEnabled) return;
+        if (!this.tickerInterval) return;
+        const text = Object.values(this.tickerText).join(" | ");
+        const len = text.length;
+        if (len > 0) {
+            const offset = this.tickerOffset % len;
+            const str = text.slice(offset) + text.slice(0, offset);
+            this.term.moveTo(1, 1).eraseLineAfter(str.repeat(Math.ceil(this.term.width / len) + 1));
+            this.tickerOffset++;
+        }
     }
 
 }
