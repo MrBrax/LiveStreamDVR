@@ -1,16 +1,13 @@
-import { KickChannel as KickChannelT, KickUser, KickChannelVideo } from "@common/KickAPI/Kick";
-import { BaseChannel } from "../Base/BaseChannel";
-import { MuteStatus, Providers, SubStatus } from "@common/Defs";
-import { GetChannel, GetUser } from "Providers/Kick";
-import { LiveStreamDVR } from "Core/LiveStreamDVR";
-import { isKickChannel } from "Helpers/Types";
 import { KickChannelConfig } from "@common/Config";
-import { Config } from "Core/Config";
-import { KeyValue } from "Core/KeyValue";
-import { Log } from "Core/Log";
-import { TwitchHelper } from "Providers/Twitch";
+import { Providers } from "@common/Defs";
+import { KickChannel as KickChannelT, KickUser } from "@common/KickAPI/Kick";
 import { randomUUID } from "crypto";
-import { TwitchChannel } from "../Twitch/TwitchChannel";
+import { KeyValue } from "../../../Core/KeyValue";
+import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
+import { Log } from "../../../Core/Log";
+import { isKickChannel } from "../../../Helpers/Types";
+import { GetChannel, GetStream, GetUser, hasAxiosInstance } from "../../../Providers/Kick";
+import { BaseChannel } from "../Base/BaseChannel";
 
 export class KickChannel extends BaseChannel {
 
@@ -20,6 +17,14 @@ export class KickChannel extends BaseChannel {
     public user_data?: KickUser;
 
     public slug?: string;
+
+    public get internalName(): string {
+        return this.channel_data?.slug || "";
+    }
+
+    public get internalId(): string {
+        return this.channel_data?.id.toString() || "";
+    }
 
     public get displayName(): string {
         return this.user_data?.username ?? "";
@@ -37,6 +42,10 @@ export class KickChannel extends BaseChannel {
         return data;
     }
 
+    /**
+     * API does not seem to support looking up by id
+     * @param id 
+     */
     public static async getUserDataById(id: string): Promise<KickUser | undefined> {
         throw new Error("Not implemented");
     }
@@ -51,6 +60,15 @@ export class KickChannel extends BaseChannel {
         }
 
         return data;
+    }
+
+    /**
+     * API does not seem to support looking up by id
+     * @param slug 
+     * @returns 
+     */
+    public static async getChannelDataById(id: string): Promise<KickChannelT | undefined> {
+        throw new Error("Not implemented");
     }
 
     /**
@@ -107,14 +125,12 @@ export class KickChannel extends BaseChannel {
 
         LiveStreamDVR.getInstance().addChannel(channel);
 
-        /*
-        if (TwitchHelper.hasAxios()) { // bad hack?
-            const streams = await TwitchChannel.getStreams(channel.internalId);
-            if (streams && streams.length > 0) {
-                KeyValue.getInstance().setBool(`${channel.internalName}.online`, true);
+        if (hasAxiosInstance()) { // bad hack?
+            const streams = await GetStream(channel.internalName);
+            if (streams) {
+                KeyValue.getInstance().setBool(`kick.${channel.internalName}.online`, true);
             }
         }
-        */
 
         return channel;
     }
@@ -175,7 +191,7 @@ export class KickChannel extends BaseChannel {
 
         const channel = new this();
 
-        const channel_data = await this.getUserDataById(channel_id);
+        const channel_data = await this.getChannelDataById(channel_id);
         if (!channel_data) throw new Error(`Could not get channel data for channel id: ${channel_id}`);
 
         const channel_slug = channel_data.slug;
@@ -231,14 +247,6 @@ export class KickChannel extends BaseChannel {
 
         return channel;
 
-    }
-
-    get internalName(): string {
-        return this.channel_data?.slug || "";
-    }
-
-    get internalId(): string {
-        return this.channel_data?.id.toString() || "";
     }
 
 }

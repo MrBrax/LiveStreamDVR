@@ -201,6 +201,10 @@ export class Log {
 
         }
 
+        // if (metadata instanceof Error) {
+        //     console.error(metadata);
+        // }
+
         /*
         ClientBroker.broadcast({
             action: "log",

@@ -23,6 +23,7 @@ import * as Vod from "../Controllers/Vod";
 import * as YouTube from "../Controllers/YouTube";
 import * as Twitch from "../Controllers/Twitch";
 import * as YouTubeAPI from "../Controllers/YouTubeAPI";
+import * as KickAPI from "../Controllers/KickAPI";
 import { Config } from "../Core/Config";
 import { AuthAdmin, AuthCore, AuthGuest } from "../Helpers/Auth";
 
@@ -118,6 +119,8 @@ router.get("/twitchapi/clips", AuthAdmin, TwitchAPI.TwitchAPIClips);
 router.get("/youtubeapi/videos/:channel_id", AuthAdmin, YouTubeAPI.YouTubeAPIVideos);
 router.get("/youtubeapi/video/:video_id", AuthAdmin, YouTubeAPI.YouTubeAPIVideo);
 router.post("/youtubeapi/channelid", AuthAdmin, YouTubeAPI.YouTubeAPIChannelID);
+
+router.get("/kickapi/users/:slug", AuthAdmin, KickAPI.KickAPIUser);
 
 router.get("/keyvalue", AuthAdmin, KeyValue.GetAllKeyValues);
 router.delete("/keyvalue", AuthAdmin, KeyValue.DeleteAllKeyValues);
