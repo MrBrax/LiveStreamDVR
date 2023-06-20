@@ -6,7 +6,7 @@ import { KeyValue } from "../../../Core/KeyValue";
 import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
 import { Log } from "../../../Core/Log";
 import { isKickChannel } from "../../../Helpers/Types";
-import { GetChannel, GetStream, GetUser, hasAxiosInstance } from "../../../Providers/Kick";
+import { GetChannel, GetStream, GetUser } from "../../../Providers/Kick";
 import { BaseChannel } from "../Base/BaseChannel";
 
 export class KickChannel extends BaseChannel {
@@ -125,12 +125,12 @@ export class KickChannel extends BaseChannel {
 
         LiveStreamDVR.getInstance().addChannel(channel);
 
-        if (hasAxiosInstance()) { // bad hack?
-            const streams = await GetStream(channel.internalName);
-            if (streams) {
-                KeyValue.getInstance().setBool(`kick.${channel.internalName}.online`, true);
-            }
+        // if (hasAxiosInstance()) { // bad hack?
+        const streams = await GetStream(channel.internalName);
+        if (streams) {
+            KeyValue.getInstance().setBool(`kick.${channel.internalName}.online`, true);
         }
+        // }
 
         return channel;
     }
