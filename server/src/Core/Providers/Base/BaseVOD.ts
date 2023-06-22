@@ -27,6 +27,7 @@ import { Webhook } from "../../Webhook";
 import { BaseChannel } from "./BaseChannel";
 import { BaseVODChapter } from "./BaseVODChapter";
 import { BaseVODSegment } from "./BaseVODSegment";
+import { xTimeout } from "../../../Helpers/Timeout";
 
 export class BaseVOD {
 
@@ -210,13 +211,13 @@ export class BaseVOD {
                         // if (channel) channel.removeVod(this.basename);
                     }
 
-                    setTimeout(() => {
+                    xTimeout(() => {
                         LiveStreamDVR.getInstance().cleanLingeringVODs();
                     }, 4000);
 
                     const channel = this.getChannel();
                     if (channel) {
-                        setTimeout(() => {
+                        xTimeout(() => {
                             if (!channel) return;
                             channel.checkStaleVodsInMemory();
                         }, 5000);
@@ -648,7 +649,7 @@ export class BaseVOD {
             clearTimeout(this._updateTimer);
             this._updateTimer = undefined;
         }
-        this._updateTimer = setTimeout(async () => {
+        this._updateTimer = xTimeout(async () => {
             const vod = await this.toAPI();
             Webhook.dispatchAll("vod_updated", {
                 vod: vod,

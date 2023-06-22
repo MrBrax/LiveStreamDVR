@@ -9,11 +9,13 @@ import type { BinaryStatus } from "@common/Api/About";
 import { ChannelConfig } from "@common/Config";
 import { SubStatus } from "@common/Defs";
 import checkDiskSpace from "check-disk-space";
+import i18next, { t } from "i18next";
 import path from "node:path";
 import { WebSocket, WebSocketServer } from "ws";
 import { version } from "../../package.json";
 import { formatBytes } from "../Helpers/Format";
 import { DVRBinaries, DVRPipPackages, getBinaryVersion } from "../Helpers/Software";
+import { clearAllTimeoutsAndIntervals, xInterval, xTimeout } from "../Helpers/Timeout";
 import { TwitchHelper } from "../Providers/Twitch";
 import { YouTubeHelper } from "../Providers/YouTube";
 import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath, DataRoot, HomeRoot } from "./BaseConfig";
@@ -24,6 +26,8 @@ import { Job } from "./Job";
 import { KeyValue } from "./KeyValue";
 import { Log } from "./Log";
 import { BaseVODChapter } from "./Providers/Base/BaseVODChapter";
+import { KickChannel } from "./Providers/Kick/KickChannel";
+import { KickVOD } from "./Providers/Kick/KickVOD";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { TwitchGame } from "./Providers/Twitch/TwitchGame";
 import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
@@ -32,9 +36,6 @@ import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 import { YouTubeVOD } from "./Providers/YouTube/YouTubeVOD";
 import { Scheduler } from "./Scheduler";
 import { Webhook } from "./Webhook";
-import i18next, { t } from "i18next";
-import { KickChannel } from "./Providers/Kick/KickChannel";
-import { KickVOD } from "./Providers/Kick/KickVOD";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -451,7 +452,7 @@ export class LiveStreamDVR {
             this.server.closeAllConnections();
         } else {
             // bad workaround
-            timeout = setTimeout(() => {
+            timeout = xTimeout(() => {
                 console.log(chalk.red("Force exiting server, 10 seconds have passed without close event."));
                 process.exit(1);
             }, 10000);
@@ -460,6 +461,8 @@ export class LiveStreamDVR {
         if (this.debugConnectionInterval) {
             clearInterval(this.debugConnectionInterval);
         }
+
+        clearAllTimeoutsAndIntervals();
 
         // this will not be called until all connections are closed
         this.server.close(async (error) => {
@@ -539,7 +542,7 @@ export class LiveStreamDVR {
 
     private static debugConnectionInterval: NodeJS.Timeout | undefined = undefined;
     public static postInit() {
-        this.debugConnectionInterval = setInterval(() => {
+        this.debugConnectionInterval = xInterval(() => {
             this.server.getConnections((error, count) => {
                 if (error) {
                     console.log(chalk.red(error));
@@ -675,7 +678,7 @@ export class LiveStreamDVR {
 
     public startDiskSpaceInterval() {
         if (this.diskSpaceInterval) clearInterval(this.diskSpaceInterval);
-        this.diskSpaceInterval = setInterval(() => {
+        this.diskSpaceInterval = xInterval(() => {
             // if (LiveStreamDVR.getInstance().isIdle) return;
             this.updateFreeStorageDiskSpace();
         }, 1000 * 60 * 10); // 10 minutes

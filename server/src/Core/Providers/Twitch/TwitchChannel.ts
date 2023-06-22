@@ -38,6 +38,7 @@ import { Webhook } from "../../Webhook";
 import { BaseChannel } from "../Base/BaseChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
+import { xTimeout } from "../../../Helpers/Timeout";
 
 export class TwitchChannel extends BaseChannel {
     public provider: Providers = "twitch";
@@ -1829,7 +1830,7 @@ export class TwitchChannel extends BaseChannel {
                         reject(new Error("Unknown error"));
                     });
                     // timeout and reject, remove if we get a response
-                    setTimeout(() => {
+                    xTimeout(() => {
                         if (kvResponse === undefined) {
                             Log.logAdvanced(Log.Level.ERROR, "tw.ch.subWebhook", `Subscription for ${channel_id}:${sub_type} (${streamer_login}) failed, no response received within 10 seconds.`);
                             reject(new Error("Timeout, no response received within 10 seconds."));

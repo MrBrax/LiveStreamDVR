@@ -7,6 +7,7 @@ import { Log } from "../Core/Log";
 import { Job } from "../Core/Job";
 import { Config } from "../Core/Config";
 import path from "node:path";
+import { xTimeout } from "../Helpers/Timeout";
 
 export class YouTubeExporter extends BaseExporter {
 
@@ -67,7 +68,7 @@ export class YouTubeExporter extends BaseExporter {
         const totalSize = fs.statSync(this.filename).size;
         let uploadSupportCheck = false;
 
-        setTimeout(() => {
+        xTimeout(() => {
             if (!uploadSupportCheck) {
                 Log.logAdvanced(Log.Level.WARNING, "YouTubeExporter", "Upload support check timed out, progress will not be shown.");
             }

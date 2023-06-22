@@ -6,6 +6,7 @@ import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 import { Job } from "../Core/Job";
+import { xInterval } from "../Helpers/Timeout";
 
 export function ListVodsInMemory(req: express.Request, res: express.Response): void {
     res.send({
@@ -85,7 +86,7 @@ export async function JobProgress(req: express.Request, res: express.Response): 
     job.save();
 
     let progress = 0;
-    const i = setInterval(() => {
+    const i = xInterval(() => {
         progress += 0.01;
         job.setProgress(progress);
         console.debug(progress);

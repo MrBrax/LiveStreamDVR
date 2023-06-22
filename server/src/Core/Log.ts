@@ -5,6 +5,7 @@ import path from "node:path";
 import { BaseConfigDataFolder } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
+import { xTimeout } from "../Helpers/Timeout";
 
 export enum LOGLEVEL {
     ERROR = "ERROR",
@@ -188,7 +189,7 @@ export class Log {
             this.websocket_buffer.push(log_data);
 
             if (Log.websocket_timer) clearTimeout(Log.websocket_timer);
-            Log.websocket_timer = setTimeout(() => {
+            Log.websocket_timer = xTimeout(() => {
                 // console.debug(`Sending ${this.websocket_buffer.length} lines over websocket`);
                 ClientBroker.broadcast({
                     server: true,

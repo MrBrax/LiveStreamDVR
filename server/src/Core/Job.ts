@@ -9,6 +9,7 @@ import { Webhook } from "./Webhook";
 import { ApiJob } from "@common/Api/Client";
 import { JobStatus } from "@common/Defs";
 import { Helper } from "./Helper";
+import { xTimeout } from "../Helpers/Timeout";
 
 export interface TwitchAutomatorJobJSON {
     name: string;
@@ -713,7 +714,7 @@ export class Job extends EventEmitter {
                 this.updateProgress(progress);
                 this.progressUpdatesCleared = 0;
             } else {
-                this._progressTimer = setTimeout(() => {
+                this._progressTimer = xTimeout(() => {
                     if (!this || (!this.dummy && this.status !== JobStatus.RUNNING)) return;
                     this.updateProgress(progress);
                     this.progressUpdatesCleared = 0;
@@ -773,7 +774,7 @@ export class Job extends EventEmitter {
     public broadcastUpdate(noTimer = false) {
         if (this._updateTimer) clearTimeout(this._updateTimer);
         if (!noTimer) {
-            this._updateTimer = setTimeout(async () => {
+            this._updateTimer = xTimeout(async () => {
                 // console.debug(`Broadcasting job update for ${this.name}: ${this.status}`);
 
                 try {

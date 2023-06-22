@@ -5,7 +5,7 @@ import { formatString } from "@common/Format";
 import { VodBasenameTemplate } from "@common/Replacements";
 import { ChannelUpdateEvent } from "@common/TwitchAPI/EventSub/ChannelUpdate";
 import type { StreamPause } from "@common/Vod";
-import type { EndConvertData, StartDownloadData, VodUpdated, EndCaptureData } from "@common/Webhook";
+import type { EndCaptureData, EndConvertData, StartDownloadData, VodUpdated } from "@common/Webhook";
 import chalk from "chalk";
 import { format, formatDistanceToNow, isValid, parseJSON } from "date-fns";
 import { t } from "i18next";
@@ -18,6 +18,7 @@ import { TwitchVODChapterJSON } from "Storage/JSON";
 import { Exporter, GetExporter } from "../../../Controllers/Exporter";
 import { formatBytes } from "../../../Helpers/Format";
 import { Sleep } from "../../../Helpers/Sleep";
+import { xInterval } from "../../../Helpers/Timeout";
 import { isTwitchVOD, isTwitchVODChapter } from "../../../Helpers/Types";
 import { RemuxReturn } from "../../../Providers/Twitch";
 import { BaseConfigDataFolder } from "../../BaseConfig";
@@ -1177,7 +1178,7 @@ export class BaseAutomator {
 
             };
 
-            const keepalive = setInterval(keepaliveAlert, 120 * 1000);
+            const keepalive = xInterval(keepaliveAlert, 120 * 1000);
 
             // critical end
             capture_process.on("close", (code, signal) => {
@@ -1320,7 +1321,7 @@ export class BaseAutomator {
 
             };
 
-            const keepalive = setInterval(keepaliveAlert, 120 * 1000);
+            const keepalive = xInterval(keepaliveAlert, 120 * 1000);
 
             // critical end
             capture_process.on("close", (code, signal) => {

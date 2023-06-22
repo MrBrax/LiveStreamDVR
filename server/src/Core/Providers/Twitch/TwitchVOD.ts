@@ -33,6 +33,7 @@ import { BaseVOD } from "../Base/BaseVOD";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVODChapter } from "./TwitchVODChapter";
+import { xInterval, xTimeout } from "../../../Helpers/Timeout";
 
 /**
  * Twitch VOD
@@ -1221,14 +1222,14 @@ export class TwitchVOD extends BaseVOD {
                         // if (channel) channel.removeVod(this.basename);
                     }
 
-                    setTimeout(() => {
+                    xTimeout(() => {
                         LiveStreamDVR.getInstance().cleanLingeringVODs();
                     }, 4000);
 
                     const channel = this.getChannel();
                     if (channel) {
                         channel.removeVod(this.uuid);
-                        setTimeout(() => {
+                        xTimeout(() => {
                             if (!channel) return;
                             channel.checkStaleVodsInMemory();
                         }, 5000);
@@ -2432,7 +2433,7 @@ export class TwitchVOD extends BaseVOD {
             throw new Error("Already watching");
         }
         Log.logAdvanced(Log.Level.INFO, "vod.startWatchingViewerCount", `Watching viewer count for ${this.basename}`);
-        this.watchViewerCountInterval = setInterval(() => {
+        this.watchViewerCountInterval = xInterval(() => {
             this.addViewerCount();
         }, this.watchViewerCountTimeBetweenChecks);
         this.addViewerCount();
