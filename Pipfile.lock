@@ -109,7 +109,7 @@
                 "sha256:0f0d56dc5a6ad56fd4ba36484d6cc34451e1c6548c61daad8c320169f91eddc7",
                 "sha256:c6c2e98f5c7869efca1f8916fed228dd91539f9f1b444c314c06eef02980c716"
             ],
-            "markers": "python_version >= '3.6'",
+            "markers": "python_full_version >= '3.6.0'",
             "version": "==2023.5.7"
         },
         "charset-normalizer": {
@@ -230,7 +230,7 @@
             "hashes": [
                 "sha256:b2163a246c585894d808f18783e19137cb70a0c18fb36748dc01fc6f109c1646"
             ],
-            "markers": "python_version >= '3.6' and python_version < '4'",
+            "markers": "python_version < '4' and python_full_version >= '3.6.0'",
             "version": "==22.3.5"
         },
         "pycryptodome": {
@@ -351,11 +351,11 @@
         },
         "setuptools": {
             "hashes": [
-                "sha256:5df61bf30bb10c6f756eb19e7c9f3b473051f48db77fddbe06ff2ca307df9a6f",
-                "sha256:62642358adc77ffa87233bc4d2354c4b2682d214048f500964dbe760ccedf102"
+                "sha256:11e52c67415a381d10d6b462ced9cfb97066179f0e871399e006c4ab101fc85f",
+                "sha256:baf1fdb41c6da4cd2eae722e135500da913332ab3f2f5c7d33af9b492acb5235"
             ],
             "markers": "python_version >= '3.7'",
-            "version": "==67.8.0"
+            "version": "==68.0.0"
         },
         "six": {
             "hashes": [
@@ -401,11 +401,11 @@
         },
         "websocket-client": {
             "hashes": [
-                "sha256:c7d67c13b928645f259d9b847ab5b57fd2d127213ca41ebd880de1f553b7c23b",
-                "sha256:f8c64e28cd700e7ba1f04350d66422b6833b82a796b525a51e740b8cc8dab4b1"
+                "sha256:72d7802608745b0a212f79b478642473bd825777d8637b6c8c421bf167790d4f",
+                "sha256:e84c7eafc66aade6d1967a51dfd219aabdf81d15b9705196e11fd81f48666b78"
             ],
             "markers": "python_version >= '3.7'",
-            "version": "==1.5.2"
+            "version": "==1.6.0"
         },
         "websockets": {
             "hashes": [
@@ -485,11 +485,11 @@
         },
         "yt-dlp": {
             "hashes": [
-                "sha256:265d5da97a76c15d7d9a4088a67b78acd5dcf6f8cfd8257c52f581ff996ff515",
-                "sha256:40ca421407ce07c8fd700854fd978d58526ec6fff3468caa34ff1c7333b8dc34"
+                "sha256:c559885322f7f492c1e7fc8f5a59e2a72e47719b59575599cf8b0e69ea70d0a8",
+                "sha256:ed6a8b8e0ad08a4540d4afa0fd08a7f980022c79b9081bd9e63ddc00aeeee5a8"
             ],
             "index": "pypi",
-            "version": "==2023.3.4"
+            "version": "==2023.6.22"
         }
     },
     "develop": {}

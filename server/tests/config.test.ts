@@ -29,6 +29,12 @@ describe("Config", () => {
         expect(config.cfg("trust_proxy")).toBe(false);
         config.setConfig("server_port", "1234");
         expect(config.cfg("server_port")).toBe(1234);
+
+        // a few values
+        config.setConfig("schedule_muted_vods", false);
+        expect(config.cfg<boolean>("schedule_muted_vods")).toBe(false);
+        config.setConfig("schedule_muted_vods", true);
+        expect(config.cfg<boolean>("schedule_muted_vods")).toBe(true);
     });
 
     it("config value set with default", () => {

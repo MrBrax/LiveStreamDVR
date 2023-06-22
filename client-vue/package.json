@@ -1,6 +1,6 @@
 {
   "name": "livestreamdvr-client",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "private": true,
   "homepage": "https://github.com/MrBrax/LiveStreamDVR",
   "scripts": {
@@ -23,13 +23,13 @@
     "@fortawesome/free-solid-svg-icons": "^6.2.0",
     "@fortawesome/vue-fontawesome": "^3.0.2",
     "axios": "^1.4.0",
-    "chart.js": "^3.9.1",
+    "chart.js": "^4.3.0",
     "core-js": "^3.30.2",
     "date-fns": "^2.30.0",
     "normalize.css": "^8.0.1",
     "pinia": "^2.1.3",
     "vue": "^3.3.4",
-    "vue-chartjs": "^4.1.2",
+    "vue-chartjs": "^5.2.0",
     "vue-i18n": "beta",
     "vue-observe-visibility": "next",
     "vue-router": "^4.2.2"

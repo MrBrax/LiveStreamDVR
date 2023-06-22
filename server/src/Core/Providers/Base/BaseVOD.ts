@@ -4,6 +4,7 @@ import { JobStatus, MuteStatus, Providers } from "@common/Defs";
 import { ExportData } from "@common/Exporter";
 import { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
 import type { StreamPause, VodViewerEntry } from "@common/Vod";
+import type { VODBookmark } from "@common/Bookmark";
 import { VodUpdated } from "@common/Webhook";
 import chalk from "chalk";
 import chokidar from "chokidar";
@@ -11,8 +12,9 @@ import { format, parseJSON } from "date-fns";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { BaseVODChapterJSON, VODJSON } from "Storage/JSON";
+import { formatBytes } from "../../../Helpers/Format";
 import { isTwitchVOD, isTwitchVODChapter } from "../../../Helpers/Types";
+import { BaseVODChapterJSON, VODJSON } from "../../../Storage/JSON";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
 import { Config } from "../../Config";
@@ -25,6 +27,7 @@ import { Webhook } from "../../Webhook";
 import { BaseChannel } from "./BaseChannel";
 import { BaseVODChapter } from "./BaseVODChapter";
 import { BaseVODSegment } from "./BaseVODSegment";
+import { xTimeout } from "../../../Helpers/Timeout";
 
 export class BaseVOD {
 
@@ -131,6 +134,8 @@ export class BaseVOD {
 
     public stream_pauses: StreamPause[] = [];
 
+    public bookmarks: Array<VODBookmark> = [];
+
     /**
      * Set up date related data
      * Requires JSON to be loaded
@@ -163,6 +168,11 @@ export class BaseVOD {
         // no blocks in testing
         // if (process.env.NODE_ENV === "test") return false;
 
+        if (Config.getInstance().cfg("storage.no_watch_files", false)) {
+            Log.logAdvanced(Log.Level.DEBUG, "vod.watch", `Not watching files for ${this.basename} due to config setting`);
+            return false;
+        }
+
         const files = this.associatedFiles.map((f) => path.join(this.directory, f));
 
         this.fileWatcher = chokidar.watch(files, {
@@ -186,7 +196,10 @@ export class BaseVOD {
                 }
             }
 
-            if (Config.debug) console.log(`VOD file ${filename} changed (${this._writeJSON ? "internal" : "external"}/${eventType})!`);
+            const mem = process.memoryUsage();
+
+            // if (Config.debug) console.log(`VOD file ${filename} changed (${this._writeJSON ? "internal" : "external"}/${eventType})!`);
+            Log.logAdvanced(Log.Level.DEBUG, "vod.watch", `VOD file ${filename} on ${this.basename} changed (${this._writeJSON ? "internal" : "external"}/${eventType})! RSS ${formatBytes(mem.rss)} Heap ${formatBytes(mem.heapUsed)}`);
 
             if (filename === this.filename) {
                 if (!fs.existsSync(this.filename)) {
@@ -198,13 +211,13 @@ export class BaseVOD {
                         // if (channel) channel.removeVod(this.basename);
                     }
 
-                    setTimeout(() => {
+                    xTimeout(() => {
                         LiveStreamDVR.getInstance().cleanLingeringVODs();
                     }, 4000);
 
                     const channel = this.getChannel();
                     if (channel) {
-                        setTimeout(() => {
+                        xTimeout(() => {
                             if (!channel) return;
                             channel.checkStaleVodsInMemory();
                         }, 5000);
@@ -636,7 +649,7 @@ export class BaseVOD {
             clearTimeout(this._updateTimer);
             this._updateTimer = undefined;
         }
-        this._updateTimer = setTimeout(async () => {
+        this._updateTimer = xTimeout(async () => {
             const vod = await this.toAPI();
             Webhook.dispatchAll("vod_updated", {
                 vod: vod,
@@ -1849,6 +1862,20 @@ export class BaseVOD {
     // getter for game_name
     public get game_name(): string {
         return ""; // base vod does not have game_name
+    }
+
+    public calculateBookmarks(): boolean {
+
+        if (!this.bookmarks || this.bookmarks.length == 0) return false;
+        if (!this.started_at) return false;
+
+        this.bookmarks.forEach((bookmark) => {
+            if (!this.started_at) return false;
+            bookmark.offset = (bookmark.date.getTime() - this.started_at.getTime()) / 1000;
+        });
+
+        return true;
+
     }
 
 }

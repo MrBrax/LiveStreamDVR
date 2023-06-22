@@ -16,6 +16,7 @@ import { Log } from "./Log";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 import { Scheduler } from "./Scheduler";
+import i18next from "i18next";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -367,6 +368,7 @@ export class Config {
         await YouTubeHelper.setupClient();
         await TwitchHelper.setupWebsocket();
         LiveStreamDVR.binaryVersions = {}; // reset binary versions for the next page visit
+        i18next.changeLanguage(this.cfg("basic.language", "en"));
     }
 
     backupConfig() {

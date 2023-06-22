@@ -65,11 +65,6 @@ export class Helper {
         return false;
     }
 
-    public static path_python3(): string | false {
-        if (Config.getInstance().hasValue("bin_path.python3")) return Config.getInstance().cfg<string>("bin_path.python3");
-        return false;
-    }
-
     /**
      * Get the path to the pipenv virtualenv, if it exists. Executes `pipenv --venv` to get the path.
      * @returns 
@@ -182,6 +177,39 @@ export class Helper {
         }
 
         return license_path;
+
+    }
+
+    public static get_bin_license(bin_name: string): string | false {
+
+        if (this.is_windows()) {
+            return false; // TODO: how the hell do we do this on windows?
+        }
+
+        // hardcoded bin name changes
+        if (bin_name === "python") bin_name = "python3";
+
+        const doc_path = path.join("/usr/share/doc", bin_name);
+
+        if (!fs.existsSync(doc_path)) {
+            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get bin license for ${bin_name}: doc path not found at ${doc_path}`);
+            return false;
+        }
+
+        const license_path = path.join(doc_path, "LICENSE");
+        const copyright_path = path.join(doc_path, "copyright");
+
+        if (fs.existsSync(license_path)) {
+            return license_path;
+        }
+
+        if (fs.existsSync(copyright_path)) {
+            return copyright_path;
+        }
+
+        Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get bin license for ${bin_name}: LICENSE or COPYRIGHT not found at ${doc_path}`);
+
+        return false;
 
     }
 

@@ -5,7 +5,7 @@ import fs from "node:fs";
 import path from "node:path";
 import sanitize from "sanitize-filename";
 import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiResponse } from "@common/Api/Api";
-import { TwitchChannelConfig, VideoQuality, YouTubeChannelConfig } from "@common/Config";
+import type { TwitchChannelConfig, VideoQuality, YouTubeChannelConfig, KickChannelConfig } from "@common/Config";
 import { Providers, VideoQualityArray } from "@common/Defs";
 import { formatString } from "@common/Format";
 import { ProxyVideo } from "@common/Proxies/Video";
@@ -30,6 +30,7 @@ import { TwitchVODChapterJSON } from "../Storage/JSON";
 import { Job } from "../Core/Job";
 import { Exporter, GetExporter } from "./Exporter";
 import { ExporterOptions } from "@common/Exporter";
+import { KickChannel } from "../Core/Providers/Kick/KickChannel";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -48,7 +49,7 @@ export async function ListChannels(req: express.Request, res: express.Response):
     } as ApiChannelsResponse);
 }
 
-const getChannelFromRequest = (req: express.Request): TwitchChannel | YouTubeChannel | undefined => {
+const getChannelFromRequest = (req: express.Request): TwitchChannel | YouTubeChannel | KickChannel | undefined => {
 
     if (req.params.uuid) {
         return LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid) || undefined;
@@ -233,6 +234,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
     const formdata: {
         login?: string;
         channel_id?: string;
+        slug?: string;
         quality: string;
         match: string;
         download_chat: boolean;
@@ -409,7 +411,72 @@ export async function AddChannel(req: express.Request, res: express.Response): P
 
         Log.logAdvanced(Log.Level.SUCCESS, "route.channels.add", `Created channel: ${new_channel.displayName}`);
 
+    } else if (provider == "kick") {
+
+        const channel_config: KickChannelConfig = {
+            uuid: "",
+            provider: "kick",
+            slug: formdata.slug || "",
+            quality: formdata.quality ? formdata.quality.split(" ") as VideoQuality[] : [],
+            match: formdata.match ? formdata.match.split(",").map(m => m.trim()) : [],
+            download_chat: formdata.download_chat,
+            burn_chat: formdata.burn_chat,
+            no_capture: formdata.no_capture,
+            live_chat: formdata.live_chat,
+            no_cleanup: formdata.no_cleanup,
+            max_storage: formdata.max_storage,
+            max_vods: formdata.max_vods,
+            download_vod_at_end: formdata.download_vod_at_end,
+            download_vod_at_end_quality: formdata.download_vod_at_end_quality,
+        };
+
+        if (!channel_config.slug) {
+            res.status(400).send({
+                status: "ERROR",
+                message: req.t("route.channels.channel-slug-not-specified"),
+            } as ApiErrorResponse);
+            return;
+        }
+
+        const channel = KickChannel.getChannelBySlug(channel_config.slug);
+        if (channel) {
+            Log.logAdvanced(Log.Level.ERROR, "route.channels.add", `Failed to create channel, channel already exists: ${channel_config.slug}`);
+            res.status(400).send({
+                status: "ERROR",
+                message: req.t("route.channels.channel-already-exists"),
+            } as ApiErrorResponse);
+            return;
+        }
+
+        let api_channel_data;
+
+        try {
+            api_channel_data = await KickChannel.getUserDataBySlug(channel_config.slug);
+        } catch (error) {
+            Log.logAdvanced(Log.Level.ERROR, "route.channels.add", `Failed to create channel, API error: ${(error as Error).message}`);
+            res.status(400).send({
+                status: "ERROR",
+                message: `API error: ${(error as Error).message}`,
+            } as ApiErrorResponse);
+            return;
+        }
+
+        try {
+            new_channel = await KickChannel.create(channel_config);
+        } catch (error) {
+            Log.logAdvanced(Log.Level.ERROR, "route.channels.add", `Failed to create channel: ${error}`);
+            res.status(400).send({
+                status: "ERROR",
+                message: (error as Error).message,
+            } as ApiErrorResponse);
+            return;
+        }
+
+        Log.logAdvanced(Log.Level.SUCCESS, "route.channels.add", `Created channel: ${new_channel.displayName}`);
+
     }
+
+
 
     if (!new_channel) {
         res.status(400).send({

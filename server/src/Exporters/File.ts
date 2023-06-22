@@ -4,6 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import sanitize from "sanitize-filename";
 import { BaseExporter } from "./Base";
+import { xInterval } from "../Helpers/Timeout";
 
 export class FileExporter extends BaseExporter {
 
@@ -41,7 +42,7 @@ export class FileExporter extends BaseExporter {
 
         const filesize = fs.statSync(this.filename).size;
 
-        const ticker = setInterval(() => {
+        const ticker = xInterval(() => {
             if (!fs.existsSync(this.final_path)) return;
             if (!job) {
                 clearInterval(ticker);

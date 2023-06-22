@@ -1,9 +1,13 @@
 import type { BinaryStatus } from "@common/Api/About";
 import { ApiAboutResponse } from "@common/Api/Api";
 import express from "express";
+import readdirRecursive from "fs-readdir-recursive";
 import fs from "node:fs";
 import process from "node:process";
+import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../Core/BaseConfig";
+import { Config } from "../Core/Config";
 import { Helper } from "../Core/Helper";
+import { KeyValue } from "../Core/KeyValue";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 import { DVRBinaries, DVRPipPackages, getBinaryVersion, PipRequirements } from "../Helpers/Software";
 
@@ -47,12 +51,37 @@ export async function About(req: express.Request, res: express.Response): Promis
         }
     }
 
+    const watcher_amount = LiveStreamDVR.getInstance().getChannels().reduce((a, b) => {
+        return a + (b.fileWatcher ? 1 : 0);
+    }, 0);
+
+    const storage_data_file_count = readdirRecursive(BaseConfigDataFolder.storage).length;
+    const cache_data_file_count = readdirRecursive(BaseConfigCacheFolder.cache).length;
+
+    const debug = Config.debug ? {
+        watcher_amount,
+        channel_amount: LiveStreamDVR.getInstance().getChannels().length,
+        vod_amount: LiveStreamDVR.getInstance().getChannels().reduce((a, b) => {
+            return a + b.vods_list.length;
+        }, 0),
+        keyvalue_amount: KeyValue.getInstance().count(),
+        storage_data_file_count,
+        cache_data_file_count,
+        free_disk_space: LiveStreamDVR.getInstance().freeStorageDiskSpace,
+        arch: process.arch,
+        platform: process.platform,
+        cpu_usage: process.cpuUsage(),
+        date: new Date(),
+        uptime: process.uptime(),
+    } : undefined;
+
     res.send({
         data: {
             bins: bins,
             pip: PipRequirements,
             is_docker: Helper.is_docker(),
             memory: process.memoryUsage(),
+            debug: debug,
             // keyvalue: KeyValue.getInstance().data,
         },
         status: "OK",
@@ -72,14 +101,17 @@ export async function License(req: express.Request, res: express.Response): Prom
         return;
     }
 
-    const license_path = await Helper.get_pip_package_license(package_name);
+    let license_path = await Helper.get_pip_package_license(package_name);
 
     if (!license_path) {
-        res.status(404).send({
-            status: "ERROR",
-            error: "Package not found",
-        });
-        return;
+        license_path = Helper.get_bin_license(package_name);
+        if (!license_path) {
+            res.status(404).send({
+                status: "ERROR",
+                error: "License not found for either pip or bin package",
+            });
+            return;
+        }
     }
 
     const contents = fs.readFileSync(license_path, "utf-8").replaceAll("<", "&lt;").replaceAll(">", "&gt;");

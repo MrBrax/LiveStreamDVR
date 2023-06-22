@@ -19,6 +19,8 @@ export const settingsFields: Record<string, SettingField<string> | SettingField<
     instance_id: { group: "Basic", text: "Instance ID", type: "string", help: "Unique ID for this instance. Used for hook callbacks." },
     trust_proxy: { group: "Basic", text: "Trust proxy", type: "boolean", default: false, help: "If server is behind a reverse proxy, enable this.", restart_required: true },
 
+    "basic.language": { group: "Basic", text: "Serverside language", type: "array", default: "en", choices: { "en": "English", "de": "Deutsch" } },
+
     app_url: {
         group: "Basic",
         text: "App URL",
@@ -74,6 +76,7 @@ export const settingsFields: Record<string, SettingField<string> | SettingField<
     keep_commented_vods: { group: "Storage", text: "Keep commented VODs", type: "boolean", default: false },
     delete_only_one_vod: { group: "Storage", text: "Delete only one VOD when cleaning up like old times", type: "boolean", default: false },
     "storage.deleted_cloud": { group: "Storage", text: "Flag VODs with deleted segments as cloud only", type: "boolean", default: false },
+    "storage.no_watch_files": { group: "Storage", text: "Don't watch the files for changes", type: "boolean", default: false },
 
     hls_timeout: { group: "Capture", text: "HLS Timeout in seconds (ads)", type: "number", default: 200 },
     download_retries: { group: "Capture", text: "Download/capture retries", type: "number", default: 5 },

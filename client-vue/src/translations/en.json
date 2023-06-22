@@ -221,7 +221,9 @@
       "id_help": "ID can be retrieved from external services. It is NOT the one in the URL of the channel.",
       "url": "URL",
       "uses-default-settings-defined-in-the-settings": "Uses default settings defined in the settings",
-      "subscriptions-warning": "Remember to delete all subscriptions before you stop using this application. Old subscriptions will not be deleted automatically, and will continue to send requests to your server."
+      "subscriptions-warning": "Remember to delete all subscriptions before you stop using this application. Old subscriptions will not be deleted automatically, and will continue to send requests to your server.",
+      "slug": "Slug",
+      "slug_help": "The channel slug (username in url)"
     },
     "config": {
       "validate-external-url": "Validate external URL"
@@ -336,7 +338,8 @@
     "software": "Software",
     "subscriptions": "Subscriptions",
     "links": "Links",
-    "memory": "Memory"
+    "memory": "Memory",
+    "debug": "Debug"
   },
   "metadata": {
     "file-duration": "File duration",

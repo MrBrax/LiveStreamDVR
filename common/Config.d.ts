@@ -74,4 +74,9 @@ export interface YouTubeChannelConfig extends BaseChannelConfig {
     channel_id: string;
 }
 
-export type ChannelConfig = TwitchChannelConfig | YouTubeChannelConfig;
+export interface KickChannelConfig extends BaseChannelConfig {
+    provider: "kick";
+    slug: string;
+}
+
+export type ChannelConfig = TwitchChannelConfig | YouTubeChannelConfig | KickChannelConfig;

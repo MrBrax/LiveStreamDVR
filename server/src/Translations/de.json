@@ -1,5 +1,8 @@
 {
   "messages": {
     "channel-not-found": "Kanal nicht gefunden"
+  },
+  "base": {
+    "bootmessage": "Die Zeit ist {0}. \nDie aktuelle Temperatur an der Oberseite beträgt 93 Grad, mit einem geschätzten Höchstwert von 105 Grad. \nDie Black-Mesa-Mischung wird jederzeit auf angenehmen 68 Grad gehalten."
   }
 }

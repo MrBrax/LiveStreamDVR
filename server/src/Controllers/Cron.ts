@@ -5,6 +5,7 @@ import { ClientBroker } from "../Core/ClientBroker";
 import {  Log } from "../Core/Log";
 import { generateStreamerList } from "../Helpers/StreamerList";
 import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
+import { Scheduler } from "../Core/Scheduler";
 
 export async function fCheckDeletedVods(): Promise<string> {
 
@@ -47,7 +48,21 @@ export async function fCheckDeletedVods(): Promise<string> {
 
     if (videosToCheck.length == 0) return "No vods to check";
 
-    const checkedVodsRecord = await TwitchVOD.checkValidVods(videosToCheck);
+    let checkedVodsRecord: Record<string, boolean> = {};
+
+    // max ids per request is 100, so split into chunks
+    let i = 0;
+    const chunkSize = 100;
+    while (i < videosToCheck.length) {
+        const chunk = videosToCheck.slice(i, i + chunkSize);
+        try {
+            const checkedVodsRecordChunk = await TwitchVOD.checkValidVods(chunk);
+            checkedVodsRecord = { ...checkedVodsRecord, ...checkedVodsRecordChunk };
+        } catch (error) {
+            return `Error: ${(error as Error).message}`;
+        }
+        i += chunkSize;
+    }
 
     // DRY?
     for (const channel of streamerList.channels) {
@@ -205,4 +220,20 @@ export async function MatchVods(req: express.Request, res: express.Response): Pr
     const force = req.query.force !== undefined;
     const output = await fMatchVods(force);
     res.send(output || "Nothing to match");
+}
+
+export function RunScheduler(req: express.Request, res: express.Response): void {
+    const job = req.query.job as string | undefined;
+    if (!job) {
+        res.send("No job specified, use ?job=jobname");
+        return;
+    }
+    try {
+        Scheduler.runJob(job);
+    } catch (th) {
+        res.send((th as Error).message);
+        return;
+    }
+
+    res.send("Job started, check logs for details");
 }

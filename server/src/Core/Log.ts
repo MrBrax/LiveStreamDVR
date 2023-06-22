@@ -5,6 +5,7 @@ import path from "node:path";
 import { BaseConfigDataFolder } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
+import { xTimeout } from "../Helpers/Timeout";
 
 export enum LOGLEVEL {
     ERROR = "ERROR",
@@ -94,14 +95,14 @@ export class Log {
         if (!Config.debug && level == Log.Level.DEBUG) return;
 
         // if testing, don't log
-        // if (process.env.NODE_ENV == "test") {
-        //     console.log(chalk.yellow("[TEST]"), level, module, text);
-        //     return;
-        // }
+        if (process.env.NODE_ENV == "test") {
+            console.log(chalk.yellow("[TEST]"), level, module, text);
+            return;
+        }
 
         // check if folder exists
         if (!fs.existsSync(BaseConfigDataFolder.logs)) {
-            throw new Error("Log folder does not exist!");
+            throw new Error(`Log folder '${BaseConfigDataFolder.logs}' does not exist!`);
         }
 
         if (!Log.currentDate) {
@@ -188,7 +189,7 @@ export class Log {
             this.websocket_buffer.push(log_data);
 
             if (Log.websocket_timer) clearTimeout(Log.websocket_timer);
-            Log.websocket_timer = setTimeout(() => {
+            Log.websocket_timer = xTimeout(() => {
                 // console.debug(`Sending ${this.websocket_buffer.length} lines over websocket`);
                 ClientBroker.broadcast({
                     server: true,
@@ -200,6 +201,10 @@ export class Log {
             }, 5000);
 
         }
+
+        // if (metadata instanceof Error) {
+        //     console.error(metadata);
+        // }
 
         /*
         ClientBroker.broadcast({

@@ -40,5 +40,22 @@
       "refreshed-channel-channel-internalname": "Refreshed channel: {{0}}",
       "renamed-channel-channel-internalname-to-req-body-new_login": "Renamed channel: {0} to {1}"
     }
+  },
+  "notify": {
+    "broadcaster-is-live": "{{0}} is live!",
+    "channel-displayname-is-online-with-one-of-your-favourite-categories-current_chapter-game_name": "{{0}} is online with one of your favourite categories: {{1}}!",
+    "channel-displayname-is-now-streaming-current_chapter-game_name": "{{0}} is now streaming {{1}}!",
+    "channel-displayname-is-now-streaming-without-a-category": "{{0}} is now streaming without a category!",
+    "channel-displayname-is-now-playing-one-of-your-favourite-games-current_chapter-game_name": "{{0}} is now playing one of your favourite games: {{1}}!",
+    "channel-displayname-is-now-playing-current_chapter-game_name": "{{0}} is now playing {{1}}!",
+    "channel-displayname-is-now-streaming-without-a-game": "{{0}} is now streaming without a game!",
+    "channel-displayname-is-still-streaming-without-a-game": "{{0}} is still streaming without a game!",
+    "channel-displayname-changed-title-still-playing-streaming-current_chapter-game_name": "{{0}} changed title, still playing/streaming {{1}}!",
+    "this-broadcaster_user_login-has-gone-offline": "{{0}} has gone offline!",
+    "was-streaming-for-formatdistancetonow-this-channel-latest_vod-started_at": "Was streaming for {{0}}.",
+    "capturing-of-basename-failed-no-streams-available-nis-there-a-configuration-error": "Capturing of {{0}} failed, no streams available!\\nIs there a configuration error?"
+  },
+  "base": {
+    "bootmessage": "The time is {{0}}. Current topside temperature is 93 degrees, with an estimated high of one hundred and five. The Black Mesa compound is maintained at a pleasant 68 degrees at all times."
   }
 }

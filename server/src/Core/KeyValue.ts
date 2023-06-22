@@ -53,6 +53,10 @@ export class KeyValue extends EventEmitter {
         return Object.fromEntries(entries.map(([key, value]) => [key, value.value]));
     }
 
+    count() {
+        return Object.keys(this.getAll()).length;
+    }
+
     /**
      * Check if a key exists in the key-value store.
      * @param key 

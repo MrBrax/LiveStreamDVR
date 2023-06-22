@@ -19,6 +19,7 @@ import { Log } from "../Core/Log";
 import { AutomatorMetadata, TwitchAutomator } from "../Core/Providers/Twitch/TwitchAutomator";
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { getNiceDuration } from "../Helpers/Format";
+import { xTimeout } from "../Helpers/Timeout";
 
 export interface ExecReturn {
     stdout: string[];
@@ -938,7 +939,7 @@ export class TwitchHelper {
             this.createNewWebsocket(this.eventWebsocketUrl, true);
 
             if (Config.debug) {
-                setTimeout(() => {
+                xTimeout(() => {
                     this.printWebsockets();
                 }, 20000);
                 console.log(chalk.green("✔ Websocket setup (debug mode)"));
@@ -1378,7 +1379,7 @@ export class EventWebsocket {
         //     clearTimeout(this.eventWebsocketTimeoutCheck);
         // }
 
-        this.timeoutCheck = setTimeout(() => {
+        this.timeoutCheck = xTimeout(() => {
             if (this.lastKeepalive) {
                 const diff = new Date().getTime() - this.lastKeepalive.getTime();
                 if (diff > 60000) {

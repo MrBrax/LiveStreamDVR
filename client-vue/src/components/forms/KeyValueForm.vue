@@ -30,7 +30,7 @@
             >
                 <td>{{ key }}</td>
                 <td>
-                    {{ kvdata }}
+                    {{ kvdata.value }}
                     <button
                         class="icon-button"
                         title="Edit"
@@ -39,8 +39,8 @@
                         <span><font-awesome-icon icon="pencil" /></span>
                     </button>
                 </td>
-                <td>{{ kvdata.created }}</td>
-                <td>{{ kvdata.expires }}</td>
+                <td>{{ formatDate(kvdata.created) }}</td>
+                <td>{{ kvdata.expires ? formatDate(kvdata.expires) : "" }}</td>
                 <td>
                     <d-button
                         icon="trash"
@@ -126,6 +126,7 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faPencil, faSync, faTrash, faPlus } from "@fortawesome/free-solid-svg-icons";
 import { useI18n } from "vue-i18n";
 import axios from "axios";
+import { formatDate } from "@/mixins/newhelpers";
 library.add(faPencil, faSync, faTrash, faPlus);
 
 // emit

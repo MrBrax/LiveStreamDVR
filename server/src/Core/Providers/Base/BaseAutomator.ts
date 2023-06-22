@@ -5,8 +5,10 @@ import { formatString } from "@common/Format";
 import { VodBasenameTemplate } from "@common/Replacements";
 import { ChannelUpdateEvent } from "@common/TwitchAPI/EventSub/ChannelUpdate";
 import type { StreamPause } from "@common/Vod";
+import type { EndCaptureData, EndConvertData, StartDownloadData, VodUpdated } from "@common/Webhook";
 import chalk from "chalk";
 import { format, formatDistanceToNow, isValid, parseJSON } from "date-fns";
+import { t } from "i18next";
 import { spawn } from "node:child_process";
 import fs from "node:fs";
 import { IncomingHttpHeaders } from "node:http";
@@ -16,6 +18,7 @@ import { TwitchVODChapterJSON } from "Storage/JSON";
 import { Exporter, GetExporter } from "../../../Controllers/Exporter";
 import { formatBytes } from "../../../Helpers/Format";
 import { Sleep } from "../../../Helpers/Sleep";
+import { xInterval } from "../../../Helpers/Timeout";
 import { isTwitchVOD, isTwitchVODChapter } from "../../../Helpers/Types";
 import { RemuxReturn } from "../../../Providers/Twitch";
 import { BaseConfigDataFolder } from "../../BaseConfig";
@@ -238,32 +241,32 @@ export class BaseAutomator {
         ) {
             if (nonGameCategories.includes(current_chapter.game_name)) {
                 if (current_chapter.game?.isFavourite()) {
-                    title = `${channel.displayName} is online with one of your favourite categories: ${current_chapter.game_name}!`;
+                    title = t("notify.channel-displayname-is-online-with-one-of-your-favourite-categories-current_chapter-game_name",channel.displayName,current_chapter.game_name);
                     category = "streamStatusChangeFavourite";
                 } else if (current_chapter.game_name) {
-                    title = `${channel.displayName} is now streaming ${current_chapter.game_name}!`;
+                    title = t("notify.channel-displayname-is-now-streaming-current_chapter-game_name",channel.displayName,current_chapter.game_name);
                 } else {
-                    title = `${channel.displayName} is now streaming without a category!`;
+                    title = t("notify.channel-displayname-is-now-streaming-without-a-category",channel.displayName);
                 }
             } else {
                 if (current_chapter.game?.isFavourite()) {
-                    title = `${channel.displayName} is now playing one of your favourite games: ${current_chapter.game_name}!`;
+                    title = t("notify.channel-displayname-is-now-playing-one-of-your-favourite-games-current_chapter-game_name",channel.displayName,current_chapter.game_name);
                     category = "streamStatusChangeFavourite";
                 } else if (current_chapter.game_name) {
-                    title = `${channel.displayName} is now playing ${current_chapter.game_name}!`;
+                    title = t("notify.channel-displayname-is-now-playing-current_chapter-game_name",channel.displayName,current_chapter.game_name);
                 } else {
-                    title = `${channel.displayName} is now streaming without a game!`;
+                    title = t("notify.channel-displayname-is-now-streaming-without-a-game",channel.displayName);
                 }
 
             }
         } else if (previous_chapter?.game_id && !current_chapter.game_id) {
-            title = `${channel.displayName} is now streaming without a game!`;
+            title = t("notify.channel-displayname-is-now-streaming-without-a-game",channel.displayName);
 
         } else if (!previous_chapter?.game_id && !current_chapter.game_id) {
-            title = `${channel.displayName} is still streaming without a game!`;
+            title = t("notify.channel-displayname-is-still-streaming-without-a-game",channel.displayName);
 
         } else if (previous_chapter?.title !== current_chapter.title) {
-            title = `${channel.displayName} changed title, still playing/streaming ${current_chapter.game_name}!`;
+            title = t("notify.channel-displayname-changed-title-still-playing-streaming-current_chapter-game_name",channel.displayName,current_chapter.game_name);
         }
 
         if (!title) {
@@ -367,8 +370,8 @@ export class BaseAutomator {
         // channel offline notification
         if (this.channel) {
             ClientBroker.notify(
-                `${this.broadcaster_user_login} has gone offline!`,
-                this.channel && this.channel.latest_vod && this.channel.latest_vod.started_at ? `Was streaming for ${formatDistanceToNow(this.channel.latest_vod.started_at)}.` : "",
+                t("notify.this-broadcaster_user_login-has-gone-offline",this.broadcaster_user_login),
+                this.channel && this.channel.latest_vod && this.channel.latest_vod.started_at ? t("notify.was-streaming-for-formatdistancetonow-this-channel-latest_vod-started_at",formatDistanceToNow(this.channel.latest_vod.started_at)) : "",
                 this.channel.profilePictureUrl,
                 "streamOffline",
                 this.channel.livestreamUrl
@@ -651,7 +654,7 @@ export class BaseAutomator {
 
         Webhook.dispatchAll("start_download", {
             "vod": await this.vod.toAPI(),
-        });
+        } as StartDownloadData);
 
         this.vod.is_capturing = true;
         await this.vod.saveJSON("is_capturing set");
@@ -713,7 +716,7 @@ export class BaseAutomator {
         Webhook.dispatchAll("end_capture", {
             "vod": await this.vod.toAPI(),
             "success": capture_success,
-        });
+        } as EndCaptureData);
 
         // error handling if nothing got downloaded
         if (!capture_success) {
@@ -797,7 +800,7 @@ export class BaseAutomator {
                 Webhook.dispatchAll("end_convert", {
                     "vod": await this.vod.toAPI(),
                     "success": convert_success,
-                });
+                } as EndConvertData);
 
                 // remove ts if both files exist
                 if (convert_success) {
@@ -871,7 +874,7 @@ export class BaseAutomator {
         // finally send internal webhook for capture finish
         Webhook.dispatchAll("end_download", {
             "vod": await this.vod.toAPI(),
-        });
+        } as VodUpdated);
 
         this.onEndDownload();
 
@@ -1028,7 +1031,7 @@ export class BaseAutomator {
             Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Capturing of ${basename} failed, no streams available!`);
             ClientBroker.notify(
                 "Streamlink error",
-                `Capturing of ${basename} failed, no streams available!\nIs there a configuration error?`,
+                t("notify.capturing-of-basename-failed-no-streams-available-nis-there-a-configuration-error",basename),
                 "",
                 "system"
             );
@@ -1175,7 +1178,7 @@ export class BaseAutomator {
 
             };
 
-            const keepalive = setInterval(keepaliveAlert, 120 * 1000);
+            const keepalive = xInterval(keepaliveAlert, 120 * 1000);
 
             // critical end
             capture_process.on("close", (code, signal) => {
@@ -1231,7 +1234,7 @@ export class BaseAutomator {
             this.vod.toAPI().then(vod => {
                 Webhook.dispatchAll("start_capture", {
                     "vod": vod,
-                });
+                } as VodUpdated);
             });
 
         });
@@ -1318,7 +1321,7 @@ export class BaseAutomator {
 
             };
 
-            const keepalive = setInterval(keepaliveAlert, 120 * 1000);
+            const keepalive = xInterval(keepaliveAlert, 120 * 1000);
 
             // critical end
             capture_process.on("close", (code, signal) => {
@@ -1441,7 +1444,7 @@ export class BaseAutomator {
 
         Webhook.dispatchAll("start_convert", {
             vod: await this.vod.toAPI(),
-        });
+        } as VodUpdated);
 
         let mf;
         if (Config.getInstance().cfg("create_video_chapters") && await this.vod.saveFFMPEGChapters()) {
@@ -1466,7 +1469,7 @@ export class BaseAutomator {
         Webhook.dispatchAll("end_convert", {
             vod: await this.vod.toAPI(),
             success: result && result.success,
-        });
+        } as EndConvertData);
 
         return result && result.success;
 

@@ -19,6 +19,7 @@ import { BaseVODChapterJSON } from "../../../Storage/JSON";
 import { Webhook } from "../../Webhook";
 import { BaseVOD } from "./BaseVOD";
 import { BaseVODChapter } from "./BaseVODChapter";
+import { xTimeout } from "../../../Helpers/Timeout";
 
 export class BaseChannel {
 
@@ -117,7 +118,7 @@ export class BaseChannel {
             clearTimeout(this._updateTimer);
             this._updateTimer = undefined;
         }
-        this._updateTimer = setTimeout(async () => {
+        this._updateTimer = xTimeout(async () => {
             const channel = await this.toAPI();
             Webhook.dispatchAll("channel_updated", {
                 channel: channel,
