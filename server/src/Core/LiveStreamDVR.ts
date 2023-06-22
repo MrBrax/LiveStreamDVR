@@ -432,7 +432,7 @@ export class LiveStreamDVR {
         return false;
     }
 
-    public static shutdown(reason: string) {
+    public static shutdown(reason: string, doNotActuallyShutdown?: boolean): void {
         this.shutting_down = true;
         console.log(chalk.red(`[${new Date().toISOString()}] Shutting down (${reason})...`));
 
@@ -445,17 +445,23 @@ export class LiveStreamDVR {
             });
         }
 
-        let timeout: NodeJS.Timeout | undefined = undefined;
-        // introduced in node 18.2
-        if ("closeAllConnections" in this.server) {
-            console.log("closeAllConnections is available, using it");
-            this.server.closeAllConnections();
-        } else {
-            // bad workaround
-            timeout = xTimeout(() => {
-                console.log(chalk.red("Force exiting server, 10 seconds have passed without close event."));
-                process.exit(1);
-            }, 10000);
+        if (this.server) {
+
+            // let timeout: NodeJS.Timeout | undefined = undefined;
+            // introduced in node 18.2
+            if ("closeAllConnections" in this.server) {
+                console.log("closeAllConnections is available, using it");
+                this.server.closeAllConnections();
+            } else {
+                console.error("closeAllConnections is not available");
+                // bad workaround
+                /*
+                timeout = xTimeout(() => {
+                    console.log(chalk.red("Force exiting server, 10 seconds have passed without close event."));
+                    if (!doNotActuallyShutdown) process.exit(1);
+                }, 10000);*/
+            }
+
         }
 
         if (this.debugConnectionInterval) {
@@ -465,32 +471,40 @@ export class LiveStreamDVR {
         clearAllTimeoutsAndIntervals();
 
         // this will not be called until all connections are closed
-        this.server.close(async (error) => {
-            if (error) {
-                console.log(chalk.red(error));
-            } else {
-                console.log(chalk.red("express server is now down"));
-            }
-            if (this.websocketServer) this.websocketServer.close();
-            Scheduler.removeAllJobs();
-            for (const c of LiveStreamDVR.getInstance().channels) {
-                await c.stopWatching();
-            }
-            for (const v of LiveStreamDVR.getInstance().vods) {
-                await v.stopWatching();
-            }
-            for (const j of Job.jobs) {
-                await j.kill();
-            }
-            ClientBroker.wss = undefined;
-            Config.getInstance().stopWatchingConfig();
-            TwitchHelper.removeAllEventWebsockets();
-            if (timeout !== undefined) clearTimeout(timeout);
-            if (LiveStreamDVR.getInstance().diskSpaceInterval) clearInterval(LiveStreamDVR.getInstance().diskSpaceInterval);
-            if (fs.existsSync(path.join(BaseConfigCacheFolder.cache, "is_running"))) fs.unlinkSync(path.join(BaseConfigCacheFolder.cache, "is_running"));
-            console.log(chalk.red("Finished tasks, bye bye."));
-            // process.exit(0);
-        });
+        if (this.server) {
+            this.server.close(async (error) => {
+                if (error) {
+                    console.log(chalk.red(error));
+                } else {
+                    console.log(chalk.red("express server is now down"));
+                }
+                await this.shutdownRest();
+            });
+        } else {
+            this.shutdownRest();
+        }
+    }
+
+    private static async shutdownRest(): Promise<void> {
+        if (this.websocketServer) this.websocketServer.close();
+        Scheduler.removeAllJobs();
+        for (const c of LiveStreamDVR.getInstance().channels) {
+            await c.stopWatching();
+        }
+        for (const v of LiveStreamDVR.getInstance().vods) {
+            await v.stopWatching();
+        }
+        for (const j of Job.jobs) {
+            await j.kill();
+        }
+        ClientBroker.wss = undefined;
+        Config.getInstance().stopWatchingConfig();
+        TwitchHelper.removeAllEventWebsockets();
+        // if (timeout !== undefined) clearTimeout(timeout);
+        if (LiveStreamDVR.getInstance().diskSpaceInterval) clearInterval(LiveStreamDVR.getInstance().diskSpaceInterval);
+        if (fs.existsSync(path.join(BaseConfigCacheFolder.cache, "is_running"))) fs.unlinkSync(path.join(BaseConfigCacheFolder.cache, "is_running"));
+        console.log(chalk.red("Finished tasks, bye bye."));
+        // process.exit(0);
     }
 
     /**

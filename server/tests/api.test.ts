@@ -76,6 +76,7 @@ beforeAll(async () => {
 
 afterAll(() => {
     Config.destroyInstance();
+    LiveStreamDVR.shutdown("test", true);
     app = undefined;
     spy1?.mockRestore();
     jest.restoreAllMocks();

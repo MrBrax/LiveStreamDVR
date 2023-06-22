@@ -22,7 +22,7 @@ export class Scheduler {
         if (this.hasJob(name)) {
             this.removeJob(name);
         }
-        const job = new cron.CronJob(cronTime, callback);
+        const job = new cron.CronJob(cronTime, callback, undefined, false);
         this.jobs[name] = job;
         job.start();
         Log.logAdvanced(Log.Level.INFO, "scheduler.schedule", `Scheduled job '${name}' with cronTime '${cronTime}'`);

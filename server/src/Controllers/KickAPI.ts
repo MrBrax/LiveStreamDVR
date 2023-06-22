@@ -1,5 +1,5 @@
 import type { KickChannel, KickUser, KickChannelVideo, KickChannelLivestream, KickChannelLivestreamResponse } from "@common/KickAPI/Kick";
-import { GetUser } from "Providers/Kick";
+import { GetUser } from "../Providers/Kick";
 import express from "express";
 import { ApiErrorResponse } from "@common/Api/Api";
 

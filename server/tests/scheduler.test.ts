@@ -9,9 +9,12 @@ jest.mock("../src/Controllers/Cron", () => {
     };
 });
 
-describe("Scheduler", () => {
-
+beforeAll(() => {
+    Config.getInstance().config = {};
     Scheduler.defaultJobs();
+});
+
+describe("Scheduler", () => {
     it("should run the function inside the schedule if the config is set to true", () => {
         const config = Config.getInstance();
         config.config = {};

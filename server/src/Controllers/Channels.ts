@@ -30,7 +30,7 @@ import { TwitchVODChapterJSON } from "../Storage/JSON";
 import { Job } from "../Core/Job";
 import { Exporter, GetExporter } from "./Exporter";
 import { ExporterOptions } from "@common/Exporter";
-import { KickChannel } from "Core/Providers/Kick/KickChannel";
+import { KickChannel } from "../Core/Providers/Kick/KickChannel";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
