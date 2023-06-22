@@ -43,17 +43,26 @@ export class Scheduler {
         Log.logAdvanced(Log.Level.INFO, "scheduler.defaultJobs", "Set up default jobs");
 
         this.schedule("check_muted_vods", "0 */12 * * *", () => {
-            if (!Config.getInstance().cfg<boolean>("schedule_muted_vods")) return;
+            if (!Config.getInstance().cfg<boolean>("schedule_muted_vods")) {
+                Log.logAdvanced(Log.Level.INFO, "scheduler.defaultJobs", "Scheduler: check_muted_vods - disabled");
+                return;
+            }
             CronController.fCheckMutedVods();
         });
 
         this.schedule("check_deleted_vods", "10 */12 * * *", () => {
-            if (!Config.getInstance().cfg<boolean>("schedule_deleted_vods")) return;
+            if (!Config.getInstance().cfg<boolean>("schedule_deleted_vods")) {
+                Log.logAdvanced(Log.Level.INFO, "scheduler.defaultJobs", "Scheduler: check_deleted_vods - disabled");
+                return;
+            }
             CronController.fCheckDeletedVods();
         });
 
         this.schedule("match_vods", "30 */12 * * *", () => {
-            if (!Config.getInstance().cfg<boolean>("schedule_match_vods")) return;
+            if (!Config.getInstance().cfg<boolean>("schedule_match_vods")) {
+                Log.logAdvanced(Log.Level.INFO, "scheduler.defaultJobs", "Scheduler: match_vods - disabled");
+                return;
+            }
             CronController.fMatchVods();
         });
 
@@ -81,6 +90,11 @@ export class Scheduler {
         //     }
         //     TwitchHelper.refreshUserAccessToken();
         // });
+
+        Log.logAdvanced(Log.Level.INFO, "scheduler.defaultJobs", `Default job 'check_muted_vods' ${Config.getInstance().cfg<boolean>("schedule_muted_vods") ? "enabled" : "disabled"}`);
+        Log.logAdvanced(Log.Level.INFO, "scheduler.defaultJobs", `Default job 'check_deleted_vods' ${Config.getInstance().cfg<boolean>("schedule_deleted_vods") ? "enabled" : "disabled"}`);
+        Log.logAdvanced(Log.Level.INFO, "scheduler.defaultJobs", `Default job 'match_vods' ${Config.getInstance().cfg<boolean>("schedule_match_vods") ? "enabled" : "disabled"}`);
+        Log.logAdvanced(Log.Level.INFO, "scheduler.defaultJobs", `Default job 'clipdownload' ${Config.getInstance().cfg<boolean>("scheduler.clipdownload.enabled") ? "enabled" : "disabled"}`);
 
     }
 
@@ -112,7 +126,7 @@ export class Scheduler {
             this.jobs[name].fireOnTick();
             // this.jobs[name].start();
         } else {
-            throw new Error("Job not found");
+            throw new Error(`Scheduler: Job '${name}' not found`);
         }
     }
 
@@ -120,7 +134,10 @@ export class Scheduler {
 
         console.debug("Scheduler: scheduleClipDownload");
 
-        if (!Config.getInstance().cfg<boolean>("scheduler.clipdownload.enabled")) return;
+        if (!Config.getInstance().cfg<boolean>("scheduler.clipdownload.enabled")) {
+            Log.logAdvanced(Log.Level.INFO, "Scheduler", "Scheduler: scheduleClipDownload - disabled");
+            return;
+        }
 
         Log.logAdvanced(Log.Level.INFO, "Scheduler", "Scheduler: scheduleClipDownload - start");
 
