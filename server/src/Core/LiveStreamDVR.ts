@@ -15,7 +15,7 @@ import { WebSocket, WebSocketServer } from "ws";
 import { version } from "../../package.json";
 import { formatBytes } from "../Helpers/Format";
 import { DVRBinaries, DVRPipPackages, getBinaryVersion } from "../Helpers/Software";
-import { clearAllTimeoutsAndIntervals, xInterval, xTimeout } from "../Helpers/Timeout";
+import { clearAllTimeoutsAndIntervals, xClearInterval, xInterval, xTimeout } from "../Helpers/Timeout";
 import { TwitchHelper } from "../Providers/Twitch";
 import { YouTubeHelper } from "../Providers/YouTube";
 import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath, DataRoot, HomeRoot } from "./BaseConfig";
@@ -501,7 +501,8 @@ export class LiveStreamDVR {
         Config.getInstance().stopWatchingConfig();
         TwitchHelper.removeAllEventWebsockets();
         // if (timeout !== undefined) clearTimeout(timeout);
-        if (LiveStreamDVR.getInstance().diskSpaceInterval) clearInterval(LiveStreamDVR.getInstance().diskSpaceInterval);
+        const dsi = LiveStreamDVR.getInstance().diskSpaceInterval;
+        if (dsi) xClearInterval(dsi);
         if (fs.existsSync(path.join(BaseConfigCacheFolder.cache, "is_running"))) fs.unlinkSync(path.join(BaseConfigCacheFolder.cache, "is_running"));
         console.log(chalk.red("Finished tasks, bye bye."));
         // process.exit(0);
@@ -691,7 +692,7 @@ export class LiveStreamDVR {
     }
 
     public startDiskSpaceInterval() {
-        if (this.diskSpaceInterval) clearInterval(this.diskSpaceInterval);
+        if (this.diskSpaceInterval) xClearInterval(this.diskSpaceInterval);
         this.diskSpaceInterval = xInterval(() => {
             // if (LiveStreamDVR.getInstance().isIdle) return;
             this.updateFreeStorageDiskSpace();

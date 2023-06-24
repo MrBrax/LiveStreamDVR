@@ -1,5 +1,4 @@
 import type { ApiTwitchVod } from "@common/Api/Client";
-import { VODBookmark } from "@common/Bookmark";
 import type { TwitchComment, TwitchCommentDump } from "@common/Comments";
 import { VideoQuality } from "@common/Config";
 import { JobStatus, MuteStatus, Providers } from "@common/Defs";
@@ -7,7 +6,7 @@ import { AudioStream, FFProbe, VideoStream } from "@common/FFProbe";
 import { VideoMetadata } from "@common/MediaInfo";
 import { ProxyVideo } from "@common/Proxies/Video";
 import { Clip, ClipsResponse } from "@common/TwitchAPI/Clips";
-import { VideoRequestParams, Video, VideosResponse } from "@common/TwitchAPI/Video";
+import { Video, VideoRequestParams, VideosResponse } from "@common/TwitchAPI/Video";
 import axios from "axios";
 import chalk from "chalk";
 import chokidar from "chokidar";
@@ -16,7 +15,9 @@ import { encode as htmlentities } from "html-entities";
 import fs from "node:fs";
 import path from "node:path";
 import { trueCasePathSync } from "true-case-path";
+import { progressOutput } from "../../../Helpers/Console";
 import { formatDuration, formatSubtitleDuration } from "../../../Helpers/Format";
+import { xClearInterval, xInterval, xTimeout } from "../../../Helpers/Timeout";
 import { isTwitchVOD } from "../../../Helpers/Types";
 import { TwitchHelper } from "../../../Providers/Twitch";
 import { TwitchVODChapterJSON, TwitchVODJSON } from "../../../Storage/JSON";
@@ -33,7 +34,6 @@ import { BaseVOD } from "../Base/BaseVOD";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVODChapter } from "./TwitchVODChapter";
-import { xInterval, xTimeout } from "../../../Helpers/Timeout";
 
 /**
  * Twitch VOD
@@ -1740,6 +1740,7 @@ export class TwitchVOD extends BaseVOD {
                 if (currentSegmentMatch && totalSegments > 0) {
                     currentSegment = parseInt(currentSegmentMatch[1]);
                     // console.debug(`Current segment: ${currentSegment}`);
+                    progressOutput(`Downloading VOD ${video_id}: ${Math.round((currentSegment / totalSegments) * 100)}%`);
                     return currentSegment / totalSegments;
                 }
 
@@ -2441,7 +2442,7 @@ export class TwitchVOD extends BaseVOD {
 
     public stopWatchingViewerCount() {
         if (this.watchViewerCountInterval) {
-            clearInterval(this.watchViewerCountInterval);
+            xClearInterval(this.watchViewerCountInterval);
             this.watchViewerCountInterval = undefined;
         }
     }

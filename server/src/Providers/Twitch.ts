@@ -19,7 +19,7 @@ import { Log } from "../Core/Log";
 import { AutomatorMetadata, TwitchAutomator } from "../Core/Providers/Twitch/TwitchAutomator";
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { getNiceDuration } from "../Helpers/Format";
-import { xTimeout } from "../Helpers/Timeout";
+import { xClearTimeout, xTimeout } from "../Helpers/Timeout";
 
 export interface ExecReturn {
     stdout: string[];
@@ -1359,7 +1359,7 @@ export class EventWebsocket {
             }
 
             if (this.timeoutCheck) {
-                clearTimeout(this.timeoutCheck);
+                xClearTimeout(this.timeoutCheck);
             }
 
             this.disconnectAndRemove();
@@ -1402,7 +1402,7 @@ export class EventWebsocket {
         );
 
         if (this.timeoutCheck) {
-            clearTimeout(this.timeoutCheck);
+            xClearTimeout(this.timeoutCheck);
         }
         if (this.ws) {
             this.ws.close();

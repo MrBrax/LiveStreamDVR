@@ -27,7 +27,7 @@ import { Webhook } from "../../Webhook";
 import { BaseChannel } from "./BaseChannel";
 import { BaseVODChapter } from "./BaseVODChapter";
 import { BaseVODSegment } from "./BaseVODSegment";
-import { xTimeout } from "../../../Helpers/Timeout";
+import { xClearTimeout, xTimeout } from "../../../Helpers/Timeout";
 
 export class BaseVOD {
 
@@ -646,7 +646,7 @@ export class BaseVOD {
     public broadcastUpdate(): void {
         // if (process.env.NODE_ENV === "test") return;
         if (this._updateTimer) {
-            clearTimeout(this._updateTimer);
+            xClearTimeout(this._updateTimer);
             this._updateTimer = undefined;
         }
         this._updateTimer = xTimeout(async () => {

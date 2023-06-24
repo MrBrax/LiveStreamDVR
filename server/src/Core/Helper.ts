@@ -14,6 +14,7 @@ import { MediaInfoJSONOutput, VideoMetadata, AudioMetadata } from "@common/Media
 import { MediaInfo } from "@common/mediainfofield";
 import { LiveStreamDVR } from "./LiveStreamDVR";
 import { formatDuration } from "../Helpers/Format";
+import { progressOutput } from "../Helpers/Console";
 
 export class Helper {
     public static vodFolder(username = "") {
@@ -617,14 +618,12 @@ export class Helper {
                     currentSeconds = parseInt(currentTimeMatch[1]) * 3600 + parseInt(currentTimeMatch[2]) * 60 + parseInt(currentTimeMatch[3]);
                     job.setProgress(currentSeconds / totalSeconds);
                     // console.debug(`Remux current time: ${currentSeconds}/${totalSeconds}`);
-                    console.log(
-                        chalk.bgGreen.whiteBright(
-                            `[${new Date().toISOString()}] Remuxing ${path.basename(input)} - ${currentSeconds}/${totalSeconds} seconds (${Math.round((currentSeconds / totalSeconds) * 100)}%)`
-                        )
+                    progressOutput(
+                        `🎞 Remuxing ${path.basename(input)} - ${currentSeconds}/${totalSeconds} seconds (${Math.round((currentSeconds / totalSeconds) * 100)}%)`
                     );
                 }
                 if (data.match(/moving the moov atom/)) {
-                    console.log("Create MOOV atom for " + path.basename(input));
+                    console.log(`Create MOOV atom for ${path.basename(input)} (this usually takes a while)`);
                 }
             });
 

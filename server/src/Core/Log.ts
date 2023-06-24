@@ -5,7 +5,8 @@ import path from "node:path";
 import { BaseConfigDataFolder } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
-import { xTimeout } from "../Helpers/Timeout";
+import { xClearTimeout, xTimeout } from "../Helpers/Timeout";
+import { formatBytes } from "Helpers/Format";
 
 export enum LOGLEVEL {
     ERROR = "ERROR",
@@ -153,9 +154,16 @@ export class Log {
         //     console.log(textOutput);
         // }
 
-        console.log(
-            this.LOG_COLORS[level](`${dateString} | ${module} <${level}> ${text}`)
-        );
+        if (Config && Config.debug) {
+            const mem = process.memoryUsage();
+            console.log(
+                this.LOG_COLORS[level](`${dateString} | ${formatBytes(mem.heapUsed)}/${formatBytes(mem.heapTotal)}/${formatBytes(mem.rss)} | ${module} <${level}> ${text}`)
+            );
+        } else {
+            console.log(
+                this.LOG_COLORS[level](`${dateString} | ${module} <${level}> ${text}`)
+            );
+        }
 
         const log_data: LogLine = {
             module: module,
@@ -188,7 +196,7 @@ export class Log {
 
             this.websocket_buffer.push(log_data);
 
-            if (Log.websocket_timer) clearTimeout(Log.websocket_timer);
+            if (Log.websocket_timer) xClearTimeout(Log.websocket_timer);
             Log.websocket_timer = xTimeout(() => {
                 // console.debug(`Sending ${this.websocket_buffer.length} lines over websocket`);
                 ClientBroker.broadcast({

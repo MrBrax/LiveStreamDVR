@@ -18,7 +18,7 @@ import { TwitchVODChapterJSON } from "Storage/JSON";
 import { Exporter, GetExporter } from "../../../Controllers/Exporter";
 import { formatBytes } from "../../../Helpers/Format";
 import { Sleep } from "../../../Helpers/Sleep";
-import { xInterval } from "../../../Helpers/Timeout";
+import { xClearInterval, xInterval } from "../../../Helpers/Timeout";
 import { isTwitchVOD, isTwitchVODChapter } from "../../../Helpers/Types";
 import { RemuxReturn } from "../../../Providers/Twitch";
 import { BaseConfigDataFolder } from "../../BaseConfig";
@@ -32,6 +32,7 @@ import { Log } from "../../Log";
 import { Webhook } from "../../Webhook";
 import { TwitchChannel } from "../Twitch/TwitchChannel";
 import { TwitchVOD } from "../Twitch/TwitchVOD";
+import { progressOutput } from "Helpers/Console";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 
@@ -1166,11 +1167,9 @@ export class BaseAutomator {
                     const size = fs.statSync(this.capture_filename).size;
                     const bitRate = (size - lastSize) / 120;
                     lastSize = size;
-                    console.log(
-                        chalk.bgGreen.whiteBright(
-                            `🎥 ${new Date().toISOString()} ${basename} ${this.stream_resolution} ` +
-                            `${formatBytes(size)} / ${Math.round((bitRate * 8) / 1000)} kbps`
-                        )
+                    progressOutput(
+                        `🎥 ${basename} ${this.stream_resolution} ` +
+                        `${formatBytes(size)} / ${Math.round((bitRate * 8) / 1000)} kbps`
                     );
                 } else {
                     console.log(chalk.bgRed.whiteBright(`🎥 ${new Date().toISOString()} ${basename} missing`));
@@ -1189,7 +1188,7 @@ export class BaseAutomator {
                     Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Job ${jobName} exited with code ${code}, signal ${signal}`);
                 }
 
-                clearInterval(keepalive);
+                xClearInterval(keepalive);
 
                 if (this.captureJob) {
                     this.captureJob.clear();
@@ -1218,7 +1217,7 @@ export class BaseAutomator {
 
             // check for errors
             capture_process.on("error", (err) => {
-                clearInterval(keepalive);
+                xClearInterval(keepalive);
                 Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Error with streamlink for ${basename}: ${err}`);
                 reject(false);
             });
@@ -1332,7 +1331,7 @@ export class BaseAutomator {
                     Log.logAdvanced(Log.Level.ERROR, "automator.fallbackCapture", `Job ${jobName} exited with code ${code}, signal ${signal}`);
                 }
 
-                clearInterval(keepalive);
+                xClearInterval(keepalive);
 
                 if (capture_job) {
                     capture_job.clear();
@@ -1355,7 +1354,7 @@ export class BaseAutomator {
 
             // check for errors
             capture_process.on("error", (err) => {
-                clearInterval(keepalive);
+                xClearInterval(keepalive);
                 Log.logAdvanced(Log.Level.ERROR, "automator.fallbackCapture", `Error with streamlink for ${basename}: ${err}`);
                 reject(false);
             });

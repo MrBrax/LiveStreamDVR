@@ -19,7 +19,7 @@ import { BaseVODChapterJSON } from "../../../Storage/JSON";
 import { Webhook } from "../../Webhook";
 import { BaseVOD } from "./BaseVOD";
 import { BaseVODChapter } from "./BaseVODChapter";
-import { xTimeout } from "../../../Helpers/Timeout";
+import { xClearTimeout, xTimeout } from "../../../Helpers/Timeout";
 
 export class BaseChannel {
 
@@ -115,7 +115,7 @@ export class BaseChannel {
         // if (process.env.NODE_ENV === "test") return;
         if (!Config.getInstance().initialised) return; // don't broadcast if the config hasn't been loaded yet
         if (this._updateTimer) {
-            clearTimeout(this._updateTimer);
+            xClearTimeout(this._updateTimer);
             this._updateTimer = undefined;
         }
         this._updateTimer = xTimeout(async () => {
