@@ -130,7 +130,7 @@ export class LiveStreamDVR {
         Log.logAdvanced(
             Log.Level.SUCCESS,
             "config",
-            t("base.bootmessage",new Date().toISOString())
+            t("base.bootmessage", new Date().toISOString())
         );
 
         await Config.getInstance().getGitHash();

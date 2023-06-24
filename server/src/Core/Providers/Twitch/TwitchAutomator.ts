@@ -183,7 +183,7 @@ export class TwitchAutomator extends BaseAutomator {
                     body = `${chapter.game_name}\n${chapter.title}`;
                 }
                 ClientBroker.notify(
-                    t("notify.broadcaster-is-live", this.broadcaster_user_login),
+                    t("notify.broadcaster-is-live", [this.broadcaster_user_login]),
                     body,
                     this.channel.profilePictureUrl,
                     "streamOnline",
@@ -333,9 +333,9 @@ export class TwitchAutomator extends BaseAutomator {
                 // const notifyTitle = `${is_live ? "Live non-capturing" : "Offline"} channel ${this.getLogin()} changed status`;
                 let notifyTitle = "";
                 if (is_live) {
-                    notifyTitle = t("notify.live-non-capturing-channel-this-getlogin-changed-status", this.getLogin());
+                    notifyTitle = t("notify.live-non-capturing-channel-this-getlogin-changed-status", [this.getLogin()]);
                 } else {
-                    notifyTitle = t("notify.offline-channel-this-getlogin-changed-status", this.getLogin());
+                    notifyTitle = t("notify.offline-channel-this-getlogin-changed-status", [this.getLogin()]);
                 }
 
                 ClientBroker.notify(
