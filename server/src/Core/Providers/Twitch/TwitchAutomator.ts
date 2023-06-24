@@ -1,4 +1,4 @@
-import {BaseConfigCacheFolder, BaseConfigDataFolder} from "../../BaseConfig";
+import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
 import { TwitchHelper } from "../../../Providers/Twitch";
 import { KeyValue } from "../../KeyValue";
@@ -47,13 +47,13 @@ export class TwitchAutomator extends BaseAutomator {
             return false;
         }
 
-        const messageId             = metadata.message_id;
-        const messageRetry          = metadata.message_retry;
-        const messageType           = metadata.message_type;
-        const messageSignature      = metadata.message_signature;
-        const messageTimestamp      = metadata.message_timestamp;
-        const subscriptionType      = metadata.subscription_type;
-        const subscriptionVersion   = metadata.subscription_version;
+        const messageId = metadata.message_id;
+        const messageRetry = metadata.message_retry;
+        const messageType = metadata.message_type;
+        const messageSignature = metadata.message_signature;
+        const messageTimestamp = metadata.message_timestamp;
+        const subscriptionType = metadata.subscription_type;
+        const subscriptionVersion = metadata.subscription_version;
 
         if (messageRetry !== undefined && messageRetry > 0) {
             Log.logAdvanced(Log.Level.WARNING, "automator.handle", `Message ${messageId} is a retry (${messageRetry})`);
@@ -183,7 +183,7 @@ export class TwitchAutomator extends BaseAutomator {
                     body = `${chapter.game_name}\n${chapter.title}`;
                 }
                 ClientBroker.notify(
-                    t("notify.broadcaster-is-live",this.broadcaster_user_login),
+                    t("notify.broadcaster-is-live", this.broadcaster_user_login),
                     body,
                     this.channel.profilePictureUrl,
                     "streamOnline",
@@ -330,8 +330,16 @@ export class TwitchAutomator extends BaseAutomator {
             // KeyValue.setObject(`${this.getLogin()}.channeldata`, this.payload_eventsub.event);
 
             if (this.channel) {
+                // const notifyTitle = `${is_live ? "Live non-capturing" : "Offline"} channel ${this.getLogin()} changed status`;
+                let notifyTitle = "";
+                if (is_live) {
+                    notifyTitle = t("notify.live-non-capturing-channel-this-getlogin-changed-status", this.getLogin());
+                } else {
+                    notifyTitle = t("notify.offline-channel-this-getlogin-changed-status", this.getLogin());
+                }
+
                 ClientBroker.notify(
-                    `${is_live ? "Live non-capturing" : "Offline"} channel ${this.getLogin()} changed status`,
+                    notifyTitle,
                     `${event.category_name} (${event.title})`,
                     this.channel.profilePictureUrl,
                     "offlineStatusChange",
@@ -459,7 +467,7 @@ export class TwitchAutomator extends BaseAutomator {
         if (proxy_match) {
             Log.logAdvanced(Log.Level.INFO, "automator.captureVideo", `Using playlist proxy: ${proxy_match[1]}`);
         }
-        
+
     }
 
 }

@@ -2,6 +2,7 @@ import i18next from "i18next";
 import i18nextMiddleware from "i18next-http-middleware";
 import messages_de from "../Translations/de.json";
 import messages_en from "../Translations/en.json";
+import messages_ko from "../Translations/ko.json";
 
 /*
 i18next.init({
@@ -19,7 +20,7 @@ i18next.init({
 */
 
 i18next.use(i18nextMiddleware.LanguageDetector).init({
-    preload: ["en", "de"],
+    preload: ["en", "de", "ko"],
     fallbackLng: "en",
     resources: {
         en: {
@@ -27,6 +28,9 @@ i18next.use(i18nextMiddleware.LanguageDetector).init({
         },
         de: {
             translation: messages_de,
+        },
+        ko: {
+            translation: messages_ko,
         },
     },
     detection: {

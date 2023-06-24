@@ -38,7 +38,7 @@
       "forced-recording-of-channel-channel-internalname": "Forced recording of channel: {{0}}",
       "failed-to-refresh-channel": "Failed to refresh channel",
       "refreshed-channel-channel-internalname": "Refreshed channel: {{0}}",
-      "renamed-channel-channel-internalname-to-req-body-new_login": "Renamed channel: {0} to {1}"
+      "renamed-channel-channel-internalname-to-req-body-new_login": "Renamed channel: '{{0}}' to '{{1}}'"
     }
   },
   "notify": {
@@ -53,7 +53,9 @@
     "channel-displayname-changed-title-still-playing-streaming-current_chapter-game_name": "{{0}} changed title, still playing/streaming {{1}}!",
     "this-broadcaster_user_login-has-gone-offline": "{{0}} has gone offline!",
     "was-streaming-for-formatdistancetonow-this-channel-latest_vod-started_at": "Was streaming for {{0}}.",
-    "capturing-of-basename-failed-no-streams-available-nis-there-a-configuration-error": "Capturing of {{0}} failed, no streams available!\\nIs there a configuration error?"
+    "capturing-of-basename-failed-no-streams-available-nis-there-a-configuration-error": "Capturing of {{0}} failed, no streams available!\\nIs there a configuration error?",
+    "live-non-capturing-channel-this-getlogin-changed-status": "Live non-capturing channel {{0}} changed status",
+    "offline-channel-this-getlogin-changed-status": "Offline channel {{0}} changed status"
   },
   "base": {
     "bootmessage": "The time is {{0}}. Current topside temperature is 93 degrees, with an estimated high of one hundred and five. The Black Mesa compound is maintained at a pleasant 68 degrees at all times."
