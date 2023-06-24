@@ -13,6 +13,7 @@ import { Config } from "./Config";
 import { Log } from "./Log";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
+import { debugLog } from "../Helpers/Console";
 
 export class Scheduler {
 
@@ -104,7 +105,7 @@ export class Scheduler {
 
     public static removeJob(name: string) {
         if (this.hasJob(name)) {
-            console.log(`Scheduler: remove job '${name}'`);
+            debugLog(`Scheduler: remove job '${name}'`);
             this.jobs[name].stop();
             delete this.jobs[name];
         }
@@ -132,7 +133,7 @@ export class Scheduler {
 
     public static async scheduleClipDownload() {
 
-        console.debug("Scheduler: scheduleClipDownload");
+        debugLog("Scheduler: scheduleClipDownload");
 
         if (!Config.getInstance().cfg<boolean>("scheduler.clipdownload.enabled")) {
             Log.logAdvanced(Log.Level.INFO, "Scheduler", "Scheduler: scheduleClipDownload - disabled");

@@ -242,32 +242,32 @@ export class BaseAutomator {
         ) {
             if (nonGameCategories.includes(current_chapter.game_name)) {
                 if (current_chapter.game?.isFavourite()) {
-                    title = t("notify.channel-displayname-is-online-with-one-of-your-favourite-categories-current_chapter-game_name",channel.displayName,current_chapter.game_name);
+                    title = t("notify.channel-displayname-is-online-with-one-of-your-favourite-categories-current_chapter-game_name", channel.displayName, current_chapter.game_name);
                     category = "streamStatusChangeFavourite";
                 } else if (current_chapter.game_name) {
-                    title = t("notify.channel-displayname-is-now-streaming-current_chapter-game_name",channel.displayName,current_chapter.game_name);
+                    title = t("notify.channel-displayname-is-now-streaming-current_chapter-game_name", channel.displayName, current_chapter.game_name);
                 } else {
-                    title = t("notify.channel-displayname-is-now-streaming-without-a-category",channel.displayName);
+                    title = t("notify.channel-displayname-is-now-streaming-without-a-category", channel.displayName);
                 }
             } else {
                 if (current_chapter.game?.isFavourite()) {
-                    title = t("notify.channel-displayname-is-now-playing-one-of-your-favourite-games-current_chapter-game_name",channel.displayName,current_chapter.game_name);
+                    title = t("notify.channel-displayname-is-now-playing-one-of-your-favourite-games-current_chapter-game_name", channel.displayName, current_chapter.game_name);
                     category = "streamStatusChangeFavourite";
                 } else if (current_chapter.game_name) {
-                    title = t("notify.channel-displayname-is-now-playing-current_chapter-game_name",channel.displayName,current_chapter.game_name);
+                    title = t("notify.channel-displayname-is-now-playing-current_chapter-game_name", channel.displayName, current_chapter.game_name);
                 } else {
-                    title = t("notify.channel-displayname-is-now-streaming-without-a-game",channel.displayName);
+                    title = t("notify.channel-displayname-is-now-streaming-without-a-game", channel.displayName);
                 }
 
             }
         } else if (previous_chapter?.game_id && !current_chapter.game_id) {
-            title = t("notify.channel-displayname-is-now-streaming-without-a-game",channel.displayName);
+            title = t("notify.channel-displayname-is-now-streaming-without-a-game", channel.displayName);
 
         } else if (!previous_chapter?.game_id && !current_chapter.game_id) {
-            title = t("notify.channel-displayname-is-still-streaming-without-a-game",channel.displayName);
+            title = t("notify.channel-displayname-is-still-streaming-without-a-game", channel.displayName);
 
         } else if (previous_chapter?.title !== current_chapter.title) {
-            title = t("notify.channel-displayname-changed-title-still-playing-streaming-current_chapter-game_name",channel.displayName,current_chapter.game_name);
+            title = t("notify.channel-displayname-changed-title-still-playing-streaming-current_chapter-game_name", channel.displayName, current_chapter.game_name);
         }
 
         if (!title) {
@@ -371,8 +371,8 @@ export class BaseAutomator {
         // channel offline notification
         if (this.channel) {
             ClientBroker.notify(
-                t("notify.this-broadcaster_user_login-has-gone-offline",this.broadcaster_user_login),
-                this.channel && this.channel.latest_vod && this.channel.latest_vod.started_at ? t("notify.was-streaming-for-formatdistancetonow-this-channel-latest_vod-started_at",formatDistanceToNow(this.channel.latest_vod.started_at)) : "",
+                t("notify.this-broadcaster_user_login-has-gone-offline", this.broadcaster_user_login),
+                this.channel && this.channel.latest_vod && this.channel.latest_vod.started_at ? t("notify.was-streaming-for-formatdistancetonow-this-channel-latest_vod-started_at", formatDistanceToNow(this.channel.latest_vod.started_at)) : "",
                 this.channel.profilePictureUrl,
                 "streamOffline",
                 this.channel.livestreamUrl
@@ -1032,7 +1032,7 @@ export class BaseAutomator {
             Log.logAdvanced(Log.Level.ERROR, "automator.captureVideo", `Capturing of ${basename} failed, no streams available!`);
             ClientBroker.notify(
                 "Streamlink error",
-                t("notify.capturing-of-basename-failed-no-streams-available-nis-there-a-configuration-error",basename),
+                t("notify.capturing-of-basename-failed-no-streams-available-nis-there-a-configuration-error", basename),
                 "",
                 "system"
             );

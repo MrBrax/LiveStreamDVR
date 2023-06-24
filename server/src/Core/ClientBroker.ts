@@ -11,6 +11,7 @@ import { BaseConfigPath } from "./BaseConfig";
 import { Config } from "./Config";
 import { Log } from "./Log";
 import { LiveStreamDVR } from "./LiveStreamDVR";
+import { debugLog } from "../Helpers/Console";
 
 interface Client {
     id: string;
@@ -118,7 +119,7 @@ export class ClientBroker {
         });
 
         this.wss.on("close", () => {
-            console.log("Shutting down websocket server");
+            debugLog("Shutting down websocket server");
         });
 
     }
@@ -172,7 +173,7 @@ export class ClientBroker {
             }
             */
 
-            console.log(`JSON from ${client.ip}:`, data);
+            debugLog(`JSON from ${client.ip}:`, data);
             // console.debug(`Clients: ${this.wss.clients.size}`);
 
         });
@@ -206,7 +207,7 @@ export class ClientBroker {
         }
 
         if (this.wss.clients.size == 0) {
-            console.error(chalk.grey(`No clients connected to broker for data: ${d.length > 64 ? d.substring(0, 64) + "..." : d}`));
+            debugLog(chalk.grey(`No clients connected to broker for data: ${d.length > 64 ? d.substring(0, 64) + "..." : d}`));
             return;
         }
 
@@ -220,7 +221,7 @@ export class ClientBroker {
         //         // filter each type
         //     }
 
-        console.log(chalk.blueBright(`Broadcasting data to ${this.wss.clients.size} clients: ${d.length > 64 ? d.substring(0, 64) + "..." : d}`));
+        debugLog(chalk.blueBright(`Broadcasting data to ${this.wss.clients.size} clients: ${d.length > 64 ? d.substring(0, 64) + "..." : d}`));
         this.wss.clients.forEach((client) => {
             client.send(d);
         });

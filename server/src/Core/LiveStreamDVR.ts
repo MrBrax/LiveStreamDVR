@@ -36,6 +36,7 @@ import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 import { YouTubeVOD } from "./Providers/YouTube/YouTubeVOD";
 import { Scheduler } from "./Scheduler";
 import { Webhook } from "./Webhook";
+import { debugLog } from "../Helpers/Console";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -439,7 +440,7 @@ export class LiveStreamDVR {
         if (this.websocketServer) {
             this.websocketServer.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
-                    console.log("Closing websocket client connection");
+                    debugLog(`Closing websocket client connection ${client.url}`);
                     client.close();
                 }
             });
@@ -450,7 +451,7 @@ export class LiveStreamDVR {
             // let timeout: NodeJS.Timeout | undefined = undefined;
             // introduced in node 18.2
             if ("closeAllConnections" in this.server) {
-                console.log("closeAllConnections is available, using it");
+                debugLog("closeAllConnections is available, using it");
                 this.server.closeAllConnections();
             } else {
                 console.error("closeAllConnections is not available");
@@ -474,9 +475,9 @@ export class LiveStreamDVR {
         if (this.server) {
             this.server.close(async (error) => {
                 if (error) {
-                    console.log(chalk.red(error));
+                    console.error(chalk.red(error));
                 } else {
-                    console.log(chalk.red("express server is now down"));
+                    debugLog(chalk.red("express server is now down"));
                 }
                 await this.shutdownRest();
             });
@@ -563,9 +564,9 @@ export class LiveStreamDVR {
                     console.log(chalk.red(error));
                 } else {
                     if (Config.debug) {
-                        console.log(chalk.yellow(`[Debug][${new Date().toISOString()}] Currently ${count} HTTP/WebSocket connections`));
+                        debugLog(chalk.yellow(`Currently ${count} HTTP/WebSocket connections`));
                     } else if (count > 5) {
-                        console.log(chalk.yellow(`[Warn][${new Date().toISOString()}] Currently ${count} HTTP/WebSocket connections`));
+                        console.log(chalk.yellow(`Currently ${count} HTTP/WebSocket connections`));
                     }
                 }
             });

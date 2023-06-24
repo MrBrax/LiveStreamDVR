@@ -31,6 +31,7 @@ import { Job } from "../Core/Job";
 import { Exporter, GetExporter } from "./Exporter";
 import { ExporterOptions } from "@common/Exporter";
 import { KickChannel } from "../Core/Providers/Kick/KickChannel";
+import { debugLog } from "../Helpers/Console";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -700,7 +701,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
             return;
         }
 
-        console.debug("video", video);
+        debugLog("video", video);
 
         const basename = template(video, "filename_vod");
         const basefolder = path.join(channel.getFolder(), template(video, "filename_vod_folder"));

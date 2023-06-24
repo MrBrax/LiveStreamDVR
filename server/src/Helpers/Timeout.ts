@@ -4,6 +4,7 @@
  * Jest in particular is a pain to debug, since it has arguments to troubleshooting timeouts and intervals, but they don't work.
  */
 import { Config } from "../Core/Config";
+import { debugLog } from "./Console";
 
 interface ExtendedTimeout {
     id: NodeJS.Timeout;
@@ -21,7 +22,7 @@ export function xTimeout(callback: (...args: any[]) => void, ms: number, ...args
     timeouts.push({ id: timeout, src, created: new Date() });
     timeout.unref(); // Don't keep the process running just for this timeout
     if (Config && Config.debug) {
-        console.debug(`Timeout ${timeout} created at ${src}`);
+        debugLog(`Timeout ${timeout} created ${src}`);
     }
     return timeout;
 }
@@ -32,7 +33,7 @@ export function xInterval(callback: (...args: any[]) => void, ms: number, ...arg
     intervals.push({ id: interval, src, created: new Date() });
     interval.unref(); // Don't keep the process running just for this interval
     if (Config && Config.debug) {
-        console.debug(`Interval ${interval} created at ${src}`);
+        debugLog(`Interval ${interval} created ${src}`);
     }
     return interval;
 }
@@ -44,7 +45,7 @@ export function xClearTimeout(timeout: NodeJS.Timeout): void {
         timeouts.splice(index, 1);
         if (Config && Config.debug) {
             const src = new Error().stack?.split("\n")[2].trim();
-            console.debug(`Timeout ${timeout} cleared at ${src}`);
+            debugLog(`Timeout ${timeout} cleared ${src}`);
         }
     }
 }
@@ -56,7 +57,7 @@ export function xClearInterval(interval: NodeJS.Timeout): void {
         intervals.splice(index, 1);
         if (Config && Config.debug) {
             const src = new Error().stack?.split("\n")[2].trim();
-            console.debug(`Interval ${interval} cleared at ${src}`);
+            debugLog(`Interval ${interval} cleared ${src}`);
         }
     }
 }
@@ -64,11 +65,11 @@ export function xClearInterval(interval: NodeJS.Timeout): void {
 export function clearAllTimeoutsAndIntervals(): void {
     timeouts.forEach(timeout => {
         clearTimeout(timeout.id);
-        if (Config && Config.debug) console.debug(`Timeout ${timeout} cleared`);
+        if (Config && Config.debug) debugLog(`Timeout ${timeout} cleared`);
     });
     intervals.forEach(interval => {
         clearInterval(interval.id);
-        if (Config && Config.debug) console.debug(`Interval ${interval} cleared`);
+        if (Config && Config.debug) debugLog(`Interval ${interval} cleared`);
     });
 }
 

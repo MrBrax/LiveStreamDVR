@@ -16,6 +16,7 @@ import { Config } from "./Core/Config";
 import { Webhook } from "./Core/Webhook";
 import i18n from "./Helpers/i18n";
 import ApiRouter from "./Routes/Api";
+import { debugLog } from "./Helpers/Console";
 
 declare module "express-session" {
     interface SessionData {
@@ -215,7 +216,7 @@ LiveStreamDVR.init().then(() => {
     });
 
     server.on("close", () => {
-        console.log("Express server closed");
+        debugLog("Express server closed");
     });
 
     let websocketServer: WebSocketServer | undefined = undefined;

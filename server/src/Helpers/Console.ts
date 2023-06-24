@@ -14,3 +14,12 @@ export function progressOutput(text: string) {
         );
     }
 }
+
+export function debugLog(...args: any[]) {
+    if (Config && Config.debug) {
+        console.debug(
+            chalk.redBright(`[debug/${new Date().toISOString()}]`),
+            ...args
+        );
+    }
+}

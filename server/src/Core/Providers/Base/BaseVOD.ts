@@ -28,6 +28,7 @@ import { BaseChannel } from "./BaseChannel";
 import { BaseVODChapter } from "./BaseVODChapter";
 import { BaseVODSegment } from "./BaseVODSegment";
 import { xClearTimeout, xTimeout } from "../../../Helpers/Timeout";
+import { debugLog } from "../../../Helpers/Console";
 
 export class BaseVOD {
 
@@ -226,7 +227,7 @@ export class BaseVOD {
                     Log.logAdvanced(Log.Level.DEBUG, "vod", `VOD JSON ${this.basename} exists (again?) ${eventType}`);
                 }
             } else if (this.segments.some(s => s.filename === filename)) {
-                if (Config.debug) console.debug(`VOD segment ${filename} changed (${eventType})!`);
+                debugLog(`VOD segment ${filename} changed (${eventType})!`);
                 Log.logAdvanced(Log.Level.INFO, "vod.watch", `VOD segment ${filename} changed (${eventType})!`);
                 ClientBroker.notify(
                     "Segment changed externally",
@@ -235,7 +236,7 @@ export class BaseVOD {
                     "system"
                 );
             } else {
-                if (Config.debug) console.debug(`VOD file ${filename} changed (${eventType})!`);
+                debugLog(`VOD file ${filename} changed (${eventType})!`);
                 Log.logAdvanced(Log.Level.INFO, "vod.watch", `VOD file ${filename} changed (${eventType})!`);
                 ClientBroker.notify(
                     "VOD file changed externally",

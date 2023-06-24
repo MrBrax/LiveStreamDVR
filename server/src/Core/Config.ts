@@ -17,6 +17,7 @@ import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 import { Scheduler } from "./Scheduler";
 import i18next from "i18next";
+import { debugLog } from "../Helpers/Console";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -599,7 +600,7 @@ export class Config {
 
     static validateExternalURLRules(url: string) {
 
-        console.debug(`Validating external url: ${url}`);
+        debugLog(`Validating external url: ${url}`);
 
         // no url
         if (!url) {
