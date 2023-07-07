@@ -606,6 +606,7 @@ export class TwitchChannel extends BaseChannel {
                 path.join(this.getFolder(), `poster${path.extname(this.channel_data.cache_avatar)}`)
             );
             avatar = `poster${path.extname(this.channel_data.cache_avatar)}`;
+            Log.logAdvanced(Log.Level.DEBUG, "channel", `Copied avatar ${this.channel_data.cache_avatar} to ${avatar}`);
         }
 
         let nfo_content = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n";
@@ -623,6 +624,8 @@ export class TwitchChannel extends BaseChannel {
         nfo_content += "</tvshow>";
 
         fs.writeFileSync(nfo_file, nfo_content);
+
+        Log.logAdvanced(Log.Level.DEBUG, "channel", `Wrote nfo file for ${this.internalName} to ${nfo_file}`);
 
         return fs.existsSync(nfo_file);
 
