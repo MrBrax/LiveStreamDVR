@@ -6,7 +6,7 @@ import { BaseConfigDataFolder } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
 import { xClearTimeout, xTimeout } from "../Helpers/Timeout";
-import { formatBytes } from "Helpers/Format";
+import { formatBytes } from "../Helpers/Format";
 
 export enum LOGLEVEL {
     ERROR = "ERROR",

@@ -32,7 +32,7 @@ import { log, LOGLEVEL } from "../../Log";
 import { Webhook } from "../../Webhook";
 import { TwitchChannel } from "../Twitch/TwitchChannel";
 import { TwitchVOD } from "../Twitch/TwitchVOD";
-import { progressOutput } from "Helpers/Console";
+import { progressOutput } from "../../../Helpers/Console";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 

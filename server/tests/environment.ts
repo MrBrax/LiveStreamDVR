@@ -71,7 +71,7 @@ beforeAll(() => {
     //     return;
     // });
     // logAdvanced is now a regular export at the top of the file, not a class method
-    jest.spyOn(LogModule, "logAdvanced").mockImplementation((level, module, text, meta) => {
+    jest.spyOn(LogModule, "log").mockImplementation((level, module, text, meta) => {
         console.log(`[TEST][${level}] ${module}: ${text}`);
         return;
     });

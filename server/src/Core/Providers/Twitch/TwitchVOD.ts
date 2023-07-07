@@ -1730,13 +1730,13 @@ export class TwitchVOD extends BaseVOD {
 
             let totalSegments = 0;
             let currentSegment = 0;
-            const ret = await Helper.execAdvanced(streamlink_bin, cmd, `download_vod_${video_id}`, (log: string) => {
-                const totalSegmentMatch = log.match(/Last Sequence: (\d+)/);
+            const ret = await Helper.execAdvanced(streamlink_bin, cmd, `download_vod_${video_id}`, (logOutput: string) => {
+                const totalSegmentMatch = logOutput.match(/Last Sequence: (\d+)/);
                 if (totalSegmentMatch && !totalSegments) {
                     // console.debug(`Total segments: ${totalSegmentMatch[1]}`, totalSegmentMatch);
                     totalSegments = parseInt(totalSegmentMatch[1]);
                 }
-                const currentSegmentMatch = log.match(/Segment (\d+) complete/);
+                const currentSegmentMatch = logOutput.match(/Segment (\d+) complete/);
                 if (currentSegmentMatch && totalSegments > 0) {
                     currentSegment = parseInt(currentSegmentMatch[1]);
                     // console.debug(`Current segment: ${currentSegment}`);
@@ -1744,8 +1744,8 @@ export class TwitchVOD extends BaseVOD {
                     return currentSegment / totalSegments;
                 }
 
-                if (log.match(/Error when reading from stream: Read timeout, exiting/)) {
-                    log(LOGLEVEL.ERROR, "vod.downloadVideo", log.trim());
+                if (logOutput.match(/Error when reading from stream: Read timeout, exiting/)) {
+                    log(LOGLEVEL.ERROR, "vod.downloadVideo", logOutput.trim());
                 }
             });
 
@@ -1889,21 +1889,21 @@ export class TwitchVOD extends BaseVOD {
 
             let totalSegments = 0;
             let currentSegment = 0;
-            const ret = await Helper.execAdvanced(streamlink_bin, cmd, `download_clip_${clip_id}`, (log: string) => {
-                const totalSegmentMatch = log.match(/Last Sequence: (\d+)/);
+            const ret = await Helper.execAdvanced(streamlink_bin, cmd, `download_clip_${clip_id}`, (logOutput: string) => {
+                const totalSegmentMatch = logOutput.match(/Last Sequence: (\d+)/);
                 if (totalSegmentMatch && !totalSegments) {
                     // console.debug(`Total segments: ${totalSegmentMatch[1]}`, totalSegmentMatch);
                     totalSegments = parseInt(totalSegmentMatch[1]);
                 }
-                const currentSegmentMatch = log.match(/Segment (\d+) complete/);
+                const currentSegmentMatch = logOutput.match(/Segment (\d+) complete/);
                 if (currentSegmentMatch && totalSegments > 0) {
                     currentSegment = parseInt(currentSegmentMatch[1]);
                     // console.debug(`Current segment: ${currentSegment}`);
                     return currentSegment / totalSegments;
                 }
 
-                if (log.match(/Error when reading from stream: Read timeout, exiting/)) {
-                    log(LOGLEVEL.ERROR, "vod.downloadClip", log.trim());
+                if (logOutput.match(/Error when reading from stream: Read timeout, exiting/)) {
+                    log(LOGLEVEL.ERROR, "vod.downloadClip", logOutput.trim());
                 }
             });
 
