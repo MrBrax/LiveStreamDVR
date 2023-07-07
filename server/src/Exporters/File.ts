@@ -1,5 +1,5 @@
 import { Job } from "../Core/Job";
-import { Log } from "../Core/Log";
+import { log, LOGLEVEL } from "../Core/Log";
 import fs from "node:fs";
 import path from "node:path";
 import sanitize from "sanitize-filename";
@@ -34,7 +34,7 @@ export class FileExporter extends BaseExporter {
             throw new Error(`File already exists: ${this.final_path}`);
         }
 
-        Log.logAdvanced(Log.Level.INFO, "FileExporter", `Exporting ${this.filename} to ${this.final_path}...`);
+        log(LOGLEVEL.INFO, "FileExporter", `Exporting ${this.filename} to ${this.final_path}...`);
 
         const job = Job.create(`FileExporter_${path.basename(this.final_path)}`);
         job.dummy = true;

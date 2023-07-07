@@ -1,4 +1,4 @@
-import { Log } from "../src/Core/Log";
+import * as LogModule from "../src/Core/Log";
 import { BaseChannel } from "../src/Core/Providers/Base/BaseChannel";
 import { BaseVOD } from "../src/Core/Providers/Base/BaseVOD";
 import { TwitchChannel } from "../src/Core/Providers/Twitch/TwitchChannel";
@@ -26,7 +26,7 @@ KeyValue.prototype.load
 LiveStreamDVR.prototype.loadChannelsConfig
 LiveStreamDVR.prototype.saveChannelsConfig
 LiveStreamDVR.checkVersion
-Log.logAdvanced
+logAdvanced
 Scheduler.defaultJobs
 BaseChannel.prototype.broadcastUpdate
 BaseChannel.prototype.saveVodDatabase
@@ -66,7 +66,12 @@ beforeAll(() => {
     jest.spyOn(LiveStreamDVR.prototype, "startDiskSpaceInterval").mockImplementation(() => { return true; });
     jest.spyOn(LiveStreamDVR, "checkBinaryVersions").mockImplementation(() => { return Promise.resolve(); });
     jest.spyOn(LiveStreamDVR, "checkVersion").mockImplementation(() => { return; });
-    jest.spyOn(Log, "logAdvanced").mockImplementation((level, module, text, meta) => {
+    // jest.spyOn(Log, "logAdvanced").mockImplementation((level, module, text, meta) => {
+    //     console.log(`[TEST][${level}] ${module}: ${text}`);
+    //     return;
+    // });
+    // logAdvanced is now a regular export at the top of the file, not a class method
+    jest.spyOn(LogModule, "logAdvanced").mockImplementation((level, module, text, meta) => {
         console.log(`[TEST][${level}] ${module}: ${text}`);
         return;
     });

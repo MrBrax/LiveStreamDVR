@@ -2,7 +2,7 @@ import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import express from "express";
 import { MuteStatus } from "@common/Defs";
 import { ClientBroker } from "../Core/ClientBroker";
-import {  Log } from "../Core/Log";
+import { log, LOGLEVEL } from "../Core/Log";
 import { generateStreamerList } from "../Helpers/StreamerList";
 import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 import { Scheduler } from "../Core/Scheduler";
@@ -37,7 +37,7 @@ export async function fCheckDeletedVods(): Promise<string> {
                     ClientBroker.notify(`${vod.basename} deleted`, "", "", "vodDeleted");
 
                     // $this->addToNotifyCache("deleted_{$vod->basename}");
-                    Log.logAdvanced(Log.Level.INFO, "cron", `Cronjob deleted check: ${vod.basename} deleted`);
+                    log(LOGLEVEL.INFO, "cron", `Cronjob deleted check: ${vod.basename} deleted`);
                 }
 
             }
@@ -82,7 +82,7 @@ export async function fCheckDeletedVods(): Promise<string> {
                 ClientBroker.notify(`${vod.basename} deleted`, "", "", "vodDeleted");
 
                 // $this->addToNotifyCache("deleted_{$vod->basename}");
-                Log.logAdvanced(Log.Level.INFO, "cron", `Cronjob deleted check: ${vod.basename} deleted`);
+                log(LOGLEVEL.INFO, "cron", `Cronjob deleted check: ${vod.basename} deleted`);
             }
 
         }
@@ -114,7 +114,7 @@ export async function fCheckMutedVods(force = false): Promise<string> {
             if (!vod.is_finalized) continue;
 
             // if (!$force && $this->isInNotifyCache("mute_{$vod->basename}")) {
-            //     TwitchLog.logAdvanced(Log.Level.DEBUG, "cron", "Cronjob mute check for {$vod->basename} skipped, already notified");
+            //     TwitchlogAdvanced(LOGLEVEL.DEBUG, "cron", "Cronjob mute check for {$vod->basename} skipped, already notified");
             //     res.send("Skip checking {$vod->basename}, previously muted<br />\n");
             //     continue;
             // }
@@ -133,7 +133,7 @@ export async function fCheckMutedVods(force = false): Promise<string> {
                 check = await vod.checkMutedVod(true);
             } catch (th) {
                 output += `${vod.basename} error: ${(th as Error).message}<br>\n`;
-                Log.logAdvanced(Log.Level.ERROR, "cron", `Cronjob mute check: ${vod.basename} error: ${(th as Error).message}`);
+                log(LOGLEVEL.ERROR, "cron", `Cronjob mute check: ${vod.basename} error: ${(th as Error).message}`);
                 continue;
             }
 
@@ -145,7 +145,7 @@ export async function fCheckMutedVods(force = false): Promise<string> {
                 ClientBroker.notify(`${vod.basename} muted`, "", "", "vodMuted");
 
                 // $this->addToNotifyCache("mute_{$vod->basename}");
-                Log.logAdvanced(Log.Level.INFO, "cron", `Cronjob mute check: ${vod.basename} muted`);
+                log(LOGLEVEL.INFO, "cron", `Cronjob mute check: ${vod.basename} muted`);
             } else if (check == MuteStatus.UNMUTED) {
                 output += `${vod.basename} unmuted<br>\n`;
             } else {
@@ -183,7 +183,7 @@ export async function fMatchVods(force = false): Promise<string> {
             if (!vod.is_finalized) continue;
 
             // if (!$force && $this->isInNotifyCache("match_{$vod->basename}")) {
-            //     TwitchLog.logAdvanced(Log.Level.DEBUG, "cron", "Cronjob match check for {$vod->basename} skipped, already notified");
+            //     TwitchlogAdvanced(LOGLEVEL.DEBUG, "cron", "Cronjob match check for {$vod->basename} skipped, already notified");
             //     res.send("Skip checking {$vod->basename}, previously matched<br />\n");
             //     continue;
             // }
@@ -196,16 +196,16 @@ export async function fMatchVods(force = false): Promise<string> {
                 status = await vod.matchProviderVod(force);
             } catch (th) {
                 output += `${vod.basename} error: ${(th as Error).message}<br>\n`;
-                Log.logAdvanced(Log.Level.ERROR, "cron", `Cronjob match check: ${vod.basename} error: ${(th as Error).message}`);
+                log(LOGLEVEL.ERROR, "cron", `Cronjob match check: ${vod.basename} error: ${(th as Error).message}`);
                 continue;
             }
 
             if (status) {
                 output += `${vod.basename} matched<br>\n`;
-                Log.logAdvanced(Log.Level.SUCCESS, "cron", `Cronjob match check: ${vod.basename} matched`);
+                log(LOGLEVEL.SUCCESS, "cron", `Cronjob match check: ${vod.basename} matched`);
             } else {
                 output += `${vod.basename} not matched<br>\n`;
-                Log.logAdvanced(Log.Level.WARNING, "cron", `Cronjob match check: ${vod.basename} not matched`);
+                log(LOGLEVEL.WARNING, "cron", `Cronjob match check: ${vod.basename} not matched`);
             }
 
         }

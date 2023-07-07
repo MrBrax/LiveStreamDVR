@@ -14,7 +14,7 @@ import { Config } from "../../Config";
 import { Helper } from "../../Helper";
 import { KeyValue } from "../../KeyValue";
 import { LiveStreamDVR } from "../../LiveStreamDVR";
-import { Log } from "../../Log";
+import { log, LOGLEVEL } from "../../Log";
 import { BaseVODChapterJSON } from "../../../Storage/JSON";
 import { Webhook } from "../../Webhook";
 import { BaseVOD } from "./BaseVOD";
@@ -208,7 +208,7 @@ export class BaseChannel {
             KeyValue.getInstance().setInt(`${this.internalName}.stream_number`, 1);
             KeyValue.getInstance().set(`${this.internalName}.season_identifier`, format(new Date(), Config.SeasonFormat));
             this.current_season = format(new Date(), Config.SeasonFormat);
-            Log.logAdvanced(Log.Level.INFO, "channel.incrementStreamNumber", `Season changed for ${this.internalName} to ${this.current_season}`);
+            log(LOGLEVEL.INFO, "channel.incrementStreamNumber", `Season changed for ${this.internalName} to ${this.current_season}`);
         } else {
             this.current_stream_number += 1;
             KeyValue.getInstance().setInt(`${this.internalName}.stream_number`, this.current_stream_number);
@@ -274,7 +274,7 @@ export class BaseChannel {
         const total_vods = this.getVods().length;
 
         if (total_vods === 0) {
-            Log.logAdvanced(Log.Level.INFO, "channel.deleteAllVods", `No vods to delete for ${this.internalName}`);
+            log(LOGLEVEL.INFO, "channel.deleteAllVods", `No vods to delete for ${this.internalName}`);
             throw new Error(`No vods to delete for ${this.internalName}`);
         }
 
@@ -283,7 +283,7 @@ export class BaseChannel {
             try {
                 await vod.delete();
             } catch (error) {
-                Log.logAdvanced(Log.Level.ERROR, "channel.deleteAllVods", `Failed to delete vod ${vod.basename}: ${(error as Error).message}`);
+                log(LOGLEVEL.ERROR, "channel.deleteAllVods", `Failed to delete vod ${vod.basename}: ${(error as Error).message}`);
                 continue;
             }
             deleted_vods++;
@@ -307,7 +307,7 @@ export class BaseChannel {
         const vod = this.getVods().find(v => v.uuid === uuid);
         if (!vod) return false;
 
-        Log.logAdvanced(Log.Level.INFO, "channel", `Remove VOD JSON for ${this.internalName}: ${uuid}`);
+        log(LOGLEVEL.INFO, "channel", `Remove VOD JSON for ${this.internalName}: ${uuid}`);
         
         vod.stopWatching();
 
@@ -362,7 +362,7 @@ export class BaseChannel {
 
         // const userid = this.userid;
 
-        Log.logAdvanced(Log.Level.INFO, "channel", `Deleting channel ${this.internalName}`);
+        log(LOGLEVEL.INFO, "channel", `Deleting channel ${this.internalName}`);
         const index_config = LiveStreamDVR.getInstance().channels_config.findIndex(ch => ch.provider == "twitch" && ch.uuid === uuid);
         if (index_config !== -1) {
             LiveStreamDVR.getInstance().channels_config.splice(index_config, 1);
@@ -403,7 +403,7 @@ export class BaseChannel {
             try {
                 video_metadata = await Helper.videometadata(clip_path);
             } catch (error) {
-                Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to get video metadata for clip ${clip_path}: ${(error as Error).message}`);
+                log(LOGLEVEL.ERROR, "channel", `Failed to get video metadata for clip ${clip_path}: ${(error as Error).message}`);
                 continue;
             }
 
@@ -413,7 +413,7 @@ export class BaseChannel {
             try {
                 thumbnail = await Helper.videoThumbnail(clip_path, 240);
             } catch (error) {
-                Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to generate thumbnail for ${clip_path}: ${error}`);
+                log(LOGLEVEL.ERROR, "channel", `Failed to generate thumbnail for ${clip_path}: ${error}`);
             }
 
             let clip_metadata = undefined;
@@ -421,7 +421,7 @@ export class BaseChannel {
                 try {
                     clip_metadata = JSON.parse(fs.readFileSync(clip_path.replace(".mp4", ".info.json"), "utf8"));
                 } catch (error) {
-                    Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to read clip metadata for ${clip_path}: ${(error as Error).message}`);
+                    log(LOGLEVEL.ERROR, "channel", `Failed to read clip metadata for ${clip_path}: ${(error as Error).message}`);
                 }
             }
 
@@ -442,7 +442,7 @@ export class BaseChannel {
         }
 
         // this.clips_list = all_clips.map(f => path.relative(BaseConfigDataFolder.saved_clips, f));
-        Log.logAdvanced(Log.Level.DEBUG, "channel.findClips", `Found ${this.clips_list.length} clips for ${this.internalName}`);
+        log(LOGLEVEL.DEBUG, "channel.findClips", `Found ${this.clips_list.length} clips for ${this.internalName}`);
         this.broadcastUpdate();
     }
 

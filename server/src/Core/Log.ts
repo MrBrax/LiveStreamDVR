@@ -28,245 +28,236 @@ export interface LogLine {
     g?: string; // git hash
 }
 
-export class Log {
+let currentDate = "";
+let lines: LogLine[] = [];
 
-    public static currentDate = "";
-    public static lines: LogLine[] = [];
+const websocket_buffer: LogLine[] = [];
+let websocket_timer: NodeJS.Timeout | undefined;
 
-    public static websocket_buffer: LogLine[] = [];
-    public static websocket_timer: NodeJS.Timeout | undefined;
+export const LogColor = {
+    [LOGLEVEL.ERROR]: chalk.red,
+    [LOGLEVEL.WARNING]: chalk.yellow,
+    [LOGLEVEL.INFO]: chalk.blue,
+    [LOGLEVEL.DEBUG]: chalk.gray,
+    [LOGLEVEL.FATAL]: chalk.red,
+    [LOGLEVEL.SUCCESS]: chalk.green,
+    [LOGLEVEL.EXEC]: chalk.redBright,
+};
 
-    static readonly LOG_COLORS = {
-        [LOGLEVEL.ERROR]: chalk.red,
-        [LOGLEVEL.WARNING]: chalk.yellow,
-        [LOGLEVEL.INFO]: chalk.blue,
-        [LOGLEVEL.DEBUG]: chalk.gray,
-        [LOGLEVEL.FATAL]: chalk.red,
-        [LOGLEVEL.SUCCESS]: chalk.green,
-        [LOGLEVEL.EXEC]: chalk.redBright,
-    };
+export const LogLevel = {
+    [LOGLEVEL.INFO]: "INFO",
+    [LOGLEVEL.SUCCESS]: "INFO",
+    [LOGLEVEL.DEBUG]: "DEBUG",
+    [LOGLEVEL.WARNING]: "ERROR",
+    [LOGLEVEL.ERROR]: "ERROR",
+    [LOGLEVEL.FATAL]: "ERROR",
+    [LOGLEVEL.EXEC]: "EXEC",
+};
 
-    static readonly LOG_LEVELS = {
-        [LOGLEVEL.INFO]: "INFO",
-        [LOGLEVEL.SUCCESS]: "INFO",
-        [LOGLEVEL.DEBUG]: "DEBUG",
-        [LOGLEVEL.WARNING]: "ERROR",
-        [LOGLEVEL.ERROR]: "ERROR",
-        [LOGLEVEL.FATAL]: "ERROR",
-        [LOGLEVEL.EXEC]: "EXEC",
-    };
+export const censoredLogWords: Set<string> = new Set();
 
-    static readonly Level = LOGLEVEL;
-    // static readonly INFO = "INFO";
-    // static readonly SUCCESS = "SUCCESS";
-    // static readonly DEBUG = "DEBUG";
-    // static readonly WARNING = "WARNING";
+export function readTodaysLog(): void {
+    console.log(chalk.blue("Read today's log..."));
+    const today = format(new Date(), "yyyy-MM-dd");
+    const filename = `${today}.log`;
+    const filepath = path.join(BaseConfigDataFolder.logs, filename);
+    const jsonlinename = `${filepath}.jsonline`;
 
-    static censoredWords: Set<string> = new Set();
-
-    static readTodaysLog(): void {
-        console.log(chalk.blue("Read today's log..."));
-        const today = format(new Date(), "yyyy-MM-dd");
-        const filename = `${today}.log`;
-        const filepath = path.join(BaseConfigDataFolder.logs, filename);
-        const jsonlinename = `${filepath}.jsonline`;
-
-        if (!fs.existsSync(filepath)) {
-            return;
-        }
-
-        const lines = fs.readFileSync(jsonlinename, "utf8").split("\n");
-        // console.log(`Read ${lines.length} lines from ${jsonlinename}`);
-        this.lines = lines.map(line => line.length > 0 ? JSON.parse(line) : null).filter(line => line !== null);
-        console.log(chalk.green(`✔ Parsed ${this.lines.length} lines from ${jsonlinename}`));
-        this.currentDate = today;
+    if (!fs.existsSync(filepath)) {
+        return;
     }
 
-    /**
-     * Log a message to the log file. Do NOT call before loading the config.
-     * 
-     * @param level 
-     * @param module 
-     * @param text 
-     * @param metadata 
-     * @test disable
-     * @returns 
-     */
-    static logAdvanced(level: LOGLEVEL, module: string, text: string, metadata?: any): void {
-        if (!Config.debug && level == Log.Level.DEBUG) return;
+    const newLines = fs.readFileSync(jsonlinename, "utf8").split("\n");
+    // console.log(`Read ${lines.length} lines from ${jsonlinename}`);
+    lines = newLines.map(line => line.length > 0 ? JSON.parse(line) : null).filter(line => line !== null);
+    console.log(chalk.green(`✔ Parsed ${lines.length} lines from ${jsonlinename}`));
+    currentDate = today;
+}
 
-        // if testing, don't log
-        if (process.env.NODE_ENV == "test") {
-            console.log(chalk.yellow("[TEST]"), level, module, text);
-            return;
-        }
+/**
+ * Log a message to the log file. Do NOT call before loading the config.
+ * 
+ * @param level 
+ * @param module 
+ * @param text 
+ * @param metadata 
+ * @test disable
+ * @returns 
+ */
+export function log(level: LOGLEVEL, module: string, text: string, metadata?: any): void {
+    if (!Config.debug && level == LOGLEVEL.DEBUG) return;
 
-        // check if folder exists
-        if (!fs.existsSync(BaseConfigDataFolder.logs)) {
-            throw new Error(`Log folder '${BaseConfigDataFolder.logs}' does not exist!`);
-        }
+    // if testing, don't log
+    if (process.env.NODE_ENV == "test") {
+        console.log(chalk.yellow("[TEST]"), level, module, text);
+        return;
+    }
 
-        if (!Log.currentDate) {
-            console.error(chalk.bgRed.whiteBright("😤 Log called before date was set!"));
-        }
+    // check if folder exists
+    if (!fs.existsSync(BaseConfigDataFolder.logs)) {
+        throw new Error(`Log folder '${BaseConfigDataFolder.logs}' does not exist!`);
+    }
 
-        // clear old logs from memory
-        Log.nextLog();
+    if (!currentDate) {
+        console.error(chalk.bgRed.whiteBright("😤 Log called before date was set!"));
+    }
 
-        // today's filename in Y-m-d format
-        const date = new Date();
+    // clear old logs from memory
+    nextLog();
 
-        const loglevel_category = Log.LOG_LEVELS[level];
+    // today's filename in Y-m-d format
+    const date = new Date();
 
-        const filename_combined     = format(date, "yyyy-MM-dd") + ".log";
-        const filename_separate     = format(date, "yyyy-MM-dd") + "." + level + ".log";
-        const filename_level        = format(date, "yyyy-MM-dd") + "." + loglevel_category + ".jsonline";
+    const loglevel_category = LogLevel[level];
 
-        const filepath_combined     = path.join(BaseConfigDataFolder.logs, filename_combined);
-        const filepath_separate     = path.join(BaseConfigDataFolder.logs, filename_separate);
-        const filepath_level        = path.join(BaseConfigDataFolder.logs, filename_level);
+    const filename_combined     = format(date, "yyyy-MM-dd") + ".log";
+    const filename_separate     = format(date, "yyyy-MM-dd") + "." + level + ".log";
+    const filename_level        = format(date, "yyyy-MM-dd") + "." + loglevel_category + ".jsonline";
 
-        // console.debug(`Logging to ${filepath_separate}`);
+    const filepath_combined     = path.join(BaseConfigDataFolder.logs, filename_combined);
+    const filepath_separate     = path.join(BaseConfigDataFolder.logs, filename_separate);
+    const filepath_level        = path.join(BaseConfigDataFolder.logs, filename_level);
 
-        const jsonlinename_combined = `${filepath_combined}.jsonline`;
-        const jsonlinename_separate = `${filepath_separate}.jsonline`;
-        const jsonlinename_level    = `${filepath_level}.jsonline`;
+    // console.debug(`Logging to ${filepath_separate}`);
 
-        const dateFormat = "yyyy-MM-dd HH:mm:ss.SSS";
-        const dateString = format(date, dateFormat);
+    const jsonlinename_combined = `${filepath_combined}.jsonline`;
+    const jsonlinename_separate = `${filepath_separate}.jsonline`;
+    const jsonlinename_level    = `${filepath_level}.jsonline`;
 
-        for (const word of Log.censoredWords) {
-            text = text.replace(word, "*".repeat(word.length));
-        }
+    const dateFormat = "yyyy-MM-dd HH:mm:ss.SSS";
+    const dateString = format(date, dateFormat);
 
-        let ident = "";
-        if (process.pid) ident += process.pid;
-        if (Config.getInstance().gitHash) ident += `+${Config.getInstance().gitHash?.substring(0, 4)}`;
+    for (const word of censoredLogWords) {
+        text = text.replace(word, "*".repeat(word.length));
+    }
 
-        // write cleartext
-        const textOutput = `TXT ${dateString} ${ident} | ${module} <${level}> ${text}`;
-        fs.appendFileSync(filepath_combined, `${textOutput}\n`);
-        // fs.appendFileSync(filepath_separate, textOutput + "\n");
-        // fs.appendFileSync(filepath_level, textOutput + "\n");
+    let ident = "";
+    if (process.pid) ident += process.pid;
+    if (Config.getInstance().gitHash) ident += `+${Config.getInstance().gitHash?.substring(0, 4)}`;
 
-        // if docker, output to stdout
-        // if (TwitchConfig.getInstance().cfg("docker")) {
-        //     console.log(textOutput);
-        // }
+    // write cleartext
+    const textOutput = `TXT ${dateString} ${ident} | ${module} <${level}> ${text}`;
+    fs.appendFileSync(filepath_combined, `${textOutput}\n`);
+    // fs.appendFileSync(filepath_separate, textOutput + "\n");
+    // fs.appendFileSync(filepath_level, textOutput + "\n");
 
-        if (Config && Config.debug) {
-            const mem = process.memoryUsage();
-            console.log(
-                this.LOG_COLORS[level](`${dateString} | ${formatBytes(mem.heapUsed)}/${formatBytes(mem.heapTotal)}/${formatBytes(mem.rss)} | ${module} <${level}> ${text}`)
-            );
+    // if docker, output to stdout
+    // if (TwitchConfig.getInstance().cfg("docker")) {
+    //     console.log(textOutput);
+    // }
+
+    if (Config && Config.debug) {
+        const mem = process.memoryUsage();
+        console.log(
+            LogColor[level](`${dateString} | ${formatBytes(mem.heapUsed)}/${formatBytes(mem.heapTotal)}/${formatBytes(mem.rss)} | ${module} <${level}> ${text}`)
+        );
+    } else {
+        console.log(
+            LogColor[level](`${dateString} | ${module} <${level}> ${text}`)
+        );
+    }
+
+    const log_data: LogLine = {
+        module: module,
+        time: Date.now(),
+        level: level,
+        text: text,
+        pid: process.pid,
+        g: Config.getInstance().gitHash,
+    };
+
+    if (metadata !== undefined) log_data.metadata = metadata;
+
+    let stringy_log_data;
+    try {
+        stringy_log_data = JSON.stringify(log_data);
+    } catch (e) {
+        console.error(chalk.bgRed.whiteBright("😤 Error stringifying log data!"), log_data);
+        log(LOGLEVEL.ERROR, `Log.${module}`, "Error stringifying log data!");
+        return;
+    }
+
+    // write jsonline
+    fs.appendFileSync(jsonlinename_combined, `${stringy_log_data}\n`);
+    // fs.appendFileSync(jsonlinename_separate, stringy_log_data + "\n");
+    // fs.appendFileSync(jsonlinename_level, stringy_log_data + "\n");
+    lines.push(log_data);
+
+    // send over websocket, probably extremely slow
+    if (Config.getInstance().initialised && Config.getInstance().cfg<boolean>("websocket_log")) {
+
+        websocket_buffer.push(log_data);
+
+        if (websocket_timer) xClearTimeout(websocket_timer);
+        websocket_timer = xTimeout(() => {
+            // console.debug(`Sending ${this.websocket_buffer.length} lines over websocket`);
+            ClientBroker.broadcast({
+                server: true,
+                action: "log",
+                data: websocket_buffer,
+            });
+            websocket_buffer.length = 0;
+            websocket_timer = undefined;
+        }, 5000);
+
+    }
+
+    // if (metadata instanceof Error) {
+    //     console.error(metadata);
+    // }
+
+    /*
+    ClientBroker.broadcast({
+        action: "log",
+        data: log_data,
+    });
+
+    TwitchLog.websocket_timer = setTimeout(() => {
+                ClientBroker.send("log", TwitchLog.websocket_buffer);
+                TwitchLog.websocket_buffer = [];
+                TwitchLog.websocket_timer = undefined;
+            }, 100);
         } else {
-            console.log(
-                this.LOG_COLORS[level](`${dateString} | ${module} <${level}> ${text}`)
-            );
-        }
-
-        const log_data: LogLine = {
-            module: module,
-            time: Date.now(),
-            level: level,
-            text: text,
-            pid: process.pid,
-            g: Config.getInstance().gitHash,
-        };
-
-        if (metadata !== undefined) log_data.metadata = metadata;
-
-        let stringy_log_data;
-        try {
-            stringy_log_data = JSON.stringify(log_data);
-        } catch (e) {
-            console.error(chalk.bgRed.whiteBright("😤 Error stringifying log data!"), log_data);
-            Log.logAdvanced(LOGLEVEL.ERROR, `Log.${module}`, "Error stringifying log data!");
-            return;
-        }
-
-        // write jsonline
-        fs.appendFileSync(jsonlinename_combined, `${stringy_log_data}\n`);
-        // fs.appendFileSync(jsonlinename_separate, stringy_log_data + "\n");
-        // fs.appendFileSync(jsonlinename_level, stringy_log_data + "\n");
-        this.lines.push(log_data);
-
-        // send over websocket, probably extremely slow
-        if (Config.getInstance().initialised && Config.getInstance().cfg<boolean>("websocket_log")) {
-
-            this.websocket_buffer.push(log_data);
-
-            if (Log.websocket_timer) xClearTimeout(Log.websocket_timer);
-            Log.websocket_timer = xTimeout(() => {
-                // console.debug(`Sending ${this.websocket_buffer.length} lines over websocket`);
-                ClientBroker.broadcast({
-                    server: true,
-                    action: "log",
-                    data: this.websocket_buffer,
-                });
-                this.websocket_buffer = [];
-                Log.websocket_timer = undefined;
-            }, 5000);
-
-        }
-
-        // if (metadata instanceof Error) {
-        //     console.error(metadata);
-        // }
-
-        /*
-        ClientBroker.broadcast({
-            action: "log",
-            data: log_data,
-        });
-
-        TwitchLog.websocket_timer = setTimeout(() => {
-                    ClientBroker.send("log", TwitchLog.websocket_buffer);
-                    TwitchLog.websocket_buffer = [];
-                    TwitchLog.websocket_timer = undefined;
-                }, 100);
-            } else {
-        */
-
-    }
-
-    private static nextLog(): void {
-        const today = format(new Date(), "yyyy-MM-dd");
-        if (today != Log.currentDate) {
-            console.log(chalk.yellow(`Clearing log memory from ${Log.currentDate} to ${today}`));
-            Log.currentDate = today;
-            Log.lines = [];
-            Log.logAdvanced(Log.Level.INFO, "log", `Starting new log file for ${today}, git hash ${Config.getInstance().gitHash}`);
-        }
-    }
-
-    /**
-     * Fetch n lines from a log file.
-     * @param date 
-     * @param fromLine 
-     * @throws
-     * @returns 
-     */
-    static fetchLog(date: string, fromLine = 0): LogLine[] {
-
-        // return lines from n to end
-        if (date == this.currentDate) {
-            // console.debug(`Fetching ${this.lines.length} lines starting from ${fromLine} from memory`);
-            return this.lines.slice(fromLine);
-        }
-
-        const filename = `${date}.log`;
-        const filepath = path.join(BaseConfigDataFolder.logs, filename);
-        const jsonlinename = `${filepath}.jsonline`;
-
-        if (!fs.existsSync(filepath)) {
-            throw new Error(`File not found: ${filepath}`);
-        }
-
-        const lines = fs.readFileSync(jsonlinename, "utf8").split("\n");
-        const parsed_lines: LogLine[] = lines.map(line => line.length > 0 ? JSON.parse(line) : null).filter(line => line !== null);
-        // console.debug(`Fetched ${parsed_lines.length} lines from ${jsonlinename}`);
-        return parsed_lines;
-    }
+    */
 
 }
+
+function nextLog(): void {
+    const today = format(new Date(), "yyyy-MM-dd");
+    if (today != currentDate) {
+        console.log(chalk.yellow(`Clearing log memory from ${currentDate} to ${today}`));
+        currentDate = today;
+        lines = [];
+        log(LOGLEVEL.INFO, "log", `Starting new log file for ${today}, git hash ${Config.getInstance().gitHash}`);
+    }
+}
+
+/**
+ * Fetch n lines from a log file.
+ * @param date 
+ * @param fromLine 
+ * @throws
+ * @returns 
+ */
+export function fetchLog(date: string, fromLine = 0): LogLine[] {
+
+    // return lines from n to end
+    if (date == currentDate) {
+        // console.debug(`Fetching ${this.lines.length} lines starting from ${fromLine} from memory`);
+        return lines.slice(fromLine);
+    }
+
+    const filename = `${date}.log`;
+    const filepath = path.join(BaseConfigDataFolder.logs, filename);
+    const jsonlinename = `${filepath}.jsonline`;
+
+    if (!fs.existsSync(filepath)) {
+        throw new Error(`File not found: ${filepath}`);
+    }
+
+    const newLines = fs.readFileSync(jsonlinename, "utf8").split("\n");
+    const parsed_lines: LogLine[] = newLines.map(line => line.length > 0 ? JSON.parse(line) : null).filter(line => line !== null);
+    // console.debug(`Fetched ${parsed_lines.length} lines from ${jsonlinename}`);
+    return parsed_lines;
+}
+

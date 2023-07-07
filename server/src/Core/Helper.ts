@@ -2,7 +2,7 @@ import path from "node:path";
 import fs from "node:fs";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "./BaseConfig";
 import { Config } from "./Config";
-import { Log } from "./Log";
+import { log, LOGLEVEL } from "./Log";
 import { ExecReturn, RemuxReturn } from "Providers/Twitch";
 import { spawn } from "node:child_process";
 import { Stream } from "@common/TwitchAPI/Streams";
@@ -81,19 +81,19 @@ export class Helper {
         try {
             out = await Helper.execSimple(bin, ["--venv"], "pipenv --venv");
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get pipenv path: ${(error as ExecReturn).stderr}`, error);
+            log(LOGLEVEL.ERROR, "helper", `Failed to get pipenv path: ${(error as ExecReturn).stderr}`, error);
             return false;
         }
 
         if (out.code !== 0) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get pipenv path: ${out.stderr.join("\n")}`);
+            log(LOGLEVEL.ERROR, "helper", `Failed to get pipenv path: ${out.stderr.join("\n")}`);
             return false;
         }
 
         const path = out.stdout.join("\n").trim();
 
         if (!fs.existsSync(path)) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Returned pipenv path does not exist: ${path}`);
+            log(LOGLEVEL.ERROR, "helper", `Returned pipenv path does not exist: ${path}`);
             return false;
         }
 
@@ -112,7 +112,7 @@ export class Helper {
         const python_venv = path.join(pipenv_path, this.python_scripts_dir_name(), this.executable_name("python"));
 
         if (!fs.existsSync(python_venv)) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Python venv not found at: ${python_venv}`);
+            log(LOGLEVEL.ERROR, "helper", `Python venv not found at: ${python_venv}`);
             return false;
         }
 
@@ -129,12 +129,12 @@ export class Helper {
         try {
             output = await Helper.execSimple("pip", ["show", package_name], `pip show ${package_name}`);
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get pip package info for ${package_name}: ${(error as ExecReturn).stderr}`, error);
+            log(LOGLEVEL.ERROR, "helper", `Failed to get pip package info for ${package_name}: ${(error as ExecReturn).stderr}`, error);
             return false;
         }
 
         if (output.code !== 0) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get pip package info for ${package_name}: ${output.stderr.join("\n")}`);
+            log(LOGLEVEL.ERROR, "helper", `Failed to get pip package info for ${package_name}: ${output.stderr.join("\n")}`);
             return false;
         }
 
@@ -149,14 +149,14 @@ export class Helper {
         }, {} as Record<string, string>);
 
         if (!kv["Location"]) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get pip package info for ${package_name}: Location not found`);
+            log(LOGLEVEL.ERROR, "helper", `Failed to get pip package info for ${package_name}: Location not found`);
             return false;
         }
 
         const distinfo_path = path.join(kv["Location"], `${package_name}-${kv["Version"]}.dist-info`);
 
         if (!fs.existsSync(distinfo_path)) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get pip package info for ${package_name}: dist-info not found at '${distinfo_path}'`);
+            log(LOGLEVEL.ERROR, "helper", `Failed to get pip package info for ${package_name}: dist-info not found at '${distinfo_path}'`);
             return false;
         }
 
@@ -173,7 +173,7 @@ export class Helper {
         const license_path = path.join(distinfo_path, "LICENSE");
 
         if (!fs.existsSync(license_path)) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get pip package license for ${package_name}: LICENSE not found at ${license_path}`);
+            log(LOGLEVEL.ERROR, "helper", `Failed to get pip package license for ${package_name}: LICENSE not found at ${license_path}`);
             return false;
         }
 
@@ -193,7 +193,7 @@ export class Helper {
         const doc_path = path.join("/usr/share/doc", bin_name);
 
         if (!fs.existsSync(doc_path)) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get bin license for ${bin_name}: doc path not found at ${doc_path}`);
+            log(LOGLEVEL.ERROR, "helper", `Failed to get bin license for ${bin_name}: doc path not found at ${doc_path}`);
             return false;
         }
 
@@ -208,7 +208,7 @@ export class Helper {
             return copyright_path;
         }
 
-        Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to get bin license for ${bin_name}: LICENSE or COPYRIGHT not found at ${doc_path}`);
+        log(LOGLEVEL.ERROR, "helper", `Failed to get bin license for ${bin_name}: LICENSE or COPYRIGHT not found at ${doc_path}`);
 
         return false;
 
@@ -244,7 +244,7 @@ export class Helper {
         const exists = fs.existsSync(full_path);
 
         if (!exists) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Streamlink binary not found at: ${full_path}`);
+            log(LOGLEVEL.ERROR, "helper", `Streamlink binary not found at: ${full_path}`);
             return false;
         }
 
@@ -257,7 +257,7 @@ export class Helper {
         const exists = fs.existsSync(full_path);
 
         if (!exists) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `yt-dlp binary not found at: ${full_path}`);
+            log(LOGLEVEL.ERROR, "helper", `yt-dlp binary not found at: ${full_path}`);
             return false;
         }
 
@@ -270,7 +270,7 @@ export class Helper {
         const exists = fs.existsSync(full_path);
 
         if (!exists) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `tcd binary not found at: ${full_path}`);
+            log(LOGLEVEL.ERROR, "helper", `tcd binary not found at: ${full_path}`);
             return false;
         }
 
@@ -283,7 +283,7 @@ export class Helper {
         const exists = fs.existsSync(full_path);
 
         if (!exists) {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `pipenv binary not found at: ${full_path}`);
+            log(LOGLEVEL.ERROR, "helper", `pipenv binary not found at: ${full_path}`);
             return false;
         }
 
@@ -314,13 +314,13 @@ export class Helper {
             });
 
             process.on("error", (err) => {
-                Log.logAdvanced(Log.Level.ERROR, "helper.execSimple", `Process ${pid} for '${what}' error: ${err}`);
+                log(LOGLEVEL.ERROR, "helper.execSimple", `Process ${pid} for '${what}' error: ${err}`);
                 reject({ code: -1, stdout, stderr, bin, args, what });
             });
 
             const pid = process.pid;
 
-            Log.logAdvanced(Log.Level.EXEC, "helper.execSimple", `Executing '${what}': $ ${bin} ${args.join(" ")}`);
+            log(LOGLEVEL.EXEC, "helper.execSimple", `Executing '${what}': $ ${bin} ${args.join(" ")}`);
 
             const stdout: string[] = [];
             const stderr: string[] = [];
@@ -336,7 +336,7 @@ export class Helper {
             });
 
             process.on("close", (code) => {
-                Log.logAdvanced(Log.Level.INFO, "helper.execSimple", `Process ${pid} for '${what}' exited with code ${code}`);
+                log(LOGLEVEL.INFO, "helper.execSimple", `Process ${pid} for '${what}' exited with code ${code}`);
 
                 if (code == 0) {
                     resolve({ code, stdout, stderr, bin, args, what });
@@ -368,26 +368,26 @@ export class Helper {
             });
 
             process.on("error", (err) => {
-                Log.logAdvanced(Log.Level.ERROR, "helper.execAdvanced", `Process ${process.pid} error: ${err}`);
+                log(LOGLEVEL.ERROR, "helper.execAdvanced", `Process ${process.pid} error: ${err}`);
                 reject({ code: -1, stdout, stderr, bin, args, jobName });
             });
 
-            Log.logAdvanced(Log.Level.EXEC, "helper.execAdvanced", `Executing job '${jobName}': $ ${bin} ${args.join(" ")}`);
+            log(LOGLEVEL.EXEC, "helper.execAdvanced", `Executing job '${jobName}': $ ${bin} ${args.join(" ")}`);
 
             let job: Job;
 
             if (process.pid) {
-                Log.logAdvanced(Log.Level.SUCCESS, "helper.execAdvanced", `Spawned process ${process.pid} for ${jobName}`);
+                log(LOGLEVEL.SUCCESS, "helper.execAdvanced", `Spawned process ${process.pid} for ${jobName}`);
                 job = Job.create(jobName);
                 job.setPid(process.pid);
                 job.setExec(bin, args);
                 job.setProcess(process);
                 job.startLog(jobName, `$ ${bin} ${args.join(" ")}\n`);
                 if (!job.save()) {
-                    Log.logAdvanced(Log.Level.ERROR, "helper.execAdvanced", `Failed to save job ${jobName}`);
+                    log(LOGLEVEL.ERROR, "helper.execAdvanced", `Failed to save job ${jobName}`);
                 }
             } else {
-                Log.logAdvanced(Log.Level.ERROR, "helper.execAdvanced", `Failed to spawn process for ${jobName}`);
+                log(LOGLEVEL.ERROR, "helper.execAdvanced", `Failed to spawn process for ${jobName}`);
                 // reject(new Error(`Failed to spawn process for ${jobName}`));
             }
 
@@ -423,15 +423,15 @@ export class Helper {
                 // const out_log = ffmpeg.stdout.read();
                 // const success = fs.existsSync(output) && fs.statSync(output).size > 0;
                 if (code == 0) {
-                    Log.logAdvanced(Log.Level.INFO, "helper.execAdvanced", `Process ${process.pid} for ${jobName} exited with code 0`);
+                    log(LOGLEVEL.INFO, "helper.execAdvanced", `Process ${process.pid} for ${jobName} exited with code 0`);
                     resolve({ code, stdout, stderr });
                 } else {
-                    Log.logAdvanced(Log.Level.ERROR, "helper.execAdvanced", `Process ${process.pid} for ${jobName} exited with code ${code}`);
+                    log(LOGLEVEL.ERROR, "helper.execAdvanced", `Process ${process.pid} for ${jobName} exited with code ${code}`);
                     reject({ code, stdout, stderr });
                 }
             });
 
-            Log.logAdvanced(Log.Level.INFO, "helper.execAdvanced", `Attached to all streams for process ${process.pid} for ${jobName}`);
+            log(LOGLEVEL.INFO, "helper.execAdvanced", `Attached to all streams for process ${process.pid} for ${jobName}`);
 
         });
     }
@@ -449,7 +449,7 @@ export class Helper {
         console.log("startJob process", jobProcess.spawnfile, jobProcess.spawnargs);
 
         jobProcess.on("error", (err) => {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Process '${jobProcess.pid}' on job '${jobName}' error: ${err}`, {
+            log(LOGLEVEL.ERROR, "helper", `Process '${jobProcess.pid}' on job '${jobName}' error: ${err}`, {
                 bin,
                 args,
                 jobName,
@@ -458,12 +458,12 @@ export class Helper {
             });
         });
 
-        Log.logAdvanced(Log.Level.INFO, "helper", `Executing ${bin} ${args.join(" ")}`);
+        log(LOGLEVEL.INFO, "helper", `Executing ${bin} ${args.join(" ")}`);
 
         let job: Job | false = false;
 
         if (jobProcess.pid) {
-            Log.logAdvanced(Log.Level.SUCCESS, "helper", `Spawned process ${jobProcess.pid} for ${jobName}`);
+            log(LOGLEVEL.SUCCESS, "helper", `Spawned process ${jobProcess.pid} for ${jobName}`);
             job = Job.create(jobName);
             job.setPid(jobProcess.pid);
             job.setExec(bin, args);
@@ -475,10 +475,10 @@ export class Helper {
             });
             job.startLog(jobName, `$ ${bin} ${args.join(" ")}\n`);
             if (!job.save()) {
-                Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to save job ${jobName}`);
+                log(LOGLEVEL.ERROR, "helper", `Failed to save job ${jobName}`);
             }
         } else {
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to spawn process for ${jobName}`);
+            log(LOGLEVEL.ERROR, "helper", `Failed to spawn process for ${jobName}`);
             // reject(new Error(`Failed to spawn process for ${jobName}`));
         }
 
@@ -495,9 +495,9 @@ export class Helper {
 
         jobProcess.on("close", (code) => {
             if (code == 0) {
-                Log.logAdvanced(Log.Level.SUCCESS, "helper", `Process ${jobProcess.pid} for ${jobName} closed with code 0`);
+                log(LOGLEVEL.SUCCESS, "helper", `Process ${jobProcess.pid} for ${jobName} closed with code 0`);
             } else {
-                Log.logAdvanced(Log.Level.ERROR, "helper", `Process ${jobProcess.pid} for ${jobName} closed with code ${code}`);
+                log(LOGLEVEL.ERROR, "helper", `Process ${jobProcess.pid} for ${jobName} closed with code ${code}`);
             }
 
             if (typeof job !== "boolean") {
@@ -507,7 +507,7 @@ export class Helper {
 
         });
 
-        Log.logAdvanced(Log.Level.INFO, "helper", `Attached to all streams for process ${jobProcess.pid} for ${jobName}`);
+        log(LOGLEVEL.INFO, "helper", `Attached to all streams for process ${jobProcess.pid} for ${jobName}`);
 
         return job;
 
@@ -536,7 +536,7 @@ export class Helper {
             const emptyFile = fs.existsSync(output) && fs.statSync(output).size == 0;
 
             if (!overwrite && fs.existsSync(output) && !emptyFile) {
-                Log.logAdvanced(Log.Level.ERROR, "helper", `Output file ${output} already exists`);
+                log(LOGLEVEL.ERROR, "helper", `Output file ${output} already exists`);
                 reject(new Error(`Output file ${output} already exists`));
             }
 
@@ -557,7 +557,7 @@ export class Helper {
                     opts.push("-i", metadata_file);
                     opts.push("-map_metadata", "1");
                 } else {
-                    Log.logAdvanced(Log.Level.ERROR, "helper", `Metadata file ${metadata_file} does not exist for remuxing ${input}`);
+                    log(LOGLEVEL.ERROR, "helper", `Metadata file ${metadata_file} does not exist for remuxing ${input}`);
                 }
             }
 
@@ -596,7 +596,7 @@ export class Helper {
 
             opts.push(output);
 
-            Log.logAdvanced(Log.Level.INFO, "helper", `Remuxing ${input} to ${output}`);
+            log(LOGLEVEL.INFO, "helper", `Remuxing ${input} to ${output}`);
 
             const job = Helper.startJob(`remux_${path.basename(input)}`, ffmpeg_path, opts);
 
@@ -628,7 +628,7 @@ export class Helper {
             });
 
             job.process.on("error", (err) => {
-                Log.logAdvanced(Log.Level.ERROR, "helper", `Process ${process.pid} error: ${err}`);
+                log(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
                 // reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
                 reject(new Error(`Process ${process.pid} error: ${err}`));
             });
@@ -641,10 +641,10 @@ export class Helper {
                 // const out_log = ffmpeg.stdout.read();
                 const success = fs.existsSync(output) && fs.statSync(output).size > 0;
                 if (success) {
-                    Log.logAdvanced(Log.Level.SUCCESS, "helper", `Remuxed ${input} to ${output}`);
+                    log(LOGLEVEL.SUCCESS, "helper", `Remuxed ${input} to ${output}`);
                     resolve({ code: code || -1, success, stdout: job.stdout, stderr: job.stderr });
                 } else {
-                    Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to remux '${input}' to '${output}'`);
+                    log(LOGLEVEL.ERROR, "helper", `Failed to remux '${input}' to '${output}'`);
                     // reject({ code, success, stdout: job.stdout, stderr: job.stderr });
 
                     let message = "Unknown error";
@@ -681,7 +681,7 @@ export class Helper {
             const emptyFile = fs.existsSync(output) && fs.statSync(output).size == 0;
 
             if (!overwrite && fs.existsSync(output) && !emptyFile) {
-                Log.logAdvanced(Log.Level.ERROR, "helper", `Output file ${output} already exists`);
+                log(LOGLEVEL.ERROR, "helper", `Output file ${output} already exists`);
                 reject(new Error(`Output file ${output} already exists`));
                 return;
             }
@@ -705,7 +705,7 @@ export class Helper {
 
             opts.push(output);
 
-            Log.logAdvanced(Log.Level.INFO, "helper", `Cutting ${input} to ${output}`);
+            log(LOGLEVEL.INFO, "helper", `Cutting ${input} to ${output}`);
 
             const job = Helper.startJob(`cut_${path.basename(input)}`, ffmpeg_path, opts);
 
@@ -715,7 +715,7 @@ export class Helper {
             }
 
             job.process.on("error", (err) => {
-                Log.logAdvanced(Log.Level.ERROR, "helper", `Process ${process.pid} error: ${err}`);
+                log(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
                 // reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
                 reject(new Error(`Process ${process.pid} error: ${err}`));
             });
@@ -727,10 +727,10 @@ export class Helper {
                 // const out_log = ffmpeg.stdout.read();
                 const success = fs.existsSync(output) && fs.statSync(output).size > 0;
                 if (success) {
-                    Log.logAdvanced(Log.Level.SUCCESS, "helper", `Cut ${input} to ${output} success`);
+                    log(LOGLEVEL.SUCCESS, "helper", `Cut ${input} to ${output} success`);
                     resolve({ code: code || -1, success, stdout: job.stdout, stderr: job.stderr });
                 } else {
-                    Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to cut ${path.basename(input)} to ${path.basename(output)}`);
+                    log(LOGLEVEL.ERROR, "helper", `Failed to cut ${path.basename(input)} to ${path.basename(output)}`);
                     // reject({ code, success, stdout: job.stdout, stderr: job.stderr });
 
                     let message = "Unknown error";
@@ -781,7 +781,7 @@ export class Helper {
      */
     public static async mediainfo(filename: string): Promise<MediaInfo> {
 
-        Log.logAdvanced(Log.Level.INFO, "helper.mediainfo", `Run mediainfo on ${filename}`);
+        log(LOGLEVEL.INFO, "helper.mediainfo", `Run mediainfo on ${filename}`);
 
         if (!filename) {
             throw new Error("No filename supplied for mediainfo");
@@ -819,14 +819,14 @@ export class Helper {
             return data as MediaInfo;
 
         } else {
-            Log.logAdvanced(Log.Level.ERROR, "helper.mediainfo", `No output from mediainfo for ${filename}`);
+            log(LOGLEVEL.ERROR, "helper.mediainfo", `No output from mediainfo for ${filename}`);
             throw new Error("No output from mediainfo");
         }
     }
 
     public static async ffprobe(filename: string): Promise<FFProbe> {
 
-        Log.logAdvanced(Log.Level.INFO, "helper.ffprobe", `Run ffprobe on ${filename}`);
+        log(LOGLEVEL.INFO, "helper.ffprobe", `Run ffprobe on ${filename}`);
 
         if (!filename) {
             throw new Error("No filename supplied for ffprobe");
@@ -856,7 +856,7 @@ export class Helper {
             const json: FFProbe = JSON.parse(output.stdout.join(""));
             return json;
         } else {
-            Log.logAdvanced(Log.Level.ERROR, "helper.ffprobe", `No output from ffprobe for ${filename}`);
+            log(LOGLEVEL.ERROR, "helper.ffprobe", `No output from ffprobe for ${filename}`);
             throw new Error("No output from ffprobe");
         }
 
@@ -874,23 +874,23 @@ export class Helper {
             data = JSON.parse(fs.readFileSync(dataPath, { encoding: "utf-8" }));
 
             if (!data) {
-                Log.logAdvanced(Log.Level.ERROR, "helper.videometadata", `Trying to read cached mediainfo of ${filename} returned nothing`);
+                log(LOGLEVEL.ERROR, "helper.videometadata", `Trying to read cached mediainfo of ${filename} returned nothing`);
                 throw new Error("No cached data from mediainfo");
             }
 
-            Log.logAdvanced(Log.Level.DEBUG, "helper.videometadata", `Read cached mediainfo of ${filename}`);
+            log(LOGLEVEL.DEBUG, "helper.videometadata", `Read cached mediainfo of ${filename}`);
 
         } else {
 
             try {
                 data = await Helper.mediainfo(filename);
             } catch (th) {
-                Log.logAdvanced(Log.Level.ERROR, "helper.videometadata", `Trying to get mediainfo of ${filename} returned: ${(th as Error).message}`);
+                log(LOGLEVEL.ERROR, "helper.videometadata", `Trying to get mediainfo of ${filename} returned: ${(th as Error).message}`);
                 throw th; // rethrow?
             }
 
             if (!data) {
-                Log.logAdvanced(Log.Level.ERROR, "helper.videometadata", `Trying to get mediainfo of ${filename} returned false`);
+                log(LOGLEVEL.ERROR, "helper.videometadata", `Trying to get mediainfo of ${filename} returned false`);
                 throw new Error("No data from mediainfo");
             }
 
@@ -900,22 +900,22 @@ export class Helper {
 
             fs.writeFileSync(dataPath, JSON.stringify(data));
 
-            Log.logAdvanced(Log.Level.DEBUG, "helper.videometadata", `Wrote cached mediainfo of ${filename}`);
+            log(LOGLEVEL.DEBUG, "helper.videometadata", `Wrote cached mediainfo of ${filename}`);
 
         }
 
         if (!data.general.Format || !data.general.Duration) {
-            Log.logAdvanced(Log.Level.ERROR, "helper.videometadata", `Invalid mediainfo for ${filename} (missing ${!data.general.Format ? "Format" : ""} ${!data.general.Duration ? "Duration" : ""})`);
+            log(LOGLEVEL.ERROR, "helper.videometadata", `Invalid mediainfo for ${filename} (missing ${!data.general.Format ? "Format" : ""} ${!data.general.Duration ? "Duration" : ""})`);
             throw new Error("Invalid mediainfo: no format/duration");
         }
 
         // if (!data.video) {
-        //     Log.logAdvanced(Log.Level.ERROR, "helper.videometadata", `Invalid mediainfo for ${filename} (missing video)`);
+        //     logAdvanced(LOGLEVEL.ERROR, "helper.videometadata", `Invalid mediainfo for ${filename} (missing video)`);
         //     throw new Error("Invalid mediainfo: no video");
         // }
 
         if (!data.audio) {
-            Log.logAdvanced(Log.Level.ERROR, "helper.videometadata", `Invalid mediainfo for ${filename} (missing audio)`);
+            log(LOGLEVEL.ERROR, "helper.videometadata", `Invalid mediainfo for ${filename} (missing audio)`);
             throw new Error("Invalid mediainfo: no audio");
         }
 
@@ -945,7 +945,7 @@ export class Helper {
 
                 } as AudioMetadata;
 
-                Log.logAdvanced(Log.Level.SUCCESS, "helper.videometadata", `${filename} is an audio file ${audio_metadata.duration} long.`);
+                log(LOGLEVEL.SUCCESS, "helper.videometadata", `${filename} is an audio file ${audio_metadata.duration} long.`);
 
                 return audio_metadata;
 
@@ -989,7 +989,7 @@ export class Helper {
 
                 } as VideoMetadata;
 
-                Log.logAdvanced(Log.Level.SUCCESS, "helper.videometadata", `${filename} is a video file ${formatDuration(video_metadata.duration)} long at ${video_metadata.height}p${video_metadata.fps}.`);
+                log(LOGLEVEL.SUCCESS, "helper.videometadata", `${filename} is a video file ${formatDuration(video_metadata.duration)} long at ${video_metadata.height}p${video_metadata.fps}.`);
 
                 return video_metadata;
 
@@ -1014,7 +1014,7 @@ export class Helper {
 
     public static async videoThumbnail(filename: string, width: number, offset = 5000): Promise<string> {
 
-        Log.logAdvanced(Log.Level.INFO, "helper.videoThumbnail", `Requested video thumbnail of ${filename}`);
+        log(LOGLEVEL.INFO, "helper.videoThumbnail", `Requested video thumbnail of ${filename}`);
 
         if (!filename) {
             throw new Error("No filename supplied for thumbnail");
@@ -1033,7 +1033,7 @@ export class Helper {
         const output_image = path.join(BaseConfigCacheFolder.public_cache_thumbs, `${filenameHash}.${Config.getInstance().cfg<string>("thumbnail_format", "jpg")}`);
 
         if (fs.existsSync(output_image)) {
-            Log.logAdvanced(Log.Level.DEBUG, "helper.videoThumbnail", `Thumbnail already exists for ${filename}, returning cached version`);
+            log(LOGLEVEL.DEBUG, "helper.videoThumbnail", `Thumbnail already exists for ${filename}, returning cached version`);
             return path.basename(output_image);
         }
 
@@ -1049,10 +1049,10 @@ export class Helper {
         ], "ffmpeg video thumbnail");
 
         if (output && fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
-            Log.logAdvanced(Log.Level.SUCCESS, "helper.videoThumbnail", `Created video thumbnail for ${filename}`);
+            log(LOGLEVEL.SUCCESS, "helper.videoThumbnail", `Created video thumbnail for ${filename}`);
             return path.basename(output_image);
         } else {
-            Log.logAdvanced(Log.Level.ERROR, "helper.videoThumbnail", `Failed to create video thumbnail for ${filename}`);
+            log(LOGLEVEL.ERROR, "helper.videoThumbnail", `Failed to create video thumbnail for ${filename}`);
             throw new Error("No output from ffmpeg");
         }
 
@@ -1060,19 +1060,19 @@ export class Helper {
 
     public static async imageThumbnail(filename: string, width: number): Promise<string> {
 
-        Log.logAdvanced(Log.Level.INFO, "helper.imageThumbnail", `Run thumbnail on ${filename}`);
+        log(LOGLEVEL.INFO, "helper.imageThumbnail", `Run thumbnail on ${filename}`);
 
         if (!filename) {
             throw new Error("No filename supplied for thumbnail");
         }
 
         if (!fs.existsSync(filename)) {
-            Log.logAdvanced(Log.Level.ERROR, "helper.imageThumbnail", `File not found for image thumbnail: ${filename}`);
+            log(LOGLEVEL.ERROR, "helper.imageThumbnail", `File not found for image thumbnail: ${filename}`);
             throw new Error(`File not found for image thumbnail: ${filename}`);
         }
 
         if (fs.statSync(filename).size == 0) {
-            Log.logAdvanced(Log.Level.ERROR, "helper.imageThumbnail", `Filesize is 0 for image thumbnail: ${filename}`);
+            log(LOGLEVEL.ERROR, "helper.imageThumbnail", `Filesize is 0 for image thumbnail: ${filename}`);
             throw new Error(`Filesize is 0 for image thumbnail: ${filename}`);
         }
 
@@ -1084,13 +1084,13 @@ export class Helper {
         const output_image = path.join(BaseConfigCacheFolder.public_cache_thumbs, `${fileHash}.${thumbnail_format}`);
 
         if (fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
-            Log.logAdvanced(Log.Level.DEBUG, "helper.imageThumbnail", `Found existing thumbnail for ${filename}`);
+            log(LOGLEVEL.DEBUG, "helper.imageThumbnail", `Found existing thumbnail for ${filename}`);
             return path.basename(output_image);
         }
 
         if (fs.existsSync(output_image) && fs.statSync(output_image).size === 0) {
             // console.debug("Existing thumbnail filesize is 0, removing file");
-            Log.logAdvanced(Log.Level.DEBUG, "helper.imageThumbnail", `Existing thumbnail filesize is 0, removing file: ${output_image}`);
+            log(LOGLEVEL.DEBUG, "helper.imageThumbnail", `Existing thumbnail filesize is 0, removing file: ${output_image}`);
             fs.unlinkSync(output_image); // remove empty file
         }
 
@@ -1120,7 +1120,7 @@ export class Helper {
                 output_image,
             ], "ffmpeg image thumbnail");
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "helper.imageThumbnail", `Failed to create thumbnail: ${error}`, error);
+            log(LOGLEVEL.ERROR, "helper.imageThumbnail", `Failed to create thumbnail: ${error}`, error);
             throw error;
         }
 
@@ -1131,7 +1131,7 @@ export class Helper {
         if (output && fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
             return path.basename(output_image);
         } else {
-            Log.logAdvanced(Log.Level.ERROR, "helper.imageThumbnail", `Failed to create thumbnail for ${filename}`, output);
+            log(LOGLEVEL.ERROR, "helper.imageThumbnail", `Failed to create thumbnail for ${filename}`, output);
             throw new Error("No output from ffmpeg");
         }
 

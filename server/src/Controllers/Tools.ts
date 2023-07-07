@@ -10,7 +10,7 @@ import { ClipBasenameTemplate } from "@common/Replacements";
 import { BaseConfigDataFolder } from "../Core/BaseConfig";
 import { Config } from "../Core/Config";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
-import { Log } from "../Core/Log";
+import { log, LOGLEVEL } from "../Core/Log";
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
 import { Scheduler } from "../Core/Scheduler";
@@ -301,10 +301,10 @@ export async function DownloadClip(req: express.Request, res: express.Response):
 
         const channel = TwitchChannel.getChannelById(metadata.broadcaster_id);
         if (channel) {
-            Log.logAdvanced(Log.Level.INFO, "route.tools.DownloadClip", `Downloaded clip ${metadata.id}, scan channel ${metadata.broadcaster_name} for new clips`);
+            log(LOGLEVEL.INFO, "route.tools.DownloadClip", `Downloaded clip ${metadata.id}, scan channel ${metadata.broadcaster_name} for new clips`);
             await channel.findClips();
         } else {
-            Log.logAdvanced(Log.Level.INFO, "route.tools.DownloadClip", `Downloaded clip ${metadata.id}, channel ${metadata.broadcaster_name} not found`);
+            log(LOGLEVEL.INFO, "route.tools.DownloadClip", `Downloaded clip ${metadata.id}, channel ${metadata.broadcaster_name} not found`);
         }
     } else {
         res.status(400).send({

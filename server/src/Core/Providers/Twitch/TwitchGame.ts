@@ -1,13 +1,13 @@
-import fs from "node:fs";
-import { TwitchHelper } from "../../../Providers/Twitch";
-import { BaseConfigCacheFolder, BaseConfigPath } from "../../BaseConfig";
-import {  Log } from "../../Log";
 import { ApiGame } from "@common/Api/Client";
 import { GamesResponse } from "@common/TwitchAPI/Games";
 import axios from "axios";
+import fs from "node:fs";
 import path from "node:path";
-import { Helper } from "../../../Core/Helper";
 import { Config } from "../../../Core/Config";
+import { Helper } from "../../../Core/Helper";
+import { TwitchHelper } from "../../../Providers/Twitch";
+import { BaseConfigCacheFolder, BaseConfigPath } from "../../BaseConfig";
+import { LOGLEVEL, log } from "../../Log";
 
 interface TwitchGameJSON {
     name: string;
@@ -30,7 +30,7 @@ export class TwitchGame {
 
     public static populateGameDatabase(): void {
         if (!fs.existsSync(BaseConfigPath.gameDb)) return;
-        Log.logAdvanced(Log.Level.INFO, "game", "Populating game database...");
+        log(LOGLEVEL.INFO, "game", "Populating game database...");
         this.game_db = {};
         const raw_games: Record<string, TwitchGameJSON> = JSON.parse(fs.readFileSync(BaseConfigPath.gameDb, "utf8"));
         for (const id in raw_games) {
@@ -43,17 +43,17 @@ export class TwitchGame {
             if (raw_game.deleted) game.deleted = raw_game.deleted;
             this.game_db[id] = game;
         }
-        Log.logAdvanced(Log.Level.INFO, "game", `Game database populated with ${Object.keys(this.game_db).length} games.`);
+        log(LOGLEVEL.INFO, "game", `Game database populated with ${Object.keys(this.game_db).length} games.`);
     }
 
     public static populateFavouriteGames(): void {
         if (!fs.existsSync(BaseConfigPath.favouriteGames)) {
-            Log.logAdvanced(Log.Level.INFO, "game", "Favourite games file not found, creating...");
+            log(LOGLEVEL.INFO, "game", "Favourite games file not found, creating...");
             fs.writeFileSync(BaseConfigPath.favouriteGames, "[]");
         }
-        Log.logAdvanced(Log.Level.INFO, "game", "Populating favourite games...");
+        log(LOGLEVEL.INFO, "game", "Populating favourite games...");
         this.favourite_games = JSON.parse(fs.readFileSync(BaseConfigPath.favouriteGames, "utf8"));
-        Log.logAdvanced(Log.Level.INFO, "game", `Favourite games populated with ${this.favourite_games.length} games.`);
+        log(LOGLEVEL.INFO, "game", `Favourite games populated with ${this.favourite_games.length} games.`);
     }
 
     /**
@@ -66,7 +66,7 @@ export class TwitchGame {
             throw new Error("Game database not initialized!");
         }
         if (!this.game_db[game_id]) {
-            Log.logAdvanced(Log.Level.WARNING, "game", `Game id ${game_id} not in cache.`);
+            log(LOGLEVEL.WARNING, "game", `Game id ${game_id} not in cache.`);
             return null;
         }
 
@@ -76,7 +76,7 @@ export class TwitchGame {
     public static async getGameAsync(game_id: string, force = false): Promise<TwitchGame | null> {
 
         if (!game_id) {
-            Log.logAdvanced(Log.Level.ERROR, "game", "No game id supplied for game fetch!");
+            log(LOGLEVEL.ERROR, "game", "No game id supplied for game fetch!");
             return null;
         }
 
@@ -84,19 +84,19 @@ export class TwitchGame {
 
         if (cachedGame && !force) {
             if (cachedGame && cachedGame.added && Date.now() > cachedGame.added.getTime() + (60 * 60 * 24 * 60 * 1000)) { // two months?
-                Log.logAdvanced(Log.Level.INFO, "game", `Game id ${game_id} (${cachedGame.name}) needs refreshing (${cachedGame.added.toISOString()}).`);
+                log(LOGLEVEL.INFO, "game", `Game id ${game_id} (${cachedGame.name}) needs refreshing (${cachedGame.added.toISOString()}).`);
             } else if (cachedGame && cachedGame.added) { // check if date is set
                 return this.game_db[game_id];
             } else {
-                Log.logAdvanced(Log.Level.INFO, "game", `Game id ${game_id} needs refreshing (no date set).`);
+                log(LOGLEVEL.INFO, "game", `Game id ${game_id} needs refreshing (no date set).`);
             }
             if (cachedGame.deleted) {
-                Log.logAdvanced(Log.Level.INFO, "game", `Game id ${game_id} is marked as deleted, return cached game.`);
+                log(LOGLEVEL.INFO, "game", `Game id ${game_id} is marked as deleted, return cached game.`);
                 return this.game_db[game_id];
             }
         }
 
-        Log.logAdvanced(Log.Level.DEBUG, "game", `Game id ${game_id} not in cache, fetching...`);
+        log(LOGLEVEL.DEBUG, "game", `Game id ${game_id} not in cache, fetching...`);
 
         if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
@@ -106,7 +106,7 @@ export class TwitchGame {
         try {
             response = await TwitchHelper.getRequest<GamesResponse>(`/helix/games?id=${game_id}`);
         } catch (th) {
-            Log.logAdvanced(Log.Level.FATAL, "game", `Tried to get game data for ${game_id} but server returned: ${th}`);
+            log(LOGLEVEL.FATAL, "game", `Tried to get game data for ${game_id} but server returned: ${th}`);
             return null;
         }
 
@@ -135,23 +135,23 @@ export class TwitchGame {
             try {
                 await game.fetchBoxArt();
             } catch (error) {
-                Log.logAdvanced(Log.Level.ERROR, "game", `Failed to fetch box art for game ${game_id}: ${error}`);
+                log(LOGLEVEL.ERROR, "game", `Failed to fetch box art for game ${game_id}: ${error}`);
             }
-            
+
             game.save();
 
             // $game_db[ $id ] = $game_data["name"];
 
-            Log.logAdvanced(Log.Level.SUCCESS, "game", `New game saved to cache: ${game.name}`);
+            log(LOGLEVEL.SUCCESS, "game", `New game saved to cache: ${game.name}`);
 
             return game;
 
         } else {
 
-            Log.logAdvanced(Log.Level.ERROR, "game", `Invalid game returned in query for ${game_id}`, json);
+            log(LOGLEVEL.ERROR, "game", `Invalid game returned in query for ${game_id}`, json);
 
             if (cachedGame) {
-                Log.logAdvanced(Log.Level.INFO, "game", `Cached game ${cachedGame.name} must have been deleted, marking as deleted.`);
+                log(LOGLEVEL.INFO, "game", `Cached game ${cachedGame.name} must have been deleted, marking as deleted.`);
                 cachedGame.deleted = true;
                 cachedGame.save();
             }
@@ -209,17 +209,17 @@ export class TwitchGame {
             } else {
                 const writer = fs.createWriteStream(file);
                 writer.on("finish", () => {
-                    Log.logAdvanced(Log.Level.SUCCESS, "game", `Box art saved to cache: ${this.name}`);
+                    log(LOGLEVEL.SUCCESS, "game", `Box art saved to cache: ${this.name}`);
                     resolve(file);
                 });
                 writer.on("error", (err) => {
-                    Log.logAdvanced(Log.Level.ERROR, "game", `Failed to save box art to cache: ${err}`, err);
+                    log(LOGLEVEL.ERROR, "game", `Failed to save box art to cache: ${err}`, err);
                     reject(err);
                 });
                 axios.get(url, { responseType: "stream" }).then((response) => {
                     response.data.pipe(writer);
                 }).catch((err) => {
-                    Log.logAdvanced(Log.Level.ERROR, "game", `Failed to fetch box art: ${err}`, err);
+                    log(LOGLEVEL.ERROR, "game", `Failed to fetch box art: ${err}`, err);
                     reject(err);
                 });
             }
@@ -293,7 +293,7 @@ export class TwitchGame {
     }
 
     public static saveFavouriteGames(): void {
-        Log.logAdvanced(Log.Level.INFO, "game", "Saving favourite games...");
+        log(LOGLEVEL.INFO, "game", "Saving favourite games...");
         fs.writeFileSync(BaseConfigPath.favouriteGames, JSON.stringify(TwitchGame.favourite_games));
     }
 

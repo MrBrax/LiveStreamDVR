@@ -5,7 +5,7 @@ import { KeyValue } from "../Core/KeyValue";
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { Config } from "../Core/Config";
 import { TwitchHelper } from "../Providers/Twitch";
-import {  Log } from "../Core/Log";
+import { log, LOGLEVEL } from "../Core/Log";
 import { EventSubTypes, TransportWebsocket } from "@common/TwitchAPI/Shared";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
 
@@ -44,12 +44,12 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
             try {
                 username = await TwitchChannel.channelLoginFromId(sub.condition.broadcaster_user_id);
             } catch (e) {
-                Log.logAdvanced(Log.Level.ERROR, "ListSubscriptions", "Failed to get username for channel " + sub.condition.broadcaster_user_id, e);
+                log(LOGLEVEL.ERROR, "ListSubscriptions", "Failed to get username for channel " + sub.condition.broadcaster_user_id, e);
                 continue;
             }
 
             if (!username) {
-                Log.logAdvanced(Log.Level.WARNING, "ListSubscriptions", `Could not find username for channel ${sub.condition.broadcaster_user_id}`);
+                log(LOGLEVEL.WARNING, "ListSubscriptions", `Could not find username for channel ${sub.condition.broadcaster_user_id}`);
                 continue;
             }
 
@@ -89,7 +89,7 @@ export async function ListSubscriptions(req: express.Request, res: express.Respo
             if (!KeyValue.getInstance().has(`${entry.user_id}.sub.${entry.type}`) || !KeyValue.getInstance().has(`${entry.user_id}.substatus.${entry.type}`)) {
                 KeyValue.getInstance().set(`${entry.user_id}.sub.${entry.type}`, entry.id);
                 KeyValue.getInstance().set(`${entry.user_id}.substatus.${entry.type}`, entry.status == "enabled" ? SubStatus.SUBSCRIBED : SubStatus.NONE);
-                Log.logAdvanced(Log.Level.INFO, "route.subscriptions.list", `Added missing keyvalue subs for ${entry.user_id}`);
+                log(LOGLEVEL.INFO, "route.subscriptions.list", `Added missing keyvalue subs for ${entry.user_id}`);
             }
 
             payload_data.channels.push(entry);

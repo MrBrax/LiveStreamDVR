@@ -24,7 +24,7 @@ import { Config } from "./Config";
 import { Helper } from "./Helper";
 import { Job } from "./Job";
 import { KeyValue } from "./KeyValue";
-import { Log } from "./Log";
+import { log, LOGLEVEL, readTodaysLog } from "./Log";
 import { BaseVODChapter } from "./Providers/Base/BaseVODChapter";
 import { KickChannel } from "./Providers/Kick/KickChannel";
 import { KickVOD } from "./Providers/Kick/KickVOD";
@@ -125,10 +125,10 @@ export class LiveStreamDVR {
 
         await TwitchHelper.setupAxios();
 
-        Log.readTodaysLog();
+        readTodaysLog();
 
-        Log.logAdvanced(
-            Log.Level.SUCCESS,
+        log(
+            LOGLEVEL.SUCCESS,
             "config",
             t("base.bootmessage", new Date().toISOString())
         );
@@ -161,14 +161,14 @@ export class LiveStreamDVR {
         // let saidGoobye = false;
         // const goodbye = () => {
         //     if (saidGoobye) return;
-        //     TwitchLog.logAdvanced(Log.Level.INFO, "config", "See you next time!");
+        //     TwitchlogAdvanced(LOGLEVEL.INFO, "config", "See you next time!");
         //     saidGoobye = true;
         // };
         // process.on("exit", goodbye);
         // process.on("SIGINT", goodbye);
         // process.on("SIGTERM", goodbye);
 
-        Log.logAdvanced(Log.Level.SUCCESS, "config", "Loading config stuff done.");
+        log(LOGLEVEL.SUCCESS, "config", "Loading config stuff done.");
 
         Config.getInstance().initialised = true;
 
@@ -190,14 +190,14 @@ export class LiveStreamDVR {
             return false;
         }
 
-        Log.logAdvanced(Log.Level.INFO, "dvr.loadChannelsConfig", "Loading channel configs...");
+        log(LOGLEVEL.INFO, "dvr.loadChannelsConfig", "Loading channel configs...");
 
         const data: ChannelConfig[] = JSON.parse(fs.readFileSync(BaseConfigPath.channel, "utf8"));
 
         let needsSave = false;
         for (const channel of data) {
             if ((!("quality" in channel) || !channel.quality) && channel.provider == "twitch") {
-                Log.logAdvanced(Log.Level.WARNING, "dvr.loadChannelsConfig", `Channel ${channel.login} has no quality set, setting to default`);
+                log(LOGLEVEL.WARNING, "dvr.loadChannelsConfig", `Channel ${channel.login} has no quality set, setting to default`);
                 channel.quality = ["best"];
                 needsSave = true;
             }
@@ -206,14 +206,14 @@ export class LiveStreamDVR {
             }
             if (!channel.uuid) {
                 channel.uuid = randomUUID();
-                Log.logAdvanced(Log.Level.WARNING, "dvr.loadChannelsConfig", `Channel does not have an UUID, generated: ${channel.uuid}`);
+                log(LOGLEVEL.WARNING, "dvr.loadChannelsConfig", `Channel does not have an UUID, generated: ${channel.uuid}`);
                 needsSave = true;
             }
         }
 
         this.channels_config = data;
 
-        Log.logAdvanced(Log.Level.SUCCESS, "dvr.loadChannelsConfig", `Loaded ${this.channels_config.length} channel configs!`);
+        log(LOGLEVEL.SUCCESS, "dvr.loadChannelsConfig", `Loaded ${this.channels_config.length} channel configs!`);
 
         if (needsSave) {
             this.saveChannelsConfig();
@@ -224,7 +224,7 @@ export class LiveStreamDVR {
             for (const folder of folders) {
                 if (folder == ".gitkeep") continue;
                 if (!this.channels_config.find(ch => ch.provider == "twitch" && ch.login === folder)) {
-                    Log.logAdvanced(Log.Level.WARNING, "dvr.loadChannelsConfig", `Channel folder ${folder} is not in channel config, left over?`);
+                    log(LOGLEVEL.WARNING, "dvr.loadChannelsConfig", `Channel folder ${folder} is not in channel config, left over?`);
                 }
             }
         }
@@ -239,11 +239,11 @@ export class LiveStreamDVR {
      * @returns Amount of loaded channels
      */
     public async loadChannels(): Promise<number> {
-        Log.logAdvanced(Log.Level.INFO, "dvr.loadChannels", "Loading channels...");
+        log(LOGLEVEL.INFO, "dvr.loadChannels", "Loading channels...");
         if (this.channels_config.length > 0) {
             for (const channel of this.channels_config) {
 
-                Log.logAdvanced(Log.Level.INFO, "dvr.loadChannels", `Loading channel ${channel.uuid}, provider ${channel.provider}...`);
+                log(LOGLEVEL.INFO, "dvr.loadChannels", `Loading channel ${channel.uuid}, provider ${channel.provider}...`);
 
                 if (!channel.provider || channel.provider == "twitch") {
 
@@ -252,7 +252,7 @@ export class LiveStreamDVR {
                     try {
                         ch = await TwitchChannel.loadFromLogin(channel.login);
                     } catch (th) {
-                        Log.logAdvanced(Log.Level.FATAL, "dvr.load.tw", `TW Channel ${channel.login} could not be loaded: ${th}`);
+                        log(LOGLEVEL.FATAL, "dvr.load.tw", `TW Channel ${channel.login} could not be loaded: ${th}`);
                         console.error(th);
                         continue;
                         // break;
@@ -262,12 +262,12 @@ export class LiveStreamDVR {
                         this.addChannel(ch);
                         await ch.postLoad();
                         ch.getVods().forEach(vod => vod.postLoad());
-                        Log.logAdvanced(Log.Level.SUCCESS, "dvr.load.tw", `Loaded channel ${channel.login} with ${ch.getVods().length} vods`);
+                        log(LOGLEVEL.SUCCESS, "dvr.load.tw", `Loaded channel ${channel.login} with ${ch.getVods().length} vods`);
                         if (ch.no_capture) {
-                            Log.logAdvanced(Log.Level.WARNING, "dvr.load.tw", `Channel ${channel.login} is configured to not capture streams.`);
+                            log(LOGLEVEL.WARNING, "dvr.load.tw", `Channel ${channel.login} is configured to not capture streams.`);
                         }
                     } else {
-                        Log.logAdvanced(Log.Level.FATAL, "dvr.load.tw", `Channel ${channel.login} could not be added, please check logs.`);
+                        log(LOGLEVEL.FATAL, "dvr.load.tw", `Channel ${channel.login} could not be added, please check logs.`);
                         break;
                     }
 
@@ -278,7 +278,7 @@ export class LiveStreamDVR {
                     try {
                         ch = await YouTubeChannel.loadFromId(channel.channel_id);
                     } catch (th) {
-                        Log.logAdvanced(Log.Level.FATAL, "dvr.load.yt", `YT Channel ${channel.channel_id} could not be loaded: ${th}`);
+                        log(LOGLEVEL.FATAL, "dvr.load.yt", `YT Channel ${channel.channel_id} could not be loaded: ${th}`);
                         console.error(th);
                         continue;
                         // break;
@@ -288,19 +288,19 @@ export class LiveStreamDVR {
                         this.addChannel(ch);
                         await ch.postLoad();
                         ch.getVods().forEach(vod => vod.postLoad());
-                        Log.logAdvanced(Log.Level.SUCCESS, "dvr.load.yt", `Loaded channel ${ch.displayName} with ${ch.getVods().length} vods`);
+                        log(LOGLEVEL.SUCCESS, "dvr.load.yt", `Loaded channel ${ch.displayName} with ${ch.getVods().length} vods`);
                         if (ch.no_capture) {
-                            Log.logAdvanced(Log.Level.WARNING, "dvr.load.yt", `Channel ${ch.displayName} is configured to not capture streams.`);
+                            log(LOGLEVEL.WARNING, "dvr.load.yt", `Channel ${ch.displayName} is configured to not capture streams.`);
                         }
                     } else {
-                        Log.logAdvanced(Log.Level.FATAL, "dvr.load.yt", `Channel ${channel.channel_id} could not be added, please check logs.`);
+                        log(LOGLEVEL.FATAL, "dvr.load.yt", `Channel ${channel.channel_id} could not be added, please check logs.`);
                         break;
                     }
 
                 }
             }
         }
-        Log.logAdvanced(Log.Level.SUCCESS, "dvr.loadChannels", `Loaded ${this.channels.length} channels!`);
+        log(LOGLEVEL.SUCCESS, "dvr.loadChannels", `Loaded ${this.channels.length} channels!`);
         return this.channels.length;
     }
 
@@ -309,7 +309,7 @@ export class LiveStreamDVR {
      * @returns 
      */
     public saveChannelsConfig(): boolean {
-        Log.logAdvanced(Log.Level.INFO, "dvr", "Saving channel config");
+        log(LOGLEVEL.INFO, "dvr", "Saving channel config");
         fs.writeFileSync(BaseConfigPath.channel, JSON.stringify(this.channels_config, null, 4));
         return fs.existsSync(BaseConfigPath.channel) && fs.readFileSync(BaseConfigPath.channel, "utf8") === JSON.stringify(this.channels_config, null, 4);
     }
@@ -322,10 +322,10 @@ export class LiveStreamDVR {
         this.vods.forEach((vod) => {
             const channel = vod.getChannel();
             if (!channel) {
-                Log.logAdvanced(Log.Level.WARNING, "dvr", `Channel ${vod.getChannel().internalName} removed but VOD ${vod.basename} still lingering`);
+                log(LOGLEVEL.WARNING, "dvr", `Channel ${vod.getChannel().internalName} removed but VOD ${vod.basename} still lingering`);
             }
             if (!fs.existsSync(vod.filename)) {
-                Log.logAdvanced(Log.Level.WARNING, "dvr", `VOD ${vod.basename} in memory but not on disk`);
+                log(LOGLEVEL.WARNING, "dvr", `VOD ${vod.basename} in memory but not on disk`);
             }
         });
     }
@@ -355,7 +355,7 @@ export class LiveStreamDVR {
 
     public addChannel(channel: ChannelTypes): void {
         if (!channel.uuid) {
-            Log.logAdvanced(Log.Level.WARNING, "dvr.addChannel", `Channel ${channel.internalName} does not have an UUID!`);
+            log(LOGLEVEL.WARNING, "dvr.addChannel", `Channel ${channel.internalName} does not have an UUID!`);
         }
         this.channels.push(channel);
     }
@@ -426,7 +426,7 @@ export class LiveStreamDVR {
         const vod = this.getVodByUUID(uuid);
         if (vod) {
             this.vods = this.vods.filter(vod => vod.uuid != uuid);
-            Log.logAdvanced(Log.Level.INFO, "dvr.removeVod", `VOD ${vod.basename} removed from memory!`);
+            log(LOGLEVEL.INFO, "dvr.removeVod", `VOD ${vod.basename} removed from memory!`);
             Webhook.dispatchAll("vod_removed", { basename: vod.basename });
             return true;
         }
@@ -688,7 +688,7 @@ export class LiveStreamDVR {
             return false;
         }
         this.freeStorageDiskSpace = ds.free;
-        Log.logAdvanced(Log.Level.DEBUG, "dvr", `Free storage disk space: ${formatBytes(this.freeStorageDiskSpace)}`);
+        log(LOGLEVEL.DEBUG, "dvr", `Free storage disk space: ${formatBytes(this.freeStorageDiskSpace)}`);
         return true;
     }
 
@@ -713,7 +713,7 @@ export class LiveStreamDVR {
 
     public static binaryVersions: Record<string, BinaryStatus> = {};
     public static async checkBinaryVersions() {
-        Log.logAdvanced(Log.Level.INFO, "dvr.bincheck", "Checking binary versions...");
+        log(LOGLEVEL.INFO, "dvr.bincheck", "Checking binary versions...");
         const bins = DVRBinaries();
         const pkgs = DVRPipPackages();
         for (const key in bins) {
@@ -741,18 +741,18 @@ export class LiveStreamDVR {
 
     public static async checkPythonVirtualEnv() {
 
-        Log.logAdvanced(Log.Level.INFO, "dvr.venvcheck", "Checking python virtual environment...");
+        log(LOGLEVEL.INFO, "dvr.venvcheck", "Checking python virtual environment...");
 
         const is_enabled = Config.getInstance().cfg<boolean>("python.enable_pipenv");
 
         if (!is_enabled) {
-            Log.logAdvanced(Log.Level.INFO, "dvr.venvcheck", "Python virtual environment is not enabled in config.");
+            log(LOGLEVEL.INFO, "dvr.venvcheck", "Python virtual environment is not enabled in config.");
             return;
         }
 
         const has_pipenv = Helper.path_pipenv();
         if (!has_pipenv) {
-            Log.logAdvanced(Log.Level.ERROR, "dvr.venvcheck", "Python virtual environment is enabled but pipenv is not found. Is it installed?");
+            log(LOGLEVEL.ERROR, "dvr.venvcheck", "Python virtual environment is enabled but pipenv is not found. Is it installed?");
             return;
         }
 
@@ -764,17 +764,17 @@ export class LiveStreamDVR {
         }
 
         if (!venv_path) {
-            Log.logAdvanced(Log.Level.ERROR, "dvr.venvcheck", "Python virtual environment is not enabled (not found).");
+            log(LOGLEVEL.ERROR, "dvr.venvcheck", "Python virtual environment is not enabled (not found).");
             return;
         }
 
         if (venv_path !== Config.getInstance().cfg("python.virtualenv_path")) {
-            Log.logAdvanced(Log.Level.INFO, "dvr.venvcheck", "Updating python virtual environment path in config.");
+            log(LOGLEVEL.INFO, "dvr.venvcheck", "Updating python virtual environment path in config.");
             Config.getInstance().setConfig("python.virtualenv_path", venv_path);
             Config.getInstance().saveConfig();
         }
 
-        Log.logAdvanced(Log.Level.INFO, "dvr.venvcheck", `Python virtual environment path: ${venv_path}`);
+        log(LOGLEVEL.INFO, "dvr.venvcheck", `Python virtual environment path: ${venv_path}`);
 
     }
 

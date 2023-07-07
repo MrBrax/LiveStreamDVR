@@ -1,5 +1,5 @@
 import { Config } from "../src/Core/Config";
-import { Log } from "../src/Core/Log";
+import { log, LOGLEVEL } from "../src/Core/Log";
 import "./environment";
 
 describe("Config", () => {

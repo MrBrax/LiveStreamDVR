@@ -4,7 +4,7 @@ import { KickChannel as KickChannelT, KickUser } from "@common/KickAPI/Kick";
 import { randomUUID } from "crypto";
 import { KeyValue } from "../../../Core/KeyValue";
 import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
-import { Log } from "../../../Core/Log";
+import { log, LOGLEVEL } from "../../../Core/Log";
 import { isKickChannel } from "../../../Helpers/Types";
 import { GetChannel, GetStream, GetUser } from "../../../Providers/Kick";
 import { BaseChannel } from "../Base/BaseChannel";
@@ -105,18 +105,18 @@ export class KickChannel extends BaseChannel {
             try {
                 await channel.subscribe();
             } catch (error) {
-                Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to subscribe to channel ${channel.internalName}: ${(error as Error).message}`);
+                logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to subscribe to channel ${channel.internalName}: ${(error as Error).message}`);
                 LiveStreamDVR.getInstance().channels_config = LiveStreamDVR.getInstance().channels_config.filter(ch => ch.provider == "twitch" && ch.login !== config.login); // remove channel from config
                 LiveStreamDVR.getInstance().saveChannelsConfig();
                 // throw new Error(`Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`, { cause: error });
                 throw error; // rethrow error
             }
         } else if (Config.getInstance().cfg("app_url") == "debug") {
-            Log.logAdvanced(Log.Level.WARNING, "channel", `Not subscribing to ${channel.internalName} due to debug app_url.`);
+            logAdvanced(LOGLEVEL.WARNING, "channel", `Not subscribing to ${channel.internalName} due to debug app_url.`);
         } else if (Config.getInstance().cfg("isolated_mode")) {
-            Log.logAdvanced(Log.Level.WARNING, "channel", `Not subscribing to ${channel.internalName} due to isolated mode.`);
+            logAdvanced(LOGLEVEL.WARNING, "channel", `Not subscribing to ${channel.internalName} due to isolated mode.`);
         } else {
-            Log.logAdvanced(Log.Level.ERROR, "channel", `Can't subscribe to ${channel.internalName} due to either no app_url or isolated mode disabled.`);
+            logAdvanced(LOGLEVEL.ERROR, "channel", `Can't subscribe to ${channel.internalName} due to either no app_url or isolated mode disabled.`);
             LiveStreamDVR.getInstance().channels_config = LiveStreamDVR.getInstance().channels_config.filter(ch => ch.provider == "twitch" && ch.login !== config.login); // remove channel from config
             LiveStreamDVR.getInstance().saveChannelsConfig();
             throw new Error("Can't subscribe due to either no app_url or isolated mode disabled.");
@@ -168,7 +168,7 @@ export class KickChannel extends BaseChannel {
     public static async loadFromSlug(slug: string): Promise<KickChannel> {
         if (!slug) throw new Error("Streamer slug is empty");
         if (typeof slug !== "string") throw new TypeError("Streamer slug is not a string");
-        Log.logAdvanced(Log.Level.DEBUG, "channel.loadFromslug", `Load from slug ${slug}`);
+        log(LOGLEVEL.DEBUG, "channel.loadFromslug", `Load from slug ${slug}`);
         const channel_id = await this.channelIdFromSlug(slug);
         if (!channel_id) throw new Error(`Could not get channel id from slug: ${slug}`);
         return this.loadAbstract(channel_id); // $channel;
@@ -181,11 +181,11 @@ export class KickChannel extends BaseChannel {
 
     public static async loadAbstract(channel_id: string): Promise<KickChannel> {
 
-        Log.logAdvanced(Log.Level.DEBUG, "channel", `Load channel ${channel_id}`);
+        log(LOGLEVEL.DEBUG, "channel", `Load channel ${channel_id}`);
 
         const channel_memory = KickChannel.getChannelById(channel_id);
         if (channel_memory) {
-            Log.logAdvanced(Log.Level.WARNING, "channel", `Channel ${channel_id} already loaded`);
+            log(LOGLEVEL.WARNING, "channel", `Channel ${channel_id} already loaded`);
             return channel_memory;
         }
 
@@ -210,11 +210,11 @@ export class KickChannel extends BaseChannel {
         channel.applyConfig(channel_config);
 
         if (KeyValue.getInstance().getBool(`kick.${channel.internalId}.online`)) {
-            Log.logAdvanced(Log.Level.WARNING, "channel", `Channel ${channel.internalName} is online, stale?`);
+            log(LOGLEVEL.WARNING, "channel", `Channel ${channel.internalName} is online, stale?`);
         }
 
         if (KeyValue.getInstance().get(`kick.${channel.internalName}.channeldata`)) {
-            Log.logAdvanced(Log.Level.WARNING, "channel", `Channel ${channel.internalName} has stale chapter data.`);
+            log(LOGLEVEL.WARNING, "channel", `Channel ${channel.internalName} has stale chapter data.`);
         }
 
         // if (channel.channel_data.profile_image_url && !channel.channelLogoExists) {
@@ -242,7 +242,7 @@ export class KickChannel extends BaseChannel {
         // try {
         //     await channel.updateChapterData();
         // } catch (error) {
-        //     Log.logAdvanced(Log.Level.ERROR, "channel", `Failed to update chapter data for channel ${channel.login}: ${(error as Error).message}`);
+        //     logAdvanced(LOGLEVEL.ERROR, "channel", `Failed to update chapter data for channel ${channel.login}: ${(error as Error).message}`);
         // }
 
         return channel;

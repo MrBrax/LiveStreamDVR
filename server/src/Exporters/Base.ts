@@ -5,7 +5,7 @@ import path from "node:path";
 import { formatString } from "@common/Format";
 import { ExporterFilenameTemplate } from "@common/Replacements";
 import { VODTypes } from "../Core/LiveStreamDVR";
-import { Log } from "../Core/Log";
+import { log, LOGLEVEL } from "../Core/Log";
 import { isTwitchVOD } from "../Helpers/Types";
 import { Config } from "../Core/Config";
 
@@ -110,7 +110,7 @@ export class BaseExporter {
 
         for (const literal in replacements) {
             if (replacements[literal] === undefined || replacements[literal] === null || replacements[literal] === "") {
-                Log.logAdvanced(Log.Level.WARNING, "BaseExporter", `No value for replacement literal '${literal}', using template '${this.template_filename}'`);
+                log(LOGLEVEL.WARNING, "BaseExporter", `No value for replacement literal '${literal}', using template '${this.template_filename}'`);
             }
         }
 

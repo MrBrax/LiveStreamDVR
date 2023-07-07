@@ -22,7 +22,7 @@ import { FFmpegMetadata } from "../../FFmpegMetadata";
 import { Helper } from "../../Helper";
 import { Job } from "../../Job";
 import { LiveStreamDVR, VODTypes } from "../../LiveStreamDVR";
-import { Log } from "../../Log";
+import { log, LOGLEVEL } from "../../Log";
 import { Webhook } from "../../Webhook";
 import { BaseChannel } from "./BaseChannel";
 import { BaseVODChapter } from "./BaseVODChapter";
@@ -170,7 +170,7 @@ export class BaseVOD {
         // if (process.env.NODE_ENV === "test") return false;
 
         if (Config.getInstance().cfg("storage.no_watch_files", false)) {
-            Log.logAdvanced(Log.Level.DEBUG, "vod.watch", `Not watching files for ${this.basename} due to config setting`);
+            log(LOGLEVEL.DEBUG, "vod.watch", `Not watching files for ${this.basename} due to config setting`);
             return false;
         }
 
@@ -186,7 +186,7 @@ export class BaseVOD {
             }
 
             if (!this.channel_uuid) {
-                Log.logAdvanced(Log.Level.ERROR, "vod.watch", `VOD ${this.basename} has no channel UUID!`);
+                log(LOGLEVEL.ERROR, "vod.watch", `VOD ${this.basename} has no channel UUID!`);
                 return;
             }
 
@@ -200,13 +200,13 @@ export class BaseVOD {
             const mem = process.memoryUsage();
 
             // if (Config.debug) console.log(`VOD file ${filename} changed (${this._writeJSON ? "internal" : "external"}/${eventType})!`);
-            Log.logAdvanced(Log.Level.DEBUG, "vod.watch", `VOD file ${filename} on ${this.basename} changed (${this._writeJSON ? "internal" : "external"}/${eventType})! RSS ${formatBytes(mem.rss)} Heap ${formatBytes(mem.heapUsed)}`);
+            log(LOGLEVEL.DEBUG, "vod.watch", `VOD file ${filename} on ${this.basename} changed (${this._writeJSON ? "internal" : "external"}/${eventType})! RSS ${formatBytes(mem.rss)} Heap ${formatBytes(mem.heapUsed)}`);
 
             if (filename === this.filename) {
                 if (!fs.existsSync(this.filename)) {
-                    Log.logAdvanced(Log.Level.WARNING, "vod", `VOD JSON ${this.basename} deleted!`);
+                    log(LOGLEVEL.WARNING, "vod", `VOD JSON ${this.basename} deleted!`);
                     if (LiveStreamDVR.getInstance().getVods().find(v => v.basename == this.basename)) {
-                        Log.logAdvanced(Log.Level.WARNING, "vod", `VOD ${this.basename} still in memory!`);
+                        log(LOGLEVEL.WARNING, "vod", `VOD ${this.basename} still in memory!`);
 
                         // const channel = TwitchChannel.getChannelByLogin(this.streamer_login);
                         // if (channel) channel.removeVod(this.basename);
@@ -224,11 +224,11 @@ export class BaseVOD {
                         }, 5000);
                     }
                 } else {
-                    Log.logAdvanced(Log.Level.DEBUG, "vod", `VOD JSON ${this.basename} exists (again?) ${eventType}`);
+                    log(LOGLEVEL.DEBUG, "vod", `VOD JSON ${this.basename} exists (again?) ${eventType}`);
                 }
             } else if (this.segments.some(s => s.filename === filename)) {
                 debugLog(`VOD segment ${filename} changed (${eventType})!`);
-                Log.logAdvanced(Log.Level.INFO, "vod.watch", `VOD segment ${filename} changed (${eventType})!`);
+                log(LOGLEVEL.INFO, "vod.watch", `VOD segment ${filename} changed (${eventType})!`);
                 ClientBroker.notify(
                     "Segment changed externally",
                     path.basename(filename),
@@ -237,7 +237,7 @@ export class BaseVOD {
                 );
             } else {
                 debugLog(`VOD file ${filename} changed (${eventType})!`);
-                Log.logAdvanced(Log.Level.INFO, "vod.watch", `VOD file ${filename} changed (${eventType})!`);
+                log(LOGLEVEL.INFO, "vod.watch", `VOD file ${filename} changed (${eventType})!`);
                 ClientBroker.notify(
                     "VOD file changed externally",
                     path.basename(filename),
@@ -327,10 +327,10 @@ export class BaseVOD {
      */
     public async addSegment(segment: string): Promise<void> {
 
-        Log.logAdvanced(Log.Level.INFO, "vod.addSegment", `Adding segment ${segment} to ${this.basename}`);
+        log(LOGLEVEL.INFO, "vod.addSegment", `Adding segment ${segment} to ${this.basename}`);
 
         if (this.segments && this.segments.length > 1) {
-            Log.logAdvanced(Log.Level.WARNING, "vod.addSegment", `VOD ${this.basename} already has segments, adding ${segment}`);
+            log(LOGLEVEL.WARNING, "vod.addSegment", `VOD ${this.basename} already has segments, adding ${segment}`);
         }
 
         this.segments_raw.push(segment);
@@ -345,10 +345,10 @@ export class BaseVOD {
         }
 
         if (!array) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.parseSegments", `No segment data supplied on ${this.basename}`);
+            log(LOGLEVEL.ERROR, "vod.parseSegments", `No segment data supplied on ${this.basename}`);
 
             if (!this.segments_raw) {
-                Log.logAdvanced(Log.Level.ERROR, "vod.parseSegments", `No segment_raw data on ${this.basename}, calling rebuild...`);
+                log(LOGLEVEL.ERROR, "vod.parseSegments", `No segment_raw data on ${this.basename}, calling rebuild...`);
                 await this.rebuildSegmentList();
             }
 
@@ -362,7 +362,7 @@ export class BaseVOD {
         for (const raw_segment of array) {
 
             if (typeof raw_segment !== "string") {
-                Log.logAdvanced(Log.Level.ERROR, "vod.parseSegments", `Segment list containing invalid data for ${this.basename}, rebuilding...`);
+                log(LOGLEVEL.ERROR, "vod.parseSegments", `Segment list containing invalid data for ${this.basename}, rebuilding...`);
                 await this.rebuildSegmentList();
                 return;
             }
@@ -371,7 +371,7 @@ export class BaseVOD {
 
             // find invalid characters for windows
             if (base_segment.match(LiveStreamDVR.filenameIllegalChars)) {
-                Log.logAdvanced(Log.Level.ERROR, "vod.parseSegments", `Segment list containing invalid characters for ${this.basename}: ${base_segment}`);
+                log(LOGLEVEL.ERROR, "vod.parseSegments", `Segment list containing invalid characters for ${this.basename}: ${base_segment}`);
                 return false;
             }
 
@@ -420,7 +420,7 @@ export class BaseVOD {
             throw new Error("No video metadata height");
         }
 
-        Log.logAdvanced(Log.Level.INFO, "vod", `Render chat for ${this.basename}`);
+        log(LOGLEVEL.INFO, "vod", `Render chat for ${this.basename}`);
 
         if (fs.existsSync(this.path_chat) && fs.existsSync(this.path_chatrender) && !overwrite) {
             console.error(chalk.redBright("Chat already rendered"));
@@ -456,7 +456,7 @@ export class BaseVOD {
         args.push("--generate-mask");
         args.push("--output", this.path_chatrender);
 
-        Log.logAdvanced(Log.Level.INFO, "vod", `Running ${bin} ${args.join(" ")}`);
+        log(LOGLEVEL.INFO, "vod", `Running ${bin} ${args.join(" ")}`);
 
         const env = {
             DOTNET_BUNDLE_EXTRACT_BASE_DIR: BaseConfigCacheFolder.dotnet,
@@ -478,13 +478,13 @@ export class BaseVOD {
 
             job.on("stdout", (data: string) => {
                 if (data.includes("Fetching ")) {
-                    Log.logAdvanced(Log.Level.INFO, "vod", `Chat render fetching: ${data}`);
+                    log(LOGLEVEL.INFO, "vod", `Chat render fetching: ${data}`);
                 } else if (data.includes("Rendering Comments")) {
-                    Log.logAdvanced(Log.Level.INFO, "vod", "Comments now rendering!");
+                    log(LOGLEVEL.INFO, "vod", "Comments now rendering!");
                 } else if (data.trim() == "[STATUS] - Rendering Video 0%") {
-                    Log.logAdvanced(Log.Level.INFO, "vod", "Chat history now rendering!");
+                    log(LOGLEVEL.INFO, "vod", "Chat history now rendering!");
                 } else if (data.includes("FINISHED")) {
-                    Log.logAdvanced(Log.Level.INFO, "vod", "Chat render finished!");
+                    log(LOGLEVEL.INFO, "vod", "Chat render finished!");
                 }
             });
 
@@ -499,10 +499,10 @@ export class BaseVOD {
                 }
 
                 if (fs.existsSync(this.path_chatrender) && fs.statSync(this.path_chatrender).size > 0) {
-                    Log.logAdvanced(Log.Level.INFO, "vod", `Chat rendered for ${this.basename} (code ${code})`);
+                    log(LOGLEVEL.INFO, "vod", `Chat rendered for ${this.basename} (code ${code})`);
                     resolve(true);
                 } else {
-                    Log.logAdvanced(Log.Level.ERROR, "vod", `Chat couldn't be rendered for ${this.basename} (code ${code})`);
+                    log(LOGLEVEL.ERROR, "vod", `Chat couldn't be rendered for ${this.basename} (code ${code})`);
                     reject(new Error("Chat couldn't be rendered"));
                     // reject(false);
                 }
@@ -524,10 +524,10 @@ export class BaseVOD {
         test_duration = false
     ): Promise<boolean> {
 
-        Log.logAdvanced(Log.Level.INFO, "vod", `Burn chat for ${this.basename}`);
+        log(LOGLEVEL.INFO, "vod", `Burn chat for ${this.basename}`);
 
         if (this.path_chatburn && fs.existsSync(this.path_chatburn) && !overwrite) {
-            Log.logAdvanced(Log.Level.INFO, "vod", `Chat already burned for ${this.basename}`);
+            log(LOGLEVEL.INFO, "vod", `Chat already burned for ${this.basename}`);
             throw new Error(`Chat already burned for ${this.basename}`);
         }
 
@@ -568,7 +568,7 @@ export class BaseVOD {
         // chat render offset
         if (startOffset) {
             args.push("-ss", startOffset.toString());
-            Log.logAdvanced(Log.Level.INFO, "vod", `Using start offset for chat: ${startOffset}`);
+            log(LOGLEVEL.INFO, "vod", `Using start offset for chat: ${startOffset}`);
         }
 
         // chat render
@@ -578,7 +578,7 @@ export class BaseVOD {
         // chat mask offset
         if (startOffset) {
             args.push("-ss", startOffset.toString());
-            Log.logAdvanced(Log.Level.INFO, "vod", `Using start offset for chat mask: ${startOffset}`);
+            log(LOGLEVEL.INFO, "vod", `Using start offset for chat mask: ${startOffset}`);
         }
 
         if (test_duration) {
@@ -628,10 +628,10 @@ export class BaseVOD {
                 this.startWatching();
 
                 if (fs.existsSync(this.path_chatburn) && fs.statSync(this.path_chatburn).size > 0) {
-                    Log.logAdvanced(Log.Level.INFO, "vod", `Chat burned for ${this.basename} (code ${code})`);
+                    log(LOGLEVEL.INFO, "vod", `Chat burned for ${this.basename} (code ${code})`);
                     resolve(true);
                 } else {
-                    Log.logAdvanced(Log.Level.ERROR, "vod", `Chat couldn't be burned for ${this.basename} (code ${code})`);
+                    log(LOGLEVEL.ERROR, "vod", `Chat couldn't be burned for ${this.basename} (code ${code})`);
                     reject(false);
                 }
 
@@ -695,13 +695,13 @@ export class BaseVOD {
 
         const longChapters = this.chapters.filter(chapter => {
             if (chapter.duration && chapter.duration > minDuration) {
-                Log.logAdvanced(Log.Level.INFO, "vod.removeShortChapters", `Keeping chapter ${chapter.title} with duration ${chapter.duration} on ${this.basename}`);
+                log(LOGLEVEL.INFO, "vod.removeShortChapters", `Keeping chapter ${chapter.title} with duration ${chapter.duration} on ${this.basename}`);
                 return true;
             } else if (chapter.duration === undefined) {
-                Log.logAdvanced(Log.Level.ERROR, "vod.removeShortChapters", `Chapter ${chapter.title} has undefined duration on ${this.basename}`);
+                log(LOGLEVEL.ERROR, "vod.removeShortChapters", `Chapter ${chapter.title} has undefined duration on ${this.basename}`);
                 return true;
             } else {
-                Log.logAdvanced(Log.Level.INFO, "vod.removeShortChapters", `Removing chapter ${chapter.title} with duration ${chapter.duration} on ${this.basename}`);
+                log(LOGLEVEL.INFO, "vod.removeShortChapters", `Removing chapter ${chapter.title} with duration ${chapter.duration} on ${this.basename}`);
                 return false;
             }
         });
@@ -725,12 +725,12 @@ export class BaseVOD {
     public calculateChapters(): boolean {
 
         if (!this.started_at) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.calculateChapters", `No start time found for ${this.basename}, can't calculate chapters`);
+            log(LOGLEVEL.ERROR, "vod.calculateChapters", `No start time found for ${this.basename}, can't calculate chapters`);
             return false;
         }
 
         if (!this.chapters || this.chapters.length == 0) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.calculateChapters", `No chapters found for ${this.basename}, can't calculate chapters`);
+            log(LOGLEVEL.ERROR, "vod.calculateChapters", `No chapters found for ${this.basename}, can't calculate chapters`);
             return false;
         }
 
@@ -768,7 +768,7 @@ export class BaseVOD {
             return false;
         }
 
-        Log.logAdvanced(Log.Level.INFO, "vod.saveFFMPEGChapters", `Saving FFMPEG chapters file for ${this.basename} to ${this.path_ffmpegchapters}`);
+        log(LOGLEVEL.INFO, "vod.saveFFMPEGChapters", `Saving FFMPEG chapters file for ${this.basename} to ${this.path_ffmpegchapters}`);
 
         const meta = new FFmpegMetadata()
             .setArtist(this.getChannel().displayName);
@@ -796,7 +796,7 @@ export class BaseVOD {
                     `Started at: ${chapter.started_at.toISOString()}`,
                 ]);
             } catch (error) {
-                Log.logAdvanced(Log.Level.ERROR, "vod.saveFFMPEGChapters", `Error while adding chapter ${chapter.title} to FFMPEG chapters file for ${this.basename}: ${(error as Error).message}`);
+                log(LOGLEVEL.ERROR, "vod.saveFFMPEGChapters", `Error while adding chapter ${chapter.title} to FFMPEG chapters file for ${this.basename}: ${(error as Error).message}`);
             }
 
         });
@@ -815,7 +815,7 @@ export class BaseVOD {
 
     public reencodeSegments(addToSegments = false, deleteOriginal = false): Promise<boolean> {
 
-        Log.logAdvanced(Log.Level.INFO, "vod", `Reencoding segments of ${this.filename}`);
+        log(LOGLEVEL.INFO, "vod", `Reencoding segments of ${this.filename}`);
 
         const tasks = [];
 
@@ -888,7 +888,7 @@ export class BaseVOD {
                 });
 
                 job.process.on("error", (err) => {
-                    Log.logAdvanced(Log.Level.ERROR, "helper", `Process ${process.pid} error: ${err}`);
+                    log(LOGLEVEL.ERROR, "helper", `Process ${process.pid} error: ${err}`);
                     // reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
                     reject(new Error(`Process ${process.pid} error: ${err}`));
                 });
@@ -900,7 +900,7 @@ export class BaseVOD {
                     // const out_log = ffmpeg.stdout.read();
                     const success = fs.existsSync(file_out_path) && fs.statSync(file_out_path).size > 0;
                     if (success) {
-                        Log.logAdvanced(Log.Level.SUCCESS, "helper", `Reencoded ${file_in_path} to ${file_out_path}`);
+                        log(LOGLEVEL.SUCCESS, "helper", `Reencoded ${file_in_path} to ${file_out_path}`);
                         if (deleteOriginal) {
                             // fs.unlinkSync(file_in_path);
                         }
@@ -909,7 +909,7 @@ export class BaseVOD {
                         }
                         resolve(true);
                     } else {
-                        Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to reencode ${path.basename(file_in_path)} to ${path.basename(file_out_path)}`);
+                        log(LOGLEVEL.ERROR, "helper", `Failed to reencode ${path.basename(file_in_path)} to ${path.basename(file_out_path)}`);
                         // reject({ code, success, stdout: job.stdout, stderr: job.stderr });
 
                         let message = "Unknown error";
@@ -937,11 +937,11 @@ export class BaseVOD {
 
         return Promise.all(tasks).then((results) => {
             console.debug("Reencoded", results);
-            Log.logAdvanced(Log.Level.SUCCESS, "helper", `Successfully reencoded ${this.basename}`);
+            log(LOGLEVEL.SUCCESS, "helper", `Successfully reencoded ${this.basename}`);
             return true;
         }).catch((err) => {
             console.debug("Reencoded error", err);
-            Log.logAdvanced(Log.Level.ERROR, "helper", `Failed to reencode ${this.basename}: ${(err as Error).message}`);
+            log(LOGLEVEL.ERROR, "helper", `Failed to reencode ${this.basename}: ${(err as Error).message}`);
             return false;
         }).finally(() => {
             this.startWatching();
@@ -1004,7 +1004,7 @@ export class BaseVOD {
                     await this.saveKodiNfo();
                 }
             } catch (error) {
-                Log.logAdvanced(Log.Level.ERROR, "vod", `Could not save associated files for ${this.basename}: ${(error as Error).message}`);
+                log(LOGLEVEL.ERROR, "vod", `Could not save associated files for ${this.basename}: ${(error as Error).message}`);
             }
         }
     }
@@ -1023,7 +1023,7 @@ export class BaseVOD {
         // $csv_path = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv';
         const csv_path = path.join(this.directory, `${this.basename}-llc-edl.csv`);
 
-        Log.logAdvanced(Log.Level.INFO, "vod.saveLosslessCut", `Saving lossless cut csv for ${this.basename} to ${csv_path}`);
+        log(LOGLEVEL.INFO, "vod.saveLosslessCut", `Saving lossless cut csv for ${this.basename} to ${csv_path}`);
 
         let data = "";
 
@@ -1112,7 +1112,7 @@ export class BaseVOD {
         if (this.json.chapters && this.json.chapters.length > 0) {
             await this.parseChapters(this.json.chapters);
         } else {
-            Log.logAdvanced(Log.Level.ERROR, "vod", `No chapters on ${this.basename}!`);
+            log(LOGLEVEL.ERROR, "vod", `No chapters on ${this.basename}!`);
         }
 
         this.segments_raw = this.json.segments !== undefined ? this.json.segments : [];
@@ -1123,13 +1123,13 @@ export class BaseVOD {
 
         if (this.is_finalized) {
             if (!this.duration) {
-                Log.logAdvanced(Log.Level.DEBUG, "vod", `VOD ${this.basename} finalized but no duration, trying to fix`);
+                log(LOGLEVEL.DEBUG, "vod", `VOD ${this.basename} finalized but no duration, trying to fix`);
                 await this.getDuration(true);
             }
         }
 
         if (!this.video_metadata && this.is_finalized && this.segments_raw.length > 0 && Helper.path_mediainfo()) {
-            Log.logAdvanced(Log.Level.DEBUG, "vod", `VOD ${this.basename} finalized but no metadata, trying to fix`);
+            log(LOGLEVEL.DEBUG, "vod", `VOD ${this.basename} finalized but no metadata, trying to fix`);
             if (await this.getMediainfo()) {
                 await this.saveJSON("fix mediainfo");
             }
@@ -1144,60 +1144,60 @@ export class BaseVOD {
     public async getDuration(save = false): Promise<number | null> {
 
         if (this.duration && this.duration > 0) {
-            // TwitchHelper.log(Log.Level.DEBUG, "Returning saved duration for " . this.basename . ": " . this.duration_seconds );
+            // TwitchHelper.log(LOGLEVEL.DEBUG, "Returning saved duration for " . this.basename . ": " . this.duration_seconds );
             return this.duration;
         }
 
         const isOldFormat = this.video_metadata && "general" in this.video_metadata;
 
         if (this.video_metadata && isOldFormat) {
-            Log.logAdvanced(Log.Level.WARNING, "vod", `VOD ${this.basename} has old video metadata format.`);
+            log(LOGLEVEL.WARNING, "vod", `VOD ${this.basename} has old video metadata format.`);
         }
 
         if (this.video_metadata && !isOldFormat) {
 
             if (this.video_metadata.size && this.video_metadata.size == 0) {
-                Log.logAdvanced(Log.Level.ERROR, "vod", `Invalid video metadata for ${this.basename}!`);
+                log(LOGLEVEL.ERROR, "vod", `Invalid video metadata for ${this.basename}!`);
                 return null;
             }
 
             if (this.video_metadata.duration) {
-                Log.logAdvanced(Log.Level.DEBUG, "vod", `No duration_seconds but metadata exists for ${this.basename}: ${this.video_metadata.duration}`);
+                log(LOGLEVEL.DEBUG, "vod", `No duration_seconds but metadata exists for ${this.basename}: ${this.video_metadata.duration}`);
                 this.duration = this.video_metadata.duration;
                 return this.duration;
             }
 
-            Log.logAdvanced(Log.Level.ERROR, "vod", `Video metadata for ${this.basename} does not include duration!`);
+            log(LOGLEVEL.ERROR, "vod", `Video metadata for ${this.basename} does not include duration!`);
 
             return null;
         }
 
         if (this.is_capturing) {
-            Log.logAdvanced(Log.Level.DEBUG, "vod", `Can't request duration because ${this.basename} is still recording!`);
+            log(LOGLEVEL.DEBUG, "vod", `Can't request duration because ${this.basename} is still recording!`);
             return null;
         }
 
         if (!this.is_converted || this.is_converting) {
-            Log.logAdvanced(Log.Level.DEBUG, "vod", `Can't request duration because ${this.basename} is converting!`);
+            log(LOGLEVEL.DEBUG, "vod", `Can't request duration because ${this.basename} is converting!`);
             return null;
         }
 
         if (!this.is_finalized) {
-            Log.logAdvanced(Log.Level.DEBUG, "vod", `Can't request duration because ${this.basename} is not finalized!`);
+            log(LOGLEVEL.DEBUG, "vod", `Can't request duration because ${this.basename} is not finalized!`);
             return null;
         }
 
         if (!this.segments_raw || this.segments_raw.length == 0) {
-            Log.logAdvanced(Log.Level.ERROR, "vod", `No video file available for duration of ${this.basename}`);
+            log(LOGLEVEL.ERROR, "vod", `No video file available for duration of ${this.basename}`);
             return null;
         }
 
-        Log.logAdvanced(Log.Level.DEBUG, "vod", `No mediainfo for getDuration of ${this.basename}`);
+        log(LOGLEVEL.DEBUG, "vod", `No mediainfo for getDuration of ${this.basename}`);
 
         const file = await this.getMediainfo();
 
         if (!file) {
-            Log.logAdvanced(Log.Level.ERROR, "vod", `Could not find duration of ${this.basename}`);
+            log(LOGLEVEL.ERROR, "vod", `Could not find duration of ${this.basename}`);
             return null;
         } else {
 
@@ -1205,35 +1205,35 @@ export class BaseVOD {
             this.duration = file.duration;
 
             if (save) {
-                Log.logAdvanced(Log.Level.SUCCESS, "vod", `Saved duration for ${this.basename}`);
+                log(LOGLEVEL.SUCCESS, "vod", `Saved duration for ${this.basename}`);
                 await this.saveJSON("duration save");
             }
 
-            Log.logAdvanced(Log.Level.DEBUG, "vod", `Duration fetched for ${this.basename}: ${this.duration}`);
+            log(LOGLEVEL.DEBUG, "vod", `Duration fetched for ${this.basename}: ${this.duration}`);
 
             return this.duration;
         }
 
-        Log.logAdvanced(Log.Level.ERROR, "vod", "Reached end of getDuration for {this.basename}, this shouldn't happen!");
+        log(LOGLEVEL.ERROR, "vod", "Reached end of getDuration for {this.basename}, this shouldn't happen!");
     }
 
     public async getMediainfo(segment_num = 0, force = false): Promise<false | VideoMetadata | AudioMetadata> {
 
-        Log.logAdvanced(Log.Level.INFO, "vod", `Fetching mediainfo of ${this.basename}, segment #${segment_num}`);
+        log(LOGLEVEL.INFO, "vod", `Fetching mediainfo of ${this.basename}, segment #${segment_num}`);
 
         if (!this.directory) {
             throw new Error("No directory set!");
         }
 
         if (!this.segments_raw || this.segments_raw.length == 0) {
-            Log.logAdvanced(Log.Level.ERROR, "vod", `No segments available for mediainfo of ${this.basename}`);
+            log(LOGLEVEL.ERROR, "vod", `No segments available for mediainfo of ${this.basename}`);
             return false;
         }
 
         const filename = path.join(this.directory, path.basename(this.segments_raw[segment_num]));
 
         if (!fs.existsSync(filename)) {
-            Log.logAdvanced(Log.Level.ERROR, "vod", `File does not exist for mediainfo of ${this.basename} (${filename} @ ${this.directory})`);
+            log(LOGLEVEL.ERROR, "vod", `File does not exist for mediainfo of ${this.basename} (${filename} @ ${this.directory})`);
             return false;
         }
 
@@ -1241,7 +1241,7 @@ export class BaseVOD {
         try {
             metadata = await Helper.videometadata(filename, force);
         } catch (e) {
-            Log.logAdvanced(Log.Level.ERROR, "vod", `Could not get mediainfo of ${this.basename} (${filename} @ ${this.directory}): ${(e as Error).message}`);
+            log(LOGLEVEL.ERROR, "vod", `Could not get mediainfo of ${this.basename} (${filename} @ ${this.directory}): ${(e as Error).message}`);
             return false;
         }
 
@@ -1319,27 +1319,27 @@ export class BaseVOD {
         }
 
         if (this.prevent_deletion) {
-            Log.logAdvanced(Log.Level.INFO, "vod", `Deletion of ${this.basename} prevented`);
+            log(LOGLEVEL.INFO, "vod", `Deletion of ${this.basename} prevented`);
             throw new Error("Vod has been marked with prevent_deletion");
         }
 
-        Log.logAdvanced(Log.Level.INFO, "vod", `Delete ${this.basename}`, this.associatedFiles);
+        log(LOGLEVEL.INFO, "vod", `Delete ${this.basename}`, this.associatedFiles);
 
         await this.stopWatching();
 
         for (const file of this.associatedFiles) {
             if (fs.existsSync(path.join(this.directory, file))) {
-                Log.logAdvanced(Log.Level.DEBUG, "vod", `Delete ${file}`);
+                log(LOGLEVEL.DEBUG, "vod", `Delete ${file}`);
                 fs.unlinkSync(path.join(this.directory, file));
             }
         }
 
         if (this.directory !== Helper.vodFolder(this.getChannel().internalName)) { // if vod has its own folder
-            Log.logAdvanced(Log.Level.DEBUG, "vod", `Delete folder ${this.directory}`);
+            log(LOGLEVEL.DEBUG, "vod", `Delete folder ${this.directory}`);
             try {
                 fs.rmdirSync(this.directory);
             } catch (e) {
-                Log.logAdvanced(Log.Level.ERROR, "vod", `Could not delete ${this.directory}: ${(e as Error).message}`);
+                log(LOGLEVEL.ERROR, "vod", `Could not delete ${this.directory}: ${(e as Error).message}`);
             }
         }
 
@@ -1357,14 +1357,14 @@ export class BaseVOD {
         }
 
         if (this.prevent_deletion) {
-            Log.logAdvanced(Log.Level.INFO, "vod.deleteSegment", `Deletion of ${this.basename} segment prevented`);
+            log(LOGLEVEL.INFO, "vod.deleteSegment", `Deletion of ${this.basename} segment prevented`);
             throw new Error("Vod has been marked with prevent_deletion");
         }
 
-        Log.logAdvanced(Log.Level.INFO, "vod.deleteSegment", `Delete segment #${segmentIndex} of ${this.basename}`);
+        log(LOGLEVEL.INFO, "vod.deleteSegment", `Delete segment #${segmentIndex} of ${this.basename}`);
 
         if (segmentIndex >= this.segments_raw.length) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.deleteSegment", `Segment #${segmentIndex} does not exist for ${this.basename}`);
+            log(LOGLEVEL.ERROR, "vod.deleteSegment", `Segment #${segmentIndex} does not exist for ${this.basename}`);
             throw new Error("Segment does not exist");
         }
 
@@ -1373,12 +1373,12 @@ export class BaseVOD {
         await this.stopWatching();
 
         if (!file.filename) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.deleteSegment", `No filename for segment #${segmentIndex} of ${this.basename}`);
+            log(LOGLEVEL.ERROR, "vod.deleteSegment", `No filename for segment #${segmentIndex} of ${this.basename}`);
             throw new Error("No filename for segment");
         }
 
         if (fs.existsSync(file.filename)) {
-            Log.logAdvanced(Log.Level.DEBUG, "vod.deleteSegment", `Delete ${file}`);
+            log(LOGLEVEL.DEBUG, "vod.deleteSegment", `Delete ${file}`);
             fs.unlinkSync(file.filename);
         }
 
@@ -1399,7 +1399,7 @@ export class BaseVOD {
         if (this.basename == new_basename) return false;
         const old_basename = this.basename;
 
-        Log.logAdvanced(Log.Level.INFO, "vodclass.changeBaseName", `Changing basename from ${old_basename} to ${new_basename}`);
+        log(LOGLEVEL.INFO, "vodclass.changeBaseName", `Changing basename from ${old_basename} to ${new_basename}`);
 
         await this.stopWatching();
 
@@ -1408,15 +1408,15 @@ export class BaseVOD {
 
         for (const file of associatedFiles) {
             if (this.segments_raw.map(s => path.basename(s)).includes(file)) {
-                Log.logAdvanced(Log.Level.INFO, "vodclass.changeBaseName", `Skip over assoc '${file}' due to it being a segment!`);
+                log(LOGLEVEL.INFO, "vodclass.changeBaseName", `Skip over assoc '${file}' due to it being a segment!`);
                 continue;
             }
             const file_path = path.join(this.directory, path.basename(file));
             if (fs.existsSync(file_path)) {
-                Log.logAdvanced(Log.Level.INFO, "vodclass.changeBaseName", `Rename assoc '${file_path}' to '${file_path.replaceAll(old_basename, new_basename)}'`);
+                log(LOGLEVEL.INFO, "vodclass.changeBaseName", `Rename assoc '${file_path}' to '${file_path.replaceAll(old_basename, new_basename)}'`);
                 fs.renameSync(file_path, file_path.replaceAll(old_basename, new_basename));
             } else {
-                Log.logAdvanced(Log.Level.WARNING, "vodclass.changeBaseName", `File assoc '${file_path}' not found!`);
+                log(LOGLEVEL.WARNING, "vodclass.changeBaseName", `File assoc '${file_path}' not found!`);
             }
         }
 
@@ -1424,11 +1424,11 @@ export class BaseVOD {
         for (const segment of this.segments_raw) {
             const file_path = path.join(this.directory, path.basename(segment));
             if (fs.existsSync(file_path)) {
-                Log.logAdvanced(Log.Level.INFO, "vodclass.changeBaseName", `Rename segment '${file_path}' to '${file_path.replaceAll(old_basename, new_basename)}'`);
+                log(LOGLEVEL.INFO, "vodclass.changeBaseName", `Rename segment '${file_path}' to '${file_path.replaceAll(old_basename, new_basename)}'`);
                 fs.renameSync(file_path, file_path.replaceAll(old_basename, new_basename));
                 new_segments.push(path.basename(file_path.replaceAll(old_basename, new_basename)));
             } else {
-                Log.logAdvanced(Log.Level.WARNING, "vodclass.changeBaseName", `Segment '${file_path}' not found!`);
+                log(LOGLEVEL.WARNING, "vodclass.changeBaseName", `Segment '${file_path}' not found!`);
             }
         }
 
@@ -1450,7 +1450,7 @@ export class BaseVOD {
     public async matchProviderVod(force = false): Promise<boolean | undefined> { return await Promise.resolve(false); }
 
     public addChapter(chapter: BaseVODChapter): void {
-        Log.logAdvanced(Log.Level.INFO, "vod.addChapter", `Adding chapter ${chapter.title} to ${this.basename}`);
+        log(LOGLEVEL.INFO, "vod.addChapter", `Adding chapter ${chapter.title} to ${this.basename}`);
         this.chapters.push(chapter);
         this.chapters_raw.push(chapter.toJSON()); // needed?
         this.calculateChapters();
@@ -1459,7 +1459,7 @@ export class BaseVOD {
     public backupJSON(): void {
         if (fs.existsSync(this.filename)) {
             const backup_file = path.join(BaseConfigDataFolder.backup, `${this.basename}.${Date.now()}.json`);
-            Log.logAdvanced(Log.Level.INFO, "vod.backupJSON", `Backing up ${this.basename} to ${backup_file}`);
+            log(LOGLEVEL.INFO, "vod.backupJSON", `Backing up ${this.basename} to ${backup_file}`);
             fs.copyFileSync(this.filename, backup_file);
         }
     }
@@ -1512,20 +1512,20 @@ export class BaseVOD {
      */
     public async fixIssues(source = "Unknown"): Promise<boolean> {
 
-        Log.logAdvanced(Log.Level.DEBUG, "vod", `Run fixIssues for VOD ${this.basename} (${source})`);
+        log(LOGLEVEL.DEBUG, "vod", `Run fixIssues for VOD ${this.basename} (${source})`);
 
         if (this.issueFixCount > 10) {
-            Log.logAdvanced(Log.Level.WARNING, "vod", `Too many issue fixes for VOD ${this.basename}`);
+            log(LOGLEVEL.WARNING, "vod", `Too many issue fixes for VOD ${this.basename}`);
             return true;
         }
 
         // if (!this.getChannel()) {
-        //     Log.logAdvanced(Log.Level.ERROR, "vod", `VOD ${this.basename} has no channel!`);
+        //     logAdvanced(LOGLEVEL.ERROR, "vod", `VOD ${this.basename} has no channel!`);
         //     return;
         // }
 
         if (this.not_started) {
-            Log.logAdvanced(Log.Level.INFO, "vod", `VOD ${this.basename} not started yet, skipping fix!`);
+            log(LOGLEVEL.INFO, "vod", `VOD ${this.basename} not started yet, skipping fix!`);
             this.issueFixCount = 0;
             return true;
         }
@@ -1777,7 +1777,7 @@ export class BaseVOD {
         // if (!this.is_finalized && !this.is_converted && !this.is_converting && !this.is_capturing && !this.is_converted && !this.failed) {
         // console.debug(`🛠️ [${source}] ${this.basename} is finalized: ${this.is_finalized}, converting: ${this.is_converting}, capturing: ${this.is_capturing}, converted: ${this.is_converted}, failed: ${this.failed}`);
 
-        Log.logAdvanced(Log.Level.DEBUG, "vod", `fixIssues meta dump for ${this.basename} (${this.uuid})`, {
+        log(LOGLEVEL.DEBUG, "vod", `fixIssues meta dump for ${this.basename} (${this.uuid})`, {
             "channel_uuid": this.channel_uuid,
             "channel_name": this.channel_uuid && LiveStreamDVR.getInstance().getChannelByUUID(this.channel_uuid) ? this.getChannel().internalName : "unknown",
             "uuid": this.uuid,
@@ -1810,12 +1810,12 @@ export class BaseVOD {
      */
     public async rebuildSegmentList(includeMisnamedFiles = false): Promise<boolean> {
 
-        Log.logAdvanced(Log.Level.INFO, "vod.rebuildSegmentList", `Rebuilding segment list for ${this.basename}`);
+        log(LOGLEVEL.INFO, "vod.rebuildSegmentList", `Rebuilding segment list for ${this.basename}`);
 
         let files: string[];
 
         if (this.directory !== Helper.vodFolder(this.getChannel().internalName)) { // is not in vod folder root, TODO: channel might not be added yet
-            Log.logAdvanced(Log.Level.INFO, "vod.rebuildSegmentList", `VOD ${this.basename} has its own folder (${this.directory}), find all files.`);
+            log(LOGLEVEL.INFO, "vod.rebuildSegmentList", `VOD ${this.basename} has its own folder (${this.directory}), find all files.`);
             files = fs.readdirSync(this.directory).filter(file =>
                 (
                     file.endsWith(`.${Config.getInstance().cfg("vod_container", "mp4")}`) ||
@@ -1824,7 +1824,7 @@ export class BaseVOD {
                 !file.includes("_vod") && !file.includes("_chat") && !file.includes("_chat_mask") && !file.includes("_burned")
             );
         } else {
-            Log.logAdvanced(Log.Level.INFO, "vod.rebuildSegmentList", `VOD ${this.basename} does not have a folder, find by basename.`);
+            log(LOGLEVEL.INFO, "vod.rebuildSegmentList", `VOD ${this.basename} does not have a folder, find by basename.`);
             files = fs.readdirSync(this.directory).filter(file =>
                 file.startsWith(this.basename) &&
                 (
@@ -1840,12 +1840,12 @@ export class BaseVOD {
         }
 
         if (!files || files.length == 0) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.rebuildSegmentList", `No segments found for ${this.basename}, can't rebuild segment list`);
+            log(LOGLEVEL.ERROR, "vod.rebuildSegmentList", `No segments found for ${this.basename}, can't rebuild segment list`);
             return false;
         }
 
         if (files.length > 1) {
-            Log.logAdvanced(Log.Level.WARNING, "vod.rebuildSegmentList", `Found more than one segment for ${this.basename} (${files.length})`);
+            log(LOGLEVEL.WARNING, "vod.rebuildSegmentList", `Found more than one segment for ${this.basename} (${files.length})`);
         }
 
         this.segments_raw = [];

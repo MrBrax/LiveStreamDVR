@@ -9,7 +9,7 @@ import { NotificationCategories, NotificationCategory, NotificationProvider } fr
 import { NotifyData } from "@common/Webhook";
 import { BaseConfigPath } from "./BaseConfig";
 import { Config } from "./Config";
-import { Log } from "./Log";
+import { log, LOGLEVEL } from "./Log";
 import { LiveStreamDVR } from "./LiveStreamDVR";
 import { debugLog } from "../Helpers/Console";
 
@@ -249,8 +249,8 @@ export class ClientBroker {
 
         // console.log(chalk.bgBlue.whiteBright(`Notifying clients: ${title}: ${body}, category ${category}`));
 
-        Log.logAdvanced(
-            Log.Level.INFO,
+        log(
+            LOGLEVEL.INFO,
             "notify",
             `(${category}) ${title}: ${body}`,
             {
@@ -263,11 +263,11 @@ export class ClientBroker {
             });
 
         if (!title) {
-            Log.logAdvanced(Log.Level.WARNING, "notify", "No title specified", { title: title, body: body, icon: icon, category: category, url: url, tts: tts });
+            log(LOGLEVEL.WARNING, "notify", "No title specified", { title: title, body: body, icon: icon, category: category, url: url, tts: tts });
         }
 
         if (!body) {
-            Log.logAdvanced(Log.Level.WARNING, "notify", "No body specified", { title: title, body: body, icon: icon, category: category, url: url, tts: tts });
+            log(LOGLEVEL.WARNING, "notify", "No body specified", { title: title, body: body, icon: icon, category: category, url: url, tts: tts });
         }
 
         if (ClientBroker.getNotificationSettingForProvider(category, NotificationProvider.WEBSOCKET)) {
@@ -303,38 +303,38 @@ export class ClientBroker {
                     ,
                     parse_mode: "HTML",
                 } as TelegramSendMessagePayload).then((res) => {
-                    Log.logAdvanced(Log.Level.DEBUG, "notify", "Telegram response", res.data);
+                    log(LOGLEVEL.DEBUG, "notify", "Telegram response", res.data);
                 }).catch((err: Error) => {
                     if (axios.isAxiosError(err)) {
                         // const data = err.response?.data;
-                        // TwitchLog.logAdvanced(Log.Level.ERROR, "notify", `Telegram axios error: ${err.message} (${data})`, { err: err, response: data });
+                        // TwitchlogAdvanced(LOGLEVEL.ERROR, "notify", `Telegram axios error: ${err.message} (${data})`, { err: err, response: data });
                         // console.error(chalk.bgRed.whiteBright(`Telegram axios error: ${err.message} (${data})`), JSON.stringify(err, null, 2));
 
                         if (err.response) {
-                            Log.logAdvanced(Log.Level.ERROR, "notify", `Telegram axios error response: ${err.message} (${err.response.data})`, { err: err, response: err.response.data });
+                            log(LOGLEVEL.ERROR, "notify", `Telegram axios error response: ${err.message} (${err.response.data})`, { err: err, response: err.response.data });
                             console.error(chalk.bgRed.whiteBright(`Telegram axios error response : ${err.message} (${err.response.data})`), JSON.stringify(err, null, 2));
                         } else if (err.request) {
-                            Log.logAdvanced(Log.Level.ERROR, "notify", `Telegram axios error request: ${err.message} (${err.request})`, { err: err, request: err.request });
+                            log(LOGLEVEL.ERROR, "notify", `Telegram axios error request: ${err.message} (${err.request})`, { err: err, request: err.request });
                             console.error(chalk.bgRed.whiteBright(`Telegram axios error request: ${err.message} (${err.request})`), JSON.stringify(err, null, 2));
                         } else {
-                            Log.logAdvanced(Log.Level.ERROR, "notify", `Telegram axios error: ${err.message}`, err);
+                            log(LOGLEVEL.ERROR, "notify", `Telegram axios error: ${err.message}`, err);
                             console.error(chalk.bgRed.whiteBright(`Telegram axios error: ${err.message}`), JSON.stringify(err, null, 2));
                         }
 
                     } else {
-                        Log.logAdvanced(Log.Level.ERROR, "notify", `Telegram error: ${err.message}`, err);
+                        log(LOGLEVEL.ERROR, "notify", `Telegram error: ${err.message}`, err);
                         console.error(chalk.bgRed.whiteBright(`Telegram error: ${err.message}`));
                     }
                 });
 
             } else if (!token && chat_id) {
-                Log.logAdvanced(Log.Level.ERROR, "notify", "Telegram token not set");
+                log(LOGLEVEL.ERROR, "notify", "Telegram token not set");
                 console.error(chalk.bgRed.whiteBright("Telegram token not set"));
             } else if (!chat_id && token) {
-                Log.logAdvanced(Log.Level.ERROR, "notify", "Telegram chat ID not set");
+                log(LOGLEVEL.ERROR, "notify", "Telegram chat ID not set");
                 console.error(chalk.bgRed.whiteBright("Telegram chat ID not set"));
             } else {
-                Log.logAdvanced(Log.Level.ERROR, "notify", "Telegram token and chat ID not set");
+                log(LOGLEVEL.ERROR, "notify", "Telegram token and chat ID not set");
                 console.error(chalk.bgRed.whiteBright("Telegram token and chat ID not set"));
             }
         }
@@ -345,12 +345,12 @@ export class ClientBroker {
                 avatar_url: icon && icon.startsWith("https") ? icon : undefined, // only allow https
                 tts: tts,
             } as DiscordSendMessagePayload).then((res) => {
-                Log.logAdvanced(Log.Level.DEBUG, "notify", "Discord response", res.data);
+                log(LOGLEVEL.DEBUG, "notify", "Discord response", res.data);
             }).catch((err: AxiosError) => {
                 if (axios.isAxiosError(err)) {
-                    Log.logAdvanced(Log.Level.ERROR, "notify", `Discord axios error: ${err.message} (${JSON.stringify(err.response?.data)})`, { err: err, response: err.response?.data });
+                    log(LOGLEVEL.ERROR, "notify", `Discord axios error: ${err.message} (${JSON.stringify(err.response?.data)})`, { err: err, response: err.response?.data });
                 } else {
-                    Log.logAdvanced(Log.Level.ERROR, "notify", `Discord error: ${(err as Error).message}`, err);
+                    log(LOGLEVEL.ERROR, "notify", `Discord error: ${(err as Error).message}`, err);
                 }
             });
         }
@@ -369,26 +369,26 @@ export class ClientBroker {
                 url: url,
                 // html: 1,
             } as PushoverSendMessagePayload).then((res) => {
-                Log.logAdvanced(Log.Level.DEBUG, "notify", "Pushover response", res.data);
+                log(LOGLEVEL.DEBUG, "notify", "Pushover response", res.data);
             }).catch((err: Error) => {
                 if (axios.isAxiosError(err)) {
                     // const data = err.response?.data;
-                    // TwitchLog.logAdvanced(Log.Level.ERROR, "notify", `Telegram axios error: ${err.message} (${data})`, { err: err, response: data });
+                    // TwitchlogAdvanced(LOGLEVEL.ERROR, "notify", `Telegram axios error: ${err.message} (${data})`, { err: err, response: data });
                     // console.error(chalk.bgRed.whiteBright(`Telegram axios error: ${err.message} (${data})`), JSON.stringify(err, null, 2));
 
                     if (err.response) {
-                        Log.logAdvanced(Log.Level.ERROR, "notify", `Pushover axios error response: ${err.message} (${err.response.data})`, { err: err, response: err.response.data });
+                        log(LOGLEVEL.ERROR, "notify", `Pushover axios error response: ${err.message} (${err.response.data})`, { err: err, response: err.response.data });
                         console.error(chalk.bgRed.whiteBright(`Pushover axios error response : ${err.message} (${err.response.data})`), JSON.stringify(err, null, 2));
                     } else if (err.request) {
-                        Log.logAdvanced(Log.Level.ERROR, "notify", `Pushover axios error request: ${err.message} (${err.request})`, { err: err, request: err.request });
+                        log(LOGLEVEL.ERROR, "notify", `Pushover axios error request: ${err.message} (${err.request})`, { err: err, request: err.request });
                         console.error(chalk.bgRed.whiteBright(`Pushover axios error request: ${err.message} (${err.request})`), JSON.stringify(err, null, 2));
                     } else {
-                        Log.logAdvanced(Log.Level.ERROR, "notify", `Pushover axios error: ${err.message}`, err);
+                        log(LOGLEVEL.ERROR, "notify", `Pushover axios error: ${err.message}`, err);
                         console.error(chalk.bgRed.whiteBright(`Pushover axios error: ${err.message}`), JSON.stringify(err, null, 2));
                     }
 
                 } else {
-                    Log.logAdvanced(Log.Level.ERROR, "notify", `Pushover error: ${err.message}`, err);
+                    log(LOGLEVEL.ERROR, "notify", `Pushover error: ${err.message}`, err);
                     console.error(chalk.bgRed.whiteBright(`Pushover error: ${err.message}`));
                 }
             });

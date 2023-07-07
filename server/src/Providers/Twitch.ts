@@ -15,7 +15,7 @@ import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../Core/BaseConfig"
 import { Config } from "../Core/Config";
 import { KeyValue } from "../Core/KeyValue";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
-import { Log } from "../Core/Log";
+import { LOGLEVEL, censoredLogWords, log } from "../Core/Log";
 import { AutomatorMetadata, TwitchAutomator } from "../Core/Providers/Twitch/TwitchAutomator";
 import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
 import { getNiceDuration } from "../Helpers/Format";
@@ -133,15 +133,15 @@ export class TwitchHelper {
 
         if (fs.existsSync(this.accessTokenAppFile)) {
             if (Date.now() > expire) {
-                Log.logAdvanced(
-                    Log.Level.INFO,
+                log(
+                    LOGLEVEL.INFO,
                     "tw.helper.getAccessTokenApp",
                     `Deleting old access token, too old: ${new Date(expire).toLocaleString()}`
                 );
                 fs.unlinkSync(this.accessTokenAppFile);
             } else if (!force) {
-                Log.logAdvanced(
-                    Log.Level.DEBUG,
+                log(
+                    LOGLEVEL.DEBUG,
                     "tw.helper.getAccessTokenApp",
                     "Fetched access token from cache"
                 );
@@ -155,8 +155,8 @@ export class TwitchHelper {
                 //     this.accessTokenExpireFile,
                 //     JSON.stringify(new Date(this.accessTokenTime))
                 // );
-                Log.logAdvanced(
-                    Log.Level.INFO,
+                log(
+                    LOGLEVEL.INFO,
                     "tw.helper.getAccessTokenApp",
                     `Access token expires at ${new Date(this.accessTokenTime).toLocaleString()}`
                 );
@@ -168,8 +168,8 @@ export class TwitchHelper {
                 fs.statSync(this.accessTokenAppFileLegacy).mtimeMs +
                     this.accessTokenRefresh
             ) {
-                Log.logAdvanced(
-                    Log.Level.INFO,
+                log(
+                    LOGLEVEL.INFO,
                     "tw.helper.getAccessTokenApp",
                     `Deleting old access token, too old: ${format(
                         fs.statSync(this.accessTokenAppFileLegacy).mtimeMs,
@@ -178,8 +178,8 @@ export class TwitchHelper {
                 );
                 fs.unlinkSync(this.accessTokenAppFileLegacy);
             } else if (!force) {
-                Log.logAdvanced(
-                    Log.Level.DEBUG,
+                log(
+                    LOGLEVEL.DEBUG,
                     "tw.helper.getAccessTokenApp",
                     "Fetched access token from cache"
                 );
@@ -193,8 +193,8 @@ export class TwitchHelper {
             !Config.getInstance().hasValue("api_secret") ||
             !Config.getInstance().hasValue("api_client_id")
         ) {
-            Log.logAdvanced(
-                Log.Level.ERROR,
+            log(
+                LOGLEVEL.ERROR,
                 "tw.helper.getAccessTokenApp",
                 "Missing either api secret or client id, aborting fetching of access token!"
             );
@@ -219,7 +219,7 @@ export class TwitchHelper {
                 ]
             ]);
         } catch (\Throwable $th) {
-            TwitchLog.logAdvanced(Log.Level.FATAL, "tw.helper.getAccessTokenApp", "Tried to get oauth token but server returned: " . $th->getMessage());
+            TwitchlogAdvanced(LOGLEVEL.FATAL, "tw.helper.getAccessTokenApp", "Tried to get oauth token but server returned: " . $th->getMessage());
             sleep(5);
             return false;
         }
@@ -240,8 +240,8 @@ export class TwitchHelper {
         );
 
         if (response.status != 200) {
-            Log.logAdvanced(
-                Log.Level.FATAL,
+            log(
+                LOGLEVEL.FATAL,
                 "tw.helper.getAccessTokenApp",
                 "Tried to get oauth token but server returned: " +
                     response.statusText
@@ -255,8 +255,8 @@ export class TwitchHelper {
         const json = response.data;
 
         if (!json || !json.access_token) {
-            Log.logAdvanced(
-                Log.Level.ERROR,
+            log(
+                LOGLEVEL.ERROR,
                 "tw.helper.getAccessTokenApp",
                 `Failed to fetch access token: ${json}`
             );
@@ -271,8 +271,8 @@ export class TwitchHelper {
         // fs.writeFileSync(this.accessTokenAppFileLegacy, access_token);
         fs.writeFileSync(this.accessTokenAppFile, JSON.stringify(json));
 
-        Log.logAdvanced(
-            Log.Level.INFO,
+        log(
+            LOGLEVEL.INFO,
             "tw.helper.getAccessTokenApp",
             `Fetched new access token, expires at ${format(this.accessTokenTime, Config.getInstance().dateFormat)}`
         );
@@ -311,15 +311,15 @@ export class TwitchHelper {
             if (
                 Date.now() > expire
             ) {
-                Log.logAdvanced(
-                    Log.Level.INFO,
+                log(
+                    LOGLEVEL.INFO,
                     "tw.helper",
                     `Deleting old access token, too old: ${new Date(expire).toLocaleString()}`
                 );
                 // fs.unlinkSync(this.accessTokenUserFile);
             } else if (!force) {
-                Log.logAdvanced(
-                    Log.Level.DEBUG,
+                log(
+                    LOGLEVEL.DEBUG,
                     "tw.helper",
                     "Fetched access token from cache"
                 );
@@ -332,8 +332,8 @@ export class TwitchHelper {
                 //     this.accessTokenExpireFile,
                 //     JSON.stringify(new Date(this.accessTokenTime))
                 // );
-                // Log.logAdvanced(
-                //     Log.Level.INFO,
+                // logAdvanced(
+                //     LOGLEVEL.INFO,
                 //     "tw.helper",
                 //     `Access token expires at ${format(this.accessTokenTime, Config.getInstance().dateFormat)}`
                 // );
@@ -341,8 +341,8 @@ export class TwitchHelper {
             }
         }
 
-        Log.logAdvanced(
-            Log.Level.INFO,
+        log(
+            LOGLEVEL.INFO,
             "tw.helper",
             "Refreshing access token, expired"
         );
@@ -364,8 +364,8 @@ export class TwitchHelper {
 
     static async refreshUserAccessToken(): Promise<boolean> {
         if (this.accessTokenType !== "user") {
-            Log.logAdvanced(
-                Log.Level.ERROR,
+            log(
+                LOGLEVEL.ERROR,
                 "tw.helper.refreshUserAccessToken",
                 "Can't refresh access token, not a user access token!"
             );
@@ -373,8 +373,8 @@ export class TwitchHelper {
         }
 
         if (!Config.getInstance().hasValue("api_secret") || !Config.getInstance().hasValue("api_client_id")) {
-            Log.logAdvanced(
-                Log.Level.ERROR,
+            log(
+                LOGLEVEL.ERROR,
                 "tw.helper.refreshUserAccessToken",
                 "Missing either api secret or client id, aborting fetching of access token!"
             );
@@ -382,8 +382,8 @@ export class TwitchHelper {
         }
 
         if (!this.userRefreshToken) {
-            Log.logAdvanced(
-                Log.Level.ERROR,
+            log(
+                LOGLEVEL.ERROR,
                 "tw.helper.refreshUserAccessToken",
                 "Missing refresh token, aborting fetching of access token!"
             );
@@ -411,14 +411,14 @@ export class TwitchHelper {
             );
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                Log.logAdvanced(
-                    Log.Level.FATAL,
+                log(
+                    LOGLEVEL.FATAL,
                     "tw.helper.refreshUserAccessToken",
                     `Tried to refresh oauth token but server returned: ${error.response?.data.message}`
                 );
             } else {
-                Log.logAdvanced(
-                    Log.Level.FATAL,
+                log(
+                    LOGLEVEL.FATAL,
                     "tw.helper.refreshUserAccessToken",
                     `Tried to refresh oauth token but server returned: ${error}`
                 );
@@ -427,8 +427,8 @@ export class TwitchHelper {
         }
 
         if (response.data && "error" in response.data) {
-            Log.logAdvanced(
-                Log.Level.FATAL,
+            log(
+                LOGLEVEL.FATAL,
                 "tw.helper.refreshUserAccessToken",
                 "Tried to refresh oauth token but server returned: " + response.data.message
             );
@@ -450,8 +450,8 @@ export class TwitchHelper {
             JSON.stringify(new Date(this.accessTokenTime))
         );
 
-        Log.logAdvanced(
-            Log.Level.SUCCESS,
+        log(
+            LOGLEVEL.SUCCESS,
             "tw.helper.refreshUserAccessToken",
             `Refreshed user access token, expires at ${new Date(this.accessTokenTime).toISOString()}`
         );
@@ -496,8 +496,8 @@ export class TwitchHelper {
     }
 
     public static async eventSubUnsubscribe(subscription_id: string) {
-        Log.logAdvanced(
-            Log.Level.INFO,
+        log(
+            LOGLEVEL.INFO,
             "tw.helper",
             `Unsubscribing from eventsub id ${subscription_id}`
         );
@@ -514,8 +514,8 @@ export class TwitchHelper {
                 `/helix/eventsub/subscriptions?id=${subscription_id}`
             );
         } catch (th) {
-            Log.logAdvanced(
-                Log.Level.FATAL,
+            log(
+                LOGLEVEL.FATAL,
                 "tw.helper",
                 `Unsubscribe from eventsub ${subscription_id} error: ${th}`
             );
@@ -523,16 +523,16 @@ export class TwitchHelper {
         }
 
         if (response.status > 299) {
-            Log.logAdvanced(
-                Log.Level.FATAL,
+            log(
+                LOGLEVEL.FATAL,
                 "tw.helper",
                 `Unsubscribe from eventsub ${subscription_id} error: ${response.statusText}`
             );
             return false;
         }
 
-        Log.logAdvanced(
-            Log.Level.SUCCESS,
+        log(
+            LOGLEVEL.SUCCESS,
             "tw.helper",
             `Unsubscribed from eventsub ${subscription_id} successfully`
         );
@@ -589,8 +589,8 @@ export class TwitchHelper {
 
     /*
     public static async getSubs(): Promise<Subscriptions | false> {
-        Log.logAdvanced(
-            Log.Level.INFO,
+        logAdvanced(
+            LOGLEVEL.INFO,
             "tw.helper.getSubs",
             "Requesting subscriptions list"
         );
@@ -604,8 +604,8 @@ export class TwitchHelper {
         try {
             response = await this.axios.get<Subscriptions>("/helix/eventsub/subscriptions");
         } catch (err) {
-            Log.logAdvanced(
-                Log.Level.FATAL,
+            logAdvanced(
+                LOGLEVEL.FATAL,
                 "tw.helper.getSubs",
                 `Subs return: ${err}`
             );
@@ -614,8 +614,8 @@ export class TwitchHelper {
 
         const json = response.data;
 
-        Log.logAdvanced(
-            Log.Level.INFO,
+        logAdvanced(
+            LOGLEVEL.INFO,
             "tw.helper.getSubs",
             `${json.total} subscriptions`
         );
@@ -625,8 +625,8 @@ export class TwitchHelper {
     */
 
     public static async getSubsList(): Promise<Subscription[] | false> {
-        Log.logAdvanced(
-            Log.Level.INFO,
+        log(
+            LOGLEVEL.INFO,
             "tw.helper.getSubsList",
             "Requesting subscriptions list"
         );
@@ -641,8 +641,8 @@ export class TwitchHelper {
         let page = 0;
 
         do {
-            Log.logAdvanced(
-                Log.Level.INFO,
+            log(
+                LOGLEVEL.INFO,
                 "tw.helper.getSubsList",
                 `Fetch subs page ${page}`
             );
@@ -659,8 +659,8 @@ export class TwitchHelper {
                     }
                 );
             } catch (err) {
-                Log.logAdvanced(
-                    Log.Level.FATAL,
+                log(
+                    LOGLEVEL.FATAL,
                     "tw.helper.getSubsList",
                     `Subs return: ${err}`
                 );
@@ -674,8 +674,8 @@ export class TwitchHelper {
             cursor = json.pagination.cursor || "";
         } while (cursor && page++ < maxpages);
 
-        Log.logAdvanced(
-            Log.Level.INFO,
+        log(
+            LOGLEVEL.INFO,
             "tw.helper.getSubsList",
             `${subscriptions.length} subscriptions`
         );
@@ -727,8 +727,8 @@ export class TwitchHelper {
     public static async getSubscription(
         id: string
     ): Promise<Subscription | false> {
-        Log.logAdvanced(
-            Log.Level.INFO,
+        log(
+            LOGLEVEL.INFO,
             "tw.helper",
             `Requesting subscription ${id}`
         );
@@ -746,8 +746,8 @@ export class TwitchHelper {
         const sub = subs.find((s) => s.id == id);
 
         if (!sub) {
-            Log.logAdvanced(
-                Log.Level.ERROR,
+            log(
+                LOGLEVEL.ERROR,
                 "tw.helper",
                 `Subscription ${id} not found`
             );
@@ -775,19 +775,19 @@ export class TwitchHelper {
         }
 
         if (!token) {
-            Log.logAdvanced(Log.Level.FATAL, "tw.helper.setupAxios", "Could not get access token!");
+            log(LOGLEVEL.FATAL, "tw.helper.setupAxios", "Could not get access token!");
             throw new Error("Could not get access token!");
         }
 
-        Log.censoredWords.add(token);
+        censoredLogWords.add(token);
 
         if (TwitchHelper.accessTokenType === "user") {
             const validateResult = await TwitchHelper.validateOAuth();
             if (!validateResult) {
-                Log.logAdvanced(Log.Level.FATAL, "tw.helper.setupAxios", "Could not validate access token!");
+                log(LOGLEVEL.FATAL, "tw.helper.setupAxios", "Could not validate access token!");
                 throw new Error("Could not validate access token!");
             } else {
-                Log.logAdvanced(Log.Level.SUCCESS, "tw.helper.setupAxios", "Access token validated!");
+                log(LOGLEVEL.SUCCESS, "tw.helper.setupAxios", "Access token validated!");
             }
         }
 
@@ -816,14 +816,14 @@ export class TwitchHelper {
 
     public static updateAxiosToken(): boolean {
         if (!TwitchHelper.axios) {
-            Log.logAdvanced(Log.Level.ERROR, "config", "Axios not initialized, can't update token");
+            log(LOGLEVEL.ERROR, "config", "Axios not initialized, can't update token");
             return false;
         }
 
         // set authorization header for both default and instance
         TwitchHelper.axios.defaults.headers.common["Authorization"] = `Bearer ${TwitchHelper.accessToken}`;
 
-        Log.censoredWords.add(TwitchHelper.accessToken);
+        censoredLogWords.add(TwitchHelper.accessToken);
         console.log(chalk.green(`✔ Axios token updated with ${TwitchHelper.accessTokenType} token.`));
         return true;
     }
@@ -834,14 +834,14 @@ export class TwitchHelper {
             throw new Error("Axios is not initialized");
         }
 
-        Log.logAdvanced(Log.Level.DEBUG, "tw.helper.getRequest", `Requesting GET ${url} with config ${JSON.stringify(config)}, retried: ${retried}`);
+        log(LOGLEVEL.DEBUG, "tw.helper.getRequest", `Requesting GET ${url} with config ${JSON.stringify(config)}, retried: ${retried}`);
 
         let response: AxiosResponse<T>;
         try {
             response = await TwitchHelper.axios.get<T>(url, config);
         } catch (error) {
             if (axios.isAxiosError(error) && error.response?.status === 401 && !retried) { // 401 Unauthorized, don't retry if already retried
-                Log.logAdvanced(Log.Level.WARNING, "tw.helper", "Access token expired during get request");
+                log(LOGLEVEL.WARNING, "tw.helper", "Access token expired during get request");
                 if (this.accessTokenType === "user") {
                     await TwitchHelper.refreshUserAccessToken();
                 } else {
@@ -850,7 +850,7 @@ export class TwitchHelper {
                 }
                 return TwitchHelper.getRequest(url, config, true);
             } else {
-                Log.logAdvanced(Log.Level.DEBUG, "tw.helper", `Error during get request: ${error}`, error);
+                log(LOGLEVEL.DEBUG, "tw.helper", `Error during get request: ${error}`, error);
             }
             throw error;
         }
@@ -864,14 +864,14 @@ export class TwitchHelper {
             throw new Error("Axios is not initialized");
         }
 
-        Log.logAdvanced(Log.Level.DEBUG, "tw.helper.postRequest", `Requesting POST ${url} with data ${JSON.stringify(data)} and config ${JSON.stringify(config)}, retried: ${retried}`);
+        log(LOGLEVEL.DEBUG, "tw.helper.postRequest", `Requesting POST ${url} with data ${JSON.stringify(data)} and config ${JSON.stringify(config)}, retried: ${retried}`);
 
         let response;
         try {
             response = await TwitchHelper.axios.post<T>(url, data, config);
         } catch (error) {
             if (axios.isAxiosError(error) && error.response?.status === 401 && !retried) { // 401 Unauthorized, don't retry if already retried
-                Log.logAdvanced(Log.Level.WARNING, "tw.helper", "Access token expired, during post request");
+                log(LOGLEVEL.WARNING, "tw.helper", "Access token expired, during post request");
                 if (this.accessTokenType === "user") {
                     await TwitchHelper.refreshUserAccessToken();
                 } else {
@@ -892,14 +892,14 @@ export class TwitchHelper {
             throw new Error("Axios is not initialized");
         }
 
-        Log.logAdvanced(Log.Level.DEBUG, "tw.helper.deleteRequest", `Requesting DELETE ${url} with config ${JSON.stringify(config)}, retried: ${retried}`);
+        log(LOGLEVEL.DEBUG, "tw.helper.deleteRequest", `Requesting DELETE ${url} with config ${JSON.stringify(config)}, retried: ${retried}`);
 
         let response;
         try {
             response = await TwitchHelper.axios.delete<T>(url, config);
         } catch (error) {
             if (axios.isAxiosError(error) && error.response?.status === 401 && !retried) { // 401 Unauthorized, don't retry if already retried
-                Log.logAdvanced(Log.Level.WARNING, "tw.helper", "Access token expired, during delete request");
+                log(LOGLEVEL.WARNING, "tw.helper", "Access token expired, during delete request");
                 if (this.accessTokenType === "user") {
                     await TwitchHelper.refreshUserAccessToken();
                 } else {
@@ -947,8 +947,8 @@ export class TwitchHelper {
                 console.log(chalk.green("✔ Websocket setup"));
             }
         } else {
-            Log.logAdvanced(
-                Log.Level.INFO,
+            log(
+                LOGLEVEL.INFO,
                 "tw.helper",
                 "Eventsub is not using websocket"
             );
@@ -958,11 +958,11 @@ export class TwitchHelper {
     public static removeEventWebsocket(id: string): boolean {
         const index = this.eventWebsockets.findIndex((sub) => sub.id == id);
         if (index > -1) {
-            Log.logAdvanced(Log.Level.DEBUG, "tw.helper", `Removing websocket ${id}`);
+            log(LOGLEVEL.DEBUG, "tw.helper", `Removing websocket ${id}`);
             return this.eventWebsockets[index].disconnectAndRemove();
         } else {
-            Log.logAdvanced(
-                Log.Level.INFO,
+            log(
+                LOGLEVEL.INFO,
                 "tw.helper",
                 `Eventsub websocket ${id} not found`
             );
@@ -980,8 +980,8 @@ export class TwitchHelper {
     public static connectEventWebsocket() {
 
         if (TwitchHelper.accessTokenType !== "user") {
-            Log.logAdvanced(
-                Log.Level.ERROR,
+            logAdvanced(
+                LOGLEVEL.ERROR,
                 "tw.helper",
                 "Eventsub websocket requires user access token"
             );
@@ -989,8 +989,8 @@ export class TwitchHelper {
         }
 
         if (this.eventWebsocket) {
-            Log.logAdvanced(
-                Log.Level.ERROR,
+            logAdvanced(
+                LOGLEVEL.ERROR,
                 "tw.helper",
                 "Eventsub websocket already exists"
             );
@@ -998,8 +998,8 @@ export class TwitchHelper {
         }
 
         if (this.eventWebsocketReconnectUrl) {
-            Log.logAdvanced(
-                Log.Level.INFO,
+            logAdvanced(
+                LOGLEVEL.INFO,
                 "tw.helper",
                 `Eventsub websocket using reconnect url: ${this.eventWebsocketReconnectUrl}`
             );
@@ -1008,8 +1008,8 @@ export class TwitchHelper {
         const ws = new WebSocket(this.eventWebsocketReconnectUrl || this.eventWebsocketUrl);
 
         ws.on("open", () => {
-            Log.logAdvanced(
-                Log.Level.INFO,
+            logAdvanced(
+                LOGLEVEL.INFO,
                 "tw.helper",
                 `Connected to event websocket at ${this.eventWebsocketUrl}`
             );
@@ -1021,8 +1021,8 @@ export class TwitchHelper {
             try {
                 json = JSON.parse(data.toString());
             } catch (err) {
-                Log.logAdvanced(
-                    Log.Level.ERROR,
+                logAdvanced(
+                    LOGLEVEL.ERROR,
                     "tw.helper",
                     `Error parsing event websocket message: ${err}`
                 );
@@ -1048,20 +1048,20 @@ export class TwitchHelper {
             *
 
             if (code === 4003) {
-                Log.logAdvanced(
-                    Log.Level.ERROR,
+                logAdvanced(
+                    LOGLEVEL.ERROR,
                     "tw.helper",
                     `Disconnected from event websocket at ${this.eventWebsocketUrl} (code ${code} - connection unused, not subscribed)`
                 );
             } else if (code === 4004) {
-                Log.logAdvanced(
-                    Log.Level.ERROR,
+                logAdvanced(
+                    LOGLEVEL.ERROR,
                     "tw.helper",
                     `Disconnected from event websocket at ${this.eventWebsocketUrl} (code ${code} - didn't disconnect from old connection in time or didn't reconnect)`
                 );
             } else {
-                Log.logAdvanced(
-                    Log.Level.ERROR,
+                logAdvanced(
+                    LOGLEVEL.ERROR,
                     "tw.helper",
                     `Disconnected from event websocket at ${this.eventWebsocketUrl} (code ${code})`
                 );
@@ -1069,8 +1069,8 @@ export class TwitchHelper {
 
         });
         ws.on("error", (err) => {
-            Log.logAdvanced(
-                Log.Level.ERROR,
+            logAdvanced(
+                LOGLEVEL.ERROR,
                 "tw.helper",
                 `Error on event websocket: ${err}`,
                 err
@@ -1085,8 +1085,8 @@ export class TwitchHelper {
             if (this.eventWebsocketLastKeepalive) {
                 const diff = new Date().getTime() - this.eventWebsocketLastKeepalive.getTime();
                 if (diff > 60000) {
-                    Log.logAdvanced(
-                        Log.Level.ERROR,
+                    logAdvanced(
+                        LOGLEVEL.ERROR,
                         "tw.helper",
                         `Event websocket hasn't received a keepalive in ${diff}ms`
                     );
@@ -1105,16 +1105,16 @@ export class TwitchHelper {
             const randomId = randomUUID().substring(0, 8);
 
             if (this.eventWebsockets.length >= this.eventWebsocketMaxWebsockets) {
-                Log.logAdvanced(
-                    Log.Level.ERROR,
+                log(
+                    LOGLEVEL.ERROR,
                     "tw.helper",
                     `Eventsub websocket limit of ${this.eventWebsocketMaxWebsockets} reached`
                 );
                 reject(new Error("Eventsub websocket limit reached"));
             }
 
-            Log.logAdvanced(
-                Log.Level.INFO,
+            log(
+                LOGLEVEL.INFO,
                 "tw.helper.ws",
                 `Creating new websocket ${randomId} at ${url}`
             );
@@ -1124,8 +1124,8 @@ export class TwitchHelper {
             ws.setup();
             this.eventWebsockets.push(ws);
 
-            Log.logAdvanced(
-                Log.Level.INFO,
+            log(
+                LOGLEVEL.INFO,
                 "tw.helper.ws",
                 `We now have ${this.eventWebsockets.length} websockets, at a maximum of ${this.eventWebsocketMaxWebsockets}`
             );
@@ -1143,8 +1143,8 @@ export class TwitchHelper {
     }
 
     public static handleWebsocketReconnect(previousId: string, newUrl: string) {
-        Log.logAdvanced(
-            Log.Level.INFO,
+        log(
+            LOGLEVEL.INFO,
             "tw.helper",
             `Received event websocket reconnect message for ${previousId} to ${newUrl}`
         );
@@ -1184,8 +1184,8 @@ export class TwitchHelper {
     }
 
     public static clearAccessToken() {
-        Log.logAdvanced(
-            Log.Level.INFO,
+        log(
+            LOGLEVEL.INFO,
             "tw.helper",
             "Clearing access token from memory"
         );
@@ -1200,8 +1200,8 @@ export class TwitchHelper {
         const token = TwitchHelper.accessToken;
         if (TwitchHelper.accessTokenType !== "user") return false;
         if (!token) {
-            Log.logAdvanced(
-                Log.Level.ERROR,
+            log(
+                LOGLEVEL.ERROR,
                 "tw.helper",
                 "No access token set for validation"
             );
@@ -1217,10 +1217,10 @@ export class TwitchHelper {
             });
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                Log.logAdvanced(Log.Level.ERROR, "tw.helper.validateOAuth", `Failed to validate oauth token: ${error.response?.data?.message}`);
+                log(LOGLEVEL.ERROR, "tw.helper.validateOAuth", `Failed to validate oauth token: ${error.response?.data?.message}`);
                 console.error(error.response?.data);
             } else {
-                Log.logAdvanced(Log.Level.ERROR, "tw.helper.validateOAuth", `Failed to validate oauth token: ${(error as Error).message}`, error);
+                log(LOGLEVEL.ERROR, "tw.helper.validateOAuth", `Failed to validate oauth token: ${(error as Error).message}`, error);
             }
             return false;
         }
@@ -1229,18 +1229,18 @@ export class TwitchHelper {
             if (res.data.user_id) {
                 TwitchHelper.userTokenUserId = res.data.user_id;
                 TwitchHelper.accessTokenTime = Date.now() + (res.data.expires_in * 1000);
-                Log.logAdvanced(Log.Level.INFO, "tw.helper.validateOAuth", `OAuth token is valid until ${new Date(TwitchHelper.accessTokenTime).toLocaleString()}`);
+                log(LOGLEVEL.INFO, "tw.helper.validateOAuth", `OAuth token is valid until ${new Date(TwitchHelper.accessTokenTime).toLocaleString()}`);
                 fs.writeFileSync(
                     this.accessTokenExpireFile,
                     JSON.stringify(new Date(this.accessTokenTime))
                 );
                 return true;
             } else {
-                Log.logAdvanced(Log.Level.ERROR, "tw.helper.validateOAuth", "OAuth token is not valid");
+                log(LOGLEVEL.ERROR, "tw.helper.validateOAuth", "OAuth token is not valid");
                 return false;
             }
         } else {
-            Log.logAdvanced(Log.Level.ERROR, "tw.helper.validateOAuth", `Failed to validate oauth token: ${res.status} ${res.statusText}`, res.data);
+            log(LOGLEVEL.ERROR, "tw.helper.validateOAuth", `Failed to validate oauth token: ${res.status} ${res.statusText}`, res.data);
             TwitchHelper.clearAccessToken();
             return false;
         }
@@ -1295,8 +1295,8 @@ export class EventWebsocket {
         const ws = new WebSocket(this.currentUrl);
 
         ws.on("open", () => {
-            Log.logAdvanced(
-                Log.Level.INFO,
+            log(
+                LOGLEVEL.INFO,
                 "tw.helper.ew",
                 `Connected to ${this.currentUrl} (${this.id})`
             );
@@ -1308,8 +1308,8 @@ export class EventWebsocket {
             try {
                 json = JSON.parse(data.toString());
             } catch (err) {
-                Log.logAdvanced(
-                    Log.Level.ERROR,
+                log(
+                    LOGLEVEL.ERROR,
                     "tw.helper.ew",
                     `Error parsing event websocket message for ${this.id}: ${err}`
                 );
@@ -1335,20 +1335,20 @@ export class EventWebsocket {
             */
 
             if (code === 4003) {
-                Log.logAdvanced(
-                    Log.Level.ERROR,
+                log(
+                    LOGLEVEL.ERROR,
                     "tw.helper.ew",
                     `Disconnected from event websocket at ${this.currentUrl} (code ${code} - connection unused, not subscribed)`
                 );
             } else if (code === 4004) {
-                Log.logAdvanced(
-                    Log.Level.ERROR,
+                log(
+                    LOGLEVEL.ERROR,
                     "tw.helper.ew",
                     `Disconnected from event websocket at ${this.currentUrl} (code ${code} - didn't disconnect from old connection in time or didn't reconnect)`
                 );
             } else {
-                Log.logAdvanced(
-                    Log.Level.ERROR,
+                log(
+                    LOGLEVEL.ERROR,
                     "tw.helper.ew",
                     `Disconnected from event websocket at ${this.currentUrl} (code ${code})`
                 );
@@ -1367,8 +1367,8 @@ export class EventWebsocket {
         });
 
         ws.on("error", (err) => {
-            Log.logAdvanced(
-                Log.Level.ERROR,
+            log(
+                LOGLEVEL.ERROR,
                 "tw.helper.ew",
                 `Error on event websocket: ${err}`,
                 err
@@ -1383,8 +1383,8 @@ export class EventWebsocket {
             if (this.lastKeepalive) {
                 const diff = new Date().getTime() - this.lastKeepalive.getTime();
                 if (diff > 60000) {
-                    Log.logAdvanced(
-                        Log.Level.ERROR,
+                    log(
+                        LOGLEVEL.ERROR,
                         "tw.helper.ew",
                         `Event websocket hasn't received a keepalive in ${diff}ms (${this.id})`
                     );
@@ -1395,8 +1395,8 @@ export class EventWebsocket {
 
     public disconnectAndRemove(): boolean {
 
-        Log.logAdvanced(
-            Log.Level.INFO,
+        log(
+            LOGLEVEL.INFO,
             "tw.helper.ew",
             `Disconnecting and removing EventWebsocket at ${this.currentUrl} (${this.id})`
         );
@@ -1407,8 +1407,8 @@ export class EventWebsocket {
         if (this.ws) {
             this.ws.close();
         } else {
-            Log.logAdvanced(
-                Log.Level.INFO,
+            log(
+                LOGLEVEL.INFO,
                 "tw.helper.ew",
                 `EventWebsocket websocket ${this.id} is already disconnected`
             );
@@ -1417,15 +1417,15 @@ export class EventWebsocket {
         const index = TwitchHelper.eventWebsockets.findIndex((ws) => ws.id === this.id);
         if (index > -1) {
             TwitchHelper.eventWebsockets.splice(index, 1);
-            Log.logAdvanced(
-                Log.Level.INFO,
+            log(
+                LOGLEVEL.INFO,
                 "tw.helper.ew",
                 `Removed event websocket ${this.id}, now ${TwitchHelper.eventWebsockets.length} websockets out of a maximum of ${TwitchHelper.eventWebsocketMaxWebsockets}`
             );
             return true;
         } else {
-            Log.logAdvanced(
-                Log.Level.ERROR,
+            log(
+                LOGLEVEL.ERROR,
                 "tw.helper.ew",
                 `Couldn't remove event websocket ${this.id}, it wasn't found in the list of websockets`
             );
@@ -1481,8 +1481,8 @@ export class EventWebsocket {
                 console.debug("tw.helper.ew", `Event websocket revocation subscription ${json.payload.subscription.id} not found`);
             }
             */
-            Log.logAdvanced(
-                Log.Level.ERROR,
+            log(
+                LOGLEVEL.ERROR,
                 "tw.helper.ew",
                 `Event websocket revocation: ${json.payload.subscription.id}`
             );
@@ -1500,13 +1500,13 @@ export class EventWebsocket {
             if (message.payload.subscription.type) payload_filename += `_${message.payload.subscription.type}`;
             payload_filename += ".json";
             const payload_filepath = path.join(BaseConfigDataFolder.payloads, payload_filename);
-            Log.logAdvanced(Log.Level.INFO, "hook", `Dumping debug hook payload to ${payload_filepath}`);
+            log(LOGLEVEL.INFO, "hook", `Dumping debug hook payload to ${payload_filepath}`);
             try {
                 fs.writeFileSync(payload_filepath, JSON.stringify({
                     body: message,
                 }, null, 4));
             } catch (error) {
-                Log.logAdvanced(Log.Level.ERROR, "hook", `Failed to dump payload to ${payload_filepath}`, error);
+                log(LOGLEVEL.ERROR, "hook", `Failed to dump payload to ${payload_filepath}`, error);
             }
 
         }
@@ -1524,7 +1524,7 @@ export class EventWebsocket {
         const TA = new TwitchAutomator();
 
         /* await */ TA.handle(message.payload, metadata_proxy).catch(error => {
-            Log.logAdvanced(Log.Level.FATAL, "hook", `Automator returned error: ${error.message}`);
+            log(LOGLEVEL.FATAL, "hook", `Automator returned error: ${error.message}`);
         });
 
     }
@@ -1540,14 +1540,14 @@ export class EventWebsocket {
     public addSubscription(subscription: Subscription): void {
         this.subscriptions.push(subscription);
         if (this.subscriptions.length > TwitchHelper.eventWebsocketMaxSubscriptions) {
-            Log.logAdvanced(
-                Log.Level.ERROR,
+            log(
+                LOGLEVEL.ERROR,
                 "tw.helper.ew",
                 `Event websocket ${this.id} has too many subscriptions (${this.subscriptions.length})`
             );
         } else {
-            Log.logAdvanced(
-                Log.Level.DEBUG,
+            log(
+                LOGLEVEL.DEBUG,
                 "tw.helper.ew",
                 `Added subscription ${subscription.id} to event websocket ${this.id}, now ${this.subscriptions.length} subscriptions (quota ${this.quotas?.total_cost}/${this.quotas?.max_total_cost})`
             );
@@ -1558,8 +1558,8 @@ export class EventWebsocket {
         const index = this.subscriptions.findIndex((s) => s.id === id);
         if (index > -1) {
             this.subscriptions.splice(index, 1);
-            Log.logAdvanced(
-                Log.Level.INFO,
+            log(
+                LOGLEVEL.INFO,
                 "tw.helper.ew",
                 `Removed subscription ${id} from event websocket ${this.id}, now ${this.subscriptions.length} subscriptions`
             );
@@ -1568,8 +1568,8 @@ export class EventWebsocket {
             }
             return true;
         } else {
-            Log.logAdvanced(
-                Log.Level.ERROR,
+            log(
+                LOGLEVEL.ERROR,
                 "tw.helper.ew",
                 `Failed to remove subscription ${id} from event websocket ${this.id}, not found`
             );
