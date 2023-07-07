@@ -16,6 +16,7 @@ import { VODJSON, YouTubeVODJSON } from "../../../Storage/JSON";
 import { BaseVOD } from "../Base/BaseVOD";
 import { BaseVODChapter } from "../Base/BaseVODChapter";
 import { YouTubeChannel } from "./YouTubeChannel";
+import { execAdvanced } from "../../../Helpers/Execute";
 
 export class YouTubeVOD extends BaseVOD {
 
@@ -486,7 +487,7 @@ export class YouTubeVOD extends BaseVOD {
 
             log(LOGLEVEL.INFO, "channel", `Downloading VOD ${video_id}...`);
 
-            const ret = await Helper.execAdvanced(ytdl_bin, cmd, `download_vod_${video_id}`, (log_line: string) => {
+            const ret = await execAdvanced(ytdl_bin, cmd, `download_vod_${video_id}`, (log_line: string) => {
                 const progressMatch = log_line.match(/([\d.]+)%/);
                 if (progressMatch) {
                     const progress = parseFloat(progressMatch[1]);

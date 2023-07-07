@@ -9,7 +9,8 @@ import { Config } from "../Core/Config";
 import { Helper } from "../Core/Helper";
 import { KeyValue } from "../Core/KeyValue";
 import { LiveStreamDVR } from "../Core/LiveStreamDVR";
-import { DVRBinaries, DVRPipPackages, getBinaryVersion, PipRequirements } from "../Helpers/Software";
+import { GetRunningProcesses } from "../Helpers/Execute";
+import { DVRBinaries, DVRPipPackages, PipRequirements, getBinaryVersion } from "../Helpers/Software";
 
 export async function About(req: express.Request, res: express.Response): Promise<void> {
 
@@ -73,6 +74,7 @@ export async function About(req: express.Request, res: express.Response): Promis
         cpu_usage: process.cpuUsage(),
         date: new Date(),
         uptime: process.uptime(),
+        child_processes: GetRunningProcesses().length,
     } : undefined;
 
     res.send({

@@ -29,6 +29,7 @@ import { BaseVODChapter } from "./BaseVODChapter";
 import { BaseVODSegment } from "./BaseVODSegment";
 import { xClearTimeout, xTimeout } from "../../../Helpers/Timeout";
 import { debugLog } from "../../../Helpers/Console";
+import { startJob } from "../../../Helpers/Execute";
 
 export class BaseVOD {
 
@@ -467,7 +468,7 @@ export class BaseVOD {
 
             this.stopWatching();
 
-            const job = Helper.startJob(`tdrender_${this.basename}`, bin, args, env);
+            const job = startJob(`tdrender_${this.basename}`, bin, args, env);
 
             if (!job) {
                 console.error(chalk.redBright("Couldn't start job"));
@@ -620,7 +621,7 @@ export class BaseVOD {
 
             this.stopWatching();
 
-            const job = Helper.startJob(`burnchat_${this.basename}`, bin, args);
+            const job = startJob(`burnchat_${this.basename}`, bin, args);
             if (!job) throw new Error("Job failed");
 
             job.on("close", (code) => {
@@ -860,7 +861,7 @@ export class BaseVOD {
                 // args.push("-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2"); // scale to nearest multiple of 2
                 args.push(file_out_path);
 
-                const job = Helper.startJob(`reencode_${path.basename(file_in_path)}`, ffmpeg_path, args);
+                const job = startJob(`reencode_${path.basename(file_in_path)}`, ffmpeg_path, args);
 
                 if (!job || !job.process) {
                     reject(new Error("Failed to start ffmpeg"));

@@ -34,6 +34,7 @@ import { BaseVOD } from "../Base/BaseVOD";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVODChapter } from "./TwitchVODChapter";
+import { execAdvanced, execSimple, startJob } from "../../../Helpers/Execute";
 
 /**
  * Twitch VOD
@@ -1111,7 +1112,7 @@ export class TwitchVOD extends BaseVOD {
         const slp = Helper.path_streamlink();
         if (!slp) throw new Error("Streamlink not found!");
 
-        const ex = await Helper.execSimple(slp, ["--stream-url", `https://www.twitch.tv/videos/${this.twitch_vod_id}`, "best"], "vod mute check");
+        const ex = await execSimple(slp, ["--stream-url", `https://www.twitch.tv/videos/${this.twitch_vod_id}`, "best"], "vod mute check");
 
         if (!ex) {
             // TwitchlogAdvanced(LOGLEVEL.INFO, "vod", "VOD ${this.basename} could not be checked for mute status!", ['output' => $output]);
@@ -1171,7 +1172,7 @@ export class TwitchVOD extends BaseVOD {
 
         for (const f of ["ref", "act"]) {
             if (!fs.existsSync(path.join(BaseConfigCacheFolder.cache, `${f}.wav`))) {
-                const wavconvert = await Helper.execSimple("ffmpeg", ["-i", files[f as "act" | "ref"], "-t", "00:05:00", "-vn", path.join(BaseConfigCacheFolder.cache, `${f}.wav`)], `${f} ffmpeg convert`);
+                const wavconvert = await execSimple("ffmpeg", ["-i", files[f as "act" | "ref"], "-t", "00:05:00", "-vn", path.join(BaseConfigCacheFolder.cache, `${f}.wav`)], `${f} ffmpeg convert`);
             }
         }
 
@@ -1730,7 +1731,7 @@ export class TwitchVOD extends BaseVOD {
 
             let totalSegments = 0;
             let currentSegment = 0;
-            const ret = await Helper.execAdvanced(streamlink_bin, cmd, `download_vod_${video_id}`, (logOutput: string) => {
+            const ret = await execAdvanced(streamlink_bin, cmd, `download_vod_${video_id}`, (logOutput: string) => {
                 const totalSegmentMatch = logOutput.match(/Last Sequence: (\d+)/);
                 if (totalSegmentMatch && !totalSegments) {
                     // console.debug(`Total segments: ${totalSegmentMatch[1]}`, totalSegmentMatch);
@@ -1889,7 +1890,7 @@ export class TwitchVOD extends BaseVOD {
 
             let totalSegments = 0;
             let currentSegment = 0;
-            const ret = await Helper.execAdvanced(streamlink_bin, cmd, `download_clip_${clip_id}`, (logOutput: string) => {
+            const ret = await execAdvanced(streamlink_bin, cmd, `download_clip_${clip_id}`, (logOutput: string) => {
                 const totalSegmentMatch = logOutput.match(/Last Sequence: (\d+)/);
                 if (totalSegmentMatch && !totalSegments) {
                     // console.debug(`Total segments: ${totalSegmentMatch[1]}`, totalSegmentMatch);
@@ -2325,7 +2326,7 @@ export class TwitchVOD extends BaseVOD {
 
             log(LOGLEVEL.INFO, "vod.downloadChatTD", `Downloading chat for ${vod_id}`);
 
-            const job = Helper.startJob(`chatdownload_${vod_id}`, bin, args, env);
+            const job = startJob(`chatdownload_${vod_id}`, bin, args, env);
             if (!job) {
                 reject(new Error("Job failed"));
                 return;
@@ -2406,7 +2407,7 @@ export class TwitchVOD extends BaseVOD {
 
             log(LOGLEVEL.INFO, "vod.downloadChatTCD", `Downloading chat for ${vod_id}`);
 
-            const job = Helper.startJob(`chatdownload_${vod_id}`, bin, args);
+            const job = startJob(`chatdownload_${vod_id}`, bin, args);
             if (!job) {
                 reject(new Error("Job failed"));
                 return;

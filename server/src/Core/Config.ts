@@ -18,6 +18,7 @@ import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 import { Scheduler } from "./Scheduler";
 import i18next from "i18next";
 import { debugLog } from "../Helpers/Console";
+import { GetRunningProcesses, execSimple } from "../Helpers/Execute";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -637,14 +638,15 @@ export class Config {
     }
 
     static get can_shutdown(): boolean {
-        if (!LiveStreamDVR.getInstance().getChannels() || LiveStreamDVR.getInstance().getChannels().length === 0) return true;
-        return !LiveStreamDVR.getInstance().getChannels().some(c => c.is_live);
+        if (!LiveStreamDVR.getInstance().getChannels() || LiveStreamDVR.getInstance().getChannels().length === 0) return true; // if there are no channels, allow shutdown
+        if (GetRunningProcesses().length > 0) return false; // if there are any running processes, don't allow shutdown
+        return !LiveStreamDVR.getInstance().getChannels().some(c => c.is_live); // if there are any live channels, don't allow shutdown
     }
 
     async getGitHash() {
         let ret;
         try {
-            ret = await Helper.execSimple("git", ["rev-parse", "HEAD"], "git hash check");
+            ret = await execSimple("git", ["rev-parse", "HEAD"], "git hash check");
         } catch (error) {
             log(LOGLEVEL.WARNING, "config.getGitHash", "Could not fetch git hash");
             return false;
@@ -662,7 +664,7 @@ export class Config {
     async getGitBranch() {
         let ret;
         try {
-            ret = await Helper.execSimple("git", ["rev-parse", "--abbrev-ref", "HEAD"], "git branch check");
+            ret = await execSimple("git", ["rev-parse", "--abbrev-ref", "HEAD"], "git branch check");
         } catch (error) {
             log(LOGLEVEL.WARNING, "config.getGitBranch", "Could not fetch git branch");
             return false;

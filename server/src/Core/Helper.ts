@@ -1,20 +1,17 @@
-import path from "node:path";
+import { FFProbe } from "@common/FFProbe";
+import { AudioMetadata, MediaInfoJSONOutput, VideoMetadata } from "@common/MediaInfo";
+import { MediaInfo } from "@common/mediainfofield";
+import { createHash } from "node:crypto";
 import fs from "node:fs";
+import path from "node:path";
+import { progressOutput } from "../Helpers/Console";
+import { execSimple, startJob } from "../Helpers/Execute";
+import { formatDuration } from "../Helpers/Format";
+import { ExecReturn, RemuxReturn } from "../Providers/Twitch";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "./BaseConfig";
 import { Config } from "./Config";
-import { log, LOGLEVEL } from "./Log";
-import { ExecReturn, RemuxReturn } from "Providers/Twitch";
-import { spawn } from "node:child_process";
-import { Stream } from "@common/TwitchAPI/Streams";
-import chalk from "chalk";
-import { Job } from "./Job";
-import { createHash } from "node:crypto";
-import { FFProbe } from "@common/FFProbe";
-import { MediaInfoJSONOutput, VideoMetadata, AudioMetadata } from "@common/MediaInfo";
-import { MediaInfo } from "@common/mediainfofield";
 import { LiveStreamDVR } from "./LiveStreamDVR";
-import { formatDuration } from "../Helpers/Format";
-import { progressOutput } from "../Helpers/Console";
+import { LOGLEVEL, log } from "./Log";
 
 export class Helper {
     public static vodFolder(username = "") {
@@ -79,7 +76,7 @@ export class Helper {
         let out;
 
         try {
-            out = await Helper.execSimple(bin, ["--venv"], "pipenv --venv");
+            out = await execSimple(bin, ["--venv"], "pipenv --venv");
         } catch (error) {
             log(LOGLEVEL.ERROR, "helper", `Failed to get pipenv path: ${(error as ExecReturn).stderr}`, error);
             return false;
@@ -127,7 +124,7 @@ export class Helper {
         package_name = package_name.toLowerCase().trim().replaceAll("-", "_");
 
         try {
-            output = await Helper.execSimple("pip", ["show", package_name], `pip show ${package_name}`);
+            output = await execSimple("pip", ["show", package_name], `pip show ${package_name}`);
         } catch (error) {
             log(LOGLEVEL.ERROR, "helper", `Failed to get pip package info for ${package_name}: ${(error as ExecReturn).stderr}`, error);
             return false;
@@ -296,224 +293,6 @@ export class Helper {
     }
 
     /**
-     * Execute a command and return the output
-     *
-     * @param bin
-     * @param args
-     * @param what
-     * @throws Exception
-     * @returns
-     */
-    static execSimple(bin: string, args: string[], what: string): Promise<ExecReturn> {
-
-        return new Promise((resolve, reject) => {
-
-            const process = spawn(bin, args || [], {
-                // detached: true,
-                windowsHide: true,
-            });
-
-            process.on("error", (err) => {
-                log(LOGLEVEL.ERROR, "helper.execSimple", `Process ${pid} for '${what}' error: ${err}`);
-                reject({ code: -1, stdout, stderr, bin, args, what });
-            });
-
-            const pid = process.pid;
-
-            log(LOGLEVEL.EXEC, "helper.execSimple", `Executing '${what}': $ ${bin} ${args.join(" ")}`);
-
-            const stdout: string[] = [];
-            const stderr: string[] = [];
-
-            process.stdout.on("data", (data: Stream) => {
-                if (Config.debug) console.debug(chalk.bold.green(`$ ${bin} ${args.join(" ")}\n`, chalk.green(`${data.toString().trim()}`)));
-                stdout.push(data.toString());
-            });
-
-            process.stderr.on("data", (data: Stream) => {
-                if (Config.debug) console.error(chalk.bold.red(`$ ${bin} ${args.join(" ")}\n`, chalk.red(`> ${data.toString().trim()}`)));
-                stderr.push(data.toString());
-            });
-
-            process.on("close", (code) => {
-                log(LOGLEVEL.INFO, "helper.execSimple", `Process ${pid} for '${what}' exited with code ${code}`);
-
-                if (code == 0) {
-                    resolve({ code, stdout, stderr, bin, args, what });
-                } else {
-                    reject({ code, stdout, stderr, bin, args, what });
-                }
-            });
-
-        });
-
-    }
-
-
-    /**
-     * Execute a command, make a job, and when it's done, return the output
-     *
-     * @param bin
-     * @param args
-     * @param jobName
-     * @param progressFunction
-     * @returns
-     */
-    static execAdvanced(bin: string, args: string[], jobName: string, progressFunction?: (log: string) => number | undefined): Promise<ExecReturn> {
-        return new Promise((resolve, reject) => {
-
-            const process = spawn(bin, args || [], {
-                // detached: true,
-                // windowsHide: true,
-            });
-
-            process.on("error", (err) => {
-                log(LOGLEVEL.ERROR, "helper.execAdvanced", `Process ${process.pid} error: ${err}`);
-                reject({ code: -1, stdout, stderr, bin, args, jobName });
-            });
-
-            log(LOGLEVEL.EXEC, "helper.execAdvanced", `Executing job '${jobName}': $ ${bin} ${args.join(" ")}`);
-
-            let job: Job;
-
-            if (process.pid) {
-                log(LOGLEVEL.SUCCESS, "helper.execAdvanced", `Spawned process ${process.pid} for ${jobName}`);
-                job = Job.create(jobName);
-                job.setPid(process.pid);
-                job.setExec(bin, args);
-                job.setProcess(process);
-                job.startLog(jobName, `$ ${bin} ${args.join(" ")}\n`);
-                if (!job.save()) {
-                    log(LOGLEVEL.ERROR, "helper.execAdvanced", `Failed to save job ${jobName}`);
-                }
-            } else {
-                log(LOGLEVEL.ERROR, "helper.execAdvanced", `Failed to spawn process for ${jobName}`);
-                // reject(new Error(`Failed to spawn process for ${jobName}`));
-            }
-
-            const stdout: string[] = [];
-            const stderr: string[] = [];
-
-            process.stdout.on("data", (data: Stream) => {
-                stdout.push(data.toString());
-                if (progressFunction) {
-                    const p = progressFunction(data.toString());
-                    if (p !== undefined && job) {
-                        job.setProgress(p);
-                        // console.debug(`Progress for ${jobName}: ${p}`);
-                    }
-                }
-            });
-
-            process.stderr.on("data", (data: Stream) => {
-                stderr.push(data.toString());
-                if (progressFunction) {
-                    const p = progressFunction(data.toString());
-                    if (p !== undefined && job) {
-                        job.setProgress(p);
-                        // console.debug(`Progress for ${jobName}: ${p}`);
-                    }
-                }
-            });
-
-            process.on("close", (code) => {
-                if (job) {
-                    job.clear();
-                }
-                // const out_log = ffmpeg.stdout.read();
-                // const success = fs.existsSync(output) && fs.statSync(output).size > 0;
-                if (code == 0) {
-                    log(LOGLEVEL.INFO, "helper.execAdvanced", `Process ${process.pid} for ${jobName} exited with code 0`);
-                    resolve({ code, stdout, stderr });
-                } else {
-                    log(LOGLEVEL.ERROR, "helper.execAdvanced", `Process ${process.pid} for ${jobName} exited with code ${code}`);
-                    reject({ code, stdout, stderr });
-                }
-            });
-
-            log(LOGLEVEL.INFO, "helper.execAdvanced", `Attached to all streams for process ${process.pid} for ${jobName}`);
-
-        });
-    }
-
-    static startJob(jobName: string, bin: string, args: string[], env: Record<string, string> = {}): Job | false {
-
-        const envs = Object.keys(env).length > 0 ? env : process.env;
-
-        const jobProcess = spawn(bin, args || [], {
-            // detached: true,
-            windowsHide: true,
-            env: envs,
-        });
-
-        console.log("startJob process", jobProcess.spawnfile, jobProcess.spawnargs);
-
-        jobProcess.on("error", (err) => {
-            log(LOGLEVEL.ERROR, "helper", `Process '${jobProcess.pid}' on job '${jobName}' error: ${err}`, {
-                bin,
-                args,
-                jobName,
-                stdout,
-                stderr,
-            });
-        });
-
-        log(LOGLEVEL.INFO, "helper", `Executing ${bin} ${args.join(" ")}`);
-
-        let job: Job | false = false;
-
-        if (jobProcess.pid) {
-            log(LOGLEVEL.SUCCESS, "helper", `Spawned process ${jobProcess.pid} for ${jobName}`);
-            job = Job.create(jobName);
-            job.setPid(jobProcess.pid);
-            job.setExec(bin, args);
-            job.setProcess(jobProcess);
-            job.addMetadata({
-                bin: bin,
-                args: args,
-                env: env,
-            });
-            job.startLog(jobName, `$ ${bin} ${args.join(" ")}\n`);
-            if (!job.save()) {
-                log(LOGLEVEL.ERROR, "helper", `Failed to save job ${jobName}`);
-            }
-        } else {
-            log(LOGLEVEL.ERROR, "helper", `Failed to spawn process for ${jobName}`);
-            // reject(new Error(`Failed to spawn process for ${jobName}`));
-        }
-
-        const stdout: string[] = [];
-        const stderr: string[] = [];
-
-        jobProcess.stdout.on("data", (data: Stream) => {
-            stdout.push(data.toString());
-        });
-
-        jobProcess.stderr.on("data", (data: Stream) => {
-            stderr.push(data.toString());
-        });
-
-        jobProcess.on("close", (code) => {
-            if (code == 0) {
-                log(LOGLEVEL.SUCCESS, "helper", `Process ${jobProcess.pid} for ${jobName} closed with code 0`);
-            } else {
-                log(LOGLEVEL.ERROR, "helper", `Process ${jobProcess.pid} for ${jobName} closed with code ${code}`);
-            }
-
-            if (typeof job !== "boolean") {
-                job.onClose(code);
-                job.clear(); // ?
-            }
-
-        });
-
-        log(LOGLEVEL.INFO, "helper", `Attached to all streams for process ${jobProcess.pid} for ${jobName}`);
-
-        return job;
-
-    }
-
-    /**
      * Remux input to output
      *
      * @param input
@@ -598,7 +377,7 @@ export class Helper {
 
             log(LOGLEVEL.INFO, "helper", `Remuxing ${input} to ${output}`);
 
-            const job = Helper.startJob(`remux_${path.basename(input)}`, ffmpeg_path, opts);
+            const job = startJob(`remux_${path.basename(input)}`, ffmpeg_path, opts);
 
             if (!job || !job.process) {
                 reject(new Error(`Failed to start job for remuxing ${input} to ${output}`));
@@ -707,7 +486,7 @@ export class Helper {
 
             log(LOGLEVEL.INFO, "helper", `Cutting ${input} to ${output}`);
 
-            const job = Helper.startJob(`cut_${path.basename(input)}`, ffmpeg_path, opts);
+            const job = startJob(`cut_${path.basename(input)}`, ffmpeg_path, opts);
 
             if (!job || !job.process) {
                 reject(new Error(`Failed to start job for cutting ${input} to ${output}`));
@@ -798,7 +577,7 @@ export class Helper {
         const mediainfo_path = Helper.path_mediainfo();
         if (!mediainfo_path) throw new Error("Failed to find mediainfo");
 
-        const output = await Helper.execSimple(mediainfo_path, ["--Full", "--Output=JSON", filename], "mediainfo");
+        const output = await execSimple(mediainfo_path, ["--Full", "--Output=JSON", filename], "mediainfo");
 
         if (output && output.stdout) {
 
@@ -843,7 +622,7 @@ export class Helper {
         const ffprobe_path = Helper.path_ffprobe();
         if (!ffprobe_path) throw new Error("Failed to find ffprobe");
 
-        const output = await Helper.execSimple(ffprobe_path, [
+        const output = await execSimple(ffprobe_path, [
             "-v", "quiet",
             "-print_format", "json",
             "-show_format",
@@ -1040,7 +819,7 @@ export class Helper {
         const ffmpeg_path = Helper.path_ffmpeg();
         if (!ffmpeg_path) throw new Error("Failed to find ffmpeg");
 
-        const output = await Helper.execSimple(ffmpeg_path, [
+        const output = await execSimple(ffmpeg_path, [
             "-ss", this.ffmpeg_time(offset),
             "-i", filename,
             "-vf", `thumbnail,scale=${width}:-1`,
@@ -1113,7 +892,7 @@ export class Helper {
         let output: ExecReturn;
 
         try {
-            output = await Helper.execSimple(ffmpeg_path, [
+            output = await execSimple(ffmpeg_path, [
                 "-i", filename,
                 "-vf", `scale=${width}:-1`,
                 // "-codec", codec,

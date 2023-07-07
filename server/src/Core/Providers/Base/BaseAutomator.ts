@@ -16,6 +16,8 @@ import path from "node:path";
 import sanitize from "sanitize-filename";
 import { TwitchVODChapterJSON } from "Storage/JSON";
 import { Exporter, GetExporter } from "../../../Controllers/Exporter";
+import { progressOutput } from "../../../Helpers/Console";
+import { execSimple } from "../../../Helpers/Execute";
 import { formatBytes } from "../../../Helpers/Format";
 import { Sleep } from "../../../Helpers/Sleep";
 import { xClearInterval, xInterval } from "../../../Helpers/Timeout";
@@ -32,7 +34,6 @@ import { log, LOGLEVEL } from "../../Log";
 import { Webhook } from "../../Webhook";
 import { TwitchChannel } from "../Twitch/TwitchChannel";
 import { TwitchVOD } from "../Twitch/TwitchVOD";
-import { progressOutput } from "../../../Helpers/Console";
 
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 
@@ -1431,7 +1432,7 @@ export class BaseAutomator {
     // maybe use this?
     async compressChat(): Promise<boolean> {
         if (fs.existsSync(this.chat_filename)) {
-            await Helper.execSimple("gzip", [this.chat_filename], "compress chat");
+            await execSimple("gzip", [this.chat_filename], "compress chat");
             return fs.existsSync(`${this.chat_filename}.gz`);
         }
         return false;

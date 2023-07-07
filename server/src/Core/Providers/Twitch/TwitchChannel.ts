@@ -39,6 +39,7 @@ import { BaseChannel } from "../Base/BaseChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
 import { xTimeout } from "../../../Helpers/Timeout";
+import { startJob } from "../../../Helpers/Execute";
 
 export class TwitchChannel extends BaseChannel {
     public provider: Providers = "twitch";
@@ -625,7 +626,7 @@ export class TwitchChannel extends BaseChannel {
 
         fs.writeFileSync(nfo_file, nfo_content);
 
-        log(LOGLEVEL.DEBUG, "channel", `Wrote nfo file for ${this.internalName} to ${nfo_file}`);
+        log(LOGLEVEL.INFO, "channel", `Wrote nfo file for ${this.internalName} to ${nfo_file}`);
 
         return fs.existsSync(nfo_file);
 
@@ -1077,15 +1078,16 @@ export class TwitchChannel extends BaseChannel {
         channel.broadcaster_type = channel_data.broadcaster_type;
         channel.applyConfig(channel_config);
 
-        if (KeyValue.getInstance().getBool(`${channel.login}.online`)) {
-            log(LOGLEVEL.WARNING, "channel", `Channel ${channel.login} is online, stale?`);
+        if (KeyValue.getInstance().getBool(`${channel.internalName}.online`)) {
+            log(LOGLEVEL.WARNING, "channel", `Channel ${channel.internalName} is online, stale?`);
         }
 
-        if (KeyValue.getInstance().get(`${channel.login}.channeldata`)) {
-            log(LOGLEVEL.WARNING, "channel", `Channel ${channel.login} has stale chapter data.`);
+        if (KeyValue.getInstance().get(`${channel.internalName}.channeldata`)) {
+            log(LOGLEVEL.WARNING, "channel", `Channel ${channel.internalName} has stale chapter data.`);
         }
 
         if (channel.channel_data.profile_image_url && !channel.channelLogoExists) {
+            log(LOGLEVEL.INFO, "channel", `Channel ${channel.internalName} has no logo during load, fetching`);
             await this.fetchChannelLogo(channel.channel_data);
         }
 
@@ -1112,7 +1114,7 @@ export class TwitchChannel extends BaseChannel {
         try {
             await channel.updateChapterData();
         } catch (error) {
-            log(LOGLEVEL.ERROR, "channel", `Failed to update chapter data for channel ${channel.login}: ${(error as Error).message}`);
+            log(LOGLEVEL.ERROR, "channel", `Failed to update chapter data for channel ${channel.internalName}: ${(error as Error).message}`);
         }
 
         return channel;
@@ -1585,7 +1587,7 @@ export class TwitchChannel extends BaseChannel {
             log(LOGLEVEL.DEBUG, "channel", `Saved avatar for ${userData.id}`);
 
             if (fs.existsSync(logo_path) && fs.statSync(logo_path).size > 0) {
-                userData.cache_avatar = logo_filename;
+                userData.cache_avatar = logo_filename; // first set the cache location to the original file
 
 
                 // make thumbnails
@@ -2127,7 +2129,7 @@ export class TwitchChannel extends BaseChannel {
 
         log(LOGLEVEL.INFO, "channel", `Starting chat dump with filename ${path.basename(output)}`);
 
-        return Helper.startJob(`chatdump_${name}`, chat_bin, chat_cmd);
+        return startJob(`chatdump_${name}`, chat_bin, chat_cmd);
 
     }
 

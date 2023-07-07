@@ -10,6 +10,7 @@ import { ApiJob } from "@common/Api/Client";
 import { JobStatus } from "@common/Defs";
 import { Helper } from "./Helper";
 import { xClearTimeout, xTimeout } from "../Helpers/Timeout";
+import { execSimple } from "../Helpers/Execute";
 
 export interface TwitchAutomatorJobJSON {
     name: string;
@@ -498,7 +499,7 @@ export class Job extends EventEmitter {
 
             let proc;
             try {
-                proc = await Helper.execSimple("tasklist", ["/FI", `"PID eq ${this.pid}"`], `windows process status (${this.name})`);
+                proc = await execSimple("tasklist", ["/FI", `"PID eq ${this.pid}"`], `windows process status (${this.name})`);
             } catch (e) {
                 log(LOGLEVEL.ERROR, "job", `Error checking status for windows job ${this.name} (${this.process_running})`, this.metadata);
                 // console.debug(`Error checking status for job ${this.name} (${this.process_running})`);
@@ -514,7 +515,7 @@ export class Job extends EventEmitter {
 
             let proc;
             try {
-                proc = await Helper.execSimple("ps", ["-p", this.pid.toString()], `linux process status (${this.name})`);
+                proc = await execSimple("ps", ["-p", this.pid.toString()], `linux process status (${this.name})`);
             } catch (e) {
                 log(LOGLEVEL.ERROR, "job", `Error checking status for linux job ${this.name} (${this.process_running})`, this.metadata);
                 // console.debug(`Error checking status for job ${this.name} (${this.process_running})`);
@@ -595,7 +596,7 @@ export class Job extends EventEmitter {
             }
             args.push("/PID", pid.toString());
             try {
-                exec = await Helper.execSimple("taskkill", args, "windows process kill");
+                exec = await execSimple("taskkill", args, "windows process kill");
             } catch (error) {
                 log(LOGLEVEL.ERROR, "job", `Exception killing process for job ${this.name}: ${(error as Error).message}`, this.metadata);
                 this.broadcastUpdate();
@@ -617,7 +618,7 @@ export class Job extends EventEmitter {
             const signalFlag = `-${method.substring(3).toLocaleLowerCase()}`;
 
             try {
-                exec = await Helper.execSimple("kill", [signalFlag, pid.toString()], "linux process kill");
+                exec = await execSimple("kill", [signalFlag, pid.toString()], "linux process kill");
             } catch (error) {
                 log(LOGLEVEL.ERROR, "job", `Exception killing process for job ${this.name}: ${(error as Error).message}`, this.metadata);
                 this.broadcastUpdate();
