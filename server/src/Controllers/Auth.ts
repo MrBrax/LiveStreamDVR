@@ -1,4 +1,4 @@
-import { Config } from "../Core/Config";
+import { Config } from "@/Core/Config";
 import express from "express";
 import { ApiLoginResponse, ApiAuthResponse } from "@common/Api/Api";
 export function Login(req: express.Request, res: express.Response): void {

@@ -7,13 +7,13 @@ import path from "node:path";
 import { TwitchHelper } from "../Providers/Twitch";
 import sanitize from "sanitize-filename";
 import * as CronController from "../Controllers/Cron";
-import { Sleep } from "../Helpers/Sleep";
+import { Sleep } from "@/Helpers/Sleep";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "./BaseConfig";
 import { Config } from "./Config";
 import { LOGLEVEL, log } from "./Log";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
-import { debugLog } from "../Helpers/Console";
+import { debugLog } from "@/Helpers/Console";
 
 export class Scheduler {
 

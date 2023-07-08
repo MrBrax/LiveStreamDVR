@@ -1,4 +1,4 @@
-import { ClientBroker } from "../Core/ClientBroker";
+import { ClientBroker } from "@/Core/ClientBroker";
 import express from "express";
 import { ApiResponse } from "@common/Api/Api";
 import { NotificationCategory } from "@common/Defs";

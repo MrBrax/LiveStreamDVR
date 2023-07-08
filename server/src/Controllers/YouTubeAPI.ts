@@ -1,7 +1,7 @@
 import express from "express";
 import { ApiErrorResponse } from "@common/Api/Api";
-import { YouTubeChannel } from "../Core/Providers/YouTube/YouTubeChannel";
-import { YouTubeVOD } from "../Core/Providers/YouTube/YouTubeVOD";
+import { YouTubeChannel } from "@/Core/Providers/YouTube/YouTubeChannel";
+import { YouTubeVOD } from "@/Core/Providers/YouTube/YouTubeVOD";
 export async function YouTubeAPIVideos(req: express.Request, res: express.Response): Promise<void> {
 
     const channel_id = req.params.channel_id;

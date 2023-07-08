@@ -1,6 +1,6 @@
 import axios, { isAxiosError } from "axios";
 import type { KickChannel, KickUser, KickChannelVideo, KickChannelLivestream, KickChannelLivestreamResponse } from "@common/KickAPI/Kick";
-import { log, LOGLEVEL } from "../Core/Log";
+import { log, LOGLEVEL } from "@/Core/Log";
 
 /*
 const axiosInstance = axios.create({
@@ -53,7 +53,7 @@ function baseFetchOptions(): RequestInit {
         redirect: "follow",
         cache: "no-cache",
     };
-};
+}
 
 let xsrfToken: string | undefined;
 
@@ -125,7 +125,7 @@ export async function GetUser(username: string): Promise<KickUser | undefined> {
         } else {
             log(LOGLEVEL.ERROR, "KickAPI.GetUser", `Error getting user data: ${(error as Error).message}`, error);
         }
-        return undefined;        
+        return undefined;
     }
     if (!response.data) {
         log(LOGLEVEL.ERROR, "KickAPI.GetUser", `User ${username} not found`);

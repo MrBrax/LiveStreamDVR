@@ -1,18 +1,20 @@
 import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
 import { ExecReturn } from "../Providers/Twitch";
-import { LOGLEVEL, log } from "../Core/Log";
+import { LOGLEVEL, log } from "@/Core/Log";
 import { Stream } from "node:stream";
-import { Config } from "../Core/Config";
+import { Config } from "@/Core/Config";
 import chalk from "chalk";
-import { Job } from "../Core/Job";
+import { Job } from "@/Core/Job";
 
 interface RunningProcess {
+    internal_pid: number;
     process: ChildProcessWithoutNullStreams;
     // env: Record<string, string>;
     // cwd: string;
     what: string;
 }
 
+let InternalPid = 0;
 const RunningProcesses: RunningProcess[] = [];
 
 /**
@@ -65,7 +67,7 @@ export function execSimple(bin: string, args: string[], what: string): Promise<E
             }
         });
 
-        RunningProcesses.push({ process, what });
+        RunningProcesses.push({ process, what, internal_pid: InternalPid++ });
         process.on("close", () => {
             const index = RunningProcesses.findIndex((p) => p.process.pid == pid);
             if (index >= 0) {
@@ -158,7 +160,7 @@ export function execAdvanced(bin: string, args: string[], jobName: string, progr
             }
         });
 
-        RunningProcesses.push({ process, what: jobName });
+        RunningProcesses.push({ process, what: jobName, internal_pid: InternalPid++ });
         process.on("close", () => {
             const index = RunningProcesses.findIndex((p) => p.process.pid == process.pid);
             if (index >= 0) {
@@ -242,7 +244,7 @@ export function startJob(jobName: string, bin: string, args: string[], env: Reco
 
     });
 
-    RunningProcesses.push({ process: jobProcess, what: jobName });
+    RunningProcesses.push({ process: jobProcess, what: jobName, internal_pid: InternalPid++ });
     jobProcess.on("close", () => {
         const index = RunningProcesses.findIndex((p) => p.process.pid == jobProcess.pid);
         if (index >= 0) {

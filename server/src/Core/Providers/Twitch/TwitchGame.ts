@@ -3,11 +3,11 @@ import { GamesResponse } from "@common/TwitchAPI/Games";
 import axios from "axios";
 import fs from "node:fs";
 import path from "node:path";
-import { Config } from "../../../Core/Config";
-import { Helper } from "../../../Core/Helper";
-import { TwitchHelper } from "../../../Providers/Twitch";
-import { BaseConfigCacheFolder, BaseConfigPath } from "../../BaseConfig";
-import { LOGLEVEL, log } from "../../Log";
+import { Config } from "@/Core/Config";
+import { Helper } from "@/Core/Helper";
+import { TwitchHelper } from "@/Providers/Twitch";
+import { BaseConfigCacheFolder, BaseConfigPath } from "@/Core/BaseConfig";
+import { LOGLEVEL, log } from "@/Core/Log";
 
 interface TwitchGameJSON {
     name: string;

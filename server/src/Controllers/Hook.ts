@@ -1,16 +1,16 @@
-import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
-import { Config } from "../Core/Config";
+import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
+import { Config } from "@/Core/Config";
 import express from "express";
 import crypto from "node:crypto";
 import path from "node:path";
-import { BaseConfigDataFolder } from "../Core/BaseConfig";
+import { BaseConfigDataFolder } from "@/Core/BaseConfig";
 import fs from "node:fs";
 import { EventSubResponse } from "@common/TwitchAPI/EventSub";
 import { ChallengeResponse } from "@common/TwitchAPI/Challenge";
-import { log, LOGLEVEL } from "../Core/Log";
-import { KeyValue } from "../Core/KeyValue";
+import { log, LOGLEVEL } from "@/Core/Log";
+import { KeyValue } from "@/Core/KeyValue";
 import { SubStatus } from "@common/Defs";
-import { AutomatorMetadata, TwitchAutomator } from "../Core/Providers/Twitch/TwitchAutomator";
+import { AutomatorMetadata, TwitchAutomator } from "@/Core/Providers/Twitch/TwitchAutomator";
 import { XMLParser } from "fast-xml-parser";
 
 const verifyTwitchSignature = (request: express.Request): boolean => {

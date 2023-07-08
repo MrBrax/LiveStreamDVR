@@ -3,7 +3,7 @@
  * Multiple times have I forgotten to clearTimeout() my timeouts and intervals, and it's a pain to debug since there's no error thrown.
  * Jest in particular is a pain to debug, since it has arguments to troubleshooting timeouts and intervals, but they don't work.
  */
-import { Config } from "../Core/Config";
+import { Config } from "@/Core/Config";
 import { debugLog } from "./Console";
 
 interface ExtendedTimeout {

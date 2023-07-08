@@ -20,6 +20,7 @@ import { Webhook } from "../../Webhook";
 import { BaseVOD } from "./BaseVOD";
 import { BaseVODChapter } from "./BaseVODChapter";
 import { xClearTimeout, xTimeout } from "../../../Helpers/Timeout";
+import { videoThumbnail, videometadata } from "../../../Helpers/Video";
 
 export class BaseChannel {
 
@@ -401,7 +402,7 @@ export class BaseChannel {
             let video_metadata: VideoMetadata | AudioMetadata;
 
             try {
-                video_metadata = await Helper.videometadata(clip_path);
+                video_metadata = await videometadata(clip_path);
             } catch (error) {
                 log(LOGLEVEL.ERROR, "channel", `Failed to get video metadata for clip ${clip_path}: ${(error as Error).message}`);
                 continue;
@@ -411,7 +412,7 @@ export class BaseChannel {
 
             let thumbnail;
             try {
-                thumbnail = await Helper.videoThumbnail(clip_path, 240);
+                thumbnail = await videoThumbnail(clip_path, 240);
             } catch (error) {
                 log(LOGLEVEL.ERROR, "channel", `Failed to generate thumbnail for ${clip_path}: ${error}`);
             }

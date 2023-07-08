@@ -1,3 +1,12 @@
+import { BaseConfigCacheFolder, BaseConfigDataFolder } from "@/Core/BaseConfig";
+import { Config } from "@/Core/Config";
+import { KeyValue } from "@/Core/KeyValue";
+import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
+import { LOGLEVEL, censoredLogWords, log } from "@/Core/Log";
+import { AutomatorMetadata, TwitchAutomator } from "@/Core/Providers/Twitch/TwitchAutomator";
+import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
+import { getNiceDuration } from "@/Helpers/Format";
+import { xClearTimeout, xTimeout } from "@/Helpers/Timeout";
 import { TwitchCommentDumpTD } from "@common/Comments";
 import { SubStatus } from "@common/Defs";
 import type { TwitchAuthAppTokenResponse, TwitchAuthTokenValidationResponse, TwitchAuthUserTokenResponse } from "@common/TwitchAPI/Auth";
@@ -11,15 +20,6 @@ import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { WebSocket } from "ws";
-import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../Core/BaseConfig";
-import { Config } from "../Core/Config";
-import { KeyValue } from "../Core/KeyValue";
-import { LiveStreamDVR } from "../Core/LiveStreamDVR";
-import { LOGLEVEL, censoredLogWords, log } from "../Core/Log";
-import { AutomatorMetadata, TwitchAutomator } from "../Core/Providers/Twitch/TwitchAutomator";
-import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
-import { getNiceDuration } from "../Helpers/Format";
-import { xClearTimeout, xTimeout } from "../Helpers/Timeout";
 
 export interface ExecReturn {
     stdout: string[];

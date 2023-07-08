@@ -15,10 +15,12 @@ import { encode as htmlentities } from "html-entities";
 import fs from "node:fs";
 import path from "node:path";
 import { trueCasePathSync } from "true-case-path";
-import { progressOutput } from "../../../Helpers/Console";
-import { formatDuration, formatSubtitleDuration } from "../../../Helpers/Format";
-import { xClearInterval, xInterval, xTimeout } from "../../../Helpers/Timeout";
-import { isTwitchVOD } from "../../../Helpers/Types";
+import { progressOutput } from "@/Helpers/Console";
+import { execAdvanced, execSimple, startJob } from "@/Helpers/Execute";
+import { formatDuration, formatSubtitleDuration } from "@/Helpers/Format";
+import { xClearInterval, xInterval, xTimeout } from "@/Helpers/Timeout";
+import { isTwitchVOD } from "@/Helpers/Types";
+import { ffprobe, remuxFile } from "@/Helpers/Video";
 import { TwitchHelper } from "../../../Providers/Twitch";
 import { TwitchVODChapterJSON, TwitchVODJSON } from "../../../Storage/JSON";
 import { AppName, BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
@@ -28,13 +30,12 @@ import { FFmpegMetadata } from "../../FFmpegMetadata";
 import { Helper } from "../../Helper";
 import { Job } from "../../Job";
 import { LiveStreamDVR } from "../../LiveStreamDVR";
-import { log, LOGLEVEL } from "../../Log";
+import { LOGLEVEL, log } from "../../Log";
 import { Webhook } from "../../Webhook";
 import { BaseVOD } from "../Base/BaseVOD";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVODChapter } from "./TwitchVODChapter";
-import { execAdvanced, execSimple, startJob } from "../../../Helpers/Execute";
 
 /**
  * Twitch VOD
@@ -222,7 +223,7 @@ export class TwitchVOD extends BaseVOD {
         let data: FFProbe | false = false;
 
         try {
-            data = await Helper.ffprobe(filename);
+            data = await ffprobe(filename);
         } catch (th) {
             log(LOGLEVEL.ERROR, "vod", `Trying to get ffprobe of ${this.basename} returned: ${(th as Error).message}`);
             return false;
@@ -1780,7 +1781,7 @@ export class TwitchVOD extends BaseVOD {
 
             let ret;
             try {
-                ret = await Helper.remuxFile(capture_filename, converted_filename, undefined, chapters_file);
+                ret = await remuxFile(capture_filename, converted_filename, undefined, chapters_file);
             } catch (error) {
                 log(LOGLEVEL.ERROR, "vod.downloadVideo", `Failed to remux ${basename}: ${(error as Error).message}`);
                 throw new Error(`Failed to remux ${basename}: ${(error as Error).message}`);
@@ -1929,7 +1930,7 @@ export class TwitchVOD extends BaseVOD {
 
             let ret;
             try {
-                ret = await Helper.remuxFile(capture_filename, converted_filename, undefined, metadata);
+                ret = await remuxFile(capture_filename, converted_filename, undefined, metadata);
             } catch (error) {
                 log(LOGLEVEL.ERROR, "vod.downloadClip", `Failed to remux ${basename}: ${(error as Error).message}`);
                 throw new Error(`Failed to remux ${basename}: ${(error as Error).message}`);

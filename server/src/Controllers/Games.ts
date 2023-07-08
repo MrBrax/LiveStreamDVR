@@ -1,4 +1,4 @@
-import { TwitchGame } from "../Core/Providers/Twitch/TwitchGame";
+import { TwitchGame } from "@/Core/Providers/Twitch/TwitchGame";
 import express from "express";
 import { ApiGamesResponse } from "@common/Api/Api";
 import { ApiGame } from "@common/Api/Client";

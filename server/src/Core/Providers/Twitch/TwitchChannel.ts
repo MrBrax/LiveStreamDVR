@@ -26,6 +26,7 @@ import { startJob } from "../../../Helpers/Execute";
 import { formatBytes } from "../../../Helpers/Format";
 import { xTimeout } from "../../../Helpers/Timeout";
 import { isTwitchChannel } from "../../../Helpers/Types";
+import { videoThumbnail, videometadata } from "../../../Helpers/Video";
 import { EventWebsocket, TwitchHelper } from "../../../Providers/Twitch";
 import { TwitchVODChapterJSON } from "../../../Storage/JSON";
 import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigPath } from "../../BaseConfig";
@@ -990,7 +991,7 @@ export class TwitchChannel extends BaseChannel {
         let video_metadata: VideoMetadata | AudioMetadata;
 
         try {
-            video_metadata = await Helper.videometadata(filename);
+            video_metadata = await videometadata(filename);
         } catch (th) {
             log(LOGLEVEL.ERROR, "channel", `Trying to get mediainfo of ${filename} returned: ${(th as Error).message}`);
             return false;
@@ -1003,7 +1004,7 @@ export class TwitchChannel extends BaseChannel {
 
         let thumbnail;
         try {
-            thumbnail = await Helper.videoThumbnail(filename, 240);
+            thumbnail = await videoThumbnail(filename, 240);
         } catch (error) {
             log(LOGLEVEL.ERROR, "channel", `Failed to generate thumbnail for ${filename}: ${error}`);
         }

@@ -3,8 +3,8 @@ import express from "express";
 import fs from "node:fs";
 import { ApiErrorResponse, ApiLogResponse } from "@common/Api/Api";
 import { ApiLogLine } from "@common/Api/Client";
-import { BaseConfigDataFolder } from "../Core/BaseConfig";
-import { fetchLog } from "../Core/Log";
+import { BaseConfigDataFolder } from "@/Core/BaseConfig";
+import { fetchLog } from "@/Core/Log";
 
 export function GetLog(req: express.Request, res: express.Response) {
 

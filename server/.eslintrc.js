@@ -1,6 +1,6 @@
 module.exports = {
     "env": {
-        "browser": true,
+        // "browser": true,
         "es2021": true,
     },
     "extends": [
@@ -16,6 +16,7 @@ module.exports = {
     "plugins": [
         "@typescript-eslint",
         "deprecation",
+        // "import",
     ],
     "rules": {
         "indent": [
@@ -45,6 +46,9 @@ module.exports = {
             "functions": "never",
         }],
         "deprecation/deprecation": "warn",
+        "no-var": "error",
+        "prefer-const": "error",
+        // "import/no-relative-parent-imports": "error",
     },
     ignorePatterns: ['.eslintrc.js']
 };

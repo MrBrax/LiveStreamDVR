@@ -1,10 +1,10 @@
 import express from "express";
 import { TwitchHelper } from "../Providers/Twitch";
-import { log, LOGLEVEL } from "../Core/Log";
+import { log, LOGLEVEL } from "@/Core/Log";
 import fs from "node:fs";
 import { formatDistanceToNow, formatISO9075 } from "date-fns";
-import { Config } from "../Core/Config";
-import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
+import { Config } from "@/Core/Config";
+import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
 import type { TwitchAuthUserTokenResponse } from "@common/TwitchAPI/Auth";
 import axios from "axios";
 

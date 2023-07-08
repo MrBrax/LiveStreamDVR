@@ -7,7 +7,7 @@ import path from "node:path";
 import { BaseConfigCacheFolder, BaseConfigPath } from "./BaseConfig";
 import { Config } from "./Config";
 import { log, LOGLEVEL } from "./Log";
-import { debugLog } from "../Helpers/Console";
+import { debugLog } from "@/Helpers/Console";
 
 export interface KeyValueData {
     value: string;

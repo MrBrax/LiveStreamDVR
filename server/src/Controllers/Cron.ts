@@ -1,11 +1,11 @@
-import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
+import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
 import express from "express";
 import { MuteStatus } from "@common/Defs";
-import { ClientBroker } from "../Core/ClientBroker";
-import { log, LOGLEVEL } from "../Core/Log";
-import { generateStreamerList } from "../Helpers/StreamerList";
-import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
-import { Scheduler } from "../Core/Scheduler";
+import { ClientBroker } from "@/Core/ClientBroker";
+import { log, LOGLEVEL } from "@/Core/Log";
+import { generateStreamerList } from "@/Helpers/StreamerList";
+import { TwitchVOD } from "@/Core/Providers/Twitch/TwitchVOD";
+import { Scheduler } from "@/Core/Scheduler";
 
 export async function fCheckDeletedVods(): Promise<string> {
 

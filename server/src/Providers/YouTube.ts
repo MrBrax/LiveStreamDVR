@@ -1,9 +1,9 @@
-import { BaseConfigCacheFolder } from "../Core/BaseConfig";
+import { BaseConfigCacheFolder } from "@/Core/BaseConfig";
 // import { OAuth2Client } from "googleapis-common";
 import { Credentials, OAuth2Client } from "google-auth-library";
 import path from "node:path";
-import { Config } from "../Core/Config";
-import { LOGLEVEL, log } from "../Core/Log";
+import { Config } from "@/Core/Config";
+import { LOGLEVEL, log } from "@/Core/Log";
 import fs from "node:fs";
 import { youtube_v3 } from "@googleapis/youtube";
 

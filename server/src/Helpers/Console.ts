@@ -1,4 +1,4 @@
-import { Config } from "../Core/Config";
+import { Config } from "@/Core/Config";
 import chalk from "chalk";
 import { formatBytes } from "./Format";
 

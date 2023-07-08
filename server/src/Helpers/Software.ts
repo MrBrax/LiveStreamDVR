@@ -1,8 +1,8 @@
-import { AppRoot, BaseConfigDataFolder } from "../Core/BaseConfig";
+import { AppRoot, BaseConfigDataFolder } from "@/Core/BaseConfig";
 import path from "node:path";
 import fs from "node:fs";
 import { ExecReturn } from "../Providers/Twitch";
-import { Helper } from "../Core/Helper";
+import { Helper } from "@/Core/Helper";
 import type { BinaryStatus } from "@common/Api/About";
 import { compareVersions } from "compare-versions";
 import { execSimple } from "./Execute";

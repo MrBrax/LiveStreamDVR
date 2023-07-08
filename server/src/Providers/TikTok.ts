@@ -1,7 +1,7 @@
-import { BaseConfigCacheFolder } from "../Core/BaseConfig";
+import { BaseConfigCacheFolder } from "@/Core/BaseConfig";
 import path from "node:path";
-import { Config } from "../Core/Config";
-import { log, LOGLEVEL } from "../Core/Log";
+import { Config } from "@/Core/Config";
+import { log, LOGLEVEL } from "@/Core/Log";
 
 export class TikTokHelper {
     static readonly accessTokenFile = path.join(BaseConfigCacheFolder.cache, "tiktok_oauth.json");

@@ -1,24 +1,24 @@
-import { Config } from "../Core/Config";
-import { format } from "date-fns";
-import express from "express";
-import fs from "node:fs";
-import path from "node:path";
-import sanitize from "sanitize-filename";
+import { BaseConfigDataFolder } from "@/Core/BaseConfig";
+import { Config } from "@/Core/Config";
+import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
+import { LOGLEVEL, log } from "@/Core/Log";
+import { TwitchVOD } from "@/Core/Providers/Twitch/TwitchVOD";
+import { TwitchVODChapter } from "@/Core/Providers/Twitch/TwitchVODChapter";
+import { formatDuration } from "@/Helpers/Format";
+import { cutFile } from "@/Helpers/Video";
 import { ApiErrorResponse, ApiResponse, ApiVodResponse } from "@common/Api/Api";
+import { EditableChapter } from "@common/Api/Client";
 import { VODBookmark } from "@common/Bookmark";
 import { VideoQuality } from "@common/Config";
 import { VideoQualityArray } from "@common/Defs";
 import { formatString } from "@common/Format";
 import type { VodBasenameTemplate } from "@common/Replacements";
-import { BaseConfigDataFolder } from "../Core/BaseConfig";
+import { format } from "date-fns";
+import express from "express";
+import fs from "node:fs";
+import path from "node:path";
+import sanitize from "sanitize-filename";
 import { TwitchHelper } from "../Providers/Twitch";
-import { log, LOGLEVEL } from "../Core/Log";
-import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
-import { LiveStreamDVR } from "../Core/LiveStreamDVR";
-import { Helper } from "../Core/Helper";
-import { EditableChapter } from "@common/Api/Client";
-import { TwitchVODChapter } from "../Core/Providers/Twitch/TwitchVODChapter";
-import { formatDuration } from "../Helpers/Format";
 
 export async function GetVod(req: express.Request, res: express.Response): Promise<void> {
 
@@ -580,7 +580,7 @@ export async function CutVod(req: express.Request, res: express.Response): Promi
     let ret;
 
     try {
-        ret = await Helper.cutFile(file_in, file_out, seconds_in, seconds_out);
+        ret = await cutFile(file_in, file_out, seconds_in, seconds_out);
     } catch (error) {
         res.status(400).send({
             status: "ERROR",

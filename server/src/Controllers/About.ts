@@ -4,13 +4,13 @@ import express from "express";
 import readdirRecursive from "fs-readdir-recursive";
 import fs from "node:fs";
 import process from "node:process";
-import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../Core/BaseConfig";
-import { Config } from "../Core/Config";
-import { Helper } from "../Core/Helper";
-import { KeyValue } from "../Core/KeyValue";
-import { LiveStreamDVR } from "../Core/LiveStreamDVR";
-import { GetRunningProcesses } from "../Helpers/Execute";
-import { DVRBinaries, DVRPipPackages, PipRequirements, getBinaryVersion } from "../Helpers/Software";
+import { BaseConfigCacheFolder, BaseConfigDataFolder } from "@/Core/BaseConfig";
+import { Config } from "@/Core/Config";
+import { Helper } from "@/Core/Helper";
+import { KeyValue } from "@/Core/KeyValue";
+import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
+import { GetRunningProcesses } from "@/Helpers/Execute";
+import { DVRBinaries, DVRPipPackages, PipRequirements, getBinaryVersion } from "@/Helpers/Software";
 
 export async function About(req: express.Request, res: express.Response): Promise<void> {
 

@@ -11,7 +11,7 @@ import { BaseConfigPath } from "./BaseConfig";
 import { Config } from "./Config";
 import { log, LOGLEVEL } from "./Log";
 import { LiveStreamDVR } from "./LiveStreamDVR";
-import { debugLog } from "../Helpers/Console";
+import { debugLog } from "@/Helpers/Console";
 
 interface Client {
     id: string;

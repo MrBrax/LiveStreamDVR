@@ -17,8 +17,8 @@ import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 import { Scheduler } from "./Scheduler";
 import i18next from "i18next";
-import { debugLog } from "../Helpers/Console";
-import { GetRunningProcesses, execSimple } from "../Helpers/Execute";
+import { debugLog } from "@/Helpers/Console";
+import { GetRunningProcesses, execSimple } from "@/Helpers/Execute";
 
 const argv = minimist(process.argv.slice(2));
 

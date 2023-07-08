@@ -1,6 +1,6 @@
 import express from "express";
 import { YouTubeHelper } from "../Providers/YouTube";
-import { log, LOGLEVEL } from "../Core/Log";
+import { log, LOGLEVEL } from "@/Core/Log";
 import { formatDistanceToNow, formatISO9075 } from "date-fns";
 
 export function Authenticate(req: express.Request, res: express.Response): void {

@@ -1,10 +1,10 @@
 import { ApiBaseVod } from "@common/Api/Client";
+import type { VODBookmark } from "@common/Bookmark";
 import { VideoQuality } from "@common/Config";
 import { JobStatus, MuteStatus, Providers } from "@common/Defs";
 import { ExportData } from "@common/Exporter";
 import { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
 import type { StreamPause, VodViewerEntry } from "@common/Vod";
-import type { VODBookmark } from "@common/Bookmark";
 import { VodUpdated } from "@common/Webhook";
 import chalk from "chalk";
 import chokidar from "chokidar";
@@ -12,7 +12,10 @@ import { format, parseJSON } from "date-fns";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { debugLog } from "../../../Helpers/Console";
+import { startJob } from "../../../Helpers/Execute";
 import { formatBytes } from "../../../Helpers/Format";
+import { xClearTimeout, xTimeout } from "../../../Helpers/Timeout";
 import { isTwitchVOD, isTwitchVODChapter } from "../../../Helpers/Types";
 import { BaseVODChapterJSON, VODJSON } from "../../../Storage/JSON";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
@@ -22,14 +25,12 @@ import { FFmpegMetadata } from "../../FFmpegMetadata";
 import { Helper } from "../../Helper";
 import { Job } from "../../Job";
 import { LiveStreamDVR, VODTypes } from "../../LiveStreamDVR";
-import { log, LOGLEVEL } from "../../Log";
+import { LOGLEVEL, log } from "../../Log";
 import { Webhook } from "../../Webhook";
 import { BaseChannel } from "./BaseChannel";
 import { BaseVODChapter } from "./BaseVODChapter";
 import { BaseVODSegment } from "./BaseVODSegment";
-import { xClearTimeout, xTimeout } from "../../../Helpers/Timeout";
-import { debugLog } from "../../../Helpers/Console";
-import { startJob } from "../../../Helpers/Execute";
+import { ffmpeg_time, remuxFile, videometadata } from "../../../Helpers/Video";
 
 export class BaseVOD {
 
@@ -583,7 +584,7 @@ export class BaseVOD {
         }
 
         if (test_duration) {
-            args.push("-t", Helper.ffmpeg_time(60 * 1000));
+            args.push("-t", ffmpeg_time(60 * 1000));
         }
 
         // chat mask
@@ -1240,7 +1241,7 @@ export class BaseVOD {
 
         let metadata: VideoMetadata | AudioMetadata;
         try {
-            metadata = await Helper.videometadata(filename, force);
+            metadata = await videometadata(filename, force);
         } catch (e) {
             log(LOGLEVEL.ERROR, "vod", `Could not get mediainfo of ${this.basename} (${filename} @ ${this.directory}): ${(e as Error).message}`);
             return false;
@@ -1636,7 +1637,7 @@ export class BaseVOD {
                         console.log(chalk.bgRed.whiteBright(`🛠️ [${source}] Converted file '${out_file}' for '${this.basename}' already exists, skipping remux!`));
                     } else {
                         this.is_converting = true;
-                        Helper.remuxFile(in_file, out_file)
+                        remuxFile(in_file, out_file)
                             .then(async status => {
                                 console.log(chalk.bgRed.whiteBright(`🛠️ [${source}] ${this.basename} remux status: ${status.success}`));
                                 await this.addSegment(`${this.basename}.${container_ext}`);

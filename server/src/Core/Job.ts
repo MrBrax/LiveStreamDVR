@@ -9,8 +9,8 @@ import { Webhook } from "./Webhook";
 import { ApiJob } from "@common/Api/Client";
 import { JobStatus } from "@common/Defs";
 import { Helper } from "./Helper";
-import { xClearTimeout, xTimeout } from "../Helpers/Timeout";
-import { execSimple } from "../Helpers/Execute";
+import { xClearTimeout, xTimeout } from "@/Helpers/Timeout";
+import { execSimple } from "@/Helpers/Execute";
 
 export interface TwitchAutomatorJobJSON {
     name: string;

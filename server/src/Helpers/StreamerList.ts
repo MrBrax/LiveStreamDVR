@@ -1,5 +1,5 @@
-import {  LOGLEVEL, log } from "../Core/Log";
-import { ChannelTypes, LiveStreamDVR } from "../Core/LiveStreamDVR";
+import {  LOGLEVEL, log } from "@/Core/Log";
+import { ChannelTypes, LiveStreamDVR } from "@/Core/LiveStreamDVR";
 
 export function generateStreamerList(): { channels: ChannelTypes[], total_size: number } {
 

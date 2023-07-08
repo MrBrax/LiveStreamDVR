@@ -7,13 +7,13 @@ import { ApiErrorResponse } from "@common/Api/Api";
 import { VideoQuality } from "@common/Config";
 import { formatString } from "@common/Format";
 import { ClipBasenameTemplate } from "@common/Replacements";
-import { BaseConfigDataFolder } from "../Core/BaseConfig";
-import { Config } from "../Core/Config";
-import { LiveStreamDVR } from "../Core/LiveStreamDVR";
-import { log, LOGLEVEL } from "../Core/Log";
-import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
-import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
-import { Scheduler } from "../Core/Scheduler";
+import { BaseConfigDataFolder } from "@/Core/BaseConfig";
+import { Config } from "@/Core/Config";
+import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
+import { log, LOGLEVEL } from "@/Core/Log";
+import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
+import { TwitchVOD } from "@/Core/Providers/Twitch/TwitchVOD";
+import { Scheduler } from "@/Core/Scheduler";
 
 
 export async function ResetChannels(req: express.Request, res: express.Response): Promise<void> {

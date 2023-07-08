@@ -12,7 +12,7 @@ import express from "express";
 import fs from "node:fs";
 import { Config } from "../../Config";
 import { Webhook } from "../../Webhook";
-import { TwitchVODChapterJSON } from "Storage/JSON";
+import { TwitchVODChapterJSON } from "@/Storage/JSON";
 import { ChannelUpdateEvent } from "@common/TwitchAPI/EventSub/ChannelUpdate";
 import { ChapterUpdateData } from "@common/Webhook";
 import { TwitchVODChapter } from "./TwitchVODChapter";

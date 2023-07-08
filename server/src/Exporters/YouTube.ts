@@ -3,11 +3,11 @@ import { BaseExporter } from "./Base";
 import { youtube_v3 } from "@googleapis/youtube";
 import { YouTubeHelper } from "../Providers/YouTube";
 import fs from "node:fs";
-import { LOGLEVEL, log } from "../Core/Log";
-import { Job } from "../Core/Job";
-import { Config } from "../Core/Config";
+import { LOGLEVEL, log } from "@/Core/Log";
+import { Job } from "@/Core/Job";
+import { Config } from "@/Core/Config";
 import path from "node:path";
-import { xTimeout } from "../Helpers/Timeout";
+import { xTimeout } from "@/Helpers/Timeout";
 
 export class YouTubeExporter extends BaseExporter {
 

@@ -14,7 +14,7 @@ import fs from "node:fs";
 import { IncomingHttpHeaders } from "node:http";
 import path from "node:path";
 import sanitize from "sanitize-filename";
-import { TwitchVODChapterJSON } from "Storage/JSON";
+import { TwitchVODChapterJSON } from "@/Storage/JSON";
 import { Exporter, GetExporter } from "../../../Controllers/Exporter";
 import { progressOutput } from "../../../Helpers/Console";
 import { execSimple } from "../../../Helpers/Execute";
@@ -22,6 +22,7 @@ import { formatBytes } from "../../../Helpers/Format";
 import { Sleep } from "../../../Helpers/Sleep";
 import { xClearInterval, xInterval } from "../../../Helpers/Timeout";
 import { isTwitchVOD, isTwitchVODChapter } from "../../../Helpers/Types";
+import { remuxFile } from "../../../Helpers/Video";
 import { RemuxReturn } from "../../../Providers/Twitch";
 import { BaseConfigDataFolder } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
@@ -373,7 +374,7 @@ export class BaseAutomator {
         if (this.channel) {
             ClientBroker.notify(
                 t("notify.this-broadcaster_user_login-has-gone-offline", [this.broadcaster_user_login]),
-                this.channel && this.channel.latest_vod && this.channel.latest_vod.started_at ? t("notify.was-streaming-for-formatdistancetonow-this-channel-latest_vod-started_at", formatDistanceToNow(this.channel.latest_vod.started_at)) : "",
+                this.channel && this.channel.latest_vod && this.channel.latest_vod.started_at ? t("notify.was-streaming-for-formatdistancetonow-this-channel-latest_vod-started_at", [formatDistanceToNow(this.channel.latest_vod.started_at)]) : "",
                 this.channel.profilePictureUrl,
                 "streamOffline",
                 this.channel.livestreamUrl
@@ -1454,7 +1455,7 @@ export class BaseAutomator {
         let result: RemuxReturn;
 
         try {
-            result = await Helper.remuxFile(this.capture_filename, this.converted_filename, false, mf);
+            result = await remuxFile(this.capture_filename, this.converted_filename, false, mf);
         } catch (err) {
             log(LOGLEVEL.ERROR, "automator.convertVideo", `Failed to convert video: ${err}`);
             return false;
