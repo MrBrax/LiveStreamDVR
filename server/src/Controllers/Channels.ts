@@ -11,26 +11,27 @@ import { formatString } from "@common/Format";
 import { ProxyVideo } from "@common/Proxies/Video";
 import { VodBasenameTemplate } from "@common/Replacements";
 import { EventSubStreamOnline } from "@common/TwitchAPI/EventSub/StreamOnline";
-import { BaseConfigCacheFolder } from "../Core/BaseConfig";
-import { Config } from "../Core/Config";
-import { KeyValue } from "../Core/KeyValue";
-import { LiveStreamDVR } from "../Core/LiveStreamDVR";
-import { Log } from "../Core/Log";
-import { AutomatorMetadata, TwitchAutomator } from "../Core/Providers/Twitch/TwitchAutomator";
-import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
-import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
-import { YouTubeAutomator } from "../Core/Providers/YouTube/YouTubeAutomator";
-import { YouTubeChannel } from "../Core/Providers/YouTube/YouTubeChannel";
-import { YouTubeVOD } from "../Core/Providers/YouTube/YouTubeVOD";
-import { Webhook } from "../Core/Webhook";
-import { generateStreamerList } from "../Helpers/StreamerList";
-import { isTwitchChannel, isYouTubeChannel } from "../Helpers/Types";
+import { BaseConfigCacheFolder } from "@/Core/BaseConfig";
+import { Config } from "@/Core/Config";
+import { KeyValue } from "@/Core/KeyValue";
+import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
+import { log, LOGLEVEL } from "@/Core/Log";
+import { AutomatorMetadata, TwitchAutomator } from "@/Core/Providers/Twitch/TwitchAutomator";
+import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
+import { TwitchVOD } from "@/Core/Providers/Twitch/TwitchVOD";
+import { YouTubeAutomator } from "@/Core/Providers/YouTube/YouTubeAutomator";
+import { YouTubeChannel } from "@/Core/Providers/YouTube/YouTubeChannel";
+import { YouTubeVOD } from "@/Core/Providers/YouTube/YouTubeVOD";
+import { Webhook } from "@/Core/Webhook";
+import { generateStreamerList } from "@/Helpers/StreamerList";
+import { isTwitchChannel, isYouTubeChannel } from "@/Helpers/Types";
 import { TwitchHelper } from "../Providers/Twitch";
 import { TwitchVODChapterJSON } from "../Storage/JSON";
-import { Job } from "../Core/Job";
+import { Job } from "@/Core/Job";
 import { Exporter, GetExporter } from "./Exporter";
 import { ExporterOptions } from "@common/Exporter";
-import { KickChannel } from "../Core/Providers/Kick/KickChannel";
+import { KickChannel } from "@/Core/Providers/Kick/KickChannel";
+import { debugLog } from "@/Helpers/Console";
 
 export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
 
@@ -182,7 +183,7 @@ export async function DeleteChannel(req: express.Request, res: express.Response)
                 status: "OK",
                 message: req.t("route.channels.channel-found-in-config-but-not-in-memory-removed-from-config"),
             });
-            Log.logAdvanced(Log.Level.INFO, "route.channels.delete", `Channel ${req.params.login} found in config but not in memory, removed from config`);
+            log(LOGLEVEL.INFO, "route.channels.delete", `Channel ${req.params.login} found in config but not in memory, removed from config`);
             return;
         }
 
@@ -197,7 +198,7 @@ export async function DeleteChannel(req: express.Request, res: express.Response)
         try {
             await channel.deleteAllVods();
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "route.channels.deleteAllVods", `Failed to delete all VODs of channel: ${(error as Error).message}`);
+            log(LOGLEVEL.ERROR, "route.channels.deleteAllVods", `Failed to delete all VODs of channel: ${(error as Error).message}`);
             res.status(400).send({
                 status: "ERROR",
                 message: (error as Error).message,
@@ -210,7 +211,7 @@ export async function DeleteChannel(req: express.Request, res: express.Response)
 
     channel.delete();
 
-    Log.logAdvanced(Log.Level.INFO, "route.channels.delete", `Channel ${name} deleted`);
+    log(LOGLEVEL.INFO, "route.channels.delete", `Channel ${name} deleted`);
 
     res.send({
         status: "OK",
@@ -295,7 +296,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
 
         const channel = TwitchChannel.getChannelByLogin(channel_config.login);
         if (channel) {
-            Log.logAdvanced(Log.Level.ERROR, "route.channels.add", `Failed to create channel, channel already exists: ${channel_config.login}`);
+            log(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, channel already exists: ${channel_config.login}`);
             res.status(400).send({
                 status: "ERROR",
                 message: req.t("route.channels.channel-already-exists"),
@@ -308,7 +309,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         try {
             api_channel_data = await TwitchChannel.getUserDataByLogin(channel_config.login);
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "route.channels.add", `Failed to create channel, API error: ${(error as Error).message}`);
+            log(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, API error: ${(error as Error).message}`);
             res.status(400).send({
                 status: "ERROR",
                 message: `API error: ${(error as Error).message}`,
@@ -328,7 +329,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         try {
             new_channel = await TwitchChannel.create(channel_config);
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "route.channels.add", `Failed to create channel: ${error}`);
+            log(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel: ${error}`);
             res.status(400).send({
                 status: "ERROR",
                 message: (error as Error).message,
@@ -336,7 +337,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
             return;
         }
 
-        Log.logAdvanced(Log.Level.SUCCESS, "route.channels.add", `Created channel: ${new_channel.internalName}`);
+        log(LOGLEVEL.SUCCESS, "route.channels.add", `Created channel: ${new_channel.internalName}`);
 
     } else if (provider == "youtube") {
 
@@ -367,7 +368,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
 
         const channel = YouTubeChannel.getChannelById(channel_config.channel_id);
         if (channel) {
-            Log.logAdvanced(Log.Level.ERROR, "route.channels.add", `Failed to create channel, channel already exists: ${channel_config.channel_id}`);
+            log(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, channel already exists: ${channel_config.channel_id}`);
             res.status(400).send({
                 status: "ERROR",
                 message: req.t("route.channels.channel-already-exists"),
@@ -380,7 +381,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         try {
             api_channel_data = await YouTubeChannel.getUserDataById(channel_config.channel_id);
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "route.channels.add", `Failed to create channel, API error: ${(error as Error).message}`);
+            log(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, API error: ${(error as Error).message}`);
             res.status(400).send({
                 status: "ERROR",
                 message: `API error: ${(error as Error).message}`,
@@ -401,7 +402,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         try {
             new_channel = await YouTubeChannel.create(channel_config);
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "route.channels.add", `Failed to create channel: ${error}`);
+            log(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel: ${error}`);
             res.status(400).send({
                 status: "ERROR",
                 message: (error as Error).message,
@@ -409,7 +410,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
             return;
         }
 
-        Log.logAdvanced(Log.Level.SUCCESS, "route.channels.add", `Created channel: ${new_channel.displayName}`);
+        log(LOGLEVEL.SUCCESS, "route.channels.add", `Created channel: ${new_channel.displayName}`);
 
     } else if (provider == "kick") {
 
@@ -440,7 +441,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
 
         const channel = KickChannel.getChannelBySlug(channel_config.slug);
         if (channel) {
-            Log.logAdvanced(Log.Level.ERROR, "route.channels.add", `Failed to create channel, channel already exists: ${channel_config.slug}`);
+            log(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, channel already exists: ${channel_config.slug}`);
             res.status(400).send({
                 status: "ERROR",
                 message: req.t("route.channels.channel-already-exists"),
@@ -453,7 +454,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         try {
             api_channel_data = await KickChannel.getUserDataBySlug(channel_config.slug);
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "route.channels.add", `Failed to create channel, API error: ${(error as Error).message}`);
+            log(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, API error: ${(error as Error).message}`);
             res.status(400).send({
                 status: "ERROR",
                 message: `API error: ${(error as Error).message}`,
@@ -464,7 +465,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         try {
             new_channel = await KickChannel.create(channel_config);
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "route.channels.add", `Failed to create channel: ${error}`);
+            log(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel: ${error}`);
             res.status(400).send({
                 status: "ERROR",
                 message: (error as Error).message,
@@ -472,7 +473,7 @@ export async function AddChannel(req: express.Request, res: express.Response): P
             return;
         }
 
-        Log.logAdvanced(Log.Level.SUCCESS, "route.channels.add", `Created channel: ${new_channel.displayName}`);
+        log(LOGLEVEL.SUCCESS, "route.channels.add", `Created channel: ${new_channel.displayName}`);
 
     }
 
@@ -517,7 +518,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         const date = parseJSON(video.created_at);
 
         if (!date || !isValid(date)) {
-            Log.logAdvanced(Log.Level.ERROR, "route.channels.download", `Invalid start date: ${video.created_at}`);
+            log(LOGLEVEL.ERROR, "route.channels.download", `Invalid start date: ${video.created_at}`);
         }
 
         const variables: VodBasenameTemplate = {
@@ -621,7 +622,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         try {
             status = await TwitchVOD.downloadVideo(video_id, quality, filepath) != "";
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "route.channels.download", `Failed to download video: ${(error as Error).message}`);
+            log(LOGLEVEL.ERROR, "route.channels.download", `Failed to download video: ${(error as Error).message}`);
             res.status(400).send({
                 status: "ERROR",
                 message: (error as Error).message,
@@ -700,7 +701,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
             return;
         }
 
-        console.debug("video", video);
+        debugLog("video", video);
 
         const basename = template(video, "filename_vod");
         const basefolder = path.join(channel.getFolder(), template(video, "filename_vod_folder"));
@@ -724,7 +725,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         try {
             status = await YouTubeVOD.downloadVideo(video_id, quality, filepath) != "";
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "route.channels.download", `Failed to download video: ${(error as Error).message}`);
+            log(LOGLEVEL.ERROR, "route.channels.download", `Failed to download video: ${(error as Error).message}`);
             res.status(400).send({
                 status: "ERROR",
                 message: (error as Error).message,
@@ -761,7 +762,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
             await vod.saveJSON("manual finalize");
 
             if (!vod.channel_uuid) {
-                Log.logAdvanced(Log.Level.FATAL, "route.channels.download", `Channel UUID is empty for VOD ${vod.uuid}`);
+                log(LOGLEVEL.FATAL, "route.channels.download", `Channel UUID is empty for VOD ${vod.uuid}`);
                 res.status(500).send({
                     status: "ERROR",
                     message: req.t("route.channels.channel-uuid-is-empty"),
@@ -908,7 +909,7 @@ export async function RefreshChannel(req: express.Request, res: express.Response
     try {
         success = await channel.refreshData();
     } catch (error) {
-        Log.logAdvanced(Log.Level.ERROR, "route.channels.refresh", `Failed to refresh channel: ${(error as Error).message}`);
+        log(LOGLEVEL.ERROR, "route.channels.refresh", `Failed to refresh channel: ${(error as Error).message}`);
         res.status(400).send({
             status: "ERROR",
             message: (error as Error).message,
@@ -920,7 +921,7 @@ export async function RefreshChannel(req: express.Request, res: express.Response
     try {
         isLive = await channel.isLiveApi();
     } catch (error) {
-        Log.logAdvanced(Log.Level.ERROR, "route.channels.refresh", `Could not get live status for ${channel.internalName}`);
+        log(LOGLEVEL.ERROR, "route.channels.refresh", `Could not get live status for ${channel.internalName}`);
     }
 
     if (!isLive) {
@@ -930,14 +931,14 @@ export async function RefreshChannel(req: express.Request, res: express.Response
     }
 
     if (success) {
-        Log.logAdvanced(Log.Level.SUCCESS, "route.channels.refresh", `Refreshed channel: ${channel.internalName}`);
+        log(LOGLEVEL.SUCCESS, "route.channels.refresh", `Refreshed channel: ${channel.internalName}`);
         res.send({
             status: "OK",
             message: req.t("route.channels.refreshed-channel-channel-internalname", [channel.internalName]),
         });
         channel.broadcastUpdate();
     } else {
-        Log.logAdvanced(Log.Level.ERROR, "route.channels.refresh", `Failed to refresh channel: ${channel.internalName}`);
+        log(LOGLEVEL.ERROR, "route.channels.refresh", `Failed to refresh channel: ${channel.internalName}`);
         res.status(400).send({
             status: "ERROR",
             message: req.t("route.channels.failed-to-refresh-channel"),
@@ -1020,7 +1021,7 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
                 } as TwitchVODChapterJSON;
                 KeyValue.getInstance().setObject(`${stream.user_login}.chapterdata`, chapter_data);
 
-                Log.logAdvanced(Log.Level.INFO, "route.channels.force_record", `Forcing record for ${channel.internalName}`);
+                log(LOGLEVEL.INFO, "route.channels.force_record", `Forcing record for ${channel.internalName}`);
 
                 const TA = new TwitchAutomator();
                 TA.handle(mock_data, metadata_proxy);
@@ -1054,7 +1055,7 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
 
         if (streams) {
 
-            Log.logAdvanced(Log.Level.INFO, "route.channels.force_record", `Forcing record for ${channel.internalName}`);
+            log(LOGLEVEL.INFO, "route.channels.force_record", `Forcing record for ${channel.internalName}`);
 
             const YA = new YouTubeAutomator();
             YA.broadcaster_user_id = channel.internalId;
@@ -1103,14 +1104,14 @@ export async function RenameChannel(req: express.Request, res: express.Response)
     const success = await channel.rename(req.body.new_login);
 
     if (success) {
-        Log.logAdvanced(Log.Level.SUCCESS, "route.channels.rename", `Renamed channel: ${channel.internalName} to ${req.body.new_login}`);
+        log(LOGLEVEL.SUCCESS, "route.channels.rename", `Renamed channel: ${channel.internalName} to ${req.body.new_login}`);
         res.send({
             status: "OK",
             message: req.t("route.channels.renamed-channel-channel-internalname-to-req-body-new_login", [channel.internalName, req.body.new_login]),
         });
         channel.broadcastUpdate();
     } else {
-        Log.logAdvanced(Log.Level.ERROR, "route.channels.rename", `Failed to rename channel: ${channel.internalName} to ${req.body.new_login}`);
+        log(LOGLEVEL.ERROR, "route.channels.rename", `Failed to rename channel: ${channel.internalName} to ${req.body.new_login}`);
         res.status(400).send({
             status: "ERROR",
             message: req.t("route.channels.failed-to-rename-channel"),
@@ -1136,7 +1137,7 @@ export async function DeleteAllChannelVods(req: express.Request, res: express.Re
     try {
         success = await channel.deleteAllVods();
     } catch (error) {
-        Log.logAdvanced(Log.Level.ERROR, "route.channels.deleteAllVods", `Failed to delete all VODs of channel: ${(error as Error).message}`);
+        log(LOGLEVEL.ERROR, "route.channels.deleteAllVods", `Failed to delete all VODs of channel: ${(error as Error).message}`);
         res.status(400).send({
             status: "ERROR",
             message: (error as Error).message,
@@ -1145,14 +1146,14 @@ export async function DeleteAllChannelVods(req: express.Request, res: express.Re
     }
 
     if (success) {
-        Log.logAdvanced(Log.Level.SUCCESS, "route.channels.deleteallvods", `Deleted all VODs of channel: ${channel.internalName}`);
+        log(LOGLEVEL.SUCCESS, "route.channels.deleteallvods", `Deleted all VODs of channel: ${channel.internalName}`);
         res.send({
             status: "OK",
             message: req.t("route.channels.deleted-all-vods-of-channel-channel-internalname", [channel.internalName]),
         });
         channel.broadcastUpdate();
     } else {
-        Log.logAdvanced(Log.Level.ERROR, "route.channels.deleteallvods", `Failed to delete all VODs of channel: ${channel.internalName}`);
+        log(LOGLEVEL.ERROR, "route.channels.deleteallvods", `Failed to delete all VODs of channel: ${channel.internalName}`);
         res.status(400).send({
             status: "ERROR",
             message: req.t("route.channels.failed-to-delete-all-vods"),
@@ -1230,7 +1231,7 @@ export async function ScanVods(req: express.Request, res: express.Response): Pro
     }
 
     // channel.vods_raw = channel.rescanVods();
-    // Log.logAdvanced(Log.Level.INFO, "channel", `Found ${channel.vods_raw.length} VODs from recursive file search for ${channel.login}`);
+    // logAdvanced(LOGLEVEL.INFO, "channel", `Found ${channel.vods_raw.length} VODs from recursive file search for ${channel.login}`);
     // fs.writeFileSync(path.join(BaseConfigDataFolder.vods_db, `${channel.login}.json`), JSON.stringify(channel.vods_raw));
     // channel.broadcastUpdate();
     // console.log("vod amount sanity check 1", TwitchVOD.vods.length);
@@ -1334,7 +1335,7 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
 
         if (vod.exportData.exported_at && !force) {
             completedVods++;
-            Log.logAdvanced(Log.Level.INFO, "route.channels.exportallvods", `Skipping VOD ${vod.basename} because it was already exported`);
+            log(LOGLEVEL.INFO, "route.channels.exportallvods", `Skipping VOD ${vod.basename} because it was already exported`);
             continue;
         }
 
@@ -1362,7 +1363,7 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
                 options
             );
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "route.channel.ExportAllVods", `Auto exporter error for '${vod.basename}': ${(error as Error).message}`);
+            log(LOGLEVEL.ERROR, "route.channel.ExportAllVods", `Auto exporter error for '${vod.basename}': ${(error as Error).message}`);
             failedVods++;
             job.setProgress((completedVods + failedVods) / totalVods);
             continue;
@@ -1370,17 +1371,17 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
 
         if (exporter) {
 
-            Log.logAdvanced(Log.Level.INFO, "route.channel.ExportAllVods", `Exporting VOD '${vod.basename}' as '${exporter.getFormattedTitle()}' with exporter '${exporter_name}'`);
+            log(LOGLEVEL.INFO, "route.channel.ExportAllVods", `Exporting VOD '${vod.basename}' as '${exporter.getFormattedTitle()}' with exporter '${exporter_name}'`);
 
             let out_path;
             try {
                 out_path = await exporter.export();
             } catch (error) {
-                Log.logAdvanced(Log.Level.ERROR, "route.channel.ExportAllVods", (error as Error).message ? `Export error for '${vod.basename}': ${(error as Error).message}` : "Unknown error occurred while exporting export");
+                log(LOGLEVEL.ERROR, "route.channel.ExportAllVods", (error as Error).message ? `Export error for '${vod.basename}': ${(error as Error).message}` : "Unknown error occurred while exporting export");
                 failedVods++;
                 job.setProgress((completedVods + failedVods) / totalVods);
                 if ((error as Error).message && (error as Error).message.includes("exceeded your")) {
-                    Log.logAdvanced(Log.Level.FATAL, "route.channel.ExportAllVods", "Stopping mass export because of quota exceeded");
+                    log(LOGLEVEL.FATAL, "route.channel.ExportAllVods", "Stopping mass export because of quota exceeded");
                     break; // stop exporting if we hit the quota
                 }
                 continue;
@@ -1391,13 +1392,13 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
                 try {
                     status = await exporter.verify();
                 } catch (error) {
-                    Log.logAdvanced(Log.Level.ERROR, "route.channel.ExportAllVods", (error as Error).message ? `Verify error for '${vod.basename}': ${(error as Error).message}` : "Unknown error occurred while verifying export");
+                    log(LOGLEVEL.ERROR, "route.channel.ExportAllVods", (error as Error).message ? `Verify error for '${vod.basename}': ${(error as Error).message}` : "Unknown error occurred while verifying export");
                     failedVods++;
                     job.setProgress((completedVods + failedVods) / totalVods);
                     continue;
                 }
 
-                Log.logAdvanced(Log.Level.SUCCESS, "route.channel.ExportAllVods", `Exporter finished for '${vod.basename}', status: ${status}`);
+                log(LOGLEVEL.SUCCESS, "route.channel.ExportAllVods", `Exporter finished for '${vod.basename}', status: ${status}`);
 
                 if (status) {
                     if (exporter.vod && status) {
@@ -1410,11 +1411,11 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
                 } else {
                     failedVods++;
                     job.setProgress((completedVods + failedVods) / totalVods);
-                    Log.logAdvanced(Log.Level.ERROR, "route.channel.ExportAllVods", `Exporter failed for '${vod.basename}'`);
+                    log(LOGLEVEL.ERROR, "route.channel.ExportAllVods", `Exporter failed for '${vod.basename}'`);
                 }
 
             } else {
-                Log.logAdvanced(Log.Level.ERROR, "route.channel.ExportAllVods", `Exporter finished but no path output for '${vod.basename}'`);
+                log(LOGLEVEL.ERROR, "route.channel.ExportAllVods", `Exporter finished but no path output for '${vod.basename}'`);
             }
 
         }
@@ -1425,7 +1426,7 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
 
     }
 
-    Log.logAdvanced(Log.Level.INFO, "route.channel.ExportAllVods", `Exported ${completedVods} VODs, ${failedVods} failed`);
+    log(LOGLEVEL.INFO, "route.channel.ExportAllVods", `Exported ${completedVods} VODs, ${failedVods} failed`);
 
     job.clear();
 

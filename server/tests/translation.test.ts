@@ -9,4 +9,9 @@ describe("Translation", () => {
         expect(t("test")).toBe("Hello World");
         expect(t("notify.channel-displayname-is-now-streaming-current_chapter-game_name", ["TestChannel", "TestGame"])).toBe("TestChannel is now streaming TestGame!");
     });
+
+    it("should use the correct interpolation syntax", () => {
+        expect(t("{{0}} is now streaming {{1}}!", ["TestChannel", "TestGame"])).toBe("TestChannel is now streaming TestGame!");
+        expect(t("{0} is now streaming {1}!", ["TestChannel", "TestGame"])).toBe("{0} is now streaming {1}!");
+    });
 });

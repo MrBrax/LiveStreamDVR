@@ -2,12 +2,12 @@ import express from "express";
 import fs from "node:fs";
 import path from "node:path";
 import { ApiResponse } from "@common/Api/Api";
-import { BaseConfigFolder } from "../Core/BaseConfig";
-import { ClientBroker } from "../Core/ClientBroker";
-import { Config } from "../Core/Config";
-import { LiveStreamDVR } from "../Core/LiveStreamDVR";
-import { generateStreamerList } from "../Helpers/StreamerList";
-import { Helper } from "../Core/Helper";
+import { BaseConfigFolder } from "@/Core/BaseConfig";
+import { ClientBroker } from "@/Core/ClientBroker";
+import { Config } from "@/Core/Config";
+import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
+import { generateStreamerList } from "@/Helpers/StreamerList";
+import { Helper } from "@/Core/Helper";
 
 /**
  * I don't like telemetry myself, but I do get curious sometimes.

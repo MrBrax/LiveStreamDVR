@@ -1,7 +1,8 @@
 import path from "node:path";
 import sanitize from "sanitize-filename";
 import { BaseExporter } from "./Base";
-import { Helper } from "../Core/Helper";
+import { Helper } from "@/Core/Helper";
+import { execSimple, startJob } from "@/Helpers/Execute";
 
 export class SFTPExporter extends BaseExporter {
 
@@ -61,7 +62,7 @@ export class SFTPExporter extends BaseExporter {
                 remote_path,
             ];
 
-            const job = Helper.startJob("SFTPExporter_" + path.basename(this.filename), bin, args);
+            const job = startJob("SFTPExporter_" + path.basename(this.filename), bin, args);
             if (!job) {
                 throw new Error("Failed to start job");
             }
@@ -95,7 +96,7 @@ export class SFTPExporter extends BaseExporter {
             `'${this.remote_file}'`,
         ];
 
-        const job = await Helper.execSimple(bin, args, "ssh file check");
+        const job = await execSimple(bin, args, "ssh file check");
 
         if (job.code === 0) return true;
 

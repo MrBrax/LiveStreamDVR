@@ -1,13 +1,9 @@
-import { TwitchChannel } from "../src/Core/Providers/Twitch/TwitchChannel";
-import { Config } from "../src/Core/Config";
-import { TwitchVOD } from "../src/Core/Providers/Twitch/TwitchVOD";
-import fs from "node:fs";
-import { BaseVODSegment } from "../src/Core/Providers/Base/BaseVODSegment";
-import { randomUUID } from "node:crypto";
-import { LiveStreamDVR } from "../src/Core/LiveStreamDVR";
-import { KeyValue } from "../src/Core/KeyValue";
 import { format } from "date-fns";
-import { TwitchAutomator } from "../src/Core/Providers/Twitch/TwitchAutomator";
+import fs from "node:fs";
+import { Config } from "../src/Core/Config";
+import { KeyValue } from "../src/Core/KeyValue";
+import { LiveStreamDVR } from "../src/Core/LiveStreamDVR";
+import { TwitchChannel } from "../src/Core/Providers/Twitch/TwitchChannel";
 import "./environment";
 
 // jest.mock("TwitchVOD");
@@ -36,7 +32,8 @@ beforeAll(async () => {
         offline_image_url: "",
         created_at: "",
         id: "1",
-        cache_avatar: "",
+        avatar_cache: "",
+        avatar_thumb: "",
         broadcaster_type: "partner",
         display_name: "TestUser",
         type: "",

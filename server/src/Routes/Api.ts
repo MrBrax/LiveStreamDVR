@@ -24,8 +24,8 @@ import * as YouTube from "../Controllers/YouTube";
 import * as Twitch from "../Controllers/Twitch";
 import * as YouTubeAPI from "../Controllers/YouTubeAPI";
 import * as KickAPI from "../Controllers/KickAPI";
-import { Config } from "../Core/Config";
-import { AuthAdmin, AuthCore, AuthGuest } from "../Helpers/Auth";
+import { Config } from "@/Core/Config";
+import { AuthAdmin, AuthCore, AuthGuest } from "@/Helpers/Auth";
 
 const router = express.Router();
 

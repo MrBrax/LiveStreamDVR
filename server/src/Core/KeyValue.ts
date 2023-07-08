@@ -6,7 +6,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { BaseConfigCacheFolder, BaseConfigPath } from "./BaseConfig";
 import { Config } from "./Config";
-import { Log } from "./Log";
+import { log, LOGLEVEL } from "./Log";
+import { debugLog } from "@/Helpers/Console";
 
 export interface KeyValueData {
     value: string;
@@ -108,6 +109,23 @@ export class KeyValue extends EventEmitter {
     }
 
     /**
+     * Get a value from the key-value store as a promise. Rejects if the key does not exist.
+     * Could be used for an external cache store like Redis in the future.
+     * @param key 
+     * @returns 
+     */
+    getAsync(key: string): Promise<string | false> {
+        return new Promise((resolve, reject) => {
+            const value = this.getRaw(key);
+            if (value === false) {
+                reject();
+            } else {
+                resolve(value.value);
+            }
+        });
+    }
+
+    /**
      * Get a value from the key-value store as an object.
      * @param key 
      * @returns 
@@ -155,7 +173,7 @@ export class KeyValue extends EventEmitter {
 
         key = key.replaceAll("/", "");
 
-        if (Config.debug) console.debug(`[debug] Setting key-value pair: ${key} = ${value}`);
+        debugLog(`Setting key-value pair: ${key} = ${value}`);
         // this.data[key] = value;
         this.data[key] = {
             value: value,
@@ -171,7 +189,7 @@ export class KeyValue extends EventEmitter {
 
         key = key.replaceAll("/", "");
 
-        if (Config.debug) console.debug(`[debug] Setting expiring key-value pair: ${key} = ${value} (expires in ${seconds} seconds)`);
+        debugLog(`Setting expiring key-value pair: ${key} = ${value} (expires in ${seconds} seconds)`);
 
         this.data[key] = {
             value: value,
@@ -277,7 +295,7 @@ export class KeyValue extends EventEmitter {
         }
 
         if (deleted == 0) {
-            Log.logAdvanced(Log.Level.WARNING, "keyvalue", `No keys deleted for wildcard ${keyWildcard}`);
+            log(LOGLEVEL.WARNING, "keyvalue", `No keys deleted for wildcard ${keyWildcard}`);
         }
 
     }
@@ -288,7 +306,7 @@ export class KeyValue extends EventEmitter {
         for (const key of keys) {
             const value = this.data[key];
             if (value.expires && value.expires.getTime() < Date.now()) {
-                Log.logAdvanced(Log.Level.DEBUG, "keyvalue", `Deleting expired key ${key} (expired at ${value.expires.toISOString()})`);
+                log(LOGLEVEL.DEBUG, "keyvalue", `Deleting expired key ${key} (expired at ${value.expires.toISOString()})`);
                 delete this.data[key];
             }
         }
@@ -300,7 +318,7 @@ export class KeyValue extends EventEmitter {
      */
     delete(key: string, dontSave = false) {
         if (this.data[key]) {
-            if (Config.debug) console.debug(`Deleting key-value pair: ${key}`);
+            debugLog(`Deleting key-value pair: ${key}`);
             delete this.data[key];
             this.emit("delete", key);
             if (!dontSave) this.save();
@@ -311,7 +329,7 @@ export class KeyValue extends EventEmitter {
      * Delete all values from the key-value store.
      */
     deleteAll() {
-        if (Config.debug) console.debug("Deleting all key-value pairs");
+        debugLog("Deleting all key-value pairs");
         this.data = {};
         this.emit("delete_all");
         this.save();

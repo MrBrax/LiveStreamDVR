@@ -1,10 +1,9 @@
-import { Config } from "./Config";
-import chalk from "chalk";
-import { ClientBroker } from "./ClientBroker";
+import { WebhookAction, WebhookData } from "@common/Webhook";
 import axios from "axios";
-import {  Log } from "./Log";
-import { WebhookData, WebhookAction } from "@common/Webhook";
+import { ClientBroker } from "./ClientBroker";
+import { Config } from "./Config";
 import { LiveStreamDVR } from "./LiveStreamDVR";
+import { LOGLEVEL, log } from "./Log";
 
 export class Webhook {
 
@@ -25,7 +24,7 @@ export class Webhook {
 
         // if (Config.debug) console.log(chalk.bgGrey.whiteBright(`WebSocket payload ${action} dispatching...`));
 
-        Log.logAdvanced(Log.Level.DEBUG, "webhook", `Dispatching all for ${action}...`);
+        log(LOGLEVEL.DEBUG, "webhook", `Dispatching all for ${action}...`);
 
         Webhook.dispatchWebsocket(action, data);
         Webhook.dispatchWebhook(action, data);
@@ -43,19 +42,19 @@ export class Webhook {
 
         // send webhook
         if (Config.getInstance().hasValue("webhook_url")) {
-            Log.logAdvanced(Log.Level.DEBUG, "webhook", `Dispatching webhook for ${action}...`);
+            log(LOGLEVEL.DEBUG, "webhook", `Dispatching webhook for ${action}...`);
             const url = Config.getInstance().cfg<string>("webhook_url");
             axios.post(url, payload).then(response => {
-                Log.logAdvanced(Log.Level.DEBUG, "webhook", `Webhook response from '${url}': ${response.status} ${response.statusText}`);
+                log(LOGLEVEL.DEBUG, "webhook", `Webhook response from '${url}': ${response.status} ${response.statusText}`);
             }).catch(error => {
                 if (axios.isAxiosError(error)) {
-                    Log.logAdvanced(Log.Level.ERROR, "webhook", `Webhook error to '${url}': ${error.response?.status} ${error.response?.statusText}`, error);
+                    log(LOGLEVEL.ERROR, "webhook", `Webhook error to '${url}': ${error.response?.status} ${error.response?.statusText}`, error);
                 } else {
-                    Log.logAdvanced(Log.Level.ERROR, "webhook", `Webhook error to '${url}': ${error}`, error);
+                    log(LOGLEVEL.ERROR, "webhook", `Webhook error to '${url}': ${error}`, error);
                 }
             });
         } else {
-            Log.logAdvanced(Log.Level.DEBUG, "webhook", `Not dispatching webhook for ${action} because no webhook_url is set.`);
+            log(LOGLEVEL.DEBUG, "webhook", `Not dispatching webhook for ${action} because no webhook_url is set.`);
         }
 
     }
@@ -69,7 +68,7 @@ export class Webhook {
             data: data,
         };
 
-        Log.logAdvanced(Log.Level.DEBUG, "webhook", `Dispatching websocket for ${action}...`);
+        log(LOGLEVEL.DEBUG, "webhook", `Dispatching websocket for ${action}...`);
 
         ClientBroker.broadcast(payload);
 

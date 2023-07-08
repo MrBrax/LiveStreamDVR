@@ -12,11 +12,13 @@ import { YouTubeHelper } from "../Providers/YouTube";
 import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot } from "./BaseConfig";
 import { Helper } from "./Helper";
 import { LiveStreamDVR } from "./LiveStreamDVR";
-import { Log } from "./Log";
+import { log, LOGLEVEL } from "./Log";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 import { Scheduler } from "./Scheduler";
 import i18next from "i18next";
+import { debugLog } from "@/Helpers/Console";
+import { GetRunningProcesses, execSimple } from "@/Helpers/Execute";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -71,7 +73,7 @@ export class Config {
         }
 
         if (!Config.settingExists(key)) {
-            Log.logAdvanced(Log.Level.WARNING, "config", `Setting '${key}' does not exist.`);
+            log(LOGLEVEL.WARNING, "config", `Setting '${key}' does not exist.`);
             console.warn(chalk.red(`Setting '${key}' does not exist.`));
         }
 
@@ -122,7 +124,7 @@ export class Config {
         }
 
         if (!Config.settingExists(key)) {
-            Log.logAdvanced(Log.Level.WARNING, "config", `Setting '${key}' does not exist.`);
+            log(LOGLEVEL.WARNING, "config", `Setting '${key}' does not exist.`);
             console.warn(chalk.red(`Setting '${key}' does not exist.`));
         }
 
@@ -190,7 +192,7 @@ export class Config {
                 if (config[field.from] !== undefined) {
                     config[field.to] = config[field.from];
                     // delete this.config[field.from];
-                    Log.logAdvanced(Log.Level.INFO, "config", `Migrated setting '${field.from}' to '${field.from}'.`);
+                    log(LOGLEVEL.INFO, "config", `Migrated setting '${field.from}' to '${field.from}'.`);
                 }
             }
         }
@@ -347,9 +349,9 @@ export class Config {
         const success = fs.existsSync(BaseConfigPath.config) && fs.statSync(BaseConfigPath.config).size > 0;
 
         if (success) {
-            Log.logAdvanced(Log.Level.SUCCESS, "config", `Saved config from ${source}`);
+            log(LOGLEVEL.SUCCESS, "config", `Saved config from ${source}`);
         } else {
-            Log.logAdvanced(Log.Level.ERROR, "config", `Failed to save config from ${source}`);
+            log(LOGLEVEL.ERROR, "config", `Failed to save config from ${source}`);
         }
 
         this.startWatchingConfig();
@@ -432,7 +434,7 @@ export class Config {
         }
 
         if (this.cfg<string>("app_url") === "debug") {
-            Log.logAdvanced(Log.Level.WARNING, "config", "App url set to 'debug', can't get websocket client url");
+            log(LOGLEVEL.WARNING, "config", "App url set to 'debug', can't get websocket client url");
             return undefined;
         }
 
@@ -460,7 +462,7 @@ export class Config {
             if (this._writeConfig) return;
             console.log(`Config file changed: ${eventType} ${filename}`);
             console.log("writeconfig check", Date.now());
-            Log.logAdvanced(Log.Level.WARNING, "config", "Config file changed externally");
+            log(LOGLEVEL.WARNING, "config", "Config file changed externally");
             // TwitchConfig.loadConfig();
         });
 
@@ -599,7 +601,7 @@ export class Config {
 
     static validateExternalURLRules(url: string) {
 
-        console.debug(`Validating external url: ${url}`);
+        debugLog(`Validating external url: ${url}`);
 
         // no url
         if (!url) {
@@ -636,24 +638,25 @@ export class Config {
     }
 
     static get can_shutdown(): boolean {
-        if (!LiveStreamDVR.getInstance().getChannels() || LiveStreamDVR.getInstance().getChannels().length === 0) return true;
-        return !LiveStreamDVR.getInstance().getChannels().some(c => c.is_live);
+        if (!LiveStreamDVR.getInstance().getChannels() || LiveStreamDVR.getInstance().getChannels().length === 0) return true; // if there are no channels, allow shutdown
+        if (GetRunningProcesses().length > 0) return false; // if there are any running processes, don't allow shutdown
+        return !LiveStreamDVR.getInstance().getChannels().some(c => c.is_live); // if there are any live channels, don't allow shutdown
     }
 
     async getGitHash() {
         let ret;
         try {
-            ret = await Helper.execSimple("git", ["rev-parse", "HEAD"], "git hash check");
+            ret = await execSimple("git", ["rev-parse", "HEAD"], "git hash check");
         } catch (error) {
-            Log.logAdvanced(Log.Level.WARNING, "config.getGitHash", "Could not fetch git hash");
+            log(LOGLEVEL.WARNING, "config.getGitHash", "Could not fetch git hash");
             return false;
         }
         if (ret && ret.stdout) {
             this.gitHash = ret.stdout.join("").trim();
-            Log.logAdvanced(Log.Level.SUCCESS, "config.getGitHash", `Running on Git hash: ${this.gitHash}`);
+            log(LOGLEVEL.SUCCESS, "config.getGitHash", `Running on Git hash: ${this.gitHash}`);
             return true;
         } else {
-            Log.logAdvanced(Log.Level.WARNING, "config.getGitHash", "Could not fetch git hash");
+            log(LOGLEVEL.WARNING, "config.getGitHash", "Could not fetch git hash");
             return false;
         }
     }
@@ -661,17 +664,17 @@ export class Config {
     async getGitBranch() {
         let ret;
         try {
-            ret = await Helper.execSimple("git", ["rev-parse", "--abbrev-ref", "HEAD"], "git branch check");
+            ret = await execSimple("git", ["rev-parse", "--abbrev-ref", "HEAD"], "git branch check");
         } catch (error) {
-            Log.logAdvanced(Log.Level.WARNING, "config.getGitBranch", "Could not fetch git branch");
+            log(LOGLEVEL.WARNING, "config.getGitBranch", "Could not fetch git branch");
             return false;
         }
         if (ret && ret.stdout) {
             this.gitBranch = ret.stdout.join("").trim();
-            Log.logAdvanced(Log.Level.SUCCESS, "config.getGitBranch", `Running on Git branch: ${this.gitBranch}`);
+            log(LOGLEVEL.SUCCESS, "config.getGitBranch", `Running on Git branch: ${this.gitBranch}`);
             return true;
         } else {
-            Log.logAdvanced(Log.Level.WARNING, "config.getGitBranch", "Could not fetch git branch");
+            log(LOGLEVEL.WARNING, "config.getGitBranch", "Could not fetch git branch");
             return false;
         }
     }

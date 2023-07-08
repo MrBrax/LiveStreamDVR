@@ -1,7 +1,7 @@
 import express from "express";
 import { ApiFavouriteGamesResponse } from "@common/Api/Api";
-import { TwitchGame } from "../Core/Providers/Twitch/TwitchGame";
-import {  Log } from "../Core/Log";
+import { TwitchGame } from "@/Core/Providers/Twitch/TwitchGame";
+import { log, LOGLEVEL } from "@/Core/Log";
 
 export function ListFavourites(req: express.Request, res: express.Response): void {
     res.send({
@@ -20,7 +20,7 @@ export function SaveFavourites(req: express.Request, res: express.Response): voi
 
     TwitchGame.saveFavouriteGames();
 
-    Log.logAdvanced(Log.Level.INFO, "route.favourites.save", `Saved ${TwitchGame.favourite_games.length} favourite games.`);
+    log(LOGLEVEL.INFO, "route.favourites.save", `Saved ${TwitchGame.favourite_games.length} favourite games.`);
 
     res.send({
         status: "OK",
@@ -39,7 +39,7 @@ export function AddFavourite(req: express.Request, res: express.Response): void 
 
     TwitchGame.saveFavouriteGames();
 
-    Log.logAdvanced(Log.Level.INFO, "route.favourites.add", `Added ${formdata.game} to favourites.`);
+    log(LOGLEVEL.INFO, "route.favourites.add", `Added ${formdata.game} to favourites.`);
 
     res.send({
         status: "OK",

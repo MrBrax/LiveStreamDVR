@@ -1,12 +1,12 @@
 import express from "express";
 import type { ApiSettingsResponse } from "@common/Api/Api";
 import { version } from "../../package.json";
-import { AppName } from "../Core/BaseConfig";
-import { Config } from "../Core/Config";
+import { AppName } from "@/Core/BaseConfig";
+import { Config } from "@/Core/Config";
 import { TwitchHelper } from "../Providers/Twitch";
-import { KeyValue } from "../Core/KeyValue";
-import { LiveStreamDVR } from "../Core/LiveStreamDVR";
-import { TwitchGame } from "../Core/Providers/Twitch/TwitchGame";
+import { KeyValue } from "@/Core/KeyValue";
+import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
+import { TwitchGame } from "@/Core/Providers/Twitch/TwitchGame";
 
 export function GetSettings(req: express.Request, res: express.Response): void {
 

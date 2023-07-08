@@ -1,10 +1,10 @@
 import express from "express";
 import { TwitchHelper } from "../Providers/Twitch";
-import { Log } from "../Core/Log";
+import { log, LOGLEVEL } from "@/Core/Log";
 import fs from "node:fs";
 import { formatDistanceToNow, formatISO9075 } from "date-fns";
-import { Config } from "../Core/Config";
-import { TwitchChannel } from "../Core/Providers/Twitch/TwitchChannel";
+import { Config } from "@/Core/Config";
+import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
 import type { TwitchAuthUserTokenResponse } from "@common/TwitchAPI/Auth";
 import axios from "axios";
 
@@ -17,7 +17,7 @@ function redirectUri(): string {
 }
 export function Authenticate(req: express.Request, res: express.Response): void {
 
-    Log.logAdvanced(Log.Level.INFO, "route.twitch", "Begin auth process...");
+    log(LOGLEVEL.INFO, "route.twitch", "Begin auth process...");
 
     const clientId = Config.getInstance().cfg("api_client_id");
 
@@ -28,14 +28,14 @@ export function Authenticate(req: express.Request, res: express.Response): void 
     const url = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri()}&response_type=code&scope=${scopes.join(" ")}`;
 
     if (req.query.rawurl) {
-        Log.logAdvanced(Log.Level.SUCCESS, "route.twitch", `Send raw URL to user: ${url}`);
+        log(LOGLEVEL.SUCCESS, "route.twitch", `Send raw URL to user: ${url}`);
         res.status(200).send({
             status: "OK",
             data: url,
         });
         return;
     } else {
-        Log.logAdvanced(Log.Level.SUCCESS, "route.twitch", `Send user to: ${url}`);
+        log(LOGLEVEL.SUCCESS, "route.twitch", `Send user to: ${url}`);
         res.redirect(302, url);
     }
 
@@ -43,7 +43,7 @@ export function Authenticate(req: express.Request, res: express.Response): void 
 
 export async function Callback(req: express.Request, res: express.Response): Promise<void> {
 
-    Log.logAdvanced(Log.Level.INFO, "route.twitch", "Callback received");
+    log(LOGLEVEL.INFO, "route.twitch", "Callback received");
 
     const code = req.query.code as string;
 
@@ -52,7 +52,7 @@ export async function Callback(req: express.Request, res: express.Response): Pro
             status: "ERROR",
             message: "No code received from Twitch. Check your settings.",
         });
-        Log.logAdvanced(Log.Level.ERROR, "route.twitch", "No code received from Twitch, user stuck.");
+        log(LOGLEVEL.ERROR, "route.twitch", "No code received from Twitch, user stuck.");
         return;
     }
 
@@ -81,7 +81,7 @@ export async function Callback(req: express.Request, res: express.Response): Pro
         });
     } catch (e) {
         if (axios.isAxiosError(e)) {
-            Log.logAdvanced(Log.Level.ERROR, "route.twitch", `Error while getting access token: ${(e as Error).message || e}, ${JSON.stringify(e.response?.data)}`);
+            log(LOGLEVEL.ERROR, "route.twitch", `Error while getting access token: ${(e as Error).message || e}, ${JSON.stringify(e.response?.data)}`);
             console.log(body);
             console.error(e.response?.data);
             res.status(500).send({
@@ -109,7 +109,7 @@ export async function Callback(req: express.Request, res: express.Response): Pro
 
     res.send("Success! You can now close this window.");
 
-    Log.logAdvanced(Log.Level.SUCCESS, "route.twitch", "Successfully authenticated user, switched to user token.");
+    log(LOGLEVEL.SUCCESS, "route.twitch", "Successfully authenticated user, switched to user token.");
 
 }
 

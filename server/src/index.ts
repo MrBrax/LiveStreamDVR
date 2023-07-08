@@ -16,6 +16,7 @@ import { Config } from "./Core/Config";
 import { Webhook } from "./Core/Webhook";
 import i18n from "./Helpers/i18n";
 import ApiRouter from "./Routes/Api";
+import { debugLog } from "./Helpers/Console";
 
 declare module "express-session" {
     interface SessionData {
@@ -55,7 +56,7 @@ try {
 LiveStreamDVR.init().then(() => {
 
     // if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "lock"))) {
-    //     Log.logAdvanced(Log.Level.WARNING, "index", "Seems like the server was not shut down gracefully...");
+    //     logAdvanced(LOGLEVEL.WARNING, "index", "Seems like the server was not shut down gracefully...");
     // }
 
     const app = express();
@@ -215,7 +216,7 @@ LiveStreamDVR.init().then(() => {
     });
 
     server.on("close", () => {
-        console.log("Express server closed");
+        debugLog("Express server closed");
     });
 
     let websocketServer: WebSocketServer | undefined = undefined;

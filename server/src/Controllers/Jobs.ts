@@ -1,7 +1,7 @@
-import { Job } from "../Core/Job";
+import { Job } from "@/Core/Job";
 import express from "express";
 import { ApiErrorResponse, ApiJobsResponse } from "@common/Api/Api";
-import { Log } from "../Core/Log";
+import { log, LOGLEVEL } from "@/Core/Log";
 
 export async function ListJobs(req: express.Request, res: express.Response): Promise<void> {
 
@@ -40,7 +40,7 @@ export async function KillJob(req: express.Request, res: express.Response): Prom
         return;
     }
 
-    Log.logAdvanced(Log.Level.INFO, "route.jobs.kill", `Killing job ${job.name} with clear=${clear} and method=${method}`);
+    log(LOGLEVEL.INFO, "route.jobs.kill", `Killing job ${job.name} with clear=${clear} and method=${method}`);
 
     if (clear) {
 

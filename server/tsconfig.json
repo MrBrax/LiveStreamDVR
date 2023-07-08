@@ -7,15 +7,15 @@
     "esModuleInterop": true,
     "resolveJsonModule": true,
     "sourceMap": true,
-    "baseUrl": "src",
+    "baseUrl": ".",
     "outDir": "./build",
     "isolatedModules": true,
     "paths": {
       "@/*": [
-        "src/*"
+        "./src/*"
       ],
       "@common/*": [
-        "../../common/*"
+        "../common/*"
       ],
     },
   },

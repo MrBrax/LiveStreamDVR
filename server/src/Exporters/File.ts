@@ -1,10 +1,10 @@
-import { Job } from "../Core/Job";
-import { Log } from "../Core/Log";
+import { Job } from "@/Core/Job";
+import { log, LOGLEVEL } from "@/Core/Log";
 import fs from "node:fs";
 import path from "node:path";
 import sanitize from "sanitize-filename";
 import { BaseExporter } from "./Base";
-import { xInterval } from "../Helpers/Timeout";
+import { xClearInterval, xInterval } from "@/Helpers/Timeout";
 
 export class FileExporter extends BaseExporter {
 
@@ -34,7 +34,7 @@ export class FileExporter extends BaseExporter {
             throw new Error(`File already exists: ${this.final_path}`);
         }
 
-        Log.logAdvanced(Log.Level.INFO, "FileExporter", `Exporting ${this.filename} to ${this.final_path}...`);
+        log(LOGLEVEL.INFO, "FileExporter", `Exporting ${this.filename} to ${this.final_path}...`);
 
         const job = Job.create(`FileExporter_${path.basename(this.final_path)}`);
         job.dummy = true;
@@ -45,7 +45,7 @@ export class FileExporter extends BaseExporter {
         const ticker = xInterval(() => {
             if (!fs.existsSync(this.final_path)) return;
             if (!job) {
-                clearInterval(ticker);
+                xClearInterval(ticker);
                 return;
             }
             job.setProgress(fs.statSync(this.final_path).size / filesize);
@@ -56,7 +56,7 @@ export class FileExporter extends BaseExporter {
 
         job.clear();
 
-        clearInterval(ticker);
+        xClearInterval(ticker);
 
         return fs.existsSync(this.final_path) ? this.final_path : false;
     }

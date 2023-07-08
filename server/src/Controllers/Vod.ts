@@ -1,24 +1,24 @@
-import { Config } from "../Core/Config";
-import { format } from "date-fns";
-import express from "express";
-import fs from "node:fs";
-import path from "node:path";
-import sanitize from "sanitize-filename";
+import { BaseConfigDataFolder } from "@/Core/BaseConfig";
+import { Config } from "@/Core/Config";
+import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
+import { LOGLEVEL, log } from "@/Core/Log";
+import { TwitchVOD } from "@/Core/Providers/Twitch/TwitchVOD";
+import { TwitchVODChapter } from "@/Core/Providers/Twitch/TwitchVODChapter";
+import { formatDuration } from "@/Helpers/Format";
+import { cutFile } from "@/Helpers/Video";
 import { ApiErrorResponse, ApiResponse, ApiVodResponse } from "@common/Api/Api";
+import { EditableChapter } from "@common/Api/Client";
 import { VODBookmark } from "@common/Bookmark";
 import { VideoQuality } from "@common/Config";
 import { VideoQualityArray } from "@common/Defs";
 import { formatString } from "@common/Format";
 import type { VodBasenameTemplate } from "@common/Replacements";
-import { BaseConfigDataFolder } from "../Core/BaseConfig";
+import { format } from "date-fns";
+import express from "express";
+import fs from "node:fs";
+import path from "node:path";
+import sanitize from "sanitize-filename";
 import { TwitchHelper } from "../Providers/Twitch";
-import { Log } from "../Core/Log";
-import { TwitchVOD } from "../Core/Providers/Twitch/TwitchVOD";
-import { LiveStreamDVR } from "../Core/LiveStreamDVR";
-import { Helper } from "../Core/Helper";
-import { EditableChapter } from "@common/Api/Client";
-import { TwitchVODChapter } from "../Core/Providers/Twitch/TwitchVODChapter";
-import { formatDuration } from "../Helpers/Format";
 
 export async function GetVod(req: express.Request, res: express.Response): Promise<void> {
 
@@ -344,13 +344,13 @@ export async function RenderWizard(req: express.Request, res: express.Response):
     let status_renderchat = false;
     let status_burnchat = false;
 
-    Log.logAdvanced(Log.Level.INFO, "route.vod.RenderWizard", `Start render wizard for vod ${vod}`);
-    Log.logAdvanced(Log.Level.INFO, "route.vod.RenderWizard", `chat_width: ${chat_width}`);
-    Log.logAdvanced(Log.Level.INFO, "route.vod.RenderWizard", `chat_height: ${chat_height}`);
-    Log.logAdvanced(Log.Level.INFO, "route.vod.RenderWizard", `render_chat: ${render_chat}`);
-    Log.logAdvanced(Log.Level.INFO, "route.vod.RenderWizard", `burn_chat: ${burn_chat}`);
-    Log.logAdvanced(Log.Level.INFO, "route.vod.RenderWizard", `vod_source: ${vod_source}`);
-    Log.logAdvanced(Log.Level.INFO, "route.vod.RenderWizard", `chat_source: ${chat_source}`);
+    log(LOGLEVEL.INFO, "route.vod.RenderWizard", `Start render wizard for vod ${vod}`);
+    log(LOGLEVEL.INFO, "route.vod.RenderWizard", `chat_width: ${chat_width}`);
+    log(LOGLEVEL.INFO, "route.vod.RenderWizard", `chat_height: ${chat_height}`);
+    log(LOGLEVEL.INFO, "route.vod.RenderWizard", `render_chat: ${render_chat}`);
+    log(LOGLEVEL.INFO, "route.vod.RenderWizard", `burn_chat: ${burn_chat}`);
+    log(LOGLEVEL.INFO, "route.vod.RenderWizard", `vod_source: ${vod_source}`);
+    log(LOGLEVEL.INFO, "route.vod.RenderWizard", `chat_source: ${chat_source}`);
 
     if (render_chat) {
         try {
@@ -580,7 +580,7 @@ export async function CutVod(req: express.Request, res: express.Response): Promi
     let ret;
 
     try {
-        ret = await Helper.cutFile(file_in, file_out, seconds_in, seconds_out);
+        ret = await cutFile(file_in, file_out, seconds_in, seconds_out);
     } catch (error) {
         res.status(400).send({
             status: "ERROR",
@@ -606,11 +606,11 @@ export async function CutVod(req: express.Request, res: express.Response): Promi
         try {
             success = TwitchHelper.cutChat(chat_file_in, chat_file_out, seconds_in, seconds_out);
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "route.vod.cutVod", `Cut chat failed: ${(error as Error).message}`);
+            log(LOGLEVEL.ERROR, "route.vod.cutVod", `Cut chat failed: ${(error as Error).message}`);
         }
 
         if (success) {
-            Log.logAdvanced(Log.Level.INFO, "route.vod.cutVod", `Cut chat ${chat_file_in} to ${chat_file_out} success`);
+            log(LOGLEVEL.INFO, "route.vod.cutVod", `Cut chat ${chat_file_in} to ${chat_file_out} success`);
         }
 
     }

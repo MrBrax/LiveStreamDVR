@@ -1,6 +1,6 @@
 import axios, { isAxiosError } from "axios";
 import type { KickChannel, KickUser, KickChannelVideo, KickChannelLivestream, KickChannelLivestreamResponse } from "@common/KickAPI/Kick";
-import { Log } from "../Core/Log";
+import { log, LOGLEVEL } from "@/Core/Log";
 
 /*
 const axiosInstance = axios.create({
@@ -53,7 +53,7 @@ function baseFetchOptions(): RequestInit {
         redirect: "follow",
         cache: "no-cache",
     };
-};
+}
 
 let xsrfToken: string | undefined;
 
@@ -95,9 +95,9 @@ export async function getRequest<T>(url: string, options?: RequestInit): Promise
     const body = await request.text();
 
     if (request.status !== 200) {
-        Log.logAdvanced(Log.Level.ERROR, "KickAPI.getRequest", `Error getting data (${request.url}): ${request.status} ${request.statusText}`);
+        log(LOGLEVEL.ERROR, "KickAPI.getRequest", `Error getting data (${request.url}): ${request.status} ${request.statusText}`);
         if (body.includes("challenge-form")) {
-            Log.logAdvanced(Log.Level.ERROR, "KickAPI.getRequest", "Error getting data: Cloudflare challenge");
+            log(LOGLEVEL.ERROR, "KickAPI.getRequest", "Error getting data: Cloudflare challenge");
         }
         // throw new Error(`Error getting data (${request.url}): ${request.statusText}`);
     }
@@ -111,27 +111,27 @@ export async function getRequest<T>(url: string, options?: RequestInit): Promise
 }
 
 export async function GetUser(username: string): Promise<KickUser | undefined> {
-    Log.logAdvanced(Log.Level.DEBUG, "KickAPI.GetUser", `Getting user ${username}`);
+    log(LOGLEVEL.DEBUG, "KickAPI.GetUser", `Getting user ${username}`);
     let response;
     try {
         // response = await axiosInstance.get<KickUser>(`users/${username}`);
         response = await getRequest<KickUser>(`users/${username}`);
     } catch (error) {
         if (isAxiosError(error)) {
-            Log.logAdvanced(Log.Level.ERROR, "KickAPI.GetUser", `Error getting user data (${axios.getUri(error.request)}): ${error.response?.statusText}`, error);
+            log(LOGLEVEL.ERROR, "KickAPI.GetUser", `Error getting user data (${axios.getUri(error.request)}): ${error.response?.statusText}`, error);
             if (error.response?.data.includes("challenge-form")) {
-                Log.logAdvanced(Log.Level.ERROR, "KickAPI.GetUser", "Error getting user data: Cloudflare challenge");
+                log(LOGLEVEL.ERROR, "KickAPI.GetUser", "Error getting user data: Cloudflare challenge");
             }
         } else {
-            Log.logAdvanced(Log.Level.ERROR, "KickAPI.GetUser", `Error getting user data: ${(error as Error).message}`, error);
+            log(LOGLEVEL.ERROR, "KickAPI.GetUser", `Error getting user data: ${(error as Error).message}`, error);
         }
-        return undefined;        
-    }
-    if (!response.data) {
-        Log.logAdvanced(Log.Level.ERROR, "KickAPI.GetUser", `User ${username} not found`);
         return undefined;
     }
-    Log.logAdvanced(Log.Level.DEBUG, "KickAPI.GetUser", `Got user ${response.data.username}`);
+    if (!response.data) {
+        log(LOGLEVEL.ERROR, "KickAPI.GetUser", `User ${username} not found`);
+        return undefined;
+    }
+    log(LOGLEVEL.DEBUG, "KickAPI.GetUser", `Got user ${response.data.username}`);
     return response.data;
 }
 

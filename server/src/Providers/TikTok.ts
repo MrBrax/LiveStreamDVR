@@ -1,7 +1,7 @@
-import { BaseConfigCacheFolder } from "../Core/BaseConfig";
+import { BaseConfigCacheFolder } from "@/Core/BaseConfig";
 import path from "node:path";
-import { Config } from "../Core/Config";
-import { Log } from "../Core/Log";
+import { Config } from "@/Core/Config";
+import { log, LOGLEVEL } from "@/Core/Log";
 
 export class TikTokHelper {
     static readonly accessTokenFile = path.join(BaseConfigCacheFolder.cache, "tiktok_oauth.json");
@@ -19,7 +19,7 @@ export class TikTokHelper {
         this.authenticated = false;
 
         if (!client_id || !client_secret) {
-            Log.logAdvanced(Log.Level.WARNING, "TikTokHelper", "No client_id or client_secret set up. TikTok uploads will not work.");
+            log(LOGLEVEL.WARNING, "TikTokHelper", "No client_id or client_secret set up. TikTok uploads will not work.");
             return;
         }
 

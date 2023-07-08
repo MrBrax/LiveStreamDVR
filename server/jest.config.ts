@@ -9,6 +9,7 @@ const config: JestConfigWithTsJest = {
     },
     moduleNameMapper: {
         "^@common/(.*)$": "<rootDir>/../common/$1",
+        "^@/(.*)$": "<rootDir>/src/$1",
     },
 };
 export default config;

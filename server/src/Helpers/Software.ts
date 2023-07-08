@@ -1,10 +1,11 @@
-import { AppRoot, BaseConfigDataFolder } from "../Core/BaseConfig";
+import { AppRoot, BaseConfigDataFolder } from "@/Core/BaseConfig";
 import path from "node:path";
 import fs from "node:fs";
 import { ExecReturn } from "../Providers/Twitch";
-import { Helper } from "../Core/Helper";
+import { Helper } from "@/Core/Helper";
 import type { BinaryStatus } from "@common/Api/About";
 import { compareVersions } from "compare-versions";
+import { execSimple } from "./Execute";
 
 interface BinaryDef {
     binary: string | false;
@@ -95,7 +96,7 @@ export async function getBinaryVersion(type: "pip" | "bin", bin_name: string): P
 
         let exec_out;
         try {
-            exec_out = await Helper.execSimple(bin_data.binary, bin_data.version_args, "about binary check");
+            exec_out = await execSimple(bin_data.binary, bin_data.version_args, "about binary check");
         } catch (error) {
             const e = error as ExecReturn;
             if ("code" in e) {

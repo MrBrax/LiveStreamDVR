@@ -1,8 +1,8 @@
 import auth from "basic-auth";
 import chalk from "chalk";
 import express from "express";
-import { AppName } from "../Core/BaseConfig";
-import { Config } from "../Core/Config";
+import { AppName } from "@/Core/BaseConfig";
+import { Config } from "@/Core/Config";
 
 export function Auth(req: express.Request, res: express.Response, next: express.NextFunction): void {
 

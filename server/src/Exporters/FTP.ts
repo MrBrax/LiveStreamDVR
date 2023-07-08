@@ -1,7 +1,8 @@
-import { Helper } from "../Core/Helper";
+import { Helper } from "@/Core/Helper";
 import path from "node:path";
 import sanitize from "sanitize-filename";
 import { BaseExporter } from "./Base";
+import { execSimple, startJob } from "@/Helpers/Execute";
 
 export class FTPExporter extends BaseExporter {
 
@@ -77,7 +78,7 @@ export class FTPExporter extends BaseExporter {
 
             console.log(`${bin} ${args.join(" ")}`);
 
-            const job = Helper.startJob("FTPExporter_" + path.basename(this.filename), bin, args);
+            const job = startJob("FTPExporter_" + path.basename(this.filename), bin, args);
             if (!job) {
                 throw new Error("Failed to start job");
             }
@@ -116,7 +117,7 @@ export class FTPExporter extends BaseExporter {
             `ftp://${this.username}:${this.password}@${this.host}/${path.dirname(web_path)}`,
         ];
 
-        const job = await Helper.execSimple(bin, args, "ftp file check");
+        const job = await execSimple(bin, args, "ftp file check");
 
         const output = job.stdout.toString();
 

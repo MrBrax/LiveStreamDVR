@@ -1,6 +1,6 @@
 import express from "express";
 import { ApiErrorResponse } from "@common/Api/Api";
-import { KeyValue } from "../Core/KeyValue";
+import { KeyValue } from "@/Core/KeyValue";
 
 export function GetAllKeyValues(req: express.Request, res: express.Response) {
 

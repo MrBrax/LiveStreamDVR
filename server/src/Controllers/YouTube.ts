@@ -1,6 +1,6 @@
 import express from "express";
 import { YouTubeHelper } from "../Providers/YouTube";
-import { Log } from "../Core/Log";
+import { log, LOGLEVEL } from "@/Core/Log";
 import { formatDistanceToNow, formatISO9075 } from "date-fns";
 
 export function Authenticate(req: express.Request, res: express.Response): void {
@@ -10,11 +10,11 @@ export function Authenticate(req: express.Request, res: express.Response): void 
             status: "ERROR",
             message: "YouTube client not configured. Set it up in the settings page.",
         });
-        Log.logAdvanced(Log.Level.ERROR, "YouTube", "YouTube client not configured. Set it up in the settings page.");
+        log(LOGLEVEL.ERROR, "YouTube", "YouTube client not configured. Set it up in the settings page.");
         return;
     }
 
-    Log.logAdvanced(Log.Level.INFO, "YouTube", "Begin auth process...");
+    log(LOGLEVEL.INFO, "YouTube", "Begin auth process...");
 
     const url = YouTubeHelper.oAuth2Client.generateAuthUrl({
         access_type: "offline",
@@ -27,19 +27,19 @@ export function Authenticate(req: express.Request, res: express.Response): void 
             status: "ERROR",
             message: "No URL received from OAuth. Check your settings.",
         });
-        Log.logAdvanced(Log.Level.ERROR, "YouTube", "No URL received from OAuth, user stuck.");
+        log(LOGLEVEL.ERROR, "YouTube", "No URL received from OAuth, user stuck.");
         return;
     }
 
     if (req.query.rawurl) {
-        Log.logAdvanced(Log.Level.SUCCESS, "YouTube", `Send raw URL to user: ${url}`);
+        log(LOGLEVEL.SUCCESS, "YouTube", `Send raw URL to user: ${url}`);
         res.status(200).send({
             status: "OK",
             data: url,
         });
         return;
     } else {
-        Log.logAdvanced(Log.Level.SUCCESS, "YouTube", `Send user to: ${url}`);
+        log(LOGLEVEL.SUCCESS, "YouTube", `Send user to: ${url}`);
         res.redirect(302, url);
     }
 
@@ -74,7 +74,7 @@ export async function DestroySession(req: express.Request, res: express.Response
 
 export function Callback(req: express.Request, res: express.Response): Promise<void> {
 
-    Log.logAdvanced(Log.Level.INFO, "YouTube", "Got callback from YouTube...");
+    log(LOGLEVEL.INFO, "YouTube", "Got callback from YouTube...");
 
     return new Promise<void>((resolve, reject) => {
 
@@ -91,7 +91,7 @@ export function Callback(req: express.Request, res: express.Response): Promise<v
         if (code) {
             YouTubeHelper.oAuth2Client.getToken(code, (err, token) => {
                 if (err) {
-                    Log.logAdvanced(Log.Level.ERROR, "YouTube", `Could not get token: ${err}`);
+                    log(LOGLEVEL.ERROR, "YouTube", `Could not get token: ${err}`);
                     res.status(400).send({
                         status: "ERROR",
                         message: err.message,
@@ -99,7 +99,7 @@ export function Callback(req: express.Request, res: express.Response): Promise<v
                     // reject();
                     return;
                 } else if (token && YouTubeHelper.oAuth2Client) {
-                    Log.logAdvanced(Log.Level.SUCCESS, "YouTube", "Authenticated with YouTube");
+                    log(LOGLEVEL.SUCCESS, "YouTube", "Authenticated with YouTube");
                     YouTubeHelper.oAuth2Client.setCredentials(token);
                     // res.redirect(302, "/");
                     YouTubeHelper.authenticated = true;
@@ -108,7 +108,7 @@ export function Callback(req: express.Request, res: express.Response): Promise<v
                         resolve();
                         res.send(`Authenticated with YouTube (${username}). You can close this window now.`);
                     }).catch(err => {
-                        Log.logAdvanced(Log.Level.ERROR, "YouTube", `Could not get username: ${err.message}`);
+                        log(LOGLEVEL.ERROR, "YouTube", `Could not get username: ${err.message}`);
                         res.status(500).send("Could not get username, please check the logs and settings.");
                         // res.status(400).send({
                         //     status: "ERROR",
@@ -119,7 +119,7 @@ export function Callback(req: express.Request, res: express.Response): Promise<v
                     });
                     return;
                 } else {
-                    Log.logAdvanced(Log.Level.ERROR, "YouTube", "Could not get token, unknown error");
+                    log(LOGLEVEL.ERROR, "YouTube", "Could not get token, unknown error");
                     res.status(400).send({
                         status: "ERROR",
                         message: "Could not get token, unknown error",
@@ -129,7 +129,7 @@ export function Callback(req: express.Request, res: express.Response): Promise<v
                 }
             });
         } else {
-            Log.logAdvanced(Log.Level.ERROR, "YouTube", "No code provided");
+            log(LOGLEVEL.ERROR, "YouTube", "No code provided");
             res.status(500).send({
                 status: "ERROR",
                 message: "No code provided",

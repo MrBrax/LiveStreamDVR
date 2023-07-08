@@ -3,8 +3,8 @@ import express from "express";
 import fs from "node:fs";
 import { ApiErrorResponse, ApiLogResponse } from "@common/Api/Api";
 import { ApiLogLine } from "@common/Api/Client";
-import { BaseConfigDataFolder } from "../Core/BaseConfig";
-import { Log } from "../Core/Log";
+import { BaseConfigDataFolder } from "@/Core/BaseConfig";
+import { fetchLog } from "@/Core/Log";
 
 export function GetLog(req: express.Request, res: express.Response) {
 
@@ -23,7 +23,7 @@ export function GetLog(req: express.Request, res: express.Response) {
     let log_lines: ApiLogLine[] = [];
 
     try {
-        log_lines = Log.fetchLog(filename, start_from) as ApiLogLine[];
+        log_lines = fetchLog(filename, start_from) as ApiLogLine[];
     } catch (error) {
         res.status(400).send({ status: "ERROR", message: (error as Error).message } as ApiErrorResponse);
         return;

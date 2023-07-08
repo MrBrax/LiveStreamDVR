@@ -19,7 +19,7 @@ export const settingsFields: Record<string, SettingField<string> | SettingField<
     instance_id: { group: "Basic", text: "Instance ID", type: "string", help: "Unique ID for this instance. Used for hook callbacks." },
     trust_proxy: { group: "Basic", text: "Trust proxy", type: "boolean", default: false, help: "If server is behind a reverse proxy, enable this.", restart_required: true },
 
-    "basic.language": { group: "Basic", text: "Serverside language", type: "array", default: "en", choices: { "en": "English", "de": "Deutsch" } },
+    "basic.language": { group: "Basic", text: "Serverside language", type: "array", default: "en", choices: { "en": "English", "de": "Deutsch", "ko": "한국어" } },
 
     app_url: {
         group: "Basic",

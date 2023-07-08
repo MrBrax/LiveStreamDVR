@@ -3,11 +3,11 @@ import { BaseExporter } from "./Base";
 import { youtube_v3 } from "@googleapis/youtube";
 import { YouTubeHelper } from "../Providers/YouTube";
 import fs from "node:fs";
-import { Log } from "../Core/Log";
-import { Job } from "../Core/Job";
-import { Config } from "../Core/Config";
+import { LOGLEVEL, log } from "@/Core/Log";
+import { Job } from "@/Core/Job";
+import { Config } from "@/Core/Config";
 import path from "node:path";
-import { xTimeout } from "../Helpers/Timeout";
+import { xTimeout } from "@/Helpers/Timeout";
 
 export class YouTubeExporter extends BaseExporter {
 
@@ -58,7 +58,7 @@ export class YouTubeExporter extends BaseExporter {
             auth: YouTubeHelper.oAuth2Client,
         });
 
-        Log.logAdvanced(Log.Level.INFO, "YouTubeExporter", `Uploading ${this.filename} to YouTube...`);
+        log(LOGLEVEL.INFO, "YouTubeExporter", `Uploading ${this.filename} to YouTube...`);
 
         const job = Job.create(`YouTubeExporter_${path.basename(this.filename)}`);
         job.dummy = true;
@@ -70,7 +70,7 @@ export class YouTubeExporter extends BaseExporter {
 
         xTimeout(() => {
             if (!uploadSupportCheck) {
-                Log.logAdvanced(Log.Level.WARNING, "YouTubeExporter", "Upload support check timed out, progress will not be shown.");
+                log(LOGLEVEL.WARNING, "YouTubeExporter", "Upload support check timed out, progress will not be shown.");
             }
         }, 5000);
 
@@ -103,13 +103,13 @@ export class YouTubeExporter extends BaseExporter {
                 },
             });
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "YouTube", `Could not upload video: ${(error as Error).message}`, error);
+            log(LOGLEVEL.ERROR, "YouTube", `Could not upload video: ${(error as Error).message}`, error);
             job.clear();
             throw error;
         }
 
         if (response) {
-            Log.logAdvanced(Log.Level.SUCCESS, "YouTube", `Video uploaded: ${response.data.id}`);
+            log(LOGLEVEL.SUCCESS, "YouTube", `Video uploaded: ${response.data.id}`);
             this.video_id = response.data.id || "";
             if (response.data.id) {
                 if (this.vod) this.vod.exportData.youtube_id = response.data.id;
@@ -118,7 +118,7 @@ export class YouTubeExporter extends BaseExporter {
                 try {
                     playlist_success = await this.addToPlaylist(response.data.id, this.playlist_id);
                 } catch (error) {
-                    Log.logAdvanced(Log.Level.ERROR, "YouTube", `Could not add video to playlist: ${(error as Error).message}`, error);
+                    log(LOGLEVEL.ERROR, "YouTube", `Could not add video to playlist: ${(error as Error).message}`, error);
                     job.clear();
                     throw error;
                 }
@@ -126,21 +126,21 @@ export class YouTubeExporter extends BaseExporter {
                 if (this.vod) this.vod.exportData.youtube_playlist_id = this.playlist_id;
 
                 if (playlist_success) {
-                    Log.logAdvanced(Log.Level.SUCCESS, "YouTube", `Video '${this.video_id}' added to playlist '${this.playlist_id}'.`);
+                    log(LOGLEVEL.SUCCESS, "YouTube", `Video '${this.video_id}' added to playlist '${this.playlist_id}'.`);
                 } else {
-                    Log.logAdvanced(Log.Level.WARNING, "YouTube", `Video '${this.video_id}' not added to playlist.`);
+                    log(LOGLEVEL.WARNING, "YouTube", `Video '${this.video_id}' not added to playlist.`);
                 }
 
                 job.clear();
                 return this.video_id;
             } else {
                 job.clear();
-                Log.logAdvanced(Log.Level.ERROR, "YouTube", "Could not upload video, no ID gotten.", response);
+                log(LOGLEVEL.ERROR, "YouTube", "Could not upload video, no ID gotten.", response);
                 throw new Error("Could not upload video");
             }
         }
 
-        Log.logAdvanced(Log.Level.ERROR, "YouTube", "Could not upload video, no response gotten.");
+        log(LOGLEVEL.ERROR, "YouTube", "Could not upload video, no response gotten.");
 
         return false;
 
@@ -161,7 +161,7 @@ export class YouTubeExporter extends BaseExporter {
 
         // const service = google.youtube("v3");
 
-        Log.logAdvanced(Log.Level.INFO, "YouTubeExporter", `Verifying ${this.filename} on YouTube...`);
+        log(LOGLEVEL.INFO, "YouTubeExporter", `Verifying ${this.filename} on YouTube...`);
 
         let response;
         try {
@@ -171,28 +171,28 @@ export class YouTubeExporter extends BaseExporter {
                 id: [this.video_id],
             });
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "YouTube", `Could not verify video: ${(error as Error).message}`, error);
+            log(LOGLEVEL.ERROR, "YouTube", `Could not verify video: ${(error as Error).message}`, error);
             throw error;
         }
 
         if (response && response.data && response.data.items && response.data.items.length > 0) {
             const item = response.data.items[0];
             if (item.status?.uploadStatus === "processed" || item.status?.uploadStatus === "uploaded") {
-                Log.logAdvanced(Log.Level.SUCCESS, "YouTube", `Video verified: ${this.video_id}`);
+                log(LOGLEVEL.SUCCESS, "YouTube", `Video verified: ${this.video_id}`);
                 return true;
             } else if (item.status?.uploadStatus === "rejected") {
-                Log.logAdvanced(Log.Level.ERROR, "YouTube", `Video rejected: ${this.video_id}`);
+                log(LOGLEVEL.ERROR, "YouTube", `Video rejected: ${this.video_id}`);
                 return false;
             } else if (item.status?.uploadStatus === "failed") {
-                Log.logAdvanced(Log.Level.ERROR, "YouTube", `Video failed: ${this.video_id}`);
+                log(LOGLEVEL.ERROR, "YouTube", `Video failed: ${this.video_id}`);
                 return false;
             } else {
-                Log.logAdvanced(Log.Level.ERROR, "YouTube", `Video status unknown: ${this.video_id} - ${item.status?.uploadStatus}`);
+                log(LOGLEVEL.ERROR, "YouTube", `Video status unknown: ${this.video_id} - ${item.status?.uploadStatus}`);
                 return false;
             }
         }
 
-        Log.logAdvanced(Log.Level.ERROR, "YouTube", "Could not verify video, no response gotten.", response);
+        log(LOGLEVEL.ERROR, "YouTube", "Could not verify video, no response gotten.", response);
 
         return false;
 
@@ -206,7 +206,7 @@ export class YouTubeExporter extends BaseExporter {
             auth: YouTubeHelper.oAuth2Client,
         });
 
-        Log.logAdvanced(Log.Level.INFO, "YouTubeExporter", `Adding ${video_id} to playlist...`);
+        log(LOGLEVEL.INFO, "YouTubeExporter", `Adding ${video_id} to playlist...`);
 
         if (this.playlist_id == "") {
             const raw_playlist_config = Config.getInstance().cfg<string>("exporter.youtube.playlists");
@@ -224,19 +224,19 @@ export class YouTubeExporter extends BaseExporter {
 
                 if (playlist_entry) {
                     this.playlist_id = playlist_entry.playlist;
-                    Log.logAdvanced(Log.Level.INFO, "YouTubeExporter", `Found playlist ${this.playlist_id} for channel ${this.vod?.getChannel().internalName}`);
+                    log(LOGLEVEL.INFO, "YouTubeExporter", `Found playlist ${this.playlist_id} for channel ${this.vod?.getChannel().internalName}`);
                 } else {
-                    Log.logAdvanced(Log.Level.ERROR, "YouTubeExporter", `No playlist configured for channel ${this.vod?.getChannel().internalName}`);
+                    log(LOGLEVEL.ERROR, "YouTubeExporter", `No playlist configured for channel ${this.vod?.getChannel().internalName}`);
                     return false;
                 }
             } else {
-                Log.logAdvanced(Log.Level.ERROR, "YouTubeExporter", "No playlists configured");
+                log(LOGLEVEL.ERROR, "YouTubeExporter", "No playlists configured");
                 return false;
             }
         }
 
         if (this.playlist_id == "") {
-            Log.logAdvanced(Log.Level.WARNING, "YouTubeExporter", "No playlist configured");
+            log(LOGLEVEL.WARNING, "YouTubeExporter", "No playlist configured");
             return false;
         }
 
@@ -256,15 +256,15 @@ export class YouTubeExporter extends BaseExporter {
                 },
             });
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "YouTube", `Could not add video to playlist: ${(error as Error).message}`, error);
+            log(LOGLEVEL.ERROR, "YouTube", `Could not add video to playlist: ${(error as Error).message}`, error);
             throw error;
         }
 
         if (response) {
-            Log.logAdvanced(Log.Level.SUCCESS, "YouTube", "Video added to playlist", response.data);
+            log(LOGLEVEL.SUCCESS, "YouTube", "Video added to playlist", response.data);
             return true;
         } else {
-            Log.logAdvanced(Log.Level.ERROR, "YouTube", "Could not add video to playlist, no response gotten.");
+            log(LOGLEVEL.ERROR, "YouTube", "Could not add video to playlist, no response gotten.");
             return false;
         }
 

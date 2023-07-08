@@ -46,7 +46,8 @@ export const TwitchChannelData: UserData = {
     created_at: "",
 
     _updated: 1605849081,
-    cache_avatar: "",
+    avatar_cache: "",
+    avatar_thumb: "",
     cache_offline_image: "",
 };
 

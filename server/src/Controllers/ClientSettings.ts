@@ -1,9 +1,9 @@
-import { BaseConfigPath } from "../Core/BaseConfig";
+import { BaseConfigPath } from "@/Core/BaseConfig";
 import express from "express";
 import fs from "fs";
 import { defaultConfigFields } from "@common/ClientSettings";
 import { ClientSettings } from "@common/ClientSettings.d";
-import { Log } from "../Core/Log";
+import { log, LOGLEVEL } from "@/Core/Log";
 
 export function GetClientSettings(req: express.Request, res: express.Response): void {
 
@@ -73,7 +73,7 @@ export function SaveClientSettings(req: express.Request, res: express.Response):
 
     }
 
-    Log.logAdvanced(Log.Level.INFO, "route.clientSettings", "Saving client settings", clientSettings);
+    log(LOGLEVEL.INFO, "route.clientSettings", "Saving client settings", clientSettings);
 
     fs.writeFileSync(BaseConfigPath.clientSettings, JSON.stringify(clientSettings, null, 4), "utf8");
 

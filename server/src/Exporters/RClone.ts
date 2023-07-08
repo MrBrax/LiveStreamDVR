@@ -2,8 +2,9 @@ import path from "node:path";
 import fs from "node:fs";
 import sanitize from "sanitize-filename";
 import { BaseExporter } from "./Base";
-import { BaseConfigDataFolder } from "../Core/BaseConfig";
-import { Helper } from "../Core/Helper";
+import { BaseConfigDataFolder } from "@/Core/BaseConfig";
+import { Helper } from "@/Core/Helper";
+import { execSimple, startJob } from "@/Helpers/Execute";
 
 export class RCloneExporter extends BaseExporter {
 
@@ -61,7 +62,7 @@ export class RCloneExporter extends BaseExporter {
                 remote_path,
             ];
 
-            const job = Helper.startJob("RCloneExporter_" + path.basename(this.filename), bin, args);
+            const job = startJob("RCloneExporter_" + path.basename(this.filename), bin, args);
             if (!job) {
                 reject(new Error("Failed to start job"));
                 return;
@@ -109,7 +110,7 @@ export class RCloneExporter extends BaseExporter {
             `${this.remote}:${dirname}`,
         ];
 
-        const job = await Helper.execSimple(bin, args, "rclone file check");
+        const job = await execSimple(bin, args, "rclone file check");
 
         const output: {
             Path: string;
@@ -131,7 +132,7 @@ export class RCloneExporter extends BaseExporter {
     static async getRemotes(): Promise<string[]> {
         let result;
         try {
-            result = await Helper.execSimple("rclone", ["listremotes"], "rclone list remotes");
+            result = await execSimple("rclone", ["listremotes"], "rclone list remotes");
         } catch (error) {
             throw new Error("Failed to list remotes");
         }

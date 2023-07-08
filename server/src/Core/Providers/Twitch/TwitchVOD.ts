@@ -1,5 +1,4 @@
 import type { ApiTwitchVod } from "@common/Api/Client";
-import { VODBookmark } from "@common/Bookmark";
 import type { TwitchComment, TwitchCommentDump } from "@common/Comments";
 import { VideoQuality } from "@common/Config";
 import { JobStatus, MuteStatus, Providers } from "@common/Defs";
@@ -7,7 +6,7 @@ import { AudioStream, FFProbe, VideoStream } from "@common/FFProbe";
 import { VideoMetadata } from "@common/MediaInfo";
 import { ProxyVideo } from "@common/Proxies/Video";
 import { Clip, ClipsResponse } from "@common/TwitchAPI/Clips";
-import { VideoRequestParams, Video, VideosResponse } from "@common/TwitchAPI/Video";
+import { Video, VideoRequestParams, VideosResponse } from "@common/TwitchAPI/Video";
 import axios from "axios";
 import chalk from "chalk";
 import chokidar from "chokidar";
@@ -16,8 +15,12 @@ import { encode as htmlentities } from "html-entities";
 import fs from "node:fs";
 import path from "node:path";
 import { trueCasePathSync } from "true-case-path";
-import { formatDuration, formatSubtitleDuration } from "../../../Helpers/Format";
-import { isTwitchVOD } from "../../../Helpers/Types";
+import { progressOutput } from "@/Helpers/Console";
+import { execAdvanced, execSimple, startJob } from "@/Helpers/Execute";
+import { formatDuration, formatSubtitleDuration } from "@/Helpers/Format";
+import { xClearInterval, xInterval, xTimeout } from "@/Helpers/Timeout";
+import { isTwitchVOD } from "@/Helpers/Types";
+import { ffprobe, remuxFile } from "@/Helpers/Video";
 import { TwitchHelper } from "../../../Providers/Twitch";
 import { TwitchVODChapterJSON, TwitchVODJSON } from "../../../Storage/JSON";
 import { AppName, BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
@@ -27,13 +30,12 @@ import { FFmpegMetadata } from "../../FFmpegMetadata";
 import { Helper } from "../../Helper";
 import { Job } from "../../Job";
 import { LiveStreamDVR } from "../../LiveStreamDVR";
-import { Log } from "../../Log";
+import { LOGLEVEL, log } from "../../Log";
 import { Webhook } from "../../Webhook";
 import { BaseVOD } from "../Base/BaseVOD";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVODChapter } from "./TwitchVODChapter";
-import { xInterval, xTimeout } from "../../../Helpers/Timeout";
 
 /**
  * Twitch VOD
@@ -125,7 +127,7 @@ export class TwitchVOD extends BaseVOD {
         if (this.json.channel_uuid) {
             this.channel_uuid = this.json.channel_uuid;
         } else {
-            Log.logAdvanced(Log.Level.ERROR, "vod.setupUserData", `No stored channel UUID for VOD ${this.basename}`);
+            log(LOGLEVEL.ERROR, "vod.setupUserData", `No stored channel UUID for VOD ${this.basename}`);
         }
     }
 
@@ -200,30 +202,30 @@ export class TwitchVOD extends BaseVOD {
     /** TODO: implement ffprobe for mediainfo */
     public async getFFProbe(segment_num = 0): Promise<false | VideoMetadata> {
 
-        Log.logAdvanced(Log.Level.INFO, "vod", `Fetching ffprobe of ${this.basename}, segment #${segment_num}`);
+        log(LOGLEVEL.INFO, "vod", `Fetching ffprobe of ${this.basename}, segment #${segment_num}`);
 
         if (!this.directory) {
             throw new Error("No directory set!");
         }
 
         if (!this.segments_raw || this.segments_raw.length == 0) {
-            Log.logAdvanced(Log.Level.ERROR, "vod", `No segments available for ffprobe of ${this.basename}`);
+            log(LOGLEVEL.ERROR, "vod", `No segments available for ffprobe of ${this.basename}`);
             return false;
         }
 
         const filename = path.join(this.directory, path.basename(this.segments_raw[segment_num]));
 
         if (!fs.existsSync(filename)) {
-            Log.logAdvanced(Log.Level.ERROR, "vod", `File does not exist for ffprobe of ${this.basename} (${filename} @ ${this.directory})`);
+            log(LOGLEVEL.ERROR, "vod", `File does not exist for ffprobe of ${this.basename} (${filename} @ ${this.directory})`);
             return false;
         }
 
         let data: FFProbe | false = false;
 
         try {
-            data = await Helper.ffprobe(filename);
+            data = await ffprobe(filename);
         } catch (th) {
-            Log.logAdvanced(Log.Level.ERROR, "vod", `Trying to get ffprobe of ${this.basename} returned: ${(th as Error).message}`);
+            log(LOGLEVEL.ERROR, "vod", `Trying to get ffprobe of ${this.basename} returned: ${(th as Error).message}`);
             return false;
         }
 
@@ -231,7 +233,7 @@ export class TwitchVOD extends BaseVOD {
             // console.debug(`Got ffprobe of ${this.basename}`);
 
             if (!data.streams || data.streams.length == 0) {
-                Log.logAdvanced(Log.Level.ERROR, "vod", `Invalid ffprobe for ${this.basename}`);
+                log(LOGLEVEL.ERROR, "vod", `Invalid ffprobe for ${this.basename}`);
                 return false;
             }
 
@@ -239,7 +241,7 @@ export class TwitchVOD extends BaseVOD {
             const audio_stream = data.streams.find((stream): stream is AudioStream => stream.codec_type == "audio"); // FFProbeStream[]
 
             if (!video_stream || !audio_stream) {
-                Log.logAdvanced(Log.Level.ERROR, "vod", `Invalid ffprobe for ${this.basename}`);
+                log(LOGLEVEL.ERROR, "vod", `Invalid ffprobe for ${this.basename}`);
                 return false;
             }
 
@@ -281,7 +283,7 @@ export class TwitchVOD extends BaseVOD {
             // return this.video_metadata;
 
         } else {
-            Log.logAdvanced(Log.Level.ERROR, "vod", `Could not get ffprobe of ${this.basename}`);
+            log(LOGLEVEL.ERROR, "vod", `Could not get ffprobe of ${this.basename}`);
         }
 
         // this.video_fail2 = true;
@@ -339,7 +341,7 @@ export class TwitchVOD extends BaseVOD {
     public async parseChapters(raw_chapters: TwitchVODChapterJSON[]): Promise<boolean> {
 
         if (!raw_chapters || raw_chapters.length == 0) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.parseChapters", `No chapter data found for ${this.basename}`);
+            log(LOGLEVEL.ERROR, "vod.parseChapters", `No chapter data found for ${this.basename}`);
             return false;
         }
 
@@ -348,7 +350,7 @@ export class TwitchVOD extends BaseVOD {
         for (const chapter of raw_chapters) {
 
             if (!this.started_at || !this.ended_at) {
-                Log.logAdvanced(Log.Level.ERROR, "vod.parseChapters", `Time error for chapter parsing found for ${this.basename} (started_at: ${this.started_at}, ended_at: ${this.ended_at})`);
+                log(LOGLEVEL.ERROR, "vod.parseChapters", `Time error for chapter parsing found for ${this.basename} (started_at: ${this.started_at}, ended_at: ${this.ended_at})`);
                 return false;
             }
 
@@ -365,12 +367,12 @@ export class TwitchVOD extends BaseVOD {
 
             if (previousChapter) {
                 if (previousChapter.started_at.getTime() > chapter.started_at.getTime()) {
-                    Log.logAdvanced(Log.Level.ERROR, "vod.parseChapters", `Chapter ${chapter.title} has a previous chapter with a later start time for ${this.basename} (previous: ${previousChapter.started_at}, current: ${chapter.started_at})`);
+                    log(LOGLEVEL.ERROR, "vod.parseChapters", `Chapter ${chapter.title} has a previous chapter with a later start time for ${this.basename} (previous: ${previousChapter.started_at}, current: ${chapter.started_at})`);
                 }
             }
             if (nextChapter) {
                 if (nextChapter.started_at.getTime() < chapter.started_at.getTime()) {
-                    Log.logAdvanced(Log.Level.ERROR, "vod.parseChapters", `Chapter ${chapter.title} has a next chapter with an earlier start time for ${this.basename} (next: ${nextChapter.started_at}, current: ${chapter.started_at})`);
+                    log(LOGLEVEL.ERROR, "vod.parseChapters", `Chapter ${chapter.title} has a next chapter with an earlier start time for ${this.basename} (next: ${nextChapter.started_at}, current: ${chapter.started_at})`);
                 }
             }
         });
@@ -421,7 +423,7 @@ export class TwitchVOD extends BaseVOD {
     // }
 
     public addChapter(chapter: TwitchVODChapter): void {
-        Log.logAdvanced(Log.Level.INFO, "vod.addChapter", `Adding chapter ${chapter.title} (${chapter.game_name}) to ${this.basename}`);
+        log(LOGLEVEL.INFO, "vod.addChapter", `Adding chapter ${chapter.title} (${chapter.game_name}) to ${this.basename}`);
         this.chapters.push(chapter);
         this.chapters_raw.push(chapter.toJSON()); // needed?
         this.calculateChapters();
@@ -447,7 +449,7 @@ export class TwitchVOD extends BaseVOD {
      * @returns 
      */
     public async finalize(): Promise<boolean> {
-        Log.logAdvanced(Log.Level.INFO, "vod.finalize", `Finalize ${this.basename} @ ${this.directory}`);
+        log(LOGLEVEL.INFO, "vod.finalize", `Finalize ${this.basename} @ ${this.directory}`);
 
         if (this.path_playlist && fs.existsSync(this.path_playlist)) {
             fs.unlinkSync(this.path_playlist);
@@ -457,32 +459,32 @@ export class TwitchVOD extends BaseVOD {
         try {
             await this.getMediainfo();
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.finalize", `Failed to get mediainfo for ${this.basename}: ${error}`);
+            log(LOGLEVEL.ERROR, "vod.finalize", `Failed to get mediainfo for ${this.basename}: ${error}`);
         }
 
         // generate chapter related files
         try {
             await this.saveLosslessCut();
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.finalize", `Failed to save lossless cut for ${this.basename}: ${error}`);
+            log(LOGLEVEL.ERROR, "vod.finalize", `Failed to save lossless cut for ${this.basename}: ${error}`);
         }
 
         try {
             await this.saveFFMPEGChapters();
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.finalize", `Failed to save ffmpeg chapters for ${this.basename}: ${error}`);
+            log(LOGLEVEL.ERROR, "vod.finalize", `Failed to save ffmpeg chapters for ${this.basename}: ${error}`);
         }
 
         try {
             await this.saveVTTChapters();
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.finalize", `Failed to save vtt chapters for ${this.basename}: ${error}`);
+            log(LOGLEVEL.ERROR, "vod.finalize", `Failed to save vtt chapters for ${this.basename}: ${error}`);
         }
 
         try {
             await this.saveKodiNfo();
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.finalize", `Failed to save kodi nfo for ${this.basename}: ${error}`);
+            log(LOGLEVEL.ERROR, "vod.finalize", `Failed to save kodi nfo for ${this.basename}: ${error}`);
         }
 
         // match stored vod to online vod
@@ -505,11 +507,11 @@ export class TwitchVOD extends BaseVOD {
         if (this.is_capturing || this.is_converting) return;
         if (!this.started_at) return;
 
-        Log.logAdvanced(Log.Level.INFO, "vod.matchProviderVod", `Trying to match ${this.basename} to provider...`);
+        log(LOGLEVEL.INFO, "vod.matchProviderVod", `Trying to match ${this.basename} to provider...`);
 
         const channel_videos = await TwitchVOD.getLatestVideos(this.getChannel().internalId);
         if (!channel_videos) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.matchProviderVod", `No videos returned from streamer of ${this.basename}`);
+            log(LOGLEVEL.ERROR, "vod.matchProviderVod", `No videos returned from streamer of ${this.basename}`);
             this.twitch_vod_neversaved = true;
             this.twitch_vod_exists = false;
             this.broadcastUpdate();
@@ -525,7 +527,7 @@ export class TwitchVOD extends BaseVOD {
                 (video.stream_id && this.capture_id && video.stream_id == this.capture_id)
             ) {
 
-                Log.logAdvanced(Log.Level.SUCCESS, "vod.matchProviderVod", `Found matching VOD for ${this.basename}`);
+                log(LOGLEVEL.SUCCESS, "vod.matchProviderVod", `Found matching VOD for ${this.basename}`);
 
                 this.twitch_vod_id = video.id;
                 this.twitch_vod_duration = TwitchHelper.parseTwitchDuration(video.duration);
@@ -545,7 +547,7 @@ export class TwitchVOD extends BaseVOD {
         this.twitch_vod_neversaved = true;
         this.twitch_vod_exists = false;
 
-        Log.logAdvanced(Log.Level.ERROR, "vod.matchProviderVod", `No matching VOD for ${this.basename}`);
+        log(LOGLEVEL.ERROR, "vod.matchProviderVod", `No matching VOD for ${this.basename}`);
 
         this.broadcastUpdate();
 
@@ -563,7 +565,7 @@ export class TwitchVOD extends BaseVOD {
             throw new Error("TwitchVOD.saveVTTChapters: chapters are not set");
         }
 
-        Log.logAdvanced(Log.Level.INFO, "vod.saveVTTChapters", `Saving VTT chapters file for ${this.basename} to ${this.path_vttchapters}`);
+        log(LOGLEVEL.INFO, "vod.saveVTTChapters", `Saving VTT chapters file for ${this.basename} to ${this.path_vttchapters}`);
 
         let data = `WEBVTT - Generated by ${AppName}\n\n`;
 
@@ -607,7 +609,7 @@ export class TwitchVOD extends BaseVOD {
             throw new Error("TwitchVOD.saveKodiNfo: started_at is not set");
         }
 
-        Log.logAdvanced(Log.Level.INFO, "vod.saveKodiNfo", `Saving Kodi NFO file for ${this.basename} to ${this.path_kodinfo}`);
+        log(LOGLEVEL.INFO, "vod.saveKodiNfo", `Saving Kodi NFO file for ${this.basename} to ${this.path_kodinfo}`);
 
         const title =
             this.twitch_vod_title ?
@@ -807,15 +809,15 @@ export class TwitchVOD extends BaseVOD {
         }
 
         // if (!this.created && (this.is_capturing || this.is_converting || !this.is_finalized)) {
-        //     TwitchLog.logAdvanced(Log.Level.WARNING, "vod", `Saving JSON of ${this.basename} while not finalized!`);
+        //     TwitchlogAdvanced(LOGLEVEL.WARNING, "vod", `Saving JSON of ${this.basename} while not finalized!`);
         // }
 
         if (!this.not_started && (!this.chapters || this.chapters.length == 0)) {
-            Log.logAdvanced(Log.Level.WARNING, "vod.saveJSON", `Saving JSON of ${this.basename} with no chapters!!`);
+            log(LOGLEVEL.WARNING, "vod.saveJSON", `Saving JSON of ${this.basename} with no chapters!!`);
         }
 
         if (!this.streamer_name && !this.created) {
-            Log.logAdvanced(Log.Level.FATAL, "vod.saveJSON", `Found no streamer name in class of ${this.basename}, not saving!`);
+            log(LOGLEVEL.FATAL, "vod.saveJSON", `Found no streamer name in class of ${this.basename}, not saving!`);
             return false;
         }
 
@@ -906,7 +908,7 @@ export class TwitchVOD extends BaseVOD {
         // 	// return false;
         // }
 
-        Log.logAdvanced(Log.Level.SUCCESS, "vod.saveJSON", `Saving JSON of ${this.basename} ${(reason ? " (" + reason + ")" : "")}`);
+        log(LOGLEVEL.SUCCESS, "vod.saveJSON", `Saving JSON of ${this.basename} ${(reason ? " (" + reason + ")" : "")}`);
 
         //file_put_contents(this.filename, json_encode(generated));
         this.setPermissions();
@@ -918,7 +920,7 @@ export class TwitchVOD extends BaseVOD {
         try {
             fs.writeFileSync(this.filename, JSON.stringify(generated, null, 4));
         } catch (error) {
-            Log.logAdvanced(Log.Level.FATAL, "vod.saveJSON", `Failed to save JSON of ${this.basename}: ${(error as Error).message}`);
+            log(LOGLEVEL.FATAL, "vod.saveJSON", `Failed to save JSON of ${this.basename}: ${(error as Error).message}`);
             console.log(chalk.bgRedBright.whiteBright(`Failed to save JSON of ${this.basename}: ${(error as Error).message}`));
             return false;
         }
@@ -945,16 +947,16 @@ export class TwitchVOD extends BaseVOD {
 
         if (!this.directory) throw new Error("No directory set for move");
 
-        Log.logAdvanced(Log.Level.INFO, "vod.move", `Move ${this.basename} to ${newDirectory}`);
+        log(LOGLEVEL.INFO, "vod.move", `Move ${this.basename} to ${newDirectory}`);
 
         for (const file of this.associatedFiles) {
             const file_from = path.join(this.directory, file);
             const file_to = path.join(newDirectory, file);
             if (fs.existsSync(file_from)) {
-                Log.logAdvanced(Log.Level.DEBUG, "vod.move", `Move ${file_from} to ${file_to}`);
+                log(LOGLEVEL.DEBUG, "vod.move", `Move ${file_from} to ${file_to}`);
                 fs.renameSync(file_from, file_to);
             } else {
-                Log.logAdvanced(Log.Level.ERROR, "vod.move", `File ${file_from} does not exist`);
+                log(LOGLEVEL.ERROR, "vod.move", `File ${file_from} does not exist`);
             }
         }
 
@@ -974,17 +976,17 @@ export class TwitchVOD extends BaseVOD {
         const current_status = this.twitch_vod_exists;
 
         if (!this.is_finalized) {
-            Log.logAdvanced(Log.Level.INFO, "vod.checkValidVod", `Trying to check vod valid while not finalized on ${this.basename}`);
+            log(LOGLEVEL.INFO, "vod.checkValidVod", `Trying to check vod valid while not finalized on ${this.basename}`);
             return null;
         }
 
         if (this.twitch_vod_exists === undefined && !this.twitch_vod_id) {
-            Log.logAdvanced(Log.Level.INFO, "vod.checkValidVod", `First time check for vod valid on ${this.basename}`);
+            log(LOGLEVEL.INFO, "vod.checkValidVod", `First time check for vod valid on ${this.basename}`);
             this.matchProviderVod();
         }
 
         if (!this.twitch_vod_id) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.checkValidVod", `No twitch VOD id for valid checking on ${this.basename}`);
+            log(LOGLEVEL.ERROR, "vod.checkValidVod", `No twitch VOD id for valid checking on ${this.basename}`);
             if (this.twitch_vod_neversaved) {
                 if (save && current_status !== false) {
                     this.twitch_vod_exists = false;
@@ -994,19 +996,19 @@ export class TwitchVOD extends BaseVOD {
             return false;
         }
 
-        Log.logAdvanced(Log.Level.INFO, "vod.checkValidVod", `Check valid VOD for ${this.basename}`);
+        log(LOGLEVEL.INFO, "vod.checkValidVod", `Check valid VOD for ${this.basename}`);
 
         let video;
 
         try {
             video = await TwitchVOD.getVideo(this.twitch_vod_id.toString());
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.checkValidVod", `Failed to check valid VOD for ${this.basename}: ${(error as Error).message}`);
+            log(LOGLEVEL.ERROR, "vod.checkValidVod", `Failed to check valid VOD for ${this.basename}: ${(error as Error).message}`);
             return null;
         }
 
         if (video) {
-            Log.logAdvanced(Log.Level.SUCCESS, "vod.checkValidVod", `VOD exists for ${this.basename}`);
+            log(LOGLEVEL.SUCCESS, "vod.checkValidVod", `VOD exists for ${this.basename}`);
             this.twitch_vod_exists = true;
             if (save && current_status !== this.twitch_vod_exists) {
                 await this.saveJSON("vod check true");
@@ -1014,7 +1016,7 @@ export class TwitchVOD extends BaseVOD {
             return true;
         }
 
-        Log.logAdvanced(Log.Level.WARNING, "vod.checkValidVod", `No VOD for ${this.basename}`);
+        log(LOGLEVEL.WARNING, "vod.checkValidVod", `No VOD for ${this.basename}`);
 
         this.twitch_vod_exists = false;
 
@@ -1051,16 +1053,16 @@ export class TwitchVOD extends BaseVOD {
     public async checkMutedVod(save = false): Promise<MuteStatus> {
 
         if (!this.twitch_vod_id) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.checkMutedVod", `VOD mute check for ${this.basename} canceled, no vod id!`);
+            log(LOGLEVEL.ERROR, "vod.checkMutedVod", `VOD mute check for ${this.basename} canceled, no vod id!`);
             throw new Error("No VOD id");
         }
 
         if (!this.twitch_vod_exists) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.checkMutedVod", `VOD mute check for ${this.basename} canceled, no vod!`);
+            log(LOGLEVEL.ERROR, "vod.checkMutedVod", `VOD mute check for ${this.basename} canceled, no vod!`);
             throw new Error("No VOD");
         }
 
-        Log.logAdvanced(Log.Level.INFO, "vod.checkMutedVod", `Check muted VOD for ${this.basename} using ${Config.getInstance().cfg("checkmute_method", "api")}`);
+        log(LOGLEVEL.INFO, "vod.checkMutedVod", `Check muted VOD for ${this.basename} using ${Config.getInstance().cfg("checkmute_method", "api")}`);
 
         // since the api doesn't return muted_segments if an app auth token is used,
         // streamlink is used instead, until this is fixed in the api
@@ -1082,20 +1084,20 @@ export class TwitchVOD extends BaseVOD {
         const data = await TwitchVOD.getVideo(this.twitch_vod_id.toString());
 
         if (!data) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.checkMutedVodAPI", `VOD ${this.basename} is deleted!`);
+            log(LOGLEVEL.ERROR, "vod.checkMutedVodAPI", `VOD ${this.basename} is deleted!`);
             throw new Error("VOD is deleted!");
             // return null;
         } else {
             if (data.muted_segments && data.muted_segments.length > 0) {
                 this.twitch_vod_muted = MuteStatus.MUTED;
-                Log.logAdvanced(Log.Level.WARNING, "vod.checkMutedVodAPI", `VOD ${this.basename} is muted! (${data.muted_segments.length} segments)`);
+                log(LOGLEVEL.WARNING, "vod.checkMutedVodAPI", `VOD ${this.basename} is muted! (${data.muted_segments.length} segments)`);
                 if (previous !== this.twitch_vod_muted && save) {
                     await this.saveJSON("vod mute true");
                 }
                 return MuteStatus.MUTED;
             } else {
                 this.twitch_vod_muted = MuteStatus.UNMUTED;
-                Log.logAdvanced(Log.Level.SUCCESS, "vod.checkMutedVodAPI", `VOD ${this.basename} is not muted!`, data);
+                log(LOGLEVEL.SUCCESS, "vod.checkMutedVodAPI", `VOD ${this.basename} is not muted!`, data);
                 if (previous !== this.twitch_vod_muted && save) {
                     await this.saveJSON("vod mute false");
                 }
@@ -1111,10 +1113,10 @@ export class TwitchVOD extends BaseVOD {
         const slp = Helper.path_streamlink();
         if (!slp) throw new Error("Streamlink not found!");
 
-        const ex = await Helper.execSimple(slp, ["--stream-url", `https://www.twitch.tv/videos/${this.twitch_vod_id}`, "best"], "vod mute check");
+        const ex = await execSimple(slp, ["--stream-url", `https://www.twitch.tv/videos/${this.twitch_vod_id}`, "best"], "vod mute check");
 
         if (!ex) {
-            // TwitchLog.logAdvanced(Log.Level.INFO, "vod", "VOD ${this.basename} could not be checked for mute status!", ['output' => $output]);
+            // TwitchlogAdvanced(LOGLEVEL.INFO, "vod", "VOD ${this.basename} could not be checked for mute status!", ['output' => $output]);
             throw new Error("VOD could not be checked for mute status, no output.");
         }
 
@@ -1122,17 +1124,17 @@ export class TwitchVOD extends BaseVOD {
 
         if (output.includes("index-muted-")) {
             this.twitch_vod_muted = MuteStatus.MUTED;
-            Log.logAdvanced(Log.Level.WARNING, "vod.checkMutedStreamlink", `VOD ${this.basename} is muted!`);
+            log(LOGLEVEL.WARNING, "vod.checkMutedStreamlink", `VOD ${this.basename} is muted!`);
             if (previous !== this.twitch_vod_muted && save) {
                 await this.saveJSON("vod mute true");
             }
             return MuteStatus.MUTED;
         } else if (output.includes("Unable to find video")) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.checkMutedStreamlink", `VOD ${this.basename} is deleted!`);
+            log(LOGLEVEL.ERROR, "vod.checkMutedStreamlink", `VOD ${this.basename} is deleted!`);
             throw new Error("VOD is deleted!");
         } else {
             this.twitch_vod_muted = MuteStatus.UNMUTED;
-            Log.logAdvanced(Log.Level.SUCCESS, "vod.checkMutedStreamlink", `VOD ${this.basename} is not muted!`);
+            log(LOGLEVEL.SUCCESS, "vod.checkMutedStreamlink", `VOD ${this.basename} is not muted!`);
             if (previous !== this.twitch_vod_muted && save) {
                 await this.saveJSON("vod mute false");
             }
@@ -1154,7 +1156,7 @@ export class TwitchVOD extends BaseVOD {
         try {
             filename = await TwitchVOD.downloadVideo(this.twitch_vod_id.toString(), quality, path.join(this.directory, `${this.basename}_vod.mp4`));
         } catch (e) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.downloadVod", `VOD ${this.basename} could not be downloaded: ${(e as Error).message}`);
+            log(LOGLEVEL.ERROR, "vod.downloadVod", `VOD ${this.basename} could not be downloaded: ${(e as Error).message}`);
             return false;
         }
 
@@ -1171,7 +1173,7 @@ export class TwitchVOD extends BaseVOD {
 
         for (const f of ["ref", "act"]) {
             if (!fs.existsSync(path.join(BaseConfigCacheFolder.cache, `${f}.wav`))) {
-                const wavconvert = await Helper.execSimple("ffmpeg", ["-i", files[f as "act" | "ref"], "-t", "00:05:00", "-vn", path.join(BaseConfigCacheFolder.cache, `${f}.wav`)], `${f} ffmpeg convert`);
+                const wavconvert = await execSimple("ffmpeg", ["-i", files[f as "act" | "ref"], "-t", "00:05:00", "-vn", path.join(BaseConfigCacheFolder.cache, `${f}.wav`)], `${f} ffmpeg convert`);
             }
         }
 
@@ -1214,9 +1216,9 @@ export class TwitchVOD extends BaseVOD {
             // main json file changed
             if (filename === this.filename) {
                 if (!fs.existsSync(this.filename)) {
-                    Log.logAdvanced(Log.Level.WARNING, "vod.watch", `VOD JSON ${this.basename} deleted (${eventType})!`);
+                    log(LOGLEVEL.WARNING, "vod.watch", `VOD JSON ${this.basename} deleted (${eventType})!`);
                     if (LiveStreamDVR.getInstance().getVodByUUID(this.uuid) !== false) {
-                        Log.logAdvanced(Log.Level.WARNING, "vod.watch", `VOD ${this.basename} still in memory!`);
+                        log(LOGLEVEL.WARNING, "vod.watch", `VOD ${this.basename} still in memory!`);
 
                         // const channel = TwitchChannel.getChannelByLogin(this.streamer_login);
                         // if (channel) channel.removeVod(this.basename);
@@ -1235,11 +1237,11 @@ export class TwitchVOD extends BaseVOD {
                         }, 5000);
                     }
                 } else {
-                    Log.logAdvanced(Log.Level.DEBUG, "vod.watch", `VOD JSON ${this.basename} exists (again?) ${eventType}`);
+                    log(LOGLEVEL.DEBUG, "vod.watch", `VOD JSON ${this.basename} exists (again?) ${eventType}`);
                 }
             } else if (this.segments.some(s => s.filename === filename)) {
                 if (Config.debug) console.debug(`VOD segment ${filename} changed (${eventType})!`);
-                Log.logAdvanced(Log.Level.INFO, "vod.watch", `VOD segment ${filename} changed (${eventType})!`);
+                log(LOGLEVEL.INFO, "vod.watch", `VOD segment ${filename} changed (${eventType})!`);
                 ClientBroker.notify(
                     "Segment changed externally",
                     path.basename(filename),
@@ -1270,7 +1272,7 @@ export class TwitchVOD extends BaseVOD {
 
             } else {
                 if (Config.debug) console.debug(`VOD file ${filename} changed (${eventType})!`);
-                Log.logAdvanced(Log.Level.INFO, "vod.watch", `VOD file ${filename} changed (${eventType})!`);
+                log(LOGLEVEL.INFO, "vod.watch", `VOD file ${filename} changed (${eventType})!`);
                 ClientBroker.notify(
                     "VOD file changed externally",
                     path.basename(filename),
@@ -1374,7 +1376,7 @@ export class TwitchVOD extends BaseVOD {
         try {
             channel = this.getChannel();
         } catch (error) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.setupStreamNumber", `Error getting channel for setupStreamNumber: ${(error as Error).message}`);
+            log(LOGLEVEL.ERROR, "vod.setupStreamNumber", `Error getting channel for setupStreamNumber: ${(error as Error).message}`);
         }
 
         if (channel && channel.current_stream_number !== undefined && this.stream_number === undefined) {
@@ -1403,7 +1405,7 @@ export class TwitchVOD extends BaseVOD {
 
     public static async load(filename: string, noFixIssues = false): Promise<TwitchVOD> {
 
-        Log.logAdvanced(Log.Level.DEBUG, "vod.load", `Loading VOD ${filename}, noFixIssues: ${noFixIssues}`);
+        log(LOGLEVEL.DEBUG, "vod.load", `Loading VOD ${filename}, noFixIssues: ${noFixIssues}`);
 
         const basename = path.basename(filename);
 
@@ -1431,11 +1433,11 @@ export class TwitchVOD extends BaseVOD {
 
         if (!("version" in json) || json.version < 2) {
             if (process.env.TCD_MIGRATE_OLD_VOD_JSON == "1") {
-                Log.logAdvanced(Log.Level.WARNING, "vod.load", `Invalid VOD JSON version: ${filename}, trying to migrate...`);
+                log(LOGLEVEL.WARNING, "vod.load", `Invalid VOD JSON version: ${filename}, trying to migrate...`);
                 const { newJson, newBasename } = TwitchVOD.migrateOldJSON(json, path.dirname(filename), path.basename(filename));
                 json = newJson;
                 if (path.basename(filename) != newBasename) {
-                    Log.logAdvanced(Log.Level.WARNING, "vod.load", `New basename for ${filename}: ${newBasename}`);
+                    log(LOGLEVEL.WARNING, "vod.load", `New basename for ${filename}: ${newBasename}`);
                     fs.renameSync(filename, path.join(path.dirname(filename), newBasename));
                     filename = path.join(path.dirname(filename), newBasename);
                 }
@@ -1468,7 +1470,7 @@ export class TwitchVOD extends BaseVOD {
         await vod.startWatching();
 
         if (!noFixIssues) {
-            Log.logAdvanced(Log.Level.DEBUG, "vod.load", `Fixing issues for ${filename}`);
+            log(LOGLEVEL.DEBUG, "vod.load", `Fixing issues for ${filename}`);
             let noIssues = false;
             do {
                 noIssues = await vod.fixIssues("VOD load");
@@ -1476,7 +1478,7 @@ export class TwitchVOD extends BaseVOD {
         }
 
         if (!vod.not_started && !vod.is_finalized) {
-            Log.logAdvanced(Log.Level.WARNING, "vod.load", `Loaded VOD ${vod.basename} is not finalized!`);
+            log(LOGLEVEL.WARNING, "vod.load", `Loaded VOD ${vod.basename} is not finalized!`);
         }
 
         // vod.compareDumpedChatAndDownloadedChat();
@@ -1484,7 +1486,7 @@ export class TwitchVOD extends BaseVOD {
 
         vod.loaded = true;
 
-        Log.logAdvanced(Log.Level.DEBUG, "vod.load", `Loaded VOD ${filename}`);
+        log(LOGLEVEL.DEBUG, "vod.load", `Loaded VOD ${filename}`);
 
         return vod;
 
@@ -1493,7 +1495,7 @@ export class TwitchVOD extends BaseVOD {
     // too much work
     static migrateOldJSON(json: any, basepath: string, basename: string): { newJson: TwitchVODJSON, newBasename: string } {
 
-        Log.logAdvanced(Log.Level.WARNING, "vod.migrate", `Migrating old VOD JSON ${basename}`);
+        log(LOGLEVEL.WARNING, "vod.migrate", `Migrating old VOD JSON ${basename}`);
 
         const chapters: TwitchVODChapterJSON[] = [];
         const segments: string[] = (json.segments || json.segments_raw).map((s: string | { filename: string; basename: string; filesize: number; strings: string[]; }) => {
@@ -1508,15 +1510,15 @@ export class TwitchVOD extends BaseVOD {
             try {
                 newName = path.basename(trueCasePathSync(path.join(basepath, name)));
             } catch (error) {
-                Log.logAdvanced(Log.Level.WARNING, "vod.migrate", `Could not find segment ${name} in ${basepath}`);
+                log(LOGLEVEL.WARNING, "vod.migrate", `Could not find segment ${name} in ${basepath}`);
                 return undefined;
             }
 
             if (newName != name) {
-                Log.logAdvanced(Log.Level.WARNING, "vod.migrate", `Renaming segment ${name} to ${newName}`);
+                log(LOGLEVEL.WARNING, "vod.migrate", `Renaming segment ${name} to ${newName}`);
                 fs.renameSync(path.join(basepath, name), path.join(basepath, newName));
             } else {
-                Log.logAdvanced(Log.Level.WARNING, "vod.migrate", `Segment ${name} is already named correctly`);
+                log(LOGLEVEL.WARNING, "vod.migrate", `Segment ${name} is already named correctly`);
             }
 
             return newName;
@@ -1524,14 +1526,14 @@ export class TwitchVOD extends BaseVOD {
             /*
             // check if case sensitive file exists
             if (fileExistsWithCaseSync(path.join(basepath, name))) {
-                Log.logAdvanced(Log.Level.WARNING, "vod", `Found default file: ${name}`);
+                logAdvanced(LOGLEVEL.WARNING, "vod", `Found default file: ${name}`);
                 return name;
             } else if (fileExistsWithCaseSync(path.join(basepath, name.toLocaleLowerCase()))) {
-                Log.logAdvanced(Log.Level.WARNING, "vod", `Found lowercase file: ${name.toLocaleLowerCase()}`);
+                logAdvanced(LOGLEVEL.WARNING, "vod", `Found lowercase file: ${name.toLocaleLowerCase()}`);
                 fs.renameSync(path.join(basepath, name), path.join(basepath, name.toLocaleLowerCase())); // rename to lowercase
                 return name.toLocaleLowerCase(); // new format uses lowercase logins
             } else {
-                Log.logAdvanced(Log.Level.WARNING, "vod", `Could not find file: ${name} at ${path.join(basepath, name)} or ${path.join(basepath, name.toLocaleLowerCase())}`);
+                logAdvanced(LOGLEVEL.WARNING, "vod", `Could not find file: ${name} at ${path.join(basepath, name)} or ${path.join(basepath, name.toLocaleLowerCase())}`);
                 return undefined;
             }
             */
@@ -1541,8 +1543,8 @@ export class TwitchVOD extends BaseVOD {
             throw new Error(`No segments found in ${basename}`);
         }
 
-        Log.logAdvanced(Log.Level.WARNING, "vod.migrate", `Migrated segments: ${segments.length}`);
-        Log.logAdvanced(Log.Level.WARNING, "vod.migrate", `Migrated chapters: ${json.chapters.length}`);
+        log(LOGLEVEL.WARNING, "vod.migrate", `Migrated segments: ${segments.length}`);
+        log(LOGLEVEL.WARNING, "vod.migrate", `Migrated chapters: ${json.chapters.length}`);
 
         for (const chapter of json.chapters) {
             let started_at = "";
@@ -1574,32 +1576,32 @@ export class TwitchVOD extends BaseVOD {
 
         if (json.saved_at) {
             saved_at = JSON.stringify(parse(json.saved_at.date, TwitchHelper.PHP_DATE_FORMAT, new Date()));
-            Log.logAdvanced(Log.Level.INFO, "vod.migrate", `Migrated saved_at: ${saved_at}`);
+            log(LOGLEVEL.INFO, "vod.migrate", `Migrated saved_at: ${saved_at}`);
         }
 
         if (json.started_at) {
             started_at = JSON.stringify(parse(json.started_at.date, TwitchHelper.PHP_DATE_FORMAT, new Date()));
-            Log.logAdvanced(Log.Level.INFO, "vod.migrate", `Migrated started_at with json.started_at: ${started_at}`);
+            log(LOGLEVEL.INFO, "vod.migrate", `Migrated started_at with json.started_at: ${started_at}`);
         } else if (json.dt_started_at) {
             started_at = JSON.stringify(parse(json.dt_started_at.date, TwitchHelper.PHP_DATE_FORMAT, new Date()));
-            Log.logAdvanced(Log.Level.INFO, "vod.migrate", `Migrated started_at with json.dt_started_at: ${started_at}`);
+            log(LOGLEVEL.INFO, "vod.migrate", `Migrated started_at with json.dt_started_at: ${started_at}`);
         }
 
         if (json.ended_at) {
             ended_at = JSON.stringify(parse(json.ended_at.date, TwitchHelper.PHP_DATE_FORMAT, new Date()));
-            Log.logAdvanced(Log.Level.INFO, "vod.migrate", `Migrated ended_at with json.ended_at: ${ended_at}`);
+            log(LOGLEVEL.INFO, "vod.migrate", `Migrated ended_at with json.ended_at: ${ended_at}`);
         } else if (json.dt_ended_at) {
             ended_at = JSON.stringify(parse(json.dt_ended_at.date, TwitchHelper.PHP_DATE_FORMAT, new Date()));
-            Log.logAdvanced(Log.Level.INFO, "vod.migrate", `Migrated ended_at with json.dt_ended_at: ${ended_at}`);
+            log(LOGLEVEL.INFO, "vod.migrate", `Migrated ended_at with json.dt_ended_at: ${ended_at}`);
         }
 
         if (!saved_at || !started_at || !ended_at) {
             throw new Error(`Could not migrate dates for ${basename}`);
         }
 
-        Log.logAdvanced(Log.Level.INFO, "vod.migrate", `Migrated date saved_at: ${saved_at}`);
-        Log.logAdvanced(Log.Level.INFO, "vod.migrate", `Migrated date started_at: ${started_at}`);
-        Log.logAdvanced(Log.Level.INFO, "vod.migrate", `Migrated date ended_at: ${ended_at}`);
+        log(LOGLEVEL.INFO, "vod.migrate", `Migrated date saved_at: ${saved_at}`);
+        log(LOGLEVEL.INFO, "vod.migrate", `Migrated date started_at: ${started_at}`);
+        log(LOGLEVEL.INFO, "vod.migrate", `Migrated date ended_at: ${ended_at}`);
 
         const new_json: TwitchVODJSON = {
             "version": 2,
@@ -1675,12 +1677,12 @@ export class TwitchVOD extends BaseVOD {
      */
     public static async downloadVideo(video_id: string, quality: VideoQuality = "best", filename: string): Promise<string> {
 
-        Log.logAdvanced(Log.Level.INFO, "vod.downloadVideo", `Download VOD ${video_id}`);
+        log(LOGLEVEL.INFO, "vod.downloadVideo", `Download VOD ${video_id}`);
 
         const video = await TwitchVOD.getVideo(video_id);
 
         if (!video) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.downloadVideo", `Failed to get video ${video_id}`);
+            log(LOGLEVEL.ERROR, "vod.downloadVideo", `Failed to get video ${video_id}`);
             throw new Error(`Failed to get video ${video_id}`);
         }
 
@@ -1698,12 +1700,12 @@ export class TwitchVOD extends BaseVOD {
             const ffmpeg_bin = Helper.path_ffmpeg();
 
             if (!streamlink_bin) {
-                Log.logAdvanced(Log.Level.ERROR, "vod.downloadVideo", "Failed to find streamlink binary!");
+                log(LOGLEVEL.ERROR, "vod.downloadVideo", "Failed to find streamlink binary!");
                 throw new Error("Failed to find streamlink binary!");
             }
 
             if (!ffmpeg_bin) {
-                Log.logAdvanced(Log.Level.ERROR, "vod.downloadVideo", "Failed to find ffmpeg binary!");
+                log(LOGLEVEL.ERROR, "vod.downloadVideo", "Failed to find ffmpeg binary!");
                 throw new Error("Failed to find ffmpeg binary!");
             }
 
@@ -1726,29 +1728,30 @@ export class TwitchVOD extends BaseVOD {
                 cmd.push("--loglevel", "info");
             }
 
-            Log.logAdvanced(Log.Level.INFO, "vod.downloadVideo", `Downloading VOD ${video_id}...`);
+            log(LOGLEVEL.INFO, "vod.downloadVideo", `Downloading VOD ${video_id}...`);
 
             let totalSegments = 0;
             let currentSegment = 0;
-            const ret = await Helper.execAdvanced(streamlink_bin, cmd, `download_vod_${video_id}`, (log: string) => {
-                const totalSegmentMatch = log.match(/Last Sequence: (\d+)/);
+            const ret = await execAdvanced(streamlink_bin, cmd, `download_vod_${video_id}`, (logOutput: string) => {
+                const totalSegmentMatch = logOutput.match(/Last Sequence: (\d+)/);
                 if (totalSegmentMatch && !totalSegments) {
                     // console.debug(`Total segments: ${totalSegmentMatch[1]}`, totalSegmentMatch);
                     totalSegments = parseInt(totalSegmentMatch[1]);
                 }
-                const currentSegmentMatch = log.match(/Segment (\d+) complete/);
+                const currentSegmentMatch = logOutput.match(/Segment (\d+) complete/);
                 if (currentSegmentMatch && totalSegments > 0) {
                     currentSegment = parseInt(currentSegmentMatch[1]);
                     // console.debug(`Current segment: ${currentSegment}`);
+                    progressOutput(`Downloading VOD ${video_id}: ${Math.round((currentSegment / totalSegments) * 100)}%`);
                     return currentSegment / totalSegments;
                 }
 
-                if (log.match(/Error when reading from stream: Read timeout, exiting/)) {
-                    Log.logAdvanced(Log.Level.ERROR, "vod.downloadVideo", log.trim());
+                if (logOutput.match(/Error when reading from stream: Read timeout, exiting/)) {
+                    log(LOGLEVEL.ERROR, "vod.downloadVideo", logOutput.trim());
                 }
             });
 
-            Log.logAdvanced(Log.Level.INFO, "vod.downloadVideo", `Downloaded VOD ${video_id}...}`);
+            log(LOGLEVEL.INFO, "vod.downloadVideo", `Downloaded VOD ${video_id}...}`);
 
             if (ret.stdout.join("\n").includes("error: Unable to find video:") || ret.stderr.join("\n").includes("error: Unable to find video:")) {
                 throw new Error("VOD on Twitch not found, is it deleted?");
@@ -1757,7 +1760,7 @@ export class TwitchVOD extends BaseVOD {
 
         if (!fs.existsSync(converted_filename)) {
 
-            Log.logAdvanced(Log.Level.INFO, "vod.downloadVideo", `Starting remux of ${basename}`);
+            log(LOGLEVEL.INFO, "vod.downloadVideo", `Starting remux of ${basename}`);
 
             let chapters_file = "";
             if (Config.getInstance().cfg("create_video_chapters")) {
@@ -1770,7 +1773,7 @@ export class TwitchVOD extends BaseVOD {
                 try {
                     meta.addChapter(0, end, video.title, "1/1000");
                 } catch (e) {
-                    Log.logAdvanced(Log.Level.ERROR, "vod.downloadVideo", `Failed to add chapter to ${basename}: ${(e as Error).message}`);
+                    log(LOGLEVEL.ERROR, "vod.downloadVideo", `Failed to add chapter to ${basename}: ${(e as Error).message}`);
                 }
 
                 fs.writeFileSync(chapters_file, meta.getString());
@@ -1778,9 +1781,9 @@ export class TwitchVOD extends BaseVOD {
 
             let ret;
             try {
-                ret = await Helper.remuxFile(capture_filename, converted_filename, undefined, chapters_file);
+                ret = await remuxFile(capture_filename, converted_filename, undefined, chapters_file);
             } catch (error) {
-                Log.logAdvanced(Log.Level.ERROR, "vod.downloadVideo", `Failed to remux ${basename}: ${(error as Error).message}`);
+                log(LOGLEVEL.ERROR, "vod.downloadVideo", `Failed to remux ${basename}: ${(error as Error).message}`);
                 throw new Error(`Failed to remux ${basename}: ${(error as Error).message}`);
             }
 
@@ -1791,21 +1794,21 @@ export class TwitchVOD extends BaseVOD {
             LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
 
             if (ret.success) {
-                Log.logAdvanced(Log.Level.INFO, "vod.downloadVideo", `Successfully remuxed ${basename}, removing ${capture_filename}`);
+                log(LOGLEVEL.INFO, "vod.downloadVideo", `Successfully remuxed ${basename}, removing ${capture_filename}`);
                 fs.unlinkSync(capture_filename);
             } else {
-                Log.logAdvanced(Log.Level.INFO, "vod.downloadVideo", `Failed to remux ${basename}`);
+                log(LOGLEVEL.INFO, "vod.downloadVideo", `Failed to remux ${basename}`);
             }
         }
 
         const successful = fs.existsSync(converted_filename) && fs.statSync(converted_filename).size > 0;
 
         if (!successful) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.downloadVideo", `Failed to download ${basename}, no file found!`);
+            log(LOGLEVEL.ERROR, "vod.downloadVideo", `Failed to download ${basename}, no file found!`);
             throw new Error(`Failed to download ${basename}, no file found!`);
         }
 
-        Log.logAdvanced(Log.Level.INFO, "vod.downloadVideo", `Download of ${basename} successful`);
+        log(LOGLEVEL.INFO, "vod.downloadVideo", `Download of ${basename} successful`);
 
         Webhook.dispatchAll("video_download", {
             "success": true,
@@ -1829,12 +1832,12 @@ export class TwitchVOD extends BaseVOD {
 
     public static async downloadClip(clip_id: string, filename: string, quality: VideoQuality = "best"): Promise<string> {
 
-        Log.logAdvanced(Log.Level.INFO, "vod", `Download clip ${clip_id}`);
+        log(LOGLEVEL.INFO, "vod", `Download clip ${clip_id}`);
 
         const clips = await TwitchVOD.getClips({ id: clip_id });
 
         if (!clips) {
-            Log.logAdvanced(Log.Level.ERROR, "vod", `Failed to get clip ${clip_id}`);
+            log(LOGLEVEL.ERROR, "vod", `Failed to get clip ${clip_id}`);
             throw new Error(`Failed to get clip ${clip_id}`);
         }
 
@@ -1854,12 +1857,12 @@ export class TwitchVOD extends BaseVOD {
             const ffmpeg_bin = Helper.path_ffmpeg();
 
             if (!streamlink_bin) {
-                Log.logAdvanced(Log.Level.ERROR, "vod", "Failed to find streamlink binary!");
+                log(LOGLEVEL.ERROR, "vod", "Failed to find streamlink binary!");
                 throw new Error("Failed to find streamlink binary!");
             }
 
             if (!ffmpeg_bin) {
-                Log.logAdvanced(Log.Level.ERROR, "vod", "Failed to find ffmpeg binary!");
+                log(LOGLEVEL.ERROR, "vod", "Failed to find ffmpeg binary!");
                 throw new Error("Failed to find ffmpeg binary!");
             }
 
@@ -1884,29 +1887,29 @@ export class TwitchVOD extends BaseVOD {
                 cmd.push("--loglevel", "info");
             }
 
-            Log.logAdvanced(Log.Level.INFO, "vod", `Downloading clip ${clip_id}...`);
+            log(LOGLEVEL.INFO, "vod", `Downloading clip ${clip_id}...`);
 
             let totalSegments = 0;
             let currentSegment = 0;
-            const ret = await Helper.execAdvanced(streamlink_bin, cmd, `download_clip_${clip_id}`, (log: string) => {
-                const totalSegmentMatch = log.match(/Last Sequence: (\d+)/);
+            const ret = await execAdvanced(streamlink_bin, cmd, `download_clip_${clip_id}`, (logOutput: string) => {
+                const totalSegmentMatch = logOutput.match(/Last Sequence: (\d+)/);
                 if (totalSegmentMatch && !totalSegments) {
                     // console.debug(`Total segments: ${totalSegmentMatch[1]}`, totalSegmentMatch);
                     totalSegments = parseInt(totalSegmentMatch[1]);
                 }
-                const currentSegmentMatch = log.match(/Segment (\d+) complete/);
+                const currentSegmentMatch = logOutput.match(/Segment (\d+) complete/);
                 if (currentSegmentMatch && totalSegments > 0) {
                     currentSegment = parseInt(currentSegmentMatch[1]);
                     // console.debug(`Current segment: ${currentSegment}`);
                     return currentSegment / totalSegments;
                 }
 
-                if (log.match(/Error when reading from stream: Read timeout, exiting/)) {
-                    Log.logAdvanced(Log.Level.ERROR, "vod.downloadClip", log.trim());
+                if (logOutput.match(/Error when reading from stream: Read timeout, exiting/)) {
+                    log(LOGLEVEL.ERROR, "vod.downloadClip", logOutput.trim());
                 }
             });
 
-            Log.logAdvanced(Log.Level.INFO, "vod", `Downloaded clip ${clip_id}...}`);
+            log(LOGLEVEL.INFO, "vod", `Downloaded clip ${clip_id}...}`);
 
             if (ret.stdout.join("\n").includes("error: Unable to find video:") || ret.stderr.join("\n").includes("error: Unable to find video:")) {
                 throw new Error("Clip on Twitch not found, is it deleted?");
@@ -1915,7 +1918,7 @@ export class TwitchVOD extends BaseVOD {
 
         if (!fs.existsSync(converted_filename)) {
 
-            Log.logAdvanced(Log.Level.INFO, "vod.downloadClip", `Starting remux of ${basename}`);
+            log(LOGLEVEL.INFO, "vod.downloadClip", `Starting remux of ${basename}`);
 
             const metadata = new FFmpegMetadata()
                 .setAlbumArtist(clip.creator_name)
@@ -1927,28 +1930,28 @@ export class TwitchVOD extends BaseVOD {
 
             let ret;
             try {
-                ret = await Helper.remuxFile(capture_filename, converted_filename, undefined, metadata);
+                ret = await remuxFile(capture_filename, converted_filename, undefined, metadata);
             } catch (error) {
-                Log.logAdvanced(Log.Level.ERROR, "vod.downloadClip", `Failed to remux ${basename}: ${(error as Error).message}`);
+                log(LOGLEVEL.ERROR, "vod.downloadClip", `Failed to remux ${basename}: ${(error as Error).message}`);
                 throw new Error(`Failed to remux ${basename}: ${(error as Error).message}`);
             }
 
             if (ret.success) {
-                Log.logAdvanced(Log.Level.INFO, "vod.downloadClip", `Successfully remuxed ${basename}, removing ${capture_filename}`);
+                log(LOGLEVEL.INFO, "vod.downloadClip", `Successfully remuxed ${basename}, removing ${capture_filename}`);
                 fs.unlinkSync(capture_filename);
             } else {
-                Log.logAdvanced(Log.Level.INFO, "vod.downloadClip", `Failed to remux ${basename}`);
+                log(LOGLEVEL.INFO, "vod.downloadClip", `Failed to remux ${basename}`);
             }
         }
 
         const successful = fs.existsSync(converted_filename) && fs.statSync(converted_filename).size > 0;
 
         if (!successful) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.downloadClip", `Failed to download ${basename}, no file found!`);
+            log(LOGLEVEL.ERROR, "vod.downloadClip", `Failed to download ${basename}, no file found!`);
             throw new Error(`Failed to download ${basename}, no file found!`);
         }
 
-        Log.logAdvanced(Log.Level.INFO, "vod.downloadClip", `Download of ${basename} successful`);
+        log(LOGLEVEL.INFO, "vod.downloadClip", `Download of ${basename} successful`);
 
         Webhook.dispatchAll("video_download", {
             "success": true,
@@ -1981,7 +1984,7 @@ export class TwitchVOD extends BaseVOD {
                 } as VideoRequestParams,
             });
         } catch (err) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.getVideo", `Tried to get video id ${video_id} but got error ${(err as Error).message}`);
+            log(LOGLEVEL.ERROR, "vod.getVideo", `Tried to get video id ${video_id} but got error ${(err as Error).message}`);
             if (axios.isAxiosError(err)) {
                 if (err.response && err.response.status === 404) {
                     return false;
@@ -1994,7 +1997,7 @@ export class TwitchVOD extends BaseVOD {
         const json = response.data;
 
         if (json.data.length === 0) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.getVideo", `Tried to get video id ${video_id} but got no data`);
+            log(LOGLEVEL.ERROR, "vod.getVideo", `Tried to get video id ${video_id} but got no data`);
             return false;
         }
 
@@ -2020,7 +2023,7 @@ export class TwitchVOD extends BaseVOD {
             throw new Error("Can only get 100 videos at a time");
         }
 
-        Log.logAdvanced(Log.Level.DEBUG, "vod.getVideos", `Getting videos ${ids.join(", ")}`);
+        log(LOGLEVEL.DEBUG, "vod.getVideos", `Getting videos ${ids.join(", ")}`);
 
         let response;
 
@@ -2031,7 +2034,7 @@ export class TwitchVOD extends BaseVOD {
                 } as VideoRequestParams,
             });
         } catch (err) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.getVideos", `Tried to get videos ${ids.join(", ")} but got error ${(err as Error).message}`);
+            log(LOGLEVEL.ERROR, "vod.getVideos", `Tried to get videos ${ids.join(", ")} but got error ${(err as Error).message}`);
             if (axios.isAxiosError(err)) {
                 if (err.response && err.response.status === 404) {
                     return false;
@@ -2047,7 +2050,7 @@ export class TwitchVOD extends BaseVOD {
         const json = response.data;
 
         if (json.data.length === 0) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.getVideos", `Tried to get videos ${ids.join(", ")} but got no data`);
+            log(LOGLEVEL.ERROR, "vod.getVideos", `Tried to get videos ${ids.join(", ")} but got no data`);
             return false;
         }
 
@@ -2095,14 +2098,14 @@ export class TwitchVOD extends BaseVOD {
                 } as VideoRequestParams,
             });
         } catch (e) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.getVideos", `Tried to get videos for channel id ${channel_id} but got error ${e}`);
+            log(LOGLEVEL.ERROR, "vod.getVideos", `Tried to get videos for channel id ${channel_id} but got error ${e}`);
             return false;
         }
 
         const json = response.data;
 
         if (json.data.length === 0) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.getVideos", `Tried to get videos for channel id ${channel_id} but got no data`);
+            log(LOGLEVEL.ERROR, "vod.getVideos", `Tried to get videos for channel id ${channel_id} but got no data`);
             return false;
         }
 
@@ -2127,14 +2130,14 @@ export class TwitchVOD extends BaseVOD {
                 } as VideoRequestParams,
             });
         } catch (e) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.getVideosProxy", `Tried to get videos for channel id ${channel_id} but got error ${e}`);
+            log(LOGLEVEL.ERROR, "vod.getVideosProxy", `Tried to get videos for channel id ${channel_id} but got error ${e}`);
             return false;
         }
 
         const json = response.data;
 
         if (json.data.length === 0) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.getVideosProxy", `Tried to get videos for channel id ${channel_id} but got no data`);
+            log(LOGLEVEL.ERROR, "vod.getVideosProxy", `Tried to get videos for channel id ${channel_id} but got no data`);
             return false;
         }
 
@@ -2170,7 +2173,7 @@ export class TwitchVOD extends BaseVOD {
                 } as VideoRequestParams,
             });
         } catch (err) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.getVideoProxy", `Tried to get video id ${video_id} but got error ${(err as Error).message}`);
+            log(LOGLEVEL.ERROR, "vod.getVideoProxy", `Tried to get video id ${video_id} but got error ${(err as Error).message}`);
             if (axios.isAxiosError(err)) {
                 if (err.response && err.response.status === 404) {
                     return false;
@@ -2183,7 +2186,7 @@ export class TwitchVOD extends BaseVOD {
         const json = response.data;
 
         if (json.data.length === 0) {
-            Log.logAdvanced(Log.Level.ERROR, "vod.getVideoProxy", `Tried to get video id ${video_id} but got no data`);
+            log(LOGLEVEL.ERROR, "vod.getVideoProxy", `Tried to get video id ${video_id} but got no data`);
             return false;
         }
 
@@ -2245,7 +2248,7 @@ export class TwitchVOD extends BaseVOD {
                     params: params,
                 });
             } catch (e) {
-                Log.logAdvanced(Log.Level.ERROR, "vod.getClips", `Tried to get clips but got error: ${(e as Error).message}`);
+                log(LOGLEVEL.ERROR, "vod.getClips", `Tried to get clips but got error: ${(e as Error).message}`);
                 if (axios.isAxiosError(e) && e.response) {
                     console.debug("data", e.response.data);
                 }
@@ -2262,11 +2265,11 @@ export class TwitchVOD extends BaseVOD {
             }
 
             if (json.data.length === 0) {
-                Log.logAdvanced(Log.Level.ERROR, "vod.getClips", "Tried to get clips but got no data");
+                log(LOGLEVEL.ERROR, "vod.getClips", "Tried to get clips but got no data");
                 break;
             }
 
-            Log.logAdvanced(Log.Level.DEBUG, "vod.getClips", `Got response for page ${page} with ${response.data.data.length} clips`);
+            log(LOGLEVEL.DEBUG, "vod.getClips", `Got response for page ${page} with ${response.data.data.length} clips`);
 
             clips.push(...json.data);
 
@@ -2304,7 +2307,7 @@ export class TwitchVOD extends BaseVOD {
             }
 
             if (fs.existsSync(output)) {
-                Log.logAdvanced(Log.Level.INFO, "vod.downloadChatTD", `Chat already exists for ${vod_id}`);
+                log(LOGLEVEL.INFO, "vod.downloadChatTD", `Chat already exists for ${vod_id}`);
                 resolve(true);
                 return;
             }
@@ -2322,9 +2325,9 @@ export class TwitchVOD extends BaseVOD {
                 PWD: BaseConfigCacheFolder.dotnet,
             };
 
-            Log.logAdvanced(Log.Level.INFO, "vod.downloadChatTD", `Downloading chat for ${vod_id}`);
+            log(LOGLEVEL.INFO, "vod.downloadChatTD", `Downloading chat for ${vod_id}`);
 
-            const job = Helper.startJob(`chatdownload_${vod_id}`, bin, args, env);
+            const job = startJob(`chatdownload_${vod_id}`, bin, args, env);
             if (!job) {
                 reject(new Error("Job failed"));
                 return;
@@ -2338,7 +2341,7 @@ export class TwitchVOD extends BaseVOD {
                     const percent = parseInt(match[1]);
                     /*
                     if (percent != lastPercent && percent % 10 == 0) {
-                        Log.logAdvanced(Log.Level.INFO, "vod", `Downloading chat for ${vod_id} (${percent}%)`);
+                        logAdvanced(LOGLEVEL.INFO, "vod", `Downloading chat for ${vod_id} (${percent}%)`);
                         lastPercent = percent;
                     }
                     */
@@ -2350,10 +2353,10 @@ export class TwitchVOD extends BaseVOD {
 
             job.on("close", (code, signal) => {
                 if (fs.existsSync(output) && fs.statSync(output).size > 0) {
-                    Log.logAdvanced(Log.Level.INFO, "vod.downloadChatTD", `Chat downloaded for ${vod_id}`);
+                    log(LOGLEVEL.INFO, "vod.downloadChatTD", `Chat downloaded for ${vod_id}`);
                     resolve(true);
                 } else {
-                    Log.logAdvanced(Log.Level.ERROR, "vod.downloadChatTD", `Chat couldn't be downloaded for ${vod_id}`);
+                    log(LOGLEVEL.ERROR, "vod.downloadChatTD", `Chat couldn't be downloaded for ${vod_id}`);
                     reject(new Error("Chat couldn't be downloaded"));
                 }
             });
@@ -2378,7 +2381,7 @@ export class TwitchVOD extends BaseVOD {
             }
 
             if (fs.existsSync(output)) {
-                Log.logAdvanced(Log.Level.INFO, "vod.downloadChatTCD", `Chat already exists for ${vod_id}`);
+                log(LOGLEVEL.INFO, "vod.downloadChatTCD", `Chat already exists for ${vod_id}`);
                 resolve(true);
                 return;
             }
@@ -2387,7 +2390,7 @@ export class TwitchVOD extends BaseVOD {
 
             if (fs.existsSync(temp_filepath)) {
                 fs.renameSync(temp_filepath, output);
-                Log.logAdvanced(Log.Level.INFO, "vod.downloadChatTCD", `Chat renamed for ${vod_id}`);
+                log(LOGLEVEL.INFO, "vod.downloadChatTCD", `Chat renamed for ${vod_id}`);
                 resolve(true);
             }
 
@@ -2403,9 +2406,9 @@ export class TwitchVOD extends BaseVOD {
             }
             args.push("--output", BaseConfigCacheFolder.cache);
 
-            Log.logAdvanced(Log.Level.INFO, "vod.downloadChatTCD", `Downloading chat for ${vod_id}`);
+            log(LOGLEVEL.INFO, "vod.downloadChatTCD", `Downloading chat for ${vod_id}`);
 
-            const job = Helper.startJob(`chatdownload_${vod_id}`, bin, args);
+            const job = startJob(`chatdownload_${vod_id}`, bin, args);
             if (!job) {
                 reject(new Error("Job failed"));
                 return;
@@ -2413,11 +2416,11 @@ export class TwitchVOD extends BaseVOD {
 
             job.on("close", (code, signal) => {
                 if (fs.existsSync(temp_filepath) && fs.statSync(temp_filepath).size > 0) {
-                    Log.logAdvanced(Log.Level.INFO, "vod.downloadChatTCD", `Chat downloaded for ${vod_id}`);
+                    log(LOGLEVEL.INFO, "vod.downloadChatTCD", `Chat downloaded for ${vod_id}`);
                     fs.renameSync(temp_filepath, output);
                     resolve(true);
                 } else {
-                    Log.logAdvanced(Log.Level.ERROR, "vod.downloadChatTCD", `Chat couldn't be downloaded for ${vod_id}`);
+                    log(LOGLEVEL.ERROR, "vod.downloadChatTCD", `Chat couldn't be downloaded for ${vod_id}`);
                     reject(new Error("Chat couldn't be downloaded"));
                 }
             });
@@ -2432,7 +2435,7 @@ export class TwitchVOD extends BaseVOD {
         if (this.watchViewerCountInterval) {
             throw new Error("Already watching");
         }
-        Log.logAdvanced(Log.Level.INFO, "vod.startWatchingViewerCount", `Watching viewer count for ${this.basename}`);
+        log(LOGLEVEL.INFO, "vod.startWatchingViewerCount", `Watching viewer count for ${this.basename}`);
         this.watchViewerCountInterval = xInterval(() => {
             this.addViewerCount();
         }, this.watchViewerCountTimeBetweenChecks);
@@ -2441,14 +2444,14 @@ export class TwitchVOD extends BaseVOD {
 
     public stopWatchingViewerCount() {
         if (this.watchViewerCountInterval) {
-            clearInterval(this.watchViewerCountInterval);
+            xClearInterval(this.watchViewerCountInterval);
             this.watchViewerCountInterval = undefined;
         }
     }
 
     public async addViewerCount() {
         if (!LiveStreamDVR.getInstance().getVodByUUID(this.uuid)) {
-            Log.logAdvanced(Log.Level.WARNING, "vod.addViewerCount", `VOD ${this.basename} was removed without stopping watching viewer count`);
+            log(LOGLEVEL.WARNING, "vod.addViewerCount", `VOD ${this.basename} was removed without stopping watching viewer count`);
             this.stopWatchingViewerCount();
             return;
         }
@@ -2461,7 +2464,7 @@ export class TwitchVOD extends BaseVOD {
             amount: stream.viewer_count,
             timestamp: new Date(),
         });
-        Log.logAdvanced(Log.Level.INFO, "vod.addViewerCount", `Added viewer count for ${this.basename} (${stream.viewer_count})`);
+        log(LOGLEVEL.INFO, "vod.addViewerCount", `Added viewer count for ${this.basename} (${stream.viewer_count})`);
         this.saveJSON("add viewer count");
     }
 
