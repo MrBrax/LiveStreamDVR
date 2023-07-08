@@ -594,20 +594,40 @@ export class TwitchChannel extends BaseChannel {
 
     public saveKodiNfo(): boolean {
 
-        if (!this.channel_data) return false;
+        if (!this.channel_data) {
+            log(LOGLEVEL.ERROR, "channel.kodi", `Cannot save Kodi nfo for ${this.internalName}, channel_data is not set`);
+            return false;
+        }
         if (!Config.getInstance().cfg("create_kodi_nfo")) return false;
-        if (!Config.getInstance().cfg("channel_folders")) return false; // only create nfo if we have channel folders
+        if (!Config.getInstance().cfg("channel_folders")) {
+            log(LOGLEVEL.WARNING, "channel.kodi", `Not creating nfo for ${this.internalName}, channel_folders is disabled`);
+            return false;
+        }
 
         const nfo_file = path.join(this.getFolder(), "tvshow.nfo");
-
         let avatar;
-        if (this.channel_data.cache_avatar && fs.existsSync(path.join(BaseConfigCacheFolder.public_cache_avatars, this.channel_data.cache_avatar))) {
-            fs.copyFileSync(
-                path.join(BaseConfigCacheFolder.public_cache_avatars, this.channel_data.cache_avatar),
-                path.join(this.getFolder(), `poster${path.extname(this.channel_data.cache_avatar)}`)
-            );
-            avatar = `poster${path.extname(this.channel_data.cache_avatar)}`;
-            log(LOGLEVEL.DEBUG, "channel", `Copied avatar ${this.channel_data.cache_avatar} to ${avatar}`);
+
+        if (this.channel_data.avatar_cache) {
+
+            const avatar_path = path.join(BaseConfigCacheFolder.public_cache_avatars, this.channel_data.avatar_cache);
+
+            if (fs.existsSync(avatar_path)) {
+                fs.copyFileSync(
+                    avatar_path,
+                    path.join(this.getFolder(), `poster${path.extname(this.channel_data.avatar_cache)}`)
+                );
+                avatar = `poster${path.extname(this.channel_data.avatar_cache)}`;
+                log(LOGLEVEL.DEBUG, "channel.kodi", `Copied avatar ${this.channel_data.avatar_cache} to ${avatar}`);
+            } else {
+                log(LOGLEVEL.WARNING, "channel.kodi", `Avatar ${this.channel_data.avatar_cache} not found in cache, not copying to ${this.getFolder()}`, {
+                    avatar_cache: this.channel_data.avatar_cache,
+                    public_cache_avatars: BaseConfigCacheFolder.public_cache_avatars,
+                    getFolder: this.getFolder(),
+                });
+            }
+
+        } else {
+            log(LOGLEVEL.WARNING, "channel.kodi", `Avatar not found for ${this.internalName}`);
         }
 
         let nfo_content = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n";
@@ -626,7 +646,7 @@ export class TwitchChannel extends BaseChannel {
 
         fs.writeFileSync(nfo_file, nfo_content);
 
-        log(LOGLEVEL.INFO, "channel", `Wrote nfo file for ${this.internalName} to ${nfo_file}`);
+        log(LOGLEVEL.INFO, "channel.kodi", `Wrote nfo file for ${this.internalName} to ${nfo_file}`);
 
         return fs.existsSync(nfo_file);
 
@@ -1084,6 +1104,11 @@ export class TwitchChannel extends BaseChannel {
 
         if (KeyValue.getInstance().get(`${channel.internalName}.channeldata`)) {
             log(LOGLEVEL.WARNING, "channel", `Channel ${channel.internalName} has stale chapter data.`);
+        }
+
+        if ((channel.channel_data as any).cache_avatar) {
+            log(LOGLEVEL.WARNING, "channel", `Channel ${channel.internalName} has stale avatar data.`);
+            channel.channel_data.avatar_thumb = (channel.channel_data as any).cache_avatar;
         }
 
         if (channel.channel_data.profile_image_url && !channel.channelLogoExists) {
@@ -1587,8 +1612,7 @@ export class TwitchChannel extends BaseChannel {
             log(LOGLEVEL.DEBUG, "channel", `Saved avatar for ${userData.id}`);
 
             if (fs.existsSync(logo_path) && fs.statSync(logo_path).size > 0) {
-                userData.cache_avatar = logo_filename; // first set the cache location to the original file
-
+                userData.avatar_cache = logo_filename;
 
                 // make thumbnails
 
@@ -1602,8 +1626,10 @@ export class TwitchChannel extends BaseChannel {
                 }
 
                 if (avatar_thumbnail) {
-                    userData.cache_avatar = avatar_thumbnail;
+                    userData.avatar_thumb = avatar_thumbnail;
                     log(LOGLEVEL.DEBUG, "channel", `Created thumbnail for user logo for ${userData.id}`);
+                } else {
+                    log(LOGLEVEL.ERROR, "channel", `Could not create thumbnail for user logo for ${userData.id}`);
                 }
 
                 TwitchChannel.channels_cache[userData.id] = userData; // TODO: is this a good idea
@@ -2178,14 +2204,14 @@ export class TwitchChannel extends BaseChannel {
     }
 
     get profilePictureUrl(): string {
-        if (this.channel_data && this.channel_data.cache_avatar) {
+        if (this.channel_data && this.channel_data.avatar_thumb) {
             // return `${Config.getInstance().cfg<string>("basepath", "")}/cache/avatars/${this.channel_data.cache_avatar}`;
             // return `${Config.getInstance().cfg<string>("basepath", "")}/cache/thumbs/${this.channel_data.cache_avatar}`;
             const app_url = Config.getInstance().cfg<string>("app_url", "");
             if (app_url && app_url !== "debug") {
-                return `${app_url}/cache/thumbs/${this.channel_data.cache_avatar}`;
+                return `${app_url}/cache/thumbs/${this.channel_data.avatar_thumb}`;
             } else {
-                return `${Config.getInstance().cfg<string>("basepath", "")}/cache/thumbs/${this.channel_data.cache_avatar}`;
+                return `${Config.getInstance().cfg<string>("basepath", "")}/cache/thumbs/${this.channel_data.avatar_thumb}`;
             }
         }
         return this.channel_data?.profile_image_url || "";
