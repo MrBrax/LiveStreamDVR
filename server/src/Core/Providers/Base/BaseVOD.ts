@@ -30,7 +30,7 @@ import { Webhook } from "../../Webhook";
 import { BaseChannel } from "./BaseChannel";
 import { BaseVODChapter } from "./BaseVODChapter";
 import { BaseVODSegment } from "./BaseVODSegment";
-import { ffmpeg_time, remuxFile, videometadata } from "../../../Helpers/Video";
+import { ffmpeg_time, remuxFile, videoContactSheet, videometadata } from "../../../Helpers/Video";
 
 export class BaseVOD {
 
@@ -292,6 +292,7 @@ export class BaseVOD {
             `${this.basename}-ffmpeg-chapters.txt`,
             `${this.basename}.chapters.vtt`,
             `${this.basename}.nfo`,
+            `${this.basename}-contact-sheet.png`,
         ];
 
         if (this.segments_raw) {
@@ -1879,6 +1880,20 @@ export class BaseVOD {
 
         return true;
 
+    }
+
+    public async createVideoContactSheet(): Promise<boolean> {
+        if (!this.segments_raw || this.segments_raw.length == 0) {
+            log(LOGLEVEL.ERROR, "vod.createVideoContactSheet", `No segments found for ${this.basename}, can't create video contact sheet`);
+            return false;
+        }
+        try {
+            await videoContactSheet(this.segments_raw[0], path.join(this.directory, `${this.basename}-contact_sheet.png`));
+        } catch (error) {
+            log(LOGLEVEL.ERROR, "vod.createVideoContactSheet", `Failed to create video contact sheet for ${this.basename}: ${error}`);
+            return false;
+        }
+        return true;
     }
 
 }

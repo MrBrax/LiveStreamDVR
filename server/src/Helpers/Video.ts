@@ -558,3 +558,50 @@ export async function videoThumbnail(filename: string, width: number, offset = 5
     }
 
 }
+
+export async function videoContactSheet(video_filename: string, output_image: string, {
+    width = 1920,
+    grid = "3x5",
+}: { width?: number, grid?: string } = {}): Promise<boolean> {
+
+    log(LOGLEVEL.INFO, "helper.videoContactSheet", `Requested video contact sheet of ${video_filename}`);
+
+    if (!video_filename) {
+        throw new Error("No filename supplied for contact sheet");
+    }
+
+    if (!fs.existsSync(video_filename)) {
+        throw new Error(`File not found for video contact sheet: ${video_filename}`);
+    }
+
+    if (fs.statSync(video_filename).size == 0) {
+        throw new Error(`Filesize is 0 for video contact sheet: ${video_filename}`);
+    }
+
+    if (fs.existsSync(output_image)) {
+        log(LOGLEVEL.DEBUG, "helper.videoContactSheet", `Contact sheet already exists for ${video_filename}, returning cached version`);
+        return true;
+    }
+
+    const vcsi_path = Helper.path_vcsi();
+
+    if (!vcsi_path) throw new Error("Failed to find vcsi");
+
+    const output = await execSimple(vcsi_path, [
+        video_filename,
+        "-t", // show timestamp for each frame
+        "-w", width.toString(),
+        "-g", grid,
+        "-o", output_image,
+    ], "vcsi video contact sheet");
+
+    if (output && fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
+        log(LOGLEVEL.SUCCESS, "helper.videoContactSheet", `Created video contact sheet for ${video_filename}`);
+        return true;
+    }
+
+    log(LOGLEVEL.ERROR, "helper.videoContactSheet", `Failed to create video contact sheet for ${video_filename}`);
+
+    throw new Error("No output from vcsi");
+
+}

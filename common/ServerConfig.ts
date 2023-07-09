@@ -185,6 +185,7 @@ export const settingsFields: Record<string, SettingField<string> | SettingField<
 
     create_video_chapters: { group: "Video", text: "Create video chapters", type: "boolean", default: true },
     create_kodi_nfo: { group: "Video", text: "Create kodi nfo", type: "boolean", default: false, help: "Requires server restart or channels reset." },
+    "vod.create_contact_sheet": { group: "Video", text: "Create contact sheet", type: "boolean", default: true },
 
     "filename_clip": {
         group: "Video",

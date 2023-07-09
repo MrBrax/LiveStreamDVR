@@ -39,6 +39,10 @@ export class Helper {
         return false;
     }
 
+    /**
+     * ffmpeg is a tool for video transcoding
+     * @returns 
+     */
     public static path_ffmpeg(): string | false {
         if (Config.getInstance().hasValue("ffmpeg_path")) return Config.getInstance().cfg<string>("ffmpeg_path");
         return false;
@@ -206,6 +210,10 @@ export class Helper {
     }
 
     // very bad
+    /**
+     * ffprobe is used to get info about media files
+     * @returns 
+     */
     public static path_ffprobe(): string | false {
         const f = this.path_ffmpeg();
         if (!f) return false;
@@ -229,6 +237,10 @@ export class Helper {
         return "";
     }
 
+    /**
+     * streamlink is used to download streams from providers
+     * @returns 
+     */
     public static path_streamlink(): string | false {
         if (!this.bin_dir()) return false;
         const full_path = path.join(this.bin_dir(), this.executable_name("streamlink"));
@@ -242,6 +254,10 @@ export class Helper {
         return exists ? full_path : false;
     }
 
+    /**
+     * yt-dlp is a fork of youtube-dl with more features and bugfixes, but is currently not used
+     * @returns 
+     */
     public static path_youtubedl(): string | false {
         if (!this.bin_dir()) return false;
         const full_path = path.join(this.bin_dir(), this.executable_name("yt-dlp"));
@@ -255,6 +271,10 @@ export class Helper {
         return exists ? full_path : false;
     }
 
+    /**
+     * tcd is a tool for downloading twitch chats
+     * @returns 
+     */
     public static path_tcd(): string | false {
         if (!this.bin_dir()) return false;
         const full_path = path.join(this.bin_dir(), this.executable_name("tcd"));
@@ -268,6 +288,10 @@ export class Helper {
         return exists ? full_path : false;
     }
 
+    /**
+     * pipenv is a tool for managing python virtual environments
+     * @returns 
+     */
     public static path_pipenv(): string | false {
         if (!Config.getInstance().hasValue("bin_dir")) return false;
         const full_path = path.join(Config.getInstance().cfg("bin_dir"), this.executable_name("pipenv"));
@@ -281,12 +305,31 @@ export class Helper {
         return exists ? full_path : false;
     }
 
+    /**
+     * TwitchDownloader is a tool for downloading twitch vods, clips, and chats
+     * @returns
+     */
     public static path_twitchdownloader(): string | false {
         if (Config.getInstance().hasValue("twitchdownloader_path")) return Config.getInstance().cfg<string>("twitchdownloader_path");
         return false;
     }
 
-    
+    /**
+     * vcsi is a tool for creating video contact sheets
+     * @returns 
+     */
+    public static path_vcsi(): string | false {
+        if (!this.bin_dir()) return false;
+        const full_path = path.join(this.bin_dir(), this.executable_name("vcsi"));
+        const exists = fs.existsSync(full_path);
+
+        if (!exists) {
+            log(LOGLEVEL.ERROR, "helper", `vcsi binary not found at: ${full_path}`);
+            return false;
+        }
+
+        return exists ? full_path : false;
+    }
 
     public static async imageThumbnail(filename: string, width: number): Promise<string> {
 

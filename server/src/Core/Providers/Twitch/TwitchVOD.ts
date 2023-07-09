@@ -490,6 +490,11 @@ export class TwitchVOD extends BaseVOD {
         // match stored vod to online vod
         await this.matchProviderVod();
 
+        // generate contact sheet
+        if (Config.getInstance().cfg("vod.create_contact_sheet")) {
+            await this.createVideoContactSheet();
+        }
+
         // calculate chapter durations and offsets
         this.calculateChapters();
 
@@ -1468,6 +1473,10 @@ export class TwitchVOD extends BaseVOD {
         this.addVod(vod);
 
         await vod.startWatching();
+
+        if (Config.getInstance().cfg("vod.create_contact_sheet")) {
+            vod.createVideoContactSheet();
+        }
 
         if (!noFixIssues) {
             log(LOGLEVEL.DEBUG, "vod.load", `Fixing issues for ${filename}`);

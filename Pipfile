@@ -9,6 +9,7 @@ verify_ssl = true
 yt-dlp = "*"
 tcd = "*"
 streamlink = "*"
+vcsi = "*"
 
 [requires]
 python_version = "3.9"
