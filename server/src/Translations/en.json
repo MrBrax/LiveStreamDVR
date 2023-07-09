@@ -59,5 +59,15 @@
   },
   "base": {
     "bootmessage": "The time is {{0}}. Current topside temperature is 93 degrees, with an estimated high of one hundred and five. The Black Mesa compound is maintained at a pleasant 68 degrees at all times."
+  },
+  "auth": {
+    "login-successful": "Login successful",
+    "login-failed": "Login failed",
+    "logout-successful": "Logout successful",
+    "already-authenticated": "Already authenticated",
+    "no-password-set": "No password set",
+    "no-password-protection": "No password protection",
+    "you-are-logged-in": "You are logged in",
+    "you-are-not-logged-in": "You are not logged in"
   }
 }

@@ -1,6 +1,7 @@
 import { Config } from "@/Core/Config";
 import express from "express";
 import { ApiLoginResponse, ApiAuthResponse } from "@common/Api/Api";
+import { t } from "i18next";
 export function Login(req: express.Request, res: express.Response): void {
 
     const password = Config.getInstance().cfg<string>("password");
@@ -9,7 +10,7 @@ export function Login(req: express.Request, res: express.Response): void {
     if (req.session.authenticated) {
         res.status(400).send({
             authenticated: true,
-            message: "Already authenticated",
+            message: req.t("auth.already-authenticated"),
             status: "ERROR",
         } as ApiLoginResponse);
         return;
@@ -18,7 +19,7 @@ export function Login(req: express.Request, res: express.Response): void {
     if (!password) {
         res.status(400).send({
             authenticated: false,
-            message: "No password set",
+            message: req.t("auth.no-password-set"),
             status: "ERROR",
         } as ApiLoginResponse);
         return;
@@ -45,7 +46,7 @@ export function Login(req: express.Request, res: express.Response): void {
 
                 res.send({
                     "authenticated": true,
-                    "message": "Login successful",
+                    "message": req.t("auth.login-successful"),
                     "status": "OK",
                 } as ApiLoginResponse);
             });
@@ -53,7 +54,7 @@ export function Login(req: express.Request, res: express.Response): void {
     } else {
         res.send({
             "authenticated": false,
-            "message": "Login failed",
+            "message": req.t("auth.login-failed"),
             "status": "ERROR",
         } as ApiLoginResponse);
     }
@@ -68,7 +69,7 @@ export function Logout(req: express.Request, res: express.Response): void {
         }
         res.send({
             "authenticated": false,
-            "message": "Logout successful",
+            "message": req.t("auth.logout-successful"),
             "status": "OK",
         } as ApiLoginResponse);
     });
@@ -79,14 +80,14 @@ export function CheckLogin(req: express.Request, res: express.Response): void {
         res.status(200).send({
             "authentication": false,
             "authenticated": false,
-            "message": "No password protection",
+            "message": req.t("auth.no-password-protection"),
         } as ApiAuthResponse);
     } else if (req.session.authenticated) {
         res.status(200).send({
             "authentication": true,
             "authenticated": true,
             "guest_mode": Config.getInstance().cfg<boolean>("guest_mode", false),
-            "message": "You are logged in",
+            "message": req.t("auth.you-are-logged-in"),
             "status": "OK",
         } as ApiAuthResponse);
     } else {
@@ -94,7 +95,7 @@ export function CheckLogin(req: express.Request, res: express.Response): void {
             "authentication": true,
             "authenticated": false,
             "guest_mode": Config.getInstance().cfg<boolean>("guest_mode", false),
-            "message": "You are not logged in",
+            "message": req.t("auth.you-are-not-logged-in"),
             "status": "ERROR",
         } as ApiAuthResponse);
     }
