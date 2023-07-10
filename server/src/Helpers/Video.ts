@@ -560,11 +560,11 @@ export async function videoThumbnail(filename: string, width: number, offset = 5
 }
 
 export async function videoContactSheet(video_filename: string, output_image: string, {
-    width = 1920,
-    grid = "3x5",
+    width,
+    grid,
 }: { width?: number, grid?: string } = {}): Promise<boolean> {
 
-    log(LOGLEVEL.INFO, "helper.videoContactSheet", `Requested video contact sheet of ${video_filename}`);
+    log(LOGLEVEL.INFO, "helper.videoContactSheet", `Requested video contact sheet of ${video_filename} with width ${width} and grid ${grid}, output to ${output_image}`);
 
     if (!video_filename) {
         throw new Error("No filename supplied for contact sheet");
@@ -590,8 +590,8 @@ export async function videoContactSheet(video_filename: string, output_image: st
     const output = await execSimple(vcsi_path, [
         video_filename,
         "-t", // show timestamp for each frame
-        "-w", width.toString(),
-        "-g", grid,
+        "-w", (width || 1920).toString(),
+        "-g", grid || "3x5",
         "-o", output_image,
     ], "vcsi video contact sheet");
 

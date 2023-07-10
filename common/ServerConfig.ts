@@ -87,16 +87,16 @@ export const settingsFields: Record<string, SettingField<string> | SettingField<
     "capture.retry_on_error": { group: "Capture", text: "Retry on error", type: "boolean", default: true, help: "Retry on any kind of error. If an eventsub message is missed, it will be retried." },
 
     "capture.viewercount": { group: "Capture", text: "Capture viewercount", type: "boolean", default: false, help: "Capture viewercount", },
-    "capture.killendedstream": { group: "Capture", text: "Kill ended stream", type: "boolean", default: false, help: "Kill the capture process when the notification is received that the stream has ended", new: true },
-    "capture.fallbackcapture": { group: "Capture", text: "Fallback capture", type: "boolean", default: false, help: "Capture to saved_vods if any of the capture methods fail", new: true },
+    "capture.killendedstream": { group: "Capture", text: "Kill ended stream", type: "boolean", default: false, help: "Kill the capture process when the notification is received that the stream has ended" },
+    "capture.fallbackcapture": { group: "Capture", text: "Fallback capture", type: "boolean", default: false, help: "Capture to saved_vods if any of the capture methods fail" },
 
     "capture.twitch-api-header": {  group: "Capture", text: "Twitch API header", type: "string", },
     "capture.twitch-access-token-param": { group: "Capture", text: "Twitch access token param", type: "string", },
     "capture.twitch-client-id": { group: "Capture", text: "Twitch client ID", type: "string", },
 
-    "capture.twitch-ttv-lol-plugin": { group: "Capture", text: "Enable TTV LOL plugin", type: "boolean", default: false, new: true },
-    "capture.twitch-proxy-playlist": { group: "Capture", text: "Proxy playlist URL", help: "Separate by commas", type: "string", new: true },
-    "capture.twitch-proxy-playlist-exclude": { group: "Capture", text: "Proxy username exclude", help: "Separate by commas", type: "string", new: true },
+    "capture.twitch-ttv-lol-plugin": { group: "Capture", text: "Enable TTV LOL plugin", type: "boolean", default: false },
+    "capture.twitch-proxy-playlist": { group: "Capture", text: "Proxy playlist URL", help: "Separate by commas", type: "string" },
+    "capture.twitch-proxy-playlist-exclude": { group: "Capture", text: "Proxy username exclude", help: "Separate by commas", type: "string" },
 
     // sub_lease: { group: "Advanced", text: "Subscription lease", type: "number", default: 604800 },
     api_client_id: { group: "Twitch", text: "Twitch client ID", type: "string", "required": true },
@@ -185,7 +185,10 @@ export const settingsFields: Record<string, SettingField<string> | SettingField<
 
     create_video_chapters: { group: "Video", text: "Create video chapters", type: "boolean", default: true },
     create_kodi_nfo: { group: "Video", text: "Create kodi nfo", type: "boolean", default: false, help: "Requires server restart or channels reset." },
-    "vod.create_contact_sheet": { group: "Video", text: "Create contact sheet", type: "boolean", default: true },
+
+    "contact_sheet.enable": { group: "Contact sheet", text: "Enable contact sheet creation", type: "boolean", default: false, new: true },
+    "contact_sheet.width": { group: "Contact sheet", text: "Contact sheet width", type: "number", default: 1920 },
+    "contact_sheet.grid": { group: "Contact sheet", text: "Contact sheet grid", type: "string", default: "3x5", help: "3x5 = 3 rows, 5 columns. Only use this format." },
 
     "filename_clip": {
         group: "Video",

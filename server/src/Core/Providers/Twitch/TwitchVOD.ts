@@ -491,7 +491,7 @@ export class TwitchVOD extends BaseVOD {
         await this.matchProviderVod();
 
         // generate contact sheet
-        if (Config.getInstance().cfg("vod.create_contact_sheet")) {
+        if (Config.getInstance().cfg("contact_sheet.enable")) {
             await this.createVideoContactSheet();
         }
 
@@ -1474,8 +1474,8 @@ export class TwitchVOD extends BaseVOD {
 
         await vod.startWatching();
 
-        if (Config.getInstance().cfg("vod.create_contact_sheet")) {
-            vod.createVideoContactSheet();
+        if (Config.getInstance().cfg("contact_sheet.enable")) {
+            await vod.createVideoContactSheet();
         }
 
         if (!noFixIssues) {

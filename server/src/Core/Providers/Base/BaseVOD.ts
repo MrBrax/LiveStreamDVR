@@ -31,6 +31,7 @@ import { BaseChannel } from "./BaseChannel";
 import { BaseVODChapter } from "./BaseVODChapter";
 import { BaseVODSegment } from "./BaseVODSegment";
 import { ffmpeg_time, remuxFile, videoContactSheet, videometadata } from "../../../Helpers/Video";
+import { ExecReturn } from "@/Providers/Twitch";
 
 export class BaseVOD {
 
@@ -1888,9 +1889,19 @@ export class BaseVOD {
             return false;
         }
         try {
-            await videoContactSheet(this.segments_raw[0], path.join(this.directory, `${this.basename}-contact_sheet.png`));
+            await videoContactSheet(this.segments_raw[0], path.join(this.directory, `${this.basename}-contact_sheet.png`), {
+                width: Config.getInstance().cfg("contact_sheet.width", 1920),
+                grid: Config.getInstance().cfg("contact_sheet.grid", "3x5"),
+            });
         } catch (error) {
-            log(LOGLEVEL.ERROR, "vod.createVideoContactSheet", `Failed to create video contact sheet for ${this.basename}: ${error}`);
+            if (error instanceof Error) {
+                log(LOGLEVEL.ERROR, "vod.createVideoContactSheet", `Failed to create video contact sheet for ${this.basename}: ${error}`, error);
+            } else if ("stdout" in (error as any)) {
+                const execOut = error as ExecReturn;
+                log(LOGLEVEL.ERROR, "vod.createVideoContactSheet", `Failed to create video contact sheet for ${this.basename}: ${execOut.stdout} ${execOut.stderr}`, execOut);
+            } else {
+                log(LOGLEVEL.ERROR, "vod.createVideoContactSheet", `Failed to create video contact sheet for ${this.basename}: ${error}`, error);
+            }
             return false;
         }
         return true;

@@ -32,6 +32,7 @@ export function DVRPipPackages(): Record<string, BinaryDef> {
         streamlink: { binary: Helper.path_streamlink(), version_args: ["--version"], version_regex: /^streamlink\s+([0-9.]+)$/m, on_boot: true },
         "yt-dlp": { binary: Helper.path_youtubedl(), version_args: ["--version"], version_regex: /^([0-9.]+)$/m },
         pipenv: { binary: Helper.path_pipenv(), version_args: ["--version"], version_regex: /^pipenv, version ([0-9.]+)$/m },
+        vcsi: { binary: Helper.path_vcsi(), version_args: ["--version"], version_regex: /^vcsi version ([0-9.]+)$/m },
     };
 }
 
