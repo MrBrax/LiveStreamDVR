@@ -1323,29 +1323,22 @@ export class BaseVOD {
         }
 
         if (this.prevent_deletion) {
-            log(LOGLEVEL.INFO, "vod", `Deletion of ${this.basename} prevented`);
+            log(LOGLEVEL.INFO, "vod.delete", `Deletion of ${this.basename} prevented`);
             throw new Error("Vod has been marked with prevent_deletion");
         }
 
-        log(LOGLEVEL.INFO, "vod", `Delete ${this.basename}`, this.associatedFiles);
+        log(LOGLEVEL.INFO, "vod.delete", `Delete ${this.basename}`, this.associatedFiles);
 
         await this.stopWatching();
 
         for (const file of this.associatedFiles) {
             if (fs.existsSync(path.join(this.directory, file))) {
-                log(LOGLEVEL.DEBUG, "vod", `Delete ${file}`);
+                log(LOGLEVEL.DEBUG, "vod.delete", `Delete ${file}`);
                 fs.unlinkSync(path.join(this.directory, file));
             }
         }
 
-        if (this.directory !== Helper.vodFolder(this.getChannel().internalName)) { // if vod has its own folder
-            log(LOGLEVEL.DEBUG, "vod", `Delete folder ${this.directory}`);
-            try {
-                fs.rmdirSync(this.directory);
-            } catch (e) {
-                log(LOGLEVEL.ERROR, "vod", `Could not delete ${this.directory}: ${(e as Error).message}`);
-            }
-        }
+        this.deleteEmptyFolder();
 
         const channel = this.getChannel();
         if (channel) channel.removeVod(this.uuid);
@@ -1884,12 +1877,12 @@ export class BaseVOD {
     }
 
     public async createVideoContactSheet(): Promise<boolean> {
-        if (!this.segments_raw || this.segments_raw.length == 0) {
+        if (!this.segments || this.segments.length == 0 || !this.segments[0].filename) {
             log(LOGLEVEL.ERROR, "vod.createVideoContactSheet", `No segments found for ${this.basename}, can't create video contact sheet`);
             return false;
         }
         try {
-            await videoContactSheet(this.segments_raw[0], path.join(this.directory, `${this.basename}-contact_sheet.png`), {
+            await videoContactSheet(this.segments[0].filename, path.join(this.directory, `${this.basename}-contact_sheet.png`), {
                 width: Config.getInstance().cfg("contact_sheet.width", 1920),
                 grid: Config.getInstance().cfg("contact_sheet.grid", "3x5"),
             });
@@ -1905,6 +1898,19 @@ export class BaseVOD {
             return false;
         }
         return true;
+    }
+
+    public deleteEmptyFolder(): boolean {
+        if (this.directory === Helper.vodFolder(this.getChannel().internalName)) {
+            log(LOGLEVEL.ERROR, "vod.deleteEmptyFolder", `Can't delete root vod folder ${this.directory}`);
+            return false;
+        }
+        if (fs.existsSync(this.directory) && fs.readdirSync(this.directory).length == 0) {
+            log(LOGLEVEL.INFO, "vod.deleteEmptyFolder", `Deleting empty vod folder ${this.directory}`);
+            fs.rmdirSync(this.directory);
+            return true;
+        }
+        return false;
     }
 
 }

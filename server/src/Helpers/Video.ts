@@ -564,8 +564,6 @@ export async function videoContactSheet(video_filename: string, output_image: st
     grid,
 }: { width?: number, grid?: string } = {}): Promise<boolean> {
 
-    log(LOGLEVEL.INFO, "helper.videoContactSheet", `Requested video contact sheet of ${video_filename} with width ${width} and grid ${grid}, output to ${output_image}`);
-
     if (!video_filename) {
         throw new Error("No filename supplied for contact sheet");
     }
@@ -582,6 +580,8 @@ export async function videoContactSheet(video_filename: string, output_image: st
         log(LOGLEVEL.DEBUG, "helper.videoContactSheet", `Contact sheet already exists for ${video_filename}, returning cached version`);
         return true;
     }
+
+    log(LOGLEVEL.INFO, "helper.videoContactSheet", `Requested video contact sheet of ${video_filename} with width ${width} and grid ${grid}, output to ${output_image}`);
 
     const vcsi_path = Helper.path_vcsi();
 

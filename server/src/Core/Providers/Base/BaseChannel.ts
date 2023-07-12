@@ -1,6 +1,6 @@
 import chokidar from "chokidar";
 import { format } from "date-fns";
-import fs from "node:fs";
+import fs, { readdirSync } from "node:fs";
 import readdirSyncRecursive from "fs-readdir-recursive";
 import path from "node:path";
 import { ApiChannels } from "@common/Api/Client";
@@ -21,6 +21,7 @@ import { BaseVOD } from "./BaseVOD";
 import { BaseVODChapter } from "./BaseVODChapter";
 import { xClearTimeout, xTimeout } from "../../../Helpers/Timeout";
 import { videoThumbnail, videometadata } from "../../../Helpers/Video";
+import { debugLog } from "@/Helpers/Console";
 
 export class BaseChannel {
 
@@ -309,7 +310,7 @@ export class BaseChannel {
         if (!vod) return false;
 
         log(LOGLEVEL.INFO, "channel", `Remove VOD JSON for ${this.internalName}: ${uuid}`);
-        
+
         vod.stopWatching();
 
         this.vods_list = this.vods_list.filter(v => v.uuid !== uuid);
@@ -513,6 +514,27 @@ export class BaseChannel {
     public makeFolder() {
         if (Config.getInstance().cfg("channel_folders") && !fs.existsSync(this.getFolder())) {
             fs.mkdirSync(this.getFolder());
+        }
+    }
+
+    public deleteEmptyVodFolders(): void {
+        if (!Config.getInstance().cfg("channel_folders")) return; // only if channel folders are enabled
+        if (!Config.getInstance().cfg("storage.clean_empty_vod_folders")) return; // only if clean empty vod folders is enabled
+        const vod_folder = this.getFolder();
+        // only if channel folder is not the root folder
+        if (vod_folder === BaseConfigDataFolder.vod) {
+            debugLog(`Not deleting empty folder ${vod_folder} because it is the root folder`);
+            return;
+        }
+        const vod_folders = readdirSync(vod_folder).filter(f => fs.statSync(path.join(vod_folder, f)).isDirectory());
+        for (const vf of vod_folders) {
+            debugLog(`Checking if folder ${vf} is empty`);
+            if (readdirSync(path.join(vod_folder, vf)).length === 0) {
+                fs.rmdirSync(path.join(vod_folder, vf)); // hopefully empty, on linux this will throw an error if not empty but i don't know about windows
+                debugLog(`Deleting empty folder ${vod_folder}`);
+            } else {
+                debugLog(`Folder ${vf} is not empty`);
+            }
         }
     }
 

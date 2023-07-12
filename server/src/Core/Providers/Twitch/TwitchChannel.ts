@@ -559,6 +559,12 @@ export class TwitchChannel extends BaseChannel {
             }
         }
 
+        try {
+            this.deleteEmptyVodFolders();
+        } catch (error) {
+            log(LOGLEVEL.ERROR, "channel", `Failed to delete empty folders for ${this.internalName}: ${(error as Error).message}`);            
+        }
+
         return vod_candidates.length;
 
     }
@@ -1114,6 +1120,12 @@ export class TwitchChannel extends BaseChannel {
         // $channel->api_getSubscriptionStatus = $channel->getSubscriptionStatus();
 
         channel.makeFolder();
+
+        try {
+            channel.deleteEmptyVodFolders(); 
+        } catch (error) {
+            log(LOGLEVEL.WARNING, "channel", `Failed to delete empty vod folders for ${channel.internalName}: ${error}`);
+        }
 
         // only needed if i implement watching
         // if (!fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "scheduler", channel.login)))
