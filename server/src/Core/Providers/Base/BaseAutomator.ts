@@ -1040,6 +1040,10 @@ export class BaseAutomator {
             );
         }
 
+        if (data.includes("error: Encountered a stream discontinuity")) {
+            log(LOGLEVEL.WARNING, "automator.captureVideo", `Encountered a stream discontinuity for ${basename}!`);
+        }
+
 
     }
 
@@ -1165,7 +1169,13 @@ export class BaseAutomator {
 
             let lastSize = 0;
             const keepaliveAlert = () => {
-                if (fs.existsSync(this.capture_filename)) {
+                if (this.stream_pause !== undefined && this.stream_pause) {
+                    const size = fs.statSync(this.capture_filename).size;
+                    progressOutput(
+                        `⏸ ${basename} ${this.stream_resolution} ` +
+                        `${formatBytes(size)} / ${Math.round((0 * 8) / 1000)} kbps`
+                    );
+                } else if (fs.existsSync(this.capture_filename)) {
                     const size = fs.statSync(this.capture_filename).size;
                     const bitRate = (size - lastSize) / 120;
                     lastSize = size;
@@ -1176,7 +1186,6 @@ export class BaseAutomator {
                 } else {
                     console.log(chalk.bgRed.whiteBright(`🎥 ${new Date().toISOString()} ${basename} missing`));
                 }
-
             };
 
             const keepalive = xInterval(keepaliveAlert, 120 * 1000);
