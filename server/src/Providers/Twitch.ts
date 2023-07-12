@@ -37,6 +37,22 @@ export interface RemuxReturn {
     success: boolean;
 }
 
+interface TwitchAuthAppTokenFile {
+    access_token: string;
+    expires_at: number;
+    expires_in: number;
+    token_type: string;
+}
+
+interface TwitchAuthUserTokenFile {
+    access_token: string;
+    expires_at: number;
+    expires_in: number;
+    refresh_token: string;
+    scope: string[];
+    token_type: string;
+}
+
 export class TwitchHelper {
     private static axios: Axios | undefined;
 
@@ -47,14 +63,14 @@ export class TwitchHelper {
     static userTokenUserId = "";
     // static eventSubSessionId = "";
 
-    static readonly accessTokenAppFileLegacy = path.join(
-        BaseConfigCacheFolder.cache,
-        "oauth.bin"
-    );
+    // static readonly accessTokenAppFileLegacy = path.join(
+    //     BaseConfigCacheFolder.cache,
+    //     "oauth.bin"
+    // );
 
     static readonly accessTokenAppFile = path.join(
         BaseConfigCacheFolder.cache,
-        "oauth.json"
+        "oauth_app.json"
     );
 
     static readonly accessTokenUserFile = path.join(
@@ -65,11 +81,6 @@ export class TwitchHelper {
     static readonly accessTokenUserRefreshFile = path.join(
         BaseConfigCacheFolder.cache,
         "oauth_user_refresh.json"
-    );
-
-    static readonly accessTokenExpireFile = path.join(
-        BaseConfigCacheFolder.cache,
-        "oauth_expire.json"
     );
 
     /** @deprecated */
@@ -129,65 +140,41 @@ export class TwitchHelper {
 
     static async getAccessTokenApp(force = false): Promise<string> {
 
-        const expire = fs.existsSync(this.accessTokenExpireFile) ? parseJSON(fs.readFileSync(this.accessTokenExpireFile, "utf8")).getTime() : 0;
+        // const expire = fs.existsSync(this.accessTokenExpireFile) ? parseJSON(fs.readFileSync(this.accessTokenExpireFile, "utf8")).getTime() : 0;
 
         if (fs.existsSync(this.accessTokenAppFile)) {
+
+            const data: TwitchAuthAppTokenFile = JSON.parse(
+                fs.readFileSync(this.accessTokenAppFile, "utf8")
+            );
+
+            const expire = data.expires_at || 0;
+
             if (Date.now() > expire) {
                 log(
                     LOGLEVEL.INFO,
                     "tw.helper.getAccessTokenApp",
-                    `Deleting old access token, too old: ${new Date(expire).toLocaleString()}`
+                    `Deleting old app access token, too old: ${new Date(expire).toLocaleString()}`
                 );
                 fs.unlinkSync(this.accessTokenAppFile);
             } else if (!force) {
                 log(
                     LOGLEVEL.DEBUG,
                     "tw.helper.getAccessTokenApp",
-                    "Fetched access token from cache"
+                    "Fetched app access token from cache"
                 );
                 this.accessTokenType = "app";
-                const data: TwitchAuthAppTokenResponse = JSON.parse(
-                    fs.readFileSync(this.accessTokenAppFile, "utf8")
-                );
+
                 this.accessToken = data.access_token;
                 this.accessTokenTime = expire;
-                // fs.writeFileSync(
-                //     this.accessTokenExpireFile,
-                //     JSON.stringify(new Date(this.accessTokenTime))
-                // );
                 log(
                     LOGLEVEL.INFO,
                     "tw.helper.getAccessTokenApp",
-                    `Access token expires at ${new Date(this.accessTokenTime).toLocaleString()}`
+                    `Stored app access token expires at ${new Date(this.accessTokenTime).toLocaleString()}`
                 );
                 return this.accessToken;
             }
-        } else if (fs.existsSync(this.accessTokenAppFileLegacy)) {
-            if (
-                Date.now() >
-                fs.statSync(this.accessTokenAppFileLegacy).mtimeMs +
-                    this.accessTokenRefresh
-            ) {
-                log(
-                    LOGLEVEL.INFO,
-                    "tw.helper.getAccessTokenApp",
-                    `Deleting old access token, too old: ${format(
-                        fs.statSync(this.accessTokenAppFileLegacy).mtimeMs,
-                        this.PHP_DATE_FORMAT
-                    )}`
-                );
-                fs.unlinkSync(this.accessTokenAppFileLegacy);
-            } else if (!force) {
-                log(
-                    LOGLEVEL.DEBUG,
-                    "tw.helper.getAccessTokenApp",
-                    "Fetched access token from cache"
-                );
-                this.accessTokenType = "app";
-                return fs.readFileSync(this.accessTokenAppFileLegacy, "utf8");
-            }
         }
-
 
         if (
             !Config.getInstance().hasValue("api_secret") ||
@@ -205,25 +192,6 @@ export class TwitchHelper {
 
         // oauth2
         const oauth_url = "https://id.twitch.tv/oauth2/token";
-
-        /*
-        try {
-            $response = $client->post($oauth_url, [
-                'query' => [
-                    'client_id' => TwitchConfig::cfg('api_client_id'),
-                    'client_secret' => TwitchConfig::cfg('api_secret'),
-                    'grant_type' => 'client_credentials'
-                ],
-                'headers' => [
-                    'Client-ID: ' . TwitchConfig::cfg('api_client_id')
-                ]
-            ]);
-        } catch (\Throwable $th) {
-            TwitchlogAdvanced(LOGLEVEL.FATAL, "tw.helper.getAccessTokenApp", "Tried to get oauth token but server returned: " . $th->getMessage());
-            sleep(5);
-            return false;
-        }
-        */
 
         const response = await axios.post<TwitchAuthAppTokenResponse>(
             oauth_url,
@@ -243,12 +211,10 @@ export class TwitchHelper {
             log(
                 LOGLEVEL.FATAL,
                 "tw.helper.getAccessTokenApp",
-                "Tried to get oauth token but server returned: " +
-                    response.statusText
+                `Tried to get oauth token but server returned: ${response.statusText}`
             );
             throw new Error(
-                "Tried to get oauth token but server returned: " +
-                    response.statusText
+                `Tried to get oauth token but server returned: ${response.statusText}`
             );
         }
 
@@ -258,28 +224,29 @@ export class TwitchHelper {
             log(
                 LOGLEVEL.ERROR,
                 "tw.helper.getAccessTokenApp",
-                `Failed to fetch access token: ${json}`
+                `Failed to fetch app access token: ${json}`
             );
             throw new Error(`Failed to fetch access token: ${json}`);
         }
 
         const access_token = json.access_token;
 
-        this.accessToken = access_token;
-        this.accessTokenTime = Date.now() + (json.expires_in * 1000);
+        const expires_at = Date.now() + (json.expires_in * 1000);
 
-        // fs.writeFileSync(this.accessTokenAppFileLegacy, access_token);
-        fs.writeFileSync(this.accessTokenAppFile, JSON.stringify(json));
+        this.accessToken = access_token;
+        this.accessTokenTime = expires_at;
+
+        fs.writeFileSync(this.accessTokenAppFile, JSON.stringify({
+            access_token: access_token,
+            expires_at: expires_at,
+            expires_in: json.expires_in,
+            token_type: json.token_type,
+        } as TwitchAuthAppTokenFile));
 
         log(
             LOGLEVEL.INFO,
             "tw.helper.getAccessTokenApp",
-            `Fetched new access token, expires at ${format(this.accessTokenTime, Config.getInstance().dateFormat)}`
-        );
-
-        fs.writeFileSync(
-            this.accessTokenExpireFile,
-            JSON.stringify(this.accessTokenTime)
+            `Fetched new app access token, expires at ${format(expires_at, Config.getInstance().dateFormat)}`
         );
 
         this.accessTokenType = "app";
@@ -291,20 +258,39 @@ export class TwitchHelper {
 
     static async getAccessTokenUser(force = false): Promise<string> {
 
-        const expire = fs.existsSync(this.accessTokenExpireFile) ? parseJSON(fs.readFileSync(this.accessTokenExpireFile, "utf8")).getTime() : 0;
+        // const expire = fs.existsSync(this.accessTokenExpireFile) ? parseJSON(fs.readFileSync(this.accessTokenExpireFile, "utf8")).getTime() : 0;
 
         this.accessTokenType = "user";
 
-        if (Date.now() < expire && !force && this.accessToken && this.accessTokenType == "user") {
-            console.debug("Fetched user access token from memory");
-            return this.accessToken;
-        }
+        // if (Date.now() < expire && !force && this.accessToken && this.accessTokenType == "user") {
+        //     console.debug("Fetched user access token from memory");
+        //     return this.accessToken;
+        // }
 
         if (fs.existsSync(this.accessTokenUserFile)) {
 
-            const data: TwitchAuthUserTokenResponse = JSON.parse(
+            const data: TwitchAuthUserTokenFile = JSON.parse(
                 fs.readFileSync(this.accessTokenUserFile, "utf8")
             );
+
+            const expire = data.expires_at || 0;
+
+            if (Date.now() < expire && !force && this.accessToken && this.accessTokenType == "user") {
+                log(
+                    LOGLEVEL.DEBUG,
+                    "tw.helper.getAccessTokenUser",
+                    "Fetched user access token from cache"
+                );
+                this.accessToken = data.access_token;
+                this.accessTokenTime = expire;
+                this.userRefreshToken = data.refresh_token;
+                log(
+                    LOGLEVEL.INFO,
+                    "tw.helper.getAccessTokenUser",
+                    `User access token expires at ${new Date(this.accessTokenTime).toLocaleString()}`
+                );
+                return this.accessToken;
+            }
 
             this.userRefreshToken = data.refresh_token;
 
@@ -314,29 +300,25 @@ export class TwitchHelper {
                 log(
                     LOGLEVEL.INFO,
                     "tw.helper",
-                    `Deleting old access token, too old: ${new Date(expire).toLocaleString()}`
+                    `Deleting old user access token, too old: ${new Date(expire).toLocaleString()}`
                 );
                 // fs.unlinkSync(this.accessTokenUserFile);
             } else if (!force) {
                 log(
                     LOGLEVEL.DEBUG,
                     "tw.helper",
-                    "Fetched access token from cache"
+                    "Fetched user access token from cache"
                 );
                 // const data = fs.readFileSync(this.accessTokenUserFile, "utf8");
                 // this.accessToken = data.
                 this.accessToken = data.access_token;
                 this.accessTokenTime = expire;
                 this.userRefreshToken = data.refresh_token;
-                // fs.writeFileSync(
-                //     this.accessTokenExpireFile,
-                //     JSON.stringify(new Date(this.accessTokenTime))
-                // );
-                // logAdvanced(
-                //     LOGLEVEL.INFO,
-                //     "tw.helper",
-                //     `Access token expires at ${format(this.accessTokenTime, Config.getInstance().dateFormat)}`
-                // );
+                log(
+                    LOGLEVEL.INFO,
+                    "tw.helper",
+                    `User access token expires at ${new Date(this.accessTokenTime).toLocaleString()}`
+                );
                 return this.accessToken;
             }
         }
@@ -438,17 +420,23 @@ export class TwitchHelper {
 
         const json = response.data;
 
+        const expires_at = Date.now() + (json.expires_in * 1000);
+
         this.accessToken = json.access_token;
-        this.accessTokenTime = Date.now() + (json.expires_in * 1000);
+        this.accessTokenTime = expires_at;
         this.userRefreshToken = json.refresh_token;
 
         fs.writeFileSync(this.accessTokenUserRefreshFile, JSON.stringify(json));
-        fs.writeFileSync(this.accessTokenUserFile, JSON.stringify(json)); // i don't understand this
+        // fs.writeFileSync(this.accessTokenUserFile, JSON.stringify(json)); // i don't understand this
 
-        fs.writeFileSync(
-            this.accessTokenExpireFile,
-            JSON.stringify(new Date(this.accessTokenTime))
-        );
+        fs.writeFileSync(this.accessTokenUserFile, JSON.stringify({
+            access_token: json.access_token,
+            expires_in: json.expires_in,
+            expires_at,
+            refresh_token: json.refresh_token,
+            scope: json.scope,
+            token_type: json.token_type,
+        } as TwitchAuthUserTokenFile));
 
         log(
             LOGLEVEL.SUCCESS,
@@ -759,7 +747,8 @@ export class TwitchHelper {
 
     static async setupAxios() {
 
-        console.log(chalk.blue("Setting up axios..."));
+        // console.log(chalk.blue("Setting up axios..."));
+        log(LOGLEVEL.INFO, "tw.helper.setupAxios", "Setting up axios...");
 
         if (!Config.getInstance().hasValue("api_client_id")) {
             console.error(chalk.red("API client id not set, can't setup axios"));
@@ -810,7 +799,8 @@ export class TwitchHelper {
             return config;
         });
 
-        console.log(chalk.green(`✔ Axios setup with ${TwitchHelper.accessTokenType} token.`));
+        // console.log(chalk.green(`✔ Axios setup with ${TwitchHelper.accessTokenType} token.`));
+        log(LOGLEVEL.SUCCESS, "tw.helper.setupAxios", `Axios setup with ${TwitchHelper.accessTokenType} token.`);
 
     }
 
@@ -1196,6 +1186,10 @@ export class TwitchHelper {
         this.accessTokenTime = 0;
     }
 
+    /**
+     * Validates OAuth token, only works for user tokens
+     * @returns 
+     */
     public static async validateOAuth(): Promise<boolean> {
         const token = TwitchHelper.accessToken;
         if (TwitchHelper.accessTokenType !== "user") return false;
@@ -1230,10 +1224,16 @@ export class TwitchHelper {
                 TwitchHelper.userTokenUserId = res.data.user_id;
                 TwitchHelper.accessTokenTime = Date.now() + (res.data.expires_in * 1000);
                 log(LOGLEVEL.INFO, "tw.helper.validateOAuth", `OAuth token is valid until ${new Date(TwitchHelper.accessTokenTime).toLocaleString()}`);
-                fs.writeFileSync(
-                    this.accessTokenExpireFile,
-                    JSON.stringify(new Date(this.accessTokenTime))
-                );
+                if (fs.existsSync(this.accessTokenUserFile)) {
+                    const old_data = JSON.parse(fs.readFileSync(this.accessTokenUserFile).toString()) as TwitchAuthUserTokenResponse;
+                    fs.writeFileSync(this.accessTokenUserFile, JSON.stringify({
+                        ...old_data,
+                        access_token: TwitchHelper.accessToken,
+                        expires_in: TwitchHelper.accessTokenTime,
+                    } as TwitchAuthUserTokenResponse));
+                } else {
+                    log(LOGLEVEL.ERROR, "tw.helper.validateOAuth", `Failed to write user token to file, file does not exist: ${this.accessTokenUserFile}`);
+                }
                 return true;
             } else {
                 log(LOGLEVEL.ERROR, "tw.helper.validateOAuth", "OAuth token is not valid");
