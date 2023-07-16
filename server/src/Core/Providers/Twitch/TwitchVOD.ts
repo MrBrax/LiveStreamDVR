@@ -507,6 +507,12 @@ export class TwitchVOD extends BaseVOD {
         return true;
     }
 
+    /**
+     * Match the stored vod to the online vod.
+     * Does **NOT** save.
+     * @param force 
+     * @returns 
+     */
     public async matchProviderVod(force = false): Promise<boolean | undefined> {
         if (this.twitch_vod_id && !force) return;
         if (this.is_capturing || this.is_converting) return;
@@ -527,17 +533,26 @@ export class TwitchVOD extends BaseVOD {
             const video_time = parseJSON(video.created_at);
             if (!video_time) continue;
 
+            const startOffset = Math.abs(this.started_at.getTime() - video_time.getTime());
+            const matchingCaptureId = (video.stream_id && this.capture_id && video.stream_id == this.capture_id);
+            const maxOffset = 1000 * 60 * 5; // 5 minutes
+
+            // log(LOGLEVEL.DEBUG, "vod.matchProviderVod", `Checking '${this.basename}' (${this.getTitle()}) against '${video.title}' (${video.id}) with offset ${startOffset}ms: ${matchingCaptureId}`);
+
+            const videoDuration = TwitchHelper.parseTwitchDuration(video.duration);
+
             if (
-                Math.abs(this.started_at.getTime() - video_time.getTime()) < 1000 * 60 * 5 || // 5 minutes
-                (video.stream_id && this.capture_id && video.stream_id == this.capture_id)
+                startOffset < maxOffset || // 5 minutes
+                matchingCaptureId
             ) {
 
-                log(LOGLEVEL.SUCCESS, "vod.matchProviderVod", `Found matching VOD for ${this.basename}`);
+                log(LOGLEVEL.SUCCESS, "vod.matchProviderVod", `Found matching VOD for ${this.basename} (${this.started_at.toISOString()}): ${video.id} (${video.title})`);
 
-                this.twitch_vod_id = video.id;
-                this.twitch_vod_duration = TwitchHelper.parseTwitchDuration(video.duration);
-                this.twitch_vod_title = video.title;
-                this.twitch_vod_date = video.created_at;
+                // this.twitch_vod_id = video.id;
+                // this.twitch_vod_duration = TwitchHelper.parseTwitchDuration(video.duration);
+                // this.twitch_vod_title = video.title;
+                // this.twitch_vod_date = video.created_at;
+                this.setProviderVod(video);
                 this.twitch_vod_exists = true;
 
                 this.broadcastUpdate();
@@ -558,6 +573,20 @@ export class TwitchVOD extends BaseVOD {
 
         return false;
 
+    }
+
+    public setProviderVod(video: Video): void {
+        this.twitch_vod_id = video.id;
+        this.twitch_vod_duration = TwitchHelper.parseTwitchDuration(video.duration);
+        this.twitch_vod_title = video.title;
+        this.twitch_vod_date = video.created_at;
+        // this.twitch_vod_exists = true;
+        // this.broadcastUpdate();
+    }
+
+    getTitle(): string {
+        if (!this.chapters || this.chapters.length == 0) return this.twitch_vod_title ?? "Unknown title";
+        return this.chapters[0].title;
     }
 
     public async saveVTTChapters(): Promise<boolean> {

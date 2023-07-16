@@ -296,6 +296,7 @@
                         title="Retry VOD match"
                         @click="matchVod()"
                         ><font-awesome-icon icon="sync" /></a>
+                        <a href="javascript:void(0)" @click="manualVodMatch()" title="Manually match VOD"><font-awesome-icon icon="pencil" /></a>
                     </li>
                     <li>
                         <template v-if="vod.twitch_vod_id">
@@ -403,6 +404,24 @@ function matchVod() {
     if (!props.vod) return;
     axios
         .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/match`)
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            // emit("refresh");
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data && err.response.data.message) alert(err.response.data.message);
+        });
+}
+
+function manualVodMatch() {
+    if (!props.vod) return;
+    const twitch_vod_id = prompt("Twitch VOD ID");
+    if (!twitch_vod_id) return;
+    axios
+        .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/match?overrideVideoID=${twitch_vod_id}`)
         .then((response) => {
             const json = response.data;
             if (json.message) alert(json.message);

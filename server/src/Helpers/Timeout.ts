@@ -22,7 +22,7 @@ export function xTimeout(callback: (...args: any[]) => void, ms: number, ...args
     timeouts.push({ id: timeout, src, created: new Date() });
     timeout.unref(); // Don't keep the process running just for this timeout
     if (Config && Config.debug) {
-        debugLog(`Timeout ${timeout} created ${src}`);
+        // debugLog(`Timeout ${timeout} created ${src}`);
     }
     return timeout;
 }
@@ -33,7 +33,7 @@ export function xInterval(callback: (...args: any[]) => void, ms: number, ...arg
     intervals.push({ id: interval, src, created: new Date() });
     interval.unref(); // Don't keep the process running just for this interval
     if (Config && Config.debug) {
-        debugLog(`Interval ${interval} created ${src}`);
+        // debugLog(`Interval ${interval} created ${src}`);
     }
     return interval;
 }
@@ -45,7 +45,7 @@ export function xClearTimeout(timeout: NodeJS.Timeout): void {
         timeouts.splice(index, 1);
         if (Config && Config.debug) {
             const src = new Error().stack?.split("\n")[2].trim();
-            debugLog(`Timeout ${timeout} cleared ${src}`);
+            // debugLog(`Timeout ${timeout} cleared ${src}`);
         }
     }
 }
@@ -57,7 +57,7 @@ export function xClearInterval(interval: NodeJS.Timeout): void {
         intervals.splice(index, 1);
         if (Config && Config.debug) {
             const src = new Error().stack?.split("\n")[2].trim();
-            debugLog(`Interval ${interval} cleared ${src}`);
+            // debugLog(`Interval ${interval} cleared ${src}`);
         }
     }
 }

@@ -478,21 +478,51 @@ export async function MatchVod(req: express.Request, res: express.Response): Pro
         return;
     }
 
-    const success = await vod.matchProviderVod(true);
+    const overrideVideoID = req.query.overrideVideoID as string;
 
-    if (!success) {
-        res.status(400).send({
-            status: "ERROR",
-            message: "Vod not matched",
-        } as ApiErrorResponse);
-        return;
+    if (overrideVideoID) {
+
+        let video;
+
+        try {
+            video = await TwitchVOD.getVideo(overrideVideoID);
+        } catch (error) {
+            res.status(400).send({
+                status: "ERROR",
+                message: `Twitch API error: ${(error as Error).message}`,
+            } as ApiErrorResponse);
+            return;
+        }
+
+        if (!video) {
+            res.status(400).send({
+                status: "ERROR",
+                message: "Video not found",
+            } as ApiErrorResponse);
+            return;
+        }
+
+        vod.setProviderVod(video);
+
+    } else {
+
+        const success = await vod.matchProviderVod(true);
+
+        if (!success) {
+            res.status(400).send({
+                status: "ERROR",
+                message: "Vod not matched",
+            } as ApiErrorResponse);
+            return;
+        }
+
     }
 
     await vod.saveJSON("matched provider vod");
 
     res.send({
         status: "OK",
-        message: `Vod matched to ${vod.twitch_vod_id}, duration ${vod.twitch_vod_duration}`,
+        message: `Vod matched to ${vod.twitch_vod_id}, duration ${formatDuration(vod.twitch_vod_duration || 0)}`,
     } as ApiResponse);
 
 }
