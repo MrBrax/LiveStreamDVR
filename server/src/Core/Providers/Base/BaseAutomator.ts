@@ -294,7 +294,7 @@ export class BaseAutomator {
             game_name: event.category_name,
             // 'viewer_count' 	: $data_viewer_count,
             title: event.title,
-            is_mature: event.is_mature,
+            is_mature: event.content_classification_labels ? event.content_classification_labels.length > 0 : false, // right now it seems like all classifications are mature, so if there are any, it's mature
             online: true,
         } as TwitchVODChapterJSON;
 
