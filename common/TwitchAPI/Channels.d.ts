@@ -8,6 +8,9 @@ export interface Channel {
     title: string
     /** 2022-11-29 - requires user access token */
     delay: number;
+    tags: string[];
+    content_classification_labels: string[]; // Added 2023‑07‑10
+    is_branded_content: boolean; // Added 2023‑07‑10
 }
 
 export interface ChannelsResponse {
