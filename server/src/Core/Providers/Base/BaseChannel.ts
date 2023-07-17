@@ -22,6 +22,7 @@ import { BaseVODChapter } from "./BaseVODChapter";
 import { xClearTimeout, xTimeout } from "../../../Helpers/Timeout";
 import { videoThumbnail, videometadata } from "../../../Helpers/Video";
 import { debugLog } from "@/Helpers/Console";
+import { directorySize } from "@/Helpers/Filesystem";
 
 export class BaseChannel {
 
@@ -540,6 +541,25 @@ export class BaseChannel {
 
     get channelLogoExists(): boolean {
         throw new Error("Method not implemented.");
+    }
+
+    public getTotalVodsSizeComparedToDisk(): number {
+
+        if (this.getFolder() === BaseConfigDataFolder.vod) return 0; // don't count root folder
+
+        const vods = this.getVods();
+        let total_channel_size = 0;
+        for (const vod of vods) {
+            for (const afile of vod.associatedFiles) {
+                const afile_path = path.join(vod.directory, afile);
+                if (!fs.existsSync(afile_path)) continue;
+                total_channel_size += fs.statSync(afile_path).size;
+            }
+        }
+
+        const total_disk_size = directorySize(this.getFolder());
+
+        return total_channel_size - total_disk_size;
     }
 
 }
