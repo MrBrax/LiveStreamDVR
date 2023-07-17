@@ -261,3 +261,10 @@ export function fetchLog(date: string, fromLine = 0): LogLine[] {
     return parsed_lines;
 }
 
+export function measureLogMemoryUsage(): void {
+    // return Buffer.byteLength(JSON.stringify(lines), "utf8");
+    const mem = process.memoryUsage();
+    console.log(`Memory usage: ${formatBytes(mem.heapUsed)}/${formatBytes(mem.heapTotal)}/${formatBytes(mem.rss)}`);
+    const linesUsage = Buffer.byteLength(JSON.stringify(lines), "utf8");
+    console.log(`Log memory usage: ${formatBytes(linesUsage)}`);
+}

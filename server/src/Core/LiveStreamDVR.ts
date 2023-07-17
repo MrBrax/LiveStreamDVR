@@ -34,7 +34,7 @@ import { Config } from "./Config";
 import { Helper } from "./Helper";
 import { Job } from "./Job";
 import { KeyValue } from "./KeyValue";
-import { LOGLEVEL, log, readTodaysLog } from "./Log";
+import { LOGLEVEL, log, measureLogMemoryUsage, readTodaysLog } from "./Log";
 import { Scheduler } from "./Scheduler";
 import { Webhook } from "./Webhook";
 
@@ -570,6 +570,7 @@ export class LiveStreamDVR {
                     }
                 }
             });
+            measureLogMemoryUsage();
         }, 60000);
     }
 
