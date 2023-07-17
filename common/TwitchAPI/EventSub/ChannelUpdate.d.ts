@@ -12,7 +12,8 @@ export interface ChannelUpdateEvent {
     language: string;
     category_id: string;
     category_name: string;
-    is_mature: boolean;
+    // is_mature: boolean; // Removed 2023‑06‑29
+    content_classification_labels: string[]; // Added 2023‑06‑29
 }
 
 export interface EventSubChannelUpdate {
