@@ -76,8 +76,21 @@ fs.writeFileSync(
 );
 
 fs.writeFileSync(
-    `./release_name`,
+    `./release_name.txt`,
     release_name
+);
+
+fs.writeFileSync(
+    `./release_notes.md`,
+    `# ${release_name}\n\n` +
+    `This release was created automatically by the build script.\n\n` +
+    `It includes the following versions:\n\n` +
+    `* Client: ${client_version}\n` +
+    `* Server: ${server_version}\n` +
+    `* twitch-chat-dumper: ${dumper_version}\n` +
+    `* twitch-vod-chat: ${vodchat_version}\n\n` +
+    `## Changelog\n\n` +
+    `TODO: make better commit messages so this can be generated automatically\n\n`
 );
 
 console.log("Metadata written");
@@ -86,8 +99,10 @@ console.log("Metadata written");
 await pexec(
     `gh release create ${release_name} ` +
     `./release/${release_name}.zip ` +
-    `-t "${release_name}" ` +
-    `-n "${release_name}" ` +
+    `-t "${release_name}" ` + // title
+    // `-n "${release_name}" ` + // description
+    // `--generate-notes ` + // TODO: generate release notes automatically
+    `--notes-file ./release_notes.md ` +
     (process.argv.includes("--prerelease") ? "--prerelease " : "") +
     `-R "mrbrax/LiveStreamDVR" ` +
     `--draft`
