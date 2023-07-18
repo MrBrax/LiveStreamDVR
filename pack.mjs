@@ -16,7 +16,7 @@ console.log(`twitch-vod-chat version: ${vodchat_version}`);
 // simple iso date string without time
 const date_string = new Date().toISOString().split('T')[0];
 
-const release_name = `LiveStreamDVR-${date_string}-v${client_version}-s${server_version}-d${dumper_version}-v${vodchat_version}`;
+const release_name = `LiveStreamDVR-${date_string}-c${client_version}-s${server_version}-d${dumper_version}-v${vodchat_version}`;
 
 if (fs.existsSync(`./release/${release_name}.zip`)) {
     fs.unlinkSync(`./release/${release_name}.zip`);
@@ -51,7 +51,10 @@ await pexec(
     `server/tsconfig.json ` + 
     `twitch-chat-dumper/build ` +
     // `twitch-vod-chat/dist ` +
+    `start.bat ` +
+    `start.sh ` +
     `requirements.txt ` + 
+    `binaries.txt ` +
     `Pipfile ` + 
     `Pipfile.lock ` + 
     `README.md ` +
