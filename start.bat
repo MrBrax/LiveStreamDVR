@@ -1,5 +1,5 @@
 @echo off
 REM Start file for Windows
 pushd server
-yarn run start
+node ./build/server.js
 popd

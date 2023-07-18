@@ -82,7 +82,6 @@ fs.writeFileSync(
 
 fs.writeFileSync(
     `./release_notes.md`,
-    `# ${release_name}\n\n` +
     `This release was created automatically by the build script.\n\n` +
     `It includes the following versions:\n\n` +
     `* Client: ${client_version}\n` +
