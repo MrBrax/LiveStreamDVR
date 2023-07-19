@@ -8,6 +8,7 @@ import { Helper } from "@/Core/Helper";
 import { TwitchHelper } from "@/Providers/Twitch";
 import { BaseConfigCacheFolder, BaseConfigPath } from "@/Core/BaseConfig";
 import { LOGLEVEL, log } from "@/Core/Log";
+import { imageThumbnail } from "@/Helpers/Image";
 
 interface TwitchGameJSON {
     name: string;
@@ -260,7 +261,7 @@ export class TwitchGame {
         const file = path.join(BaseConfigCacheFolder.public_cache_covers, `${this.id}.${path.extname(this.box_art_url).substring(1)}`);
 
         if (fs.existsSync(file)) {
-            return await Helper.imageThumbnail(file, 64);
+            return await imageThumbnail(file, 64);
         }
 
         throw new Error("Thumbnail not found!");

@@ -1,8 +1,11 @@
+import { debugLog } from "@/Helpers/Console";
+import { GetRunningProcesses, execSimple } from "@/Helpers/Execute";
 import { SettingField } from "@common/Config";
 import { settingsFields } from "@common/ServerConfig";
 import axios, { AxiosResponse } from "axios";
 import chalk from "chalk";
 import express from "express";
+import i18next from "i18next";
 import minimist from "minimist";
 import crypto from "node:crypto";
 import fs from "node:fs";
@@ -10,15 +13,12 @@ import path from "node:path";
 import { TwitchHelper } from "../Providers/Twitch";
 import { YouTubeHelper } from "../Providers/YouTube";
 import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot } from "./BaseConfig";
-import { Helper } from "./Helper";
 import { LiveStreamDVR } from "./LiveStreamDVR";
-import { log, LOGLEVEL } from "./Log";
+import { LOGLEVEL, log } from "./Log";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 import { Scheduler } from "./Scheduler";
-import i18next from "i18next";
-import { debugLog } from "@/Helpers/Console";
-import { GetRunningProcesses, execSimple } from "@/Helpers/Execute";
+import { is_docker } from "@/Helpers/System";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -680,7 +680,7 @@ export class Config {
     }
 
     static debugLocalUrl() {
-        if (Helper.is_docker()) {
+        if (is_docker()) {
             return "localhost:8082";
         }
         return "localhost:8080";

@@ -8,6 +8,7 @@ import { Config } from "@/Core/Config";
 import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
 import { generateStreamerList } from "@/Helpers/StreamerList";
 import { Helper } from "@/Core/Helper";
+import { is_docker, is_windows } from "@/Helpers/System";
 
 /**
  * I don't like telemetry myself, but I do get curious sometimes.
@@ -24,8 +25,8 @@ function GetTelemetry() {
         vods_amount: LiveStreamDVR.getInstance().getChannels().map(c => c.getVods().length),
         uses_proxy: Config.getInstance().cfg("trust_proxy"),
         notifications: ClientBroker.notificationSettings,
-        windows: Helper.is_windows(),
-        docker: Helper.is_docker(),
+        windows: is_windows(),
+        docker: is_docker(),
         node_version: process.version,
         has_basepath: Config.getInstance().cfg("basepath") !== "",
         has_password: Config.getInstance().cfg("password") !== "",

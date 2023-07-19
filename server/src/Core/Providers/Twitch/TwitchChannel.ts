@@ -40,6 +40,7 @@ import { Webhook } from "../../Webhook";
 import { BaseChannel } from "../Base/BaseChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
+import { imageThumbnail } from "@/Helpers/Image";
 
 export class TwitchChannel extends BaseChannel {
     public provider: Providers = "twitch";
@@ -1627,7 +1628,7 @@ export class TwitchChannel extends BaseChannel {
 
                 let avatar_thumbnail;
                 try {
-                    avatar_thumbnail = await Helper.imageThumbnail(logo_path, 64);
+                    avatar_thumbnail = await imageThumbnail(logo_path, 64);
                 } catch (error) {
                     log(LOGLEVEL.ERROR, "channel", `Could not create thumbnail for user logo for ${userData.id}: ${(error as Error).message}`, error);
                 }

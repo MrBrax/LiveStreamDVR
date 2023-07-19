@@ -1,16 +1,16 @@
-import path from "node:path";
-import fs from "node:fs";
-import { BaseConfigCacheFolder, BaseConfigDataFolder } from "./BaseConfig";
-import { log, LOGLEVEL } from "./Log";
+import { execSimple } from "@/Helpers/Execute";
+import { is_windows } from "@/Helpers/System";
+import { xClearTimeout, xTimeout } from "@/Helpers/Timeout";
+import { ApiJob } from "@common/Api/Client";
+import { JobStatus } from "@common/Defs";
 import { parseJSON } from "date-fns";
 import { ChildProcessWithoutNullStreams } from "node:child_process";
 import { EventEmitter } from "node:events";
+import fs from "node:fs";
+import path from "node:path";
+import { BaseConfigCacheFolder, BaseConfigDataFolder } from "./BaseConfig";
+import { LOGLEVEL, log } from "./Log";
 import { Webhook } from "./Webhook";
-import { ApiJob } from "@common/Api/Client";
-import { JobStatus } from "@common/Defs";
-import { Helper } from "./Helper";
-import { xClearTimeout, xTimeout } from "@/Helpers/Timeout";
-import { execSimple } from "@/Helpers/Execute";
 
 export interface TwitchAutomatorJobJSON {
     name: string;
@@ -495,7 +495,7 @@ export class Job extends EventEmitter {
         }
 
         let output = "";
-        if (Helper.is_windows()) {
+        if (is_windows()) {
 
             let proc;
             try {
@@ -588,7 +588,7 @@ export class Job extends EventEmitter {
             return false;
         }
 
-        if (Helper.is_windows()) {
+        if (is_windows()) {
             let exec;
             const args: string[] = [];
             if (method === "SIGKILL") {

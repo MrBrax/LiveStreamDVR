@@ -11,6 +11,8 @@ import { KeyValue } from "@/Core/KeyValue";
 import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
 import { GetRunningProcesses } from "@/Helpers/Execute";
 import { DVRBinaries, DVRPipPackages, PipRequirements, getBinaryVersion } from "@/Helpers/Software";
+import { is_docker } from "@/Helpers/System";
+import { getLogLines } from "@/Core/Log";
 
 export async function About(req: express.Request, res: express.Response): Promise<void> {
 
@@ -75,13 +77,15 @@ export async function About(req: express.Request, res: express.Response): Promis
         date: new Date(),
         uptime: process.uptime(),
         child_processes: GetRunningProcesses().length,
+        log_lines: getLogLines().length,
+        keyvalues: Object.keys(KeyValue.getInstance().getData()).length,
     } : undefined;
 
     res.send({
         data: {
             bins: bins,
             pip: PipRequirements,
-            is_docker: Helper.is_docker(),
+            is_docker: is_docker(),
             memory: process.memoryUsage(),
             debug: debug,
             // keyvalue: KeyValue.getInstance().data,
