@@ -575,7 +575,7 @@ export class LiveStreamDVR {
             for (const key in memoryFootprint) {
                 const value = memoryFootprint[key];
                 if (value > 1024 * 1024) {
-                    console.log(chalk.yellow(`Memory footprint of ${key}: ${formatBytes(value)}`));
+                    debugLog(`Memory footprint of ${key}: ${formatBytes(value)}`);
                 }
             }
         }, 60000);
