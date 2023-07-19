@@ -9,10 +9,13 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - name: Install dependencies
-        run: yarn install
+      - name: Check out the repo
+        uses: actions/checkout@v3
+        with:
+          submodules: "true"
+      # - name: Install dependencies
+      #   run: yarn install
       - name: Run pack (also releases to GitHub)
-        run: ./pack.sh
+        run: chmod +x ./pack.sh && ./pack.sh
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
