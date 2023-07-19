@@ -34,7 +34,7 @@ import { Config } from "./Config";
 import { Helper } from "./Helper";
 import { Job } from "./Job";
 import { KeyValue } from "./KeyValue";
-import { LOGLEVEL, log, measureLogMemoryUsage, readTodaysLog } from "./Log";
+import { LOGLEVEL, getLogLines, log, measureLogMemoryUsage, readTodaysLog } from "./Log";
 import { Scheduler } from "./Scheduler";
 import { Webhook } from "./Webhook";
 
@@ -570,7 +570,14 @@ export class LiveStreamDVR {
                     }
                 }
             });
-            measureLogMemoryUsage();
+            // measureLogMemoryUsage();
+            const memoryFootprint = this.gatherMemoryFootprint();
+            for (const key in memoryFootprint) {
+                const value = memoryFootprint[key];
+                if (value > 1024 * 1024) {
+                    console.log(chalk.yellow(`Memory footprint of ${key}: ${formatBytes(value)}`));
+                }
+            }
         }, 60000);
     }
 
@@ -777,6 +784,25 @@ export class LiveStreamDVR {
 
         log(LOGLEVEL.INFO, "dvr.venvcheck", `Python virtual environment path: ${venv_path}`);
 
+    }
+
+    public static gatherMemoryFootprint(): Record<string, number> {
+        const ret: Record<string, number> = {};
+        // const mem = process.memoryUsage();
+        // for (const key in mem) {
+        //     ret[key] = mem[key];
+        // }
+        ret["rss"] = process.resourceUsage().maxRSS;
+        ret["heapTotal"] = process.memoryUsage().heapTotal;
+        ret["heapUsed"] = process.memoryUsage().heapUsed;
+        ret["external"] = process.memoryUsage().external;
+
+        ret["log"] = Buffer.byteLength(JSON.stringify(getLogLines()), "utf8");
+        ret["keyvalue"] = Buffer.byteLength(JSON.stringify(KeyValue.getInstance().getData()), "utf8");
+        ret["channels_config"] = Buffer.byteLength(JSON.stringify(LiveStreamDVR.getInstance().channels_config), "utf8");
+        // ret["channels"] = Buffer.byteLength(JSON.stringify(LiveStreamDVR.getInstance().channels), "utf8");
+        // ret["vods"] = Buffer.byteLength(JSON.stringify(LiveStreamDVR.getInstance().vods), "utf8");
+        return ret;
     }
 
 }

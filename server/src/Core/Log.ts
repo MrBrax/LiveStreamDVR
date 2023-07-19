@@ -56,6 +56,10 @@ export const LogLevel = {
 
 export const censoredLogWords: Set<string> = new Set();
 
+export function getLogLines(): LogLine[] {
+    return lines;
+}
+
 export function readTodaysLog(): void {
     console.log(chalk.blue("Read today's log..."));
     const today = format(new Date(), "yyyy-MM-dd");

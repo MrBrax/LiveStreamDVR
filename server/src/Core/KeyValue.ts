@@ -37,6 +37,10 @@ export class KeyValue extends EventEmitter {
         this.instance = undefined;
     }
 
+    getData(): Record<string, KeyValueData> {
+        return this.data;
+    }
+
     getAllRaw(): Record<string, KeyValueData> {
         const filteredExpired = Object.entries(this.data).filter(([key, value]) => {
             if (value.expires) {
