@@ -1,6 +1,6 @@
 {
   "name": "livestreamdvr-server",
-  "version": "1.5.2",
+  "version": "1.5.3",
   "description": "",
   "main": "index.ts",
   "scripts": {
@@ -11,7 +11,8 @@
     "start": "node --enable-source-maps build/server.js",
     "build:ts": "tsc --project tsconfig.json",
     "build": "tsc -noEmit && esbuild ./src/index.ts --bundle --platform=node --target=node15 --sourcemap --outfile=./build/server.js",
-    "generate-licenses": "yarn licenses generate-disclaimer > LICENSES.txt"
+    "generate-licenses": "yarn licenses generate-disclaimer > LICENSES.txt",
+    "inspect": "node --inspect --enable-source-maps build/server.js"
   },
   "author": "",
   "license": "ISC",
