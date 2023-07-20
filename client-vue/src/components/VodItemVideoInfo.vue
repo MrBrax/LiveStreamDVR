@@ -296,7 +296,11 @@
                         title="Retry VOD match"
                         @click="matchVod()"
                         ><font-awesome-icon icon="sync" /></a>
-                        <a href="javascript:void(0)" @click="manualVodMatch()" title="Manually match VOD"><font-awesome-icon icon="pencil" /></a>
+                        <a
+                            href="javascript:void(0)"
+                            title="Manually match VOD"
+                            @click="manualVodMatch()"
+                        ><font-awesome-icon icon="pencil" /></a>
                     </li>
                     <li>
                         <template v-if="vod.twitch_vod_id">

@@ -1,5 +1,8 @@
 <template>
-    <span class="duration-display" :data-date="startDate">{{ timeString }}</span>
+    <span
+        class="duration-display"
+        :data-date="startDate"
+    >{{ timeString }}</span>
 </template>
 
 <script lang="ts" setup>

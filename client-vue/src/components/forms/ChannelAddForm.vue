@@ -130,7 +130,12 @@
                     name="slug"
                     required
                 >
-                <button class="button is-confirm" type="button" @click="fetchKickSlug" :disabled="!formData.slug">
+                <button
+                    class="button is-confirm"
+                    type="button"
+                    :disabled="!formData.slug"
+                    @click="fetchKickSlug"
+                >
                     <span class="icon"><font-awesome-icon icon="sync" /></span>
                     <span>{{ t('forms.channel.check') }}</span>
                 </button>

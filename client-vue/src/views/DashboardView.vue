@@ -86,10 +86,10 @@
         <section class="section">
             <div
                 class="section-title is-expandable"
+                tabindex="0"
                 @click="logToggle"
                 @keyup.prevent.enter="logToggle"
                 @keyup.prevent.space="logToggle"
-                tabindex="0"
             >
                 <h1>{{ t('dashboard.logs') }}</h1>
             </div>

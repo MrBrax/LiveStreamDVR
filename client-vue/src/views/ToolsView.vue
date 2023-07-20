@@ -241,7 +241,7 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed } from "vue";
+import { computed } from "vue";
 import type { ApiResponse } from "@common/Api/Api";
 
 // import ToolsBurnForm from "@/components/forms/ToolsBurnForm.vue";

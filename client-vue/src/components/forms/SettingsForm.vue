@@ -154,7 +154,10 @@
                                 </option>
                             </template>
                         </select>
-                        <span v-else class="is-error">No choices defined</span>
+                        <span
+                            v-else
+                            class="is-error"
+                        >No choices defined</span>
                     </div>
                 </div>
 

@@ -29,7 +29,10 @@
                         class="streamer-capturing"
                     >capturing</span>
                 </h2>
-                <span class="streamer-title-subtitle" aria-label="Streamer information">
+                <span
+                    class="streamer-title-subtitle"
+                    aria-label="Streamer information"
+                >
                     <span
                         class="streamer-vods-quality help"
                         title="Quality"

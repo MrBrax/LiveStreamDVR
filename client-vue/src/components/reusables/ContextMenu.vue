@@ -1,19 +1,23 @@
 <template>
-    <slot name="trigger" ref="trigger" :open="open" />
+    <slot
+        ref="trigger"
+        name="trigger"
+        :open="open"
+    />
     <Teleport to="body">
         <div
             v-if="showMenu"
             class="context-menu-blackout"
-            @click="close"
             tabindex="0"
             aria-label="Close context menu"
             role="button"
+            @click="close"
         />
         <Transition name="blinds">
             <div
-            v-if="showMenu"
-                class="context-menu"
+                v-if="showMenu"
                 ref="context"
+                class="context-menu"
                 :style="contextStyle"
                 role="menu"
             >

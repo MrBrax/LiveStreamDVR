@@ -77,7 +77,10 @@
                             </ul>
                         </li>
                     </ul>
-                    <ul class="list" v-if="store.websocket_quotas">
+                    <ul
+                        v-if="store.websocket_quotas"
+                        class="list"
+                    >
                         <li
                             v-for="(v, k) in store.websocket_quotas"
                             :key="k"

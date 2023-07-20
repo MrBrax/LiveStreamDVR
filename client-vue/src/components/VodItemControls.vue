@@ -80,8 +80,12 @@
                     icon="download"
                     @click="emit('showModal', 'vodDownload')"
                 >
-                    <template v-if="vod.twitch_vod_muted == MuteStatus.MUTED">{{ t('vod.controls.download-vod-muted') }}</template>
-                    <template v-else>{{ t('vod.controls.download-vod') }}</template>
+                    <template v-if="vod.twitch_vod_muted == MuteStatus.MUTED">
+                        {{ t('vod.controls.download-vod-muted') }}
+                    </template>
+                    <template v-else>
+                        {{ t('vod.controls.download-vod') }}
+                    </template>
                 </d-button>
                 <!-- Check mute -->
                 <d-button
