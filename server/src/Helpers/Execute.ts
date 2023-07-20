@@ -1,7 +1,8 @@
-import { ChildProcessWithoutNullStreams, spawn } from "node:child_process";
-import { ExecReturn } from "../Providers/Twitch";
+import type { ChildProcessWithoutNullStreams} from "node:child_process";
+import { spawn } from "node:child_process";
+import type { ExecReturn } from "../Providers/Twitch";
 import { LOGLEVEL, log } from "@/Core/Log";
-import { Stream } from "node:stream";
+import type { Stream } from "node:stream";
 import { Config } from "@/Core/Config";
 import chalk from "chalk";
 import { Job } from "@/Core/Job";

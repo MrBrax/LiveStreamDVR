@@ -1,5 +1,5 @@
 import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
-import express from "express";
+import type express from "express";
 import { MuteStatus } from "@common/Defs";
 import { ClientBroker } from "@/Core/ClientBroker";
 import { log, LOGLEVEL } from "@/Core/Log";

@@ -1,8 +1,8 @@
-import express from "express";
+import type express from "express";
 import path from "node:path";
 import sanitize from "sanitize-filename";
-import { ApiErrorResponse, ApiResponse } from "@common/Api/Api";
-import { ExporterOptions } from "@common/Exporter";
+import type { ApiErrorResponse, ApiResponse } from "@common/Api/Api";
+import type { ExporterOptions } from "@common/Exporter";
 import { BaseConfigDataFolder, DataRoot } from "@/Core/BaseConfig";
 import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
 import { FileExporter } from "@/Exporters/File";

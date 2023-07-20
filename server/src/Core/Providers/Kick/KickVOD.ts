@@ -1,7 +1,8 @@
 import { parseJSON } from "date-fns";
 import { BaseVOD } from "../Base/BaseVOD";
-import { JobStatus, MuteStatus, Providers } from "@common/Defs";
-import { KickVODJSON } from "../../../Storage/JSON";
+import type { Providers } from "@common/Defs";
+import { JobStatus, MuteStatus } from "@common/Defs";
+import type { KickVODJSON } from "../../../Storage/JSON";
 import type { ApiKickVod } from "@common/Api/Client";
 
 export class KickVOD extends BaseVOD {

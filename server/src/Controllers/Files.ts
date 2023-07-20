@@ -1,6 +1,6 @@
 
 import { BaseConfigDataFolder, DataRoot } from "@/Core/BaseConfig";
-import express from "express";
+import type express from "express";
 import path from "node:path";
 import fs from "node:fs";
 import sanitize from "sanitize-filename";

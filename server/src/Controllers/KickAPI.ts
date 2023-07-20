@@ -1,7 +1,7 @@
 import type { KickChannel, KickUser, KickChannelVideo, KickChannelLivestream, KickChannelLivestreamResponse } from "@common/KickAPI/Kick";
 import { GetUser } from "../Providers/Kick";
-import express from "express";
-import { ApiErrorResponse } from "@common/Api/Api";
+import type express from "express";
+import type { ApiErrorResponse } from "@common/Api/Api";
 
 export async function KickAPIUser(req: express.Request, res: express.Response): Promise<void> {
 

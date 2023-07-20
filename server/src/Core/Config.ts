@@ -1,10 +1,11 @@
 import { debugLog } from "@/Helpers/Console";
 import { GetRunningProcesses, execSimple } from "@/Helpers/Execute";
-import { SettingField } from "@common/Config";
+import type { SettingField } from "@common/Config";
 import { settingsFields } from "@common/ServerConfig";
-import axios, { AxiosResponse } from "axios";
+import type { AxiosResponse } from "axios";
+import axios from "axios";
 import chalk from "chalk";
-import express from "express";
+import type express from "express";
 import i18next from "i18next";
 import minimist from "minimist";
 import crypto from "node:crypto";

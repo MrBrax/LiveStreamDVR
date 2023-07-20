@@ -1,12 +1,12 @@
 import { format, parseJSON } from "date-fns";
-import express from "express";
+import type express from "express";
 import fs from "node:fs";
 import path from "node:path";
 import sanitize from "sanitize-filename";
-import { ApiErrorResponse } from "@common/Api/Api";
-import { VideoQuality } from "@common/Config";
+import type { ApiErrorResponse } from "@common/Api/Api";
+import type { VideoQuality } from "@common/Config";
 import { formatString } from "@common/Format";
-import { ClipBasenameTemplate } from "@common/Replacements";
+import type { ClipBasenameTemplate } from "@common/Replacements";
 import { BaseConfigDataFolder } from "@/Core/BaseConfig";
 import { Config } from "@/Core/Config";
 import { LiveStreamDVR } from "@/Core/LiveStreamDVR";

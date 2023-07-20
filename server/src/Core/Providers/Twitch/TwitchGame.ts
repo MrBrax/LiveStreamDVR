@@ -1,5 +1,5 @@
-import { ApiGame } from "@common/Api/Client";
-import { GamesResponse } from "@common/TwitchAPI/Games";
+import type { ApiGame } from "@common/Api/Client";
+import type { GamesResponse } from "@common/TwitchAPI/Games";
 import axios from "axios";
 import fs from "node:fs";
 import path from "node:path";

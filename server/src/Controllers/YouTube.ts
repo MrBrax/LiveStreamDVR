@@ -1,4 +1,4 @@
-import express from "express";
+import type express from "express";
 import { YouTubeHelper } from "../Providers/YouTube";
 import { log, LOGLEVEL } from "@/Core/Log";
 import { formatDistanceToNow, formatISO9075 } from "date-fns";

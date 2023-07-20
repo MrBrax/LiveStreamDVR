@@ -1,6 +1,6 @@
 import auth from "basic-auth";
 import chalk from "chalk";
-import express from "express";
+import type express from "express";
 import { AppName } from "@/Core/BaseConfig";
 import { Config } from "@/Core/Config";
 

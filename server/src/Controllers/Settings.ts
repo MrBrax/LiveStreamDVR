@@ -1,4 +1,4 @@
-import express from "express";
+import type express from "express";
 import type { ApiSettingsResponse } from "@common/Api/Api";
 import { version } from "../../package.json";
 import { AppName } from "@/Core/BaseConfig";

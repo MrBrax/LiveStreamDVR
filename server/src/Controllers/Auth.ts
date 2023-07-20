@@ -1,6 +1,6 @@
 import { Config } from "@/Core/Config";
-import express from "express";
-import { ApiLoginResponse, ApiAuthResponse } from "@common/Api/Api";
+import type express from "express";
+import type { ApiLoginResponse, ApiAuthResponse } from "@common/Api/Api";
 import { t } from "i18next";
 export function Login(req: express.Request, res: express.Response): void {
 

@@ -3,7 +3,7 @@ import type { TwitchVOD } from "@/Core/Providers/Twitch/TwitchVOD";
 import type { TwitchVODChapter } from "@/Core/Providers/Twitch/TwitchVODChapter";
 import type { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
 import type { YouTubeChannel } from "@/Core/Providers/YouTube/YouTubeChannel";
-import { KickChannel } from "@/Core/Providers/Kick/KickChannel";
+import type { KickChannel } from "@/Core/Providers/Kick/KickChannel";
 
 export function isTwitchChannel(data: unknown): data is TwitchChannel {
     return (data as TwitchChannel).provider === "twitch";

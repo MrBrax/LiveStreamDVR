@@ -1,8 +1,8 @@
 import { format } from "date-fns";
-import express from "express";
+import type express from "express";
 import fs from "node:fs";
-import { ApiErrorResponse, ApiLogResponse } from "@common/Api/Api";
-import { ApiLogLine } from "@common/Api/Client";
+import type { ApiErrorResponse, ApiLogResponse } from "@common/Api/Api";
+import type { ApiLogLine } from "@common/Api/Client";
 import { BaseConfigDataFolder } from "@/Core/BaseConfig";
 import { fetchLog } from "@/Core/Log";
 

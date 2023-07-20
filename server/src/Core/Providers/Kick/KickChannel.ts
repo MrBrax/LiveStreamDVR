@@ -1,6 +1,6 @@
-import { KickChannelConfig } from "@common/Config";
-import { Providers } from "@common/Defs";
-import { KickChannel as KickChannelT, KickUser } from "@common/KickAPI/Kick";
+import type { KickChannelConfig } from "@common/Config";
+import type { Providers } from "@common/Defs";
+import type { KickChannel as KickChannelT, KickUser } from "@common/KickAPI/Kick";
 import { randomUUID } from "crypto";
 import { KeyValue } from "../../../Core/KeyValue";
 import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";

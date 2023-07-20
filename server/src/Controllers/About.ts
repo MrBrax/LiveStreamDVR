@@ -1,6 +1,6 @@
 import type { BinaryStatus } from "@common/Api/About";
-import { ApiAboutResponse } from "@common/Api/Api";
-import express from "express";
+import type { ApiAboutResponse } from "@common/Api/Api";
+import type express from "express";
 import readdirRecursive from "fs-readdir-recursive";
 import fs from "node:fs";
 import process from "node:process";

@@ -1,5 +1,5 @@
 import { formatString } from "@common/Format";
-import { ClipBasenameTemplate } from "@common/Replacements";
+import type { ClipBasenameTemplate } from "@common/Replacements";
 import cron from "cron";
 import { format, parseJSON } from "date-fns";
 import fs from "node:fs";

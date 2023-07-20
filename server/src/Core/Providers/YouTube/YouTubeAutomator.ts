@@ -1,7 +1,7 @@
 import { KeyValue } from "../../../Core/KeyValue";
-import { PubsubVideo } from "@common/YouTubeAPI/Pubsub";
+import type { PubsubVideo } from "@common/YouTubeAPI/Pubsub";
 import { BaseAutomator } from "../Base/BaseAutomator";
-import express from "express";
+import type express from "express";
 
 export class YouTubeAutomator extends BaseAutomator {
     public getVodID(): string | false {

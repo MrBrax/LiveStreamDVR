@@ -1,4 +1,4 @@
-import { WebhookAction, WebhookData } from "@common/Webhook";
+import type { WebhookAction, WebhookData } from "@common/Webhook";
 import axios from "axios";
 import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";

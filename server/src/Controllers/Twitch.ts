@@ -1,4 +1,4 @@
-import express from "express";
+import type express from "express";
 import { TwitchHelper } from "../Providers/Twitch";
 import { log, LOGLEVEL } from "@/Core/Log";
 import fs from "node:fs";

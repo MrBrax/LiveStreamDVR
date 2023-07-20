@@ -1,8 +1,9 @@
-import { LiveStreamDVR, VODTypes } from "@/Core/LiveStreamDVR";
+import type { VODTypes } from "@/Core/LiveStreamDVR";
+import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
 import { LOGLEVEL, log } from "@/Core/Log";
-import { BaseVODChapterJSON } from "@/Storage/JSON";
-import { ApiVodBaseChapter } from "@common/Api/Client";
-import { Providers } from "@common/Defs";
+import type { BaseVODChapterJSON } from "@/Storage/JSON";
+import type { ApiVodBaseChapter } from "@common/Api/Client";
+import type { Providers } from "@common/Defs";
 
 export class BaseVODChapter {
 

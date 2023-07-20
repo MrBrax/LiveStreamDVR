@@ -1,6 +1,6 @@
-import { FFProbe } from "@common/FFProbe";
-import { AudioMetadata, MediaInfoJSONOutput, VideoMetadata } from "@common/MediaInfo";
-import { MediaInfo } from "@common/mediainfofield";
+import type { FFProbe } from "@common/FFProbe";
+import type { AudioMetadata, MediaInfoJSONOutput, VideoMetadata } from "@common/MediaInfo";
+import type { MediaInfo } from "@common/mediainfofield";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -9,7 +9,7 @@ import { Config } from "@/Core/Config";
 import { Helper } from "@/Core/Helper";
 import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
 import { LOGLEVEL, log } from "@/Core/Log";
-import { RemuxReturn } from "../Providers/Twitch";
+import type { RemuxReturn } from "../Providers/Twitch";
 import { progressOutput } from "./Console";
 import { execSimple, startJob } from "./Execute";
 import { formatDuration } from "./Format";

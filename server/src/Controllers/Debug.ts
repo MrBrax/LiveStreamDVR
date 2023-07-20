@@ -1,6 +1,6 @@
 import { YouTubeChannel } from "@/Core/Providers/YouTube/YouTubeChannel";
-import express from "express";
-import { VideoQuality } from "@common/Config";
+import type express from "express";
+import type { VideoQuality } from "@common/Config";
 import { ClientBroker } from "@/Core/ClientBroker";
 import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
 import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";

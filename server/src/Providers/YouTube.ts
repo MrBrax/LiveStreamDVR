@@ -1,6 +1,7 @@
 import { BaseConfigCacheFolder } from "@/Core/BaseConfig";
 // import { OAuth2Client } from "googleapis-common";
-import { Credentials, OAuth2Client } from "google-auth-library";
+import type { Credentials} from "google-auth-library";
+import { OAuth2Client } from "google-auth-library";
 import path from "node:path";
 import { Config } from "@/Core/Config";
 import { LOGLEVEL, log } from "@/Core/Log";

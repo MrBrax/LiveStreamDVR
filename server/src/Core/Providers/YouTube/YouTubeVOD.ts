@@ -2,20 +2,20 @@ import { youtube_v3 } from "@googleapis/youtube";
 import chalk from "chalk";
 import fs from "node:fs";
 import path from "node:path";
-import { ApiYouTubeVod } from "@common/Api/Client";
-import { VideoQuality } from "@common/Config";
-import { Providers } from "@common/Defs";
-import { ProxyVideo } from "@common/Proxies/Video";
+import type { ApiYouTubeVod } from "@common/Api/Client";
+import type { VideoQuality } from "@common/Config";
+import type { Providers } from "@common/Defs";
+import type { ProxyVideo } from "@common/Proxies/Video";
 import { BaseConfigCacheFolder } from "../../../Core/BaseConfig";
 import { Helper } from "../../../Core/Helper";
 import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
 import { log, LOGLEVEL } from "../../../Core/Log";
 import { isYouTubeVOD } from "../../../Helpers/Types";
 import { YouTubeHelper } from "../../../Providers/YouTube";
-import { VODJSON, YouTubeVODJSON } from "../../../Storage/JSON";
+import type { VODJSON, YouTubeVODJSON } from "../../../Storage/JSON";
 import { BaseVOD } from "../Base/BaseVOD";
-import { BaseVODChapter } from "../Base/BaseVODChapter";
-import { YouTubeChannel } from "./YouTubeChannel";
+import type { BaseVODChapter } from "../Base/BaseVODChapter";
+import type { YouTubeChannel } from "./YouTubeChannel";
 import { execAdvanced } from "../../../Helpers/Execute";
 
 export class YouTubeVOD extends BaseVOD {

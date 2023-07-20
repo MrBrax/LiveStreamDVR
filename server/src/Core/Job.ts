@@ -1,10 +1,10 @@
 import { execSimple } from "@/Helpers/Execute";
 import { is_windows } from "@/Helpers/System";
 import { xClearTimeout, xTimeout } from "@/Helpers/Timeout";
-import { ApiJob } from "@common/Api/Client";
+import type { ApiJob } from "@common/Api/Client";
 import { JobStatus } from "@common/Defs";
 import { parseJSON } from "date-fns";
-import { ChildProcessWithoutNullStreams } from "node:child_process";
+import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { EventEmitter } from "node:events";
 import fs from "node:fs";
 import path from "node:path";

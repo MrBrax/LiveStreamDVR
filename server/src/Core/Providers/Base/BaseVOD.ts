@@ -1,11 +1,12 @@
-import { ApiBaseVod } from "@common/Api/Client";
+import type { ApiBaseVod } from "@common/Api/Client";
 import type { VODBookmark } from "@common/Bookmark";
-import { VideoQuality } from "@common/Config";
-import { JobStatus, MuteStatus, Providers } from "@common/Defs";
-import { ExportData } from "@common/Exporter";
-import { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
+import type { VideoQuality } from "@common/Config";
+import type { Providers } from "@common/Defs";
+import { JobStatus, MuteStatus } from "@common/Defs";
+import type { ExportData } from "@common/Exporter";
+import type { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
 import type { StreamPause, VodViewerEntry } from "@common/Vod";
-import { VodUpdated } from "@common/Webhook";
+import type { VodUpdated } from "@common/Webhook";
 import chalk from "chalk";
 import chokidar from "chokidar";
 import { format, parseJSON } from "date-fns";
@@ -17,21 +18,22 @@ import { startJob } from "../../../Helpers/Execute";
 import { formatBytes } from "../../../Helpers/Format";
 import { xClearTimeout, xTimeout } from "../../../Helpers/Timeout";
 import { isTwitchVOD, isTwitchVODChapter } from "../../../Helpers/Types";
-import { BaseVODChapterJSON, VODJSON } from "../../../Storage/JSON";
+import type { BaseVODChapterJSON, VODJSON } from "../../../Storage/JSON";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
 import { Config } from "../../Config";
 import { FFmpegMetadata } from "../../FFmpegMetadata";
 import { Helper } from "../../Helper";
 import { Job } from "../../Job";
-import { LiveStreamDVR, VODTypes } from "../../LiveStreamDVR";
+import type { VODTypes } from "../../LiveStreamDVR";
+import { LiveStreamDVR } from "../../LiveStreamDVR";
 import { LOGLEVEL, log } from "../../Log";
 import { Webhook } from "../../Webhook";
-import { BaseChannel } from "./BaseChannel";
-import { BaseVODChapter } from "./BaseVODChapter";
+import type { BaseChannel } from "./BaseChannel";
+import type { BaseVODChapter } from "./BaseVODChapter";
 import { BaseVODSegment } from "./BaseVODSegment";
 import { ffmpeg_time, remuxFile, videoContactSheet, videometadata } from "../../../Helpers/Video";
-import { ExecReturn } from "@/Providers/Twitch";
+import type { ExecReturn } from "@/Providers/Twitch";
 
 export class BaseVOD {
 

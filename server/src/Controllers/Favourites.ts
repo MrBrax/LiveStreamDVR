@@ -1,5 +1,5 @@
-import express from "express";
-import { ApiFavouriteGamesResponse } from "@common/Api/Api";
+import type express from "express";
+import type { ApiFavouriteGamesResponse } from "@common/Api/Api";
 import { TwitchGame } from "@/Core/Providers/Twitch/TwitchGame";
 import { log, LOGLEVEL } from "@/Core/Log";
 
