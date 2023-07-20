@@ -587,6 +587,8 @@ export class TwitchChannel extends BaseChannel {
 
             await this.checkIfChannelSavesVods();
 
+            this.saveKodiNfo();
+
             return true;
         }
 
@@ -594,6 +596,10 @@ export class TwitchChannel extends BaseChannel {
 
     }
 
+    /**
+     * Save Kodi-style nfo file for the channel into the channel folder
+     * @returns {boolean} True if the nfo file was saved
+     */
     public saveKodiNfo(): boolean {
 
         if (!this.channel_data) {
@@ -629,7 +635,7 @@ export class TwitchChannel extends BaseChannel {
             }
 
         } else {
-            log(LOGLEVEL.WARNING, "channel.kodi", `Avatar not found for ${this.internalName}`);
+            log(LOGLEVEL.WARNING, "channel.kodi", `Avatar not found for ${this.internalName}, it is recommended to refresh the channel data`);
         }
 
         let nfo_content = "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n";
@@ -1578,7 +1584,7 @@ export class TwitchChannel extends BaseChannel {
 
     private static async fetchChannelLogo(userData: UserData) {
 
-        log(LOGLEVEL.INFO, "channel", `Fetching channel logo for ${userData.id}`);
+        log(LOGLEVEL.INFO, "channel", `Fetching channel logo for ${userData.id} (${userData.login})`);
 
         const logo_filename = `${userData.id}${path.extname(userData.profile_image_url)}`;
 
@@ -1603,17 +1609,6 @@ export class TwitchChannel extends BaseChannel {
 
         if (avatar_response) {
             log(LOGLEVEL.DEBUG, "channel", `Fetched avatar for ${userData.id}`);
-
-            // const stream = fs.createWriteStream(logo_path);
-
-            /*
-            await new Promise((resolve, reject) => {
-                if (avatar_response)
-                    avatar_response.data.pipe(stream);
-                stream.on("finish", resolve);
-                stream.on("error", reject);
-            });
-            */
 
             await pipeline(avatar_response.data, fs.createWriteStream(logo_path));
 
@@ -1662,15 +1657,6 @@ export class TwitchChannel extends BaseChannel {
 
         log(LOGLEVEL.DEBUG, "channel", `Fetching channel data for ${broadcaster_id}`);
 
-        /*
-        const access_token = await TwitchHelper.getAccessToken();
-
-        if (!access_token) {
-            logAdvanced(LOGLEVEL.ERROR, "channel", "Could not get access token, aborting.");
-            throw new Error("Could not get access token, aborting.");
-        }
-        */
-
         if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
         }
@@ -1714,9 +1700,6 @@ export class TwitchChannel extends BaseChannel {
             log(LOGLEVEL.ERROR, "channel", `Could not get user data for ${broadcaster_id}, no data.`, { json });
             throw new Error(`Could not get user data for ${broadcaster_id}, no data.`);
         }
-
-        // use as ChannelData
-        // const channelData = data as unknown as ChannelData;
 
         return json.data[0];
 

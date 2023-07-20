@@ -584,7 +584,7 @@ export class TwitchVOD extends BaseVOD {
 
         this.broadcastUpdate();
 
-        throw new Error("No matching VOD");
+        throw new Error(`No matching VOD from ${channel_videos.length} videos`);
 
     }
 
@@ -2408,7 +2408,7 @@ export class TwitchVOD extends BaseVOD {
                 }
             });
 
-            job.on("close", (code, signal) => {
+            job.on("close", (code) => {
                 if (fs.existsSync(output) && fs.statSync(output).size > 0) {
                     log(LOGLEVEL.INFO, "vod.downloadChatTD", `Chat downloaded for ${vod_id}`);
                     resolve(true);
@@ -2471,7 +2471,7 @@ export class TwitchVOD extends BaseVOD {
                 return;
             }
 
-            job.on("close", (code, signal) => {
+            job.on("close", (code) => {
                 if (fs.existsSync(temp_filepath) && fs.statSync(temp_filepath).size > 0) {
                     log(LOGLEVEL.INFO, "vod.downloadChatTCD", `Chat downloaded for ${vod_id}`);
                     fs.renameSync(temp_filepath, output);

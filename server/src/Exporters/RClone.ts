@@ -68,7 +68,7 @@ export class RCloneExporter extends BaseExporter {
                 return;
             }
 
-            job.on("error", (err) => {
+            job.on("process_error", (err) => {
                 console.error("rclone error", err);
                 reject(err);
             });
@@ -80,7 +80,7 @@ export class RCloneExporter extends BaseExporter {
                 }
             });
 
-            job.on("clear", (code: number) => {
+            job.on("clear", (code) => {
                 if (code !== 0) {
                     if (job.stderr.join("").includes("didn't find section in config file")) {
                         reject(new Error(`Could not find remote '${this.remote}' in config file`));

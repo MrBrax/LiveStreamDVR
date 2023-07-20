@@ -17,7 +17,7 @@ import sanitize from "sanitize-filename";
 import { TwitchVODChapterJSON } from "@/Storage/JSON";
 import { Exporter, GetExporter } from "../../../Controllers/Exporter";
 import { progressOutput } from "../../../Helpers/Console";
-import { execSimple } from "../../../Helpers/Execute";
+import { execSimple, startJob } from "../../../Helpers/Execute";
 import { formatBytes } from "../../../Helpers/Format";
 import { Sleep } from "../../../Helpers/Sleep";
 import { xClearInterval, xInterval } from "../../../Helpers/Timeout";
@@ -891,11 +891,9 @@ export class BaseAutomator {
 
     private chunks_missing = 0;
     private stream_pause?: Partial<StreamPause>;
-    public captureTicker(source: "stdout" | "stderr", raw_data: Buffer) {
+    public captureTicker(source: "stdout" | "stderr", data: string) {
 
         const basename = this.vod ? this.vod.basename : this.vodBasenameTemplate();
-
-        const data = raw_data.toString();
 
         if (data.includes("bad interpreter: No such file or directory")) {
             log(LOGLEVEL.ERROR, "automator.captureVideo", "Fatal error with streamlink, please check logs");
@@ -1136,31 +1134,27 @@ export class BaseAutomator {
             // TODO: use TwitchHelper.startJob instead
 
             // spawn process
-            const capture_process = spawn(bin, cmd, {
-                cwd: path.dirname(this.capture_filename),
-                windowsHide: true,
-            });
+            // const capture_process = spawn(bin, cmd, {
+            //     cwd: path.dirname(this.capture_filename),
+            //     windowsHide: true,
+            // });
 
             // make job for capture
-            // let capture_job: Job;
             const jobName = `capture_${this.getLogin()}_${this.getVodID()}`;
 
-            if (capture_process.pid) {
-                log(LOGLEVEL.SUCCESS, "automator.captureVideo", `Spawned process ${capture_process.pid} for ${jobName}`);
-                this.captureJob = Job.create(jobName);
-                this.captureJob.setPid(capture_process.pid);
-                this.captureJob.setExec(bin, cmd);
-                this.captureJob.setProcess(capture_process);
-                this.captureJob.startLog(jobName, `$ ${bin} ${cmd.join(" ")}\n`);
+            this.captureJob = startJob(jobName, bin, cmd) || undefined;
+
+            if (this.captureJob) {
+                log(LOGLEVEL.SUCCESS, "automator.captureVideo", `Spawned process ${this.captureJob.pid} for ${jobName}`);
                 this.captureJob.addMetadata({
                     "login": this.getLogin(), // TODO: username?
                     "basename": this.vodBasenameTemplate(),
                     "capture_filename": this.capture_filename,
                     "stream_id": this.getVodID(),
                 });
-                if (!this.captureJob.save()) {
-                    log(LOGLEVEL.ERROR, "automator.captureVideo", `Failed to save job ${jobName}`);
-                }
+                // if (!this.captureJob.save()) {
+                //     log(LOGLEVEL.ERROR, "automator.captureVideo", `Failed to save job ${jobName}`);
+                // }
             } else {
                 log(LOGLEVEL.FATAL, "automator.captureVideo", `Failed to spawn capture process for ${jobName}`);
                 reject(false);
@@ -1191,7 +1185,7 @@ export class BaseAutomator {
             const keepalive = xInterval(keepaliveAlert, 120 * 1000);
 
             // critical end
-            capture_process.on("close", (code, signal) => {
+            this.captureJob.on("process_close", (code, signal) => {
 
                 if (code === 0) {
                     log(LOGLEVEL.SUCCESS, "automator.captureVideo", `Job ${jobName} exited with code 0, signal ${signal}`);
@@ -1223,11 +1217,11 @@ export class BaseAutomator {
             this.chunks_missing = 0;
 
             // attach output to parsing
-            capture_process.stdout.on("data", (data) => { this.captureTicker("stdout", data); });
-            capture_process.stderr.on("data", (data) => { this.captureTicker("stderr", data); });
+            this.captureJob.on("stdout", (data) => { this.captureTicker("stdout", data); });
+            this.captureJob.on("stderr", (data) => { this.captureTicker("stderr", data); });
 
             // check for errors
-            capture_process.on("error", (err) => {
+            this.captureJob.on("process_error", (err) => {
                 xClearInterval(keepalive);
                 log(LOGLEVEL.ERROR, "automator.captureVideo", `Error with streamlink for ${basename}: ${err}`);
                 reject(false);

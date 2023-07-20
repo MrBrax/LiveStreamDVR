@@ -805,3 +805,23 @@ export class Job extends EventEmitter {
     }
 
 }
+
+export declare interface Job {
+    on(event: "update", listener: (job: ApiJob) => void): this;
+    on(event: "save", listener: () => void): this;
+    on(event: "clear", listener: (code: number | null) => void): this;
+    on(event: "close", listener: (code: number | null) => void): this;
+    on(event: "pre_clear", listener: () => void): this;
+    on(event: "pid_set", listener: (old_pid: number | undefined, new_pid: number) => void): this;
+    on(event: "process_set", listener: (old_process: ChildProcessWithoutNullStreams | undefined, new_process: ChildProcessWithoutNullStreams) => void): this;
+    on(event: "metadata_set", listener: (old_metadata: Record<string, any> | undefined, new_metadata: Record<string, any>) => void): this;
+    on(event: "metadata_add", listener: (old_metadata: Record<string, any> | undefined, new_metadata: Record<string, any>) => void): this;
+    on(event: "pre_kill", listener: (method: NodeJS.Signals) => void): this;
+    on(event: "process_start", listener: () => void): this;
+    on(event: "process_exit", listener: (code: number | null, signal: NodeJS.Signals) => void): this;
+    on(event: "process_error", listener: (err: Error) => void): this;
+    on(event: "process_close", listener: (code: number | null, signal: NodeJS.Signals) => void): this;
+    on(event: "stdout", listener: (data: string) => void): this;
+    on(event: "stderr", listener: (data: string) => void): this;
+    on(event: "log", listener: (type: "stdout" | "stderr", data: string) => void): this;
+}

@@ -85,16 +85,14 @@ export class FTPExporter extends BaseExporter {
 
             job.on("log", (p, data) => {
                 console.log(p, data);
-            }).on("output", (p, data) => {
-                console.log(p, data);
             });
 
-            job.on("error", (err) => {
+            job.on("process_error", (err) => {
                 console.error("sftp error", err);
                 reject(err);
             });
 
-            job.on("clear", (code: number) => {
+            job.on("clear", (code) => {
                 if (code !== 0) {
                     reject(new Error(`Failed to clear, code ${code}`));
                 } else {

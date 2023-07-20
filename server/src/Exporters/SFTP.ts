@@ -67,12 +67,12 @@ export class SFTPExporter extends BaseExporter {
                 throw new Error("Failed to start job");
             }
 
-            job.on("error", (err) => {
+            job.on("process_error", (err) => {
                 console.error("sftp error", err);
                 reject(err);
             });
 
-            job.on("clear", (code: number) => {
+            job.on("clear", (code) => {
                 if (code !== 0) {
                     reject(new Error(`Failed to clear, code ${code}`));
                 } else {

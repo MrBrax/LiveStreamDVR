@@ -453,11 +453,9 @@ export class TwitchAutomator extends BaseAutomator {
 
     }
 
-    public captureTicker(source: "stdout" | "stderr", raw_data: Buffer): void {
+    public captureTicker(source: "stdout" | "stderr", data: string): void {
 
-        super.captureTicker(source, raw_data); // call parent
-
-        const data = raw_data.toString();
+        super.captureTicker(source, data); // call parent
 
         if (data.includes("2bc4 fork")) {
             log(LOGLEVEL.INFO, "automator.captureVideo", "Twitch streamlink-ttvlol plugin detected.");
