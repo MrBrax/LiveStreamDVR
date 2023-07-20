@@ -1,4 +1,4 @@
-import { User } from "./TwitchAPI/Users";
+import type { User } from "./TwitchAPI/Users";
 
 export interface UserData extends User {
     _updated: number;

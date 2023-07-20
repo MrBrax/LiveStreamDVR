@@ -1,20 +1,17 @@
-import type { BaseVODChapter } from "@/core/Providers/Base/BaseVODChapter";
 import TwitchChannel from "@/core/Providers/Twitch/TwitchChannel";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
-import type { TwitchVODChapter } from "@/core/Providers/Twitch/TwitchVODChapter";
 import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
 import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
 import { defaultSidemenuShow, defaultVideoBlockShow } from "@/defs";
-import type { SidemenuShow, VideoBlockShow, VODTypes } from "@/twitchautomator";
+import type { ChannelTypes, SidemenuShow, VODTypes, VideoBlockShow } from "@/twitchautomator";
 import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiJobsResponse, ApiLoginResponse, ApiQuotas, ApiResponse, ApiSettingsResponse, ApiVodResponse } from "@common/Api/Api";
 import type { ApiChannels, ApiJob, ApiLogLine, ApiVods } from "@common/Api/Client";
+import type { ClientSettings } from "@common/ClientSettings";
 import { defaultConfig } from "@common/ClientSettings";
-import type { ClientSettings } from "@common/ClientSettings.d";
+import type { settingsFields } from "@common/ServerConfig";
 import axios from "axios";
 import { parseJSON } from "date-fns";
 import { defineStore } from "pinia";
-import type { ChannelTypes } from "@/twitchautomator";
-import type { settingsFields } from "@common/ServerConfig";
 
 
 interface StoreType {

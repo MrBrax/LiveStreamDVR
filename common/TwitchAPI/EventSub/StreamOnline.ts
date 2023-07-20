@@ -1,4 +1,4 @@
-import { Subscription } from "../Shared";
+import type { Subscription } from "../Shared";
 
 interface StreamOnlineSubscription extends Subscription {
     type: "stream.online";

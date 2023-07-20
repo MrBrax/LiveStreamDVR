@@ -1,7 +1,7 @@
-import { ChannelConfig, SettingField } from "../Config";
-import { AboutData } from "./About";
-import { ApiTwitchChannel, ApiGame, ApiJob, ApiLogLine, ApiTwitchVod, ApiChannels, ApiVods, ApiFile } from "./Client";
-import { settingsFields } from "@common/ServerConfig";
+import { settingsFields } from "../ServerConfig";
+import type { ChannelConfig } from "../Config";
+import type { AboutData } from "./About";
+import type { ApiChannels, ApiFile, ApiGame, ApiJob, ApiLogLine, ApiVods } from "./Client";
 
 export interface ApiResponse {
     data: any;
@@ -14,7 +14,7 @@ export interface ApiErrorResponse {
     message: string;
 }
 
-interface ApiQuotas {
+export interface ApiQuotas {
     twitch: {
         max_total_cost: number;
         total_cost: number;

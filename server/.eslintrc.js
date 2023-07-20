@@ -48,6 +48,7 @@ module.exports = {
         "deprecation/deprecation": "warn",
         "no-var": "error",
         "prefer-const": "error",
+        "@typescript-eslint/consistent-type-imports": "error"
         // "import/no-relative-parent-imports": "error",
     },
     ignorePatterns: ['.eslintrc.js']

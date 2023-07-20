@@ -1,5 +1,5 @@
-import { VideoMetadata } from "./MediaInfo";
-import { Clip } from "./TwitchAPI/Clips";
+import type { VideoMetadata } from "./MediaInfo";
+import type { Clip } from "./TwitchAPI/Clips";
 
 export interface LocalClip {
     folder: string;

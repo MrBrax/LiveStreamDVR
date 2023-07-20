@@ -1,14 +1,13 @@
-import { MediaInfo, MediaInfoPublic } from "../mediainfofield";
-import { VideoQuality } from "../Config";
-import { UserData } from "../User";
-import { MuteStatus, ExistStatus, JobStatus, Providers } from "../../common/Defs";
-import { AudioMetadata, VideoMetadata } from "../MediaInfo";
-import { BroadcasterType } from "../TwitchAPI/Users";
-import { TwitchVODChapterJSON, BaseVODChapterJSON } from "../../server/src/Storage/JSON";
-import { VODBookmark } from "../Bookmark";
-import { LocalVideo } from "../LocalVideo";
-import { LocalClip } from "../LocalClip";
-import { ExportData } from "../Exporter";
+import type { BaseVODChapterJSON, TwitchVODChapterJSON } from "../../server/src/Storage/JSON";
+import type { VODBookmark } from "../Bookmark";
+import type { VideoQuality } from "../Config";
+import type { ExistStatus, JobStatus, MuteStatus, Providers } from "../Defs";
+import type { ExportData } from "../Exporter";
+import type { LocalClip } from "../LocalClip";
+import type { LocalVideo } from "../LocalVideo";
+import type { AudioMetadata, VideoMetadata } from "../MediaInfo";
+import type { BroadcasterType } from "../TwitchAPI/Users";
+import type { UserData } from "../User";
 
 export type ApiVodSegment = {
     basename: string;

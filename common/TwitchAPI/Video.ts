@@ -1,4 +1,4 @@
-import { Pagination } from "./Shared";
+import type { Pagination } from "./Shared";
 
 interface VideoRequestParamsBase {
     language?: string;

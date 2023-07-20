@@ -264,7 +264,7 @@ import { computed, onMounted, ref } from "vue";
 import { defaultConfig, defaultConfigFields } from "@common/ClientSettings";
 import { defaultSidemenuShow, defaultVideoBlockShow } from "@/defs";
 import type { SidemenuShow, VideoBlockShow } from "@/twitchautomator";
-import type { ClientSettings } from "@common/ClientSettings.d";
+import type { ClientSettings } from "@common/ClientSettings";
 import type { ApiResponse} from "@common/Api/Api";
 
 import { library } from "@fortawesome/fontawesome-svg-core";

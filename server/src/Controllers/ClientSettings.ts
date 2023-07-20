@@ -1,7 +1,8 @@
 import { BaseConfigPath } from "@/Core/BaseConfig";
 import { log, LOGLEVEL } from "@/Core/Log";
-import { ClientSettings, defaultConfigFields } from "@common/ClientSettings";
-import express from "express";
+import type { ClientSettings} from "@common/ClientSettings";
+import { defaultConfigFields } from "@common/ClientSettings";
+import type express from "express";
 import fs from "fs";
 
 export function GetClientSettings(req: express.Request, res: express.Response): void {

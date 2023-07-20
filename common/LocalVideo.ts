@@ -1,4 +1,4 @@
-import { VideoMetadata } from "./MediaInfo";
+import type { VideoMetadata } from "./MediaInfo";
 
 export interface LocalVideo {
     basename: string;

@@ -1,4 +1,4 @@
-import { MutedSegment } from "../TwitchAPI/Video";
+import type { MutedSegment } from "../TwitchAPI/Video";
 
 export interface ProxyVideo {
     id: string;
