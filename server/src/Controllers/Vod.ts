@@ -506,7 +506,17 @@ export async function MatchVod(req: express.Request, res: express.Response): Pro
 
     } else {
 
-        const success = await vod.matchProviderVod(true);
+        let success;
+        try {
+            success = await vod.matchProviderVod(true);            
+        } catch (error) {
+            res.status(400).send({
+                status: "ERROR",
+                message: (error as Error).message || "Unknown error occurred while matching vod",
+            } as ApiErrorResponse);
+            return;
+        }
+        
 
         if (!success) {
             res.status(400).send({

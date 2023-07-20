@@ -488,7 +488,12 @@ export class TwitchVOD extends BaseVOD {
         }
 
         // match stored vod to online vod
-        await this.matchProviderVod();
+        try {
+            await this.matchProviderVod();
+        } catch (error) {
+            log(LOGLEVEL.ERROR, "vod.finalize", `Failed to match provider vod for ${this.basename}: ${error}`);
+        }
+        
 
         // generate contact sheet
         if (Config.getInstance().cfg("contact_sheet.enable")) {
@@ -511,12 +516,19 @@ export class TwitchVOD extends BaseVOD {
      * Match the stored vod to the online vod.
      * Does **NOT** save.
      * @param force 
+     * @throws
      * @returns 
      */
     public async matchProviderVod(force = false): Promise<boolean | undefined> {
-        if (this.twitch_vod_id && !force) return;
-        if (this.is_capturing || this.is_converting) return;
-        if (!this.started_at) return;
+        if (this.twitch_vod_id && !force) {
+            throw new Error("VOD already has a provider VOD ID");
+        }
+        if (this.is_capturing || this.is_converting) {
+            throw new Error("VOD is still capturing or converting");
+        }
+        if (!this.started_at) {
+            throw new Error("VOD has no start time");
+        }
 
         log(LOGLEVEL.INFO, "vod.matchProviderVod", `Trying to match ${this.basename} to provider...`);
 
@@ -526,7 +538,8 @@ export class TwitchVOD extends BaseVOD {
             this.twitch_vod_neversaved = true;
             this.twitch_vod_exists = false;
             this.broadcastUpdate();
-            return false;
+            // return false;
+            throw new Error("No videos returned from streamer");
         }
 
         for (const video of channel_videos) {
@@ -571,7 +584,7 @@ export class TwitchVOD extends BaseVOD {
 
         this.broadcastUpdate();
 
-        return false;
+        throw new Error("No matching VOD");
 
     }
 
@@ -1016,7 +1029,13 @@ export class TwitchVOD extends BaseVOD {
 
         if (this.twitch_vod_exists === undefined && !this.twitch_vod_id) {
             log(LOGLEVEL.INFO, "vod.checkValidVod", `First time check for vod valid on ${this.basename}`);
-            this.matchProviderVod();
+            try {
+                await this.matchProviderVod();
+            } catch (error) {
+                log(LOGLEVEL.ERROR, "vod.checkValidVod", `Failed to match provider vod for ${this.basename}: ${(error as Error).message}`);
+                return null;
+            }
+            
         }
 
         if (!this.twitch_vod_id) {

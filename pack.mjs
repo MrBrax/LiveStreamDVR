@@ -13,10 +13,12 @@ console.log(`Server version: ${server_version}`);
 console.log(`twitch-chat-dumper version: ${dumper_version}`);
 console.log(`twitch-vod-chat version: ${vodchat_version}`);
 
+const prerelease = process.argv.includes("--prerelease");
+
 // simple iso date string without time
 const date_string = new Date().toISOString().split('T')[0];
 
-const release_name = `LiveStreamDVR-${date_string}-c${client_version}-s${server_version}-d${dumper_version}-v${vodchat_version}`;
+const release_name = `LiveStreamDVR-${date_string}-c${client_version}-s${server_version}-d${dumper_version}-v${vodchat_version}${prerelease ? "-alpha" : ""}`;
 
 if (fs.existsSync(`./release/${release_name}.zip`)) {
     fs.unlinkSync(`./release/${release_name}.zip`);
@@ -102,7 +104,7 @@ await pexec(
     // `-n "${release_name}" ` + // description
     // `--generate-notes ` + // TODO: generate release notes automatically
     `--notes-file ./release_notes.md ` +
-    (process.argv.includes("--prerelease") ? "--prerelease " : "") +
+    (prerelease ? "--prerelease " : "") +
     `-R "mrbrax/LiveStreamDVR" ` +
     `--draft`
 );
