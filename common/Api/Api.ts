@@ -3,13 +3,13 @@ import { AboutData } from "./About";
 import { ApiTwitchChannel, ApiGame, ApiJob, ApiLogLine, ApiTwitchVod, ApiChannels, ApiVods, ApiFile } from "./Client";
 import { settingsFields } from "@common/ServerConfig";
 
-interface ApiResponse {
+export interface ApiResponse {
     data: any;
     status: "OK";
     message?: string;
 }
 
-interface ApiErrorResponse {
+export interface ApiErrorResponse {
     status: "ERROR";
     message: string;
 }

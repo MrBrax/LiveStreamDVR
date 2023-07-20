@@ -820,6 +820,7 @@ export declare interface Job {
     on(event: "process_start", listener: () => void): this;
     on(event: "process_exit", listener: (code: number | null, signal: NodeJS.Signals) => void): this;
     on(event: "process_error", listener: (err: Error) => void): this;
+    /** @deprecated */
     on(event: "process_close", listener: (code: number | null, signal: NodeJS.Signals) => void): this;
     on(event: "stdout", listener: (data: string) => void): this;
     on(event: "stderr", listener: (data: string) => void): this;
