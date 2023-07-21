@@ -1,41 +1,23 @@
 <template>
     <div class="video-download-menu">
-        <d-button
-            v-if="isTwitch(streamer)"
-            color="success"
-            icon="download"
-            @click="fetchTwitchClips"
-        >
-            {{ t('vod.fetch-clip-list') }}
+        <d-button v-if="isTwitch(streamer)" color="success" icon="download" @click="fetchTwitchClips">
+            {{ t("vod.fetch-clip-list") }}
         </d-button>
-        <hr>
+        <hr />
         <template v-if="!loading">
-            <div
-                v-for="clip in onlineClips"
-                :key="clip.id"
-                class="video-download-menu-item"
-            >
+            <div v-for="clip in onlineClips" :key="clip.id" class="video-download-menu-item">
                 <h2>
-                    <a
-                        :href="clip.url"
-                        rel="nofollow"
-                        target="_blank"
-                    >{{ clip.created_at }}</a>
+                    <a :href="clip.url" rel="nofollow" target="_blank">{{ clip.created_at }}</a>
                 </h2>
-                <img :src="imageUrl(clip.thumbnail_url, 320, 240)"><br>
+                <img :src="imageUrl(clip.thumbnail_url, 320, 240)" /><br />
                 <p>{{ clip.title }}</p>
                 <ul>
                     <li>{{ humanDuration(clip.duration) }}</li>
                     <li>{{ formatNumber(clip.view_count, 0) }} views</li>
                     <!--<li>Estimated size: {{ formatBytes(((averageVodBitrate || 6000000) / 10) * parseTwitchDuration(vod.duration)) }}</li>-->
                 </ul>
-                <br>
-                <d-button
-                    color="success"
-                    icon="download"
-                    size="small"
-                    @click="downloadClip(clip)"
-                >
+                <br />
+                <d-button color="success" icon="download" size="small" @click="downloadClip(clip)">
                     {{ t("buttons.download") }}
                 </d-button>
             </div>
@@ -121,14 +103,12 @@ async function downloadClip(clip: Clip) {
     }
 
     console.log("Downloaded", data);
-
 }
 
 function imageUrl(url: string, width: number, height: number) {
     if (!url) return "";
     return url.replace(/%\{width\}/g, width.toString()).replace(/%\{height\}/g, height.toString());
 }
-
 </script>
 
 <style lang="scss" scoped>
@@ -139,5 +119,4 @@ function imageUrl(url: string, width: number, height: number) {
         margin-bottom: 1em;
     }
 }
-
 </style>

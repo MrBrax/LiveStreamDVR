@@ -8,7 +8,6 @@ import type { TwitchVODChapterJSON } from "../../../../../server/src/Storage/JSO
 import BaseChannel from "../Base/BaseChannel";
 
 export default class TwitchChannel extends BaseChannel {
-
     readonly provider = "twitch";
     uuid = "";
     /** @deprecated */
@@ -77,5 +76,4 @@ export default class TwitchChannel extends BaseChannel {
     get current_game(): TwitchGame | undefined {
         return this.current_vod?.current_game;
     }
-
 }

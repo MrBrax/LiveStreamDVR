@@ -72,7 +72,7 @@ export default class BaseVOD {
     }
 
     get hasDeletedSegment(): boolean {
-        return this.segments.findIndex(s => s.deleted) !== -1;
+        return this.segments.findIndex((s) => s.deleted) !== -1;
     }
 
     get totalPausedTime(): number {
@@ -132,6 +132,4 @@ export default class BaseVOD {
             return null;
         }
     }
-
-
 }

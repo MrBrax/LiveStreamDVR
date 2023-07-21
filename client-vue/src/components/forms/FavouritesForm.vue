@@ -1,83 +1,38 @@
 <template>
-    <form
-        v-if="!loading"
-        method="POST"
-        enctype="multipart/form-data"
-        action="#"
-        @submit.prevent="submitForm"
-    >
-        <div
-            v-if="gamesData && favouritesData"
-            :class="{favourites_list: true, 'is-grid': isGrid}"
-        >
-            <div
-                v-for="game in sortedGames"
-                :key="game.id"
-                :class="{favourites_list__item: true, is_active: formData.games.includes(game.id)}"
-            >
+    <form v-if="!loading" method="POST" enctype="multipart/form-data" action="#" @submit.prevent="submitForm">
+        <div v-if="gamesData && favouritesData" :class="{ favourites_list: true, 'is-grid': isGrid }">
+            <div v-for="game in sortedGames" :key="game.id" :class="{ favourites_list__item: true, is_active: formData.games.includes(game.id) }">
                 <label>
-                    <img
-                        :src="game.image_url"
-                        :alt="game.name"
-                        height="20"
-                        class="cover"
-                    >
+                    <img :src="game.image_url" :alt="game.name" height="20" class="cover" />
                     <span class="input-combo">
-                        <input
-                            :id="game.id"
-                            v-model="formData.games"
-                            type="checkbox"
-                            :name="game.id"
-                            :value="game.id"
-                        >
-                        <span
-                            v-if="game.deleted"
-                            class="icon is-error"
-                            title="Deleted"
-                        >
+                        <input :id="game.id" v-model="formData.games" type="checkbox" :name="game.id" :value="game.id" />
+                        <span v-if="game.deleted" class="icon is-error" title="Deleted">
                             <font-awesome-icon icon="trash" />
                         </span>
                         <span class="game-name">
                             {{ game.name }}
                         </span>
                     </span>
-                    <span
-                        v-if="game.added"
-                        class="game-date"
-                    >{{ formatDate(game.added) }}</span>
-                    <button
-                        type="button"
-                        class="icon-button is-small"
-                        @click="refreshGame(game.id)"
-                    >
+                    <span v-if="game.added" class="game-date">{{ formatDate(game.added) }}</span>
+                    <button type="button" class="icon-button is-small" @click="refreshGame(game.id)">
                         <font-awesome-icon icon="sync" />
                     </button>
                 </label>
             </div>
             <div v-if="!gamesData || Object.keys(gamesData).length == 0">
-                <p>{{ t('forms.favourites.no-games-in-cache-when-streamers-change-games-they-will-be-added-to-the-cache') }}</p>
+                <p>{{ t("forms.favourites.no-games-in-cache-when-streamers-change-games-they-will-be-added-to-the-cache") }}</p>
             </div>
         </div>
         <div class="field">
             <label>
-                <input
-                    v-model="isGrid"
-                    type="checkbox"
-                >
-                {{ t('forms.favourites.display-as-grid') }}
+                <input v-model="isGrid" type="checkbox" />
+                {{ t("forms.favourites.display-as-grid") }}
             </label>
         </div>
-        <FormSubmit
-            :form-status="formStatus"
-            :form-status-text="formStatusText"
-        >
+        <FormSubmit :form-status="formStatus" :form-status-text="formStatusText">
             <div class="control">
-                <d-button
-                    color="success"
-                    icon="save"
-                    type="submit"
-                >
-                    {{ t('buttons.save-favourites') }}
+                <d-button color="success" icon="save" type="submit">
+                    {{ t("buttons.save-favourites") }}
                 </d-button>
             </div>
         </FormSubmit>
@@ -102,7 +57,7 @@ const emit = defineEmits(["formSuccess"]);
 // setup
 const store = useStore();
 const { t } = useI18n();
-        
+
 // data
 const loading = ref<boolean>(false);
 const formStatusText = ref<string>("Ready");
@@ -111,7 +66,6 @@ const formData = ref<{ games: string[] }>({ games: [] });
 const favouritesData = ref<string[]>([]);
 const gamesData = ref<Record<string, ApiGame>>({});
 const isGrid = ref<boolean>(false);
-
 
 const sortedGames = computed((): ApiGame[] => {
     if (!gamesData.value) return [];
@@ -123,7 +77,7 @@ onMounted(() => {
     console.debug("FavouritesForm mounted", favouritesData.value, formData.value);
     fetchData();
 });
-    
+
 function submitForm(event: Event) {
     formStatusText.value = t("messages.loading");
     formStatus.value = "LOADING";
@@ -159,33 +113,36 @@ function submitForm(event: Event) {
 function fetchData() {
     console.debug("FavouritesForm fetchData");
     loading.value = true;
-    axios.all([
-        axios.get<ApiGamesResponse>("api/v0/games")
-        .then((response) => {
-            const json = response.data;
-            if (json.message) alert(json.message);
-            const games = json.data;
-            gamesData.value = games;
-        })
-        .catch((err) => {
-            console.error("settings fetch error", err.response);
-        }),
-        axios
-            .get<ApiSettingsResponse>("api/v0/settings")
-            .then((response) => {
-                const json = response.data;
-                if (json.message) alert(json.message);
-                const favourites = json.data.favourite_games;
-                favouritesData.value = favourites;
-                formData.value.games = favourites;
-                store.updateFavouriteGames(favourites);
-            })
-            .catch((err) => {
-                console.error("settings fetch error", err.response);
-            }),
-    ]).finally(() => {
-        loading.value = false;
-    });
+    axios
+        .all([
+            axios
+                .get<ApiGamesResponse>("api/v0/games")
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    const games = json.data;
+                    gamesData.value = games;
+                })
+                .catch((err) => {
+                    console.error("settings fetch error", err.response);
+                }),
+            axios
+                .get<ApiSettingsResponse>("api/v0/settings")
+                .then((response) => {
+                    const json = response.data;
+                    if (json.message) alert(json.message);
+                    const favourites = json.data.favourite_games;
+                    favouritesData.value = favourites;
+                    formData.value.games = favourites;
+                    store.updateFavouriteGames(favourites);
+                })
+                .catch((err) => {
+                    console.error("settings fetch error", err.response);
+                }),
+        ])
+        .finally(() => {
+            loading.value = false;
+        });
 }
 
 function refreshGame(id: string) {
@@ -202,11 +159,9 @@ function refreshGame(id: string) {
             console.error("form error", err.response);
         });
 }
-    
 </script>
 
 <style lang="scss" scoped>
-
 .favourites_list {
     max-height: 600px;
     overflow-y: scroll;

@@ -1,26 +1,9 @@
 <template>
-    <slot
-        ref="trigger"
-        name="trigger"
-        :open="open"
-    />
+    <slot ref="trigger" name="trigger" :open="open" />
     <Teleport to="body">
-        <div
-            v-if="showMenu"
-            class="context-menu-blackout"
-            tabindex="0"
-            aria-label="Close context menu"
-            role="button"
-            @click="close"
-        />
+        <div v-if="showMenu" class="context-menu-blackout" tabindex="0" aria-label="Close context menu" role="button" @click="close" />
         <Transition name="blinds">
-            <div
-                v-if="showMenu"
-                ref="context"
-                class="context-menu"
-                :style="contextStyle"
-                role="menu"
-            >
+            <div v-if="showMenu" ref="context" class="context-menu" :style="contextStyle" role="menu">
                 <slot name="entries" />
             </div>
         </Transition>
@@ -40,7 +23,7 @@ const contextY = ref(0);
 function open(event: MouseEvent) {
     event.stopPropagation();
     showMenu.value = !showMenu.value;
-    if (showMenu.value){
+    if (showMenu.value) {
         document.addEventListener("keydown", keyDown);
         nextTick(() => {
             positionMenu(event);
@@ -54,7 +37,6 @@ function open(event: MouseEvent) {
             }
         });
     } else {
-        
     }
     // if (!slots.trigger) return;
     // const trigger = slots.trigger;
@@ -81,8 +63,10 @@ function positionMenu(event: MouseEvent) {
         console.error("No context menu or trigger");
         return;
     }
-    let x = 0, y = 0;
-    if (event.pageX === 0 && event.pageY === 0) { // If the event is a keyboard event
+    let x = 0,
+        y = 0;
+    if (event.pageX === 0 && event.pageY === 0) {
+        // If the event is a keyboard event
         const rect = trigger.getBoundingClientRect();
         x = rect.left + 8;
         y = rect.top + 8;
@@ -97,7 +81,7 @@ function positionMenu(event: MouseEvent) {
     // TODO: limit the menu to the screen
 
     contextX.value = x;
-    contextY.value = y;    
+    contextY.value = y;
 }
 
 function keyDown(event: KeyboardEvent) {
@@ -162,7 +146,6 @@ const contextStyle = computed(() => {
 });
 
 defineExpose({ open, showMenu });
-
 </script>
 
 <style lang="scss">
@@ -224,7 +207,8 @@ defineExpose({ open, showMenu });
     &:not(:last-child) {
         margin-bottom: 0.2em;
     }
-    &:hover, &:focus {
+    &:hover,
+    &:focus {
         background-color: #333;
         color: #ff0;
         .icon {
@@ -249,7 +233,7 @@ defineExpose({ open, showMenu });
         // width: 100%;
         // height: 100%;
         border-radius: 0;
-    
+
         .context-menu-button {
             padding: 1em;
         }
@@ -263,5 +247,4 @@ defineExpose({ open, showMenu });
         }
     }
 }
-
 </style>

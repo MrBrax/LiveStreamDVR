@@ -15,11 +15,9 @@ import i18n from "./plugins/i18n";
 import LoadingBox from "@/components/reusables/LoadingBox.vue";
 import DButton from "@/components/reusables/DButton.vue";
 
-
 if (import.meta.env.BASE_URL !== undefined) {
     axios.defaults.baseURL = import.meta.env.BASE_URL;
 }
-
 
 createApp(App)
     .use(router)

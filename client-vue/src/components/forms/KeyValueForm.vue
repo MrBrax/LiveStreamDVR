@@ -1,20 +1,12 @@
 <template>
     <div v-if="!initialLoad">
         <p class="error">
-            {{ t('messages.changing-values-here-will-most-likely-require-a-restart') }}
+            {{ t("messages.changing-values-here-will-most-likely-require-a-restart") }}
         </p>
         <div class="field">
-            <input
-                v-model="searchText"
-                class="input"
-                type="text"
-                :placeholder="t('input.search')"
-            >
+            <input v-model="searchText" class="input" type="text" :placeholder="t('input.search')" />
         </div>
-        <table
-            v-if="keyvalue && Object.keys(keyvalue).length > 0"
-            class="table is-fullwidth is-striped is-hoverable"
-        >
+        <table v-if="keyvalue && Object.keys(keyvalue).length > 0" class="table is-fullwidth is-striped is-hoverable">
             <thead key="header">
                 <tr>
                     <th>Key</th>
@@ -24,92 +16,52 @@
                     <th>Actions</th>
                 </tr>
             </thead>
-            <tr
-                v-for="(kvdata, key) in sortedKeyValues"
-                :key="key"
-            >
+            <tr v-for="(kvdata, key) in sortedKeyValues" :key="key">
                 <td>{{ key }}</td>
                 <td>
                     {{ kvdata.value }}
-                    <button
-                        class="icon-button"
-                        title="Edit"
-                        @click="editKeyValue(key, kvdata.value)"
-                    >
+                    <button class="icon-button" title="Edit" @click="editKeyValue(key, kvdata.value)">
                         <span><font-awesome-icon icon="pencil" /></span>
                     </button>
                 </td>
                 <td>{{ formatDate(kvdata.created) }}</td>
                 <td>{{ kvdata.expires ? formatDate(kvdata.expires) : "" }}</td>
                 <td>
-                    <d-button
-                        icon="trash"
-                        color="danger"
-                        size="small"
-                        @click="deleteKeyValue(key)"
-                    >
-                        {{ t('buttons.delete') }}
+                    <d-button icon="trash" color="danger" size="small" @click="deleteKeyValue(key)">
+                        {{ t("buttons.delete") }}
                     </d-button>
                 </td>
             </tr>
             <tr key="deleteall">
                 <td colspan="999">
-                    <d-button
-                        icon="trash"
-                        color="danger"
-                        @click="deleteAllKeyValues"
-                    >
-                        {{ t('buttons.delete-all') }}
+                    <d-button icon="trash" color="danger" @click="deleteAllKeyValues">
+                        {{ t("buttons.delete-all") }}
                     </d-button>
                 </td>
             </tr>
         </table>
-        <p v-else>
-            No key-value data found.
-        </p>
+        <p v-else>No key-value data found.</p>
 
-        <hr>
+        <hr />
 
         <form @submit.prevent="doAdd">
             <div class="field">
-                <label
-                    for="key"
-                    class="label"
-                >{{ t('forms.keyvalue.key') }}</label>
+                <label for="key" class="label">{{ t("forms.keyvalue.key") }}</label>
                 <div class="control">
-                    <input
-                        id="key"
-                        v-model="addForm.key"
-                        class="input"
-                        type="text"
-                    >
+                    <input id="key" v-model="addForm.key" class="input" type="text" />
                 </div>
             </div>
             <div class="field">
-                <label
-                    for="value"
-                    class="label"
-                >{{ t('forms.keyvalue.value') }}</label>
+                <label for="value" class="label">{{ t("forms.keyvalue.value") }}</label>
                 <div class="control">
-                    <input
-                        id="value"
-                        v-model="addForm.value"
-                        class="input"
-                        type="text"
-                    >
+                    <input id="value" v-model="addForm.value" class="input" type="text" />
                 </div>
-                <p class="input-help">
-                    The value will be stored as a string, and depending on how it is used, it might be converted to another type.
-                </p>
+                <p class="input-help">The value will be stored as a string, and depending on how it is used, it might be converted to another type.</p>
             </div>
             <div class="field">
                 <div class="control">
-                    <d-button
-                        icon="plus"
-                        color="success"
-                        type="submit"
-                    >
-                        {{ t('buttons.create') }}
+                    <d-button icon="plus" color="success" type="submit">
+                        {{ t("buttons.create") }}
                     </d-button>
                 </div>
             </div>
@@ -152,7 +104,7 @@ const addForm = ref<{ key: string; value: string }>({ key: "", value: "" });
 const sortedKeyValues = computed((): Record<string, KeyValueData> => {
     if (!keyvalue.value) return {};
     let entries = Object.entries(keyvalue.value);
-    if (searchText.value !== "") entries = entries.filter(e => e[0].includes(searchText.value));
+    if (searchText.value !== "") entries = entries.filter((e) => e[0].includes(searchText.value));
     return Object.fromEntries(entries.sort());
 });
 
@@ -233,12 +185,12 @@ function doAdd() {
             addForm.value.key = "";
             addForm.value.value = "";
             // this.$emit("formSuccess");
-        }).catch((err) => {
+        })
+        .catch((err) => {
             console.error("add error", err.response);
             if (err.response && err.response.data && err.response.data.message) {
                 alert(err.response.data.message);
             }
         });
 }
-    
 </script>

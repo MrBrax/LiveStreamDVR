@@ -23,52 +23,27 @@
         -->
         <template v-if="store.sidemenuShow.vod_icon">
             <!-- paused -->
-            <span
-                v-if="vod.is_capturing && vod.is_capture_paused"
-                class="icon"
-            ><font-awesome-icon icon="pause" /></span>
-            
+            <span v-if="vod.is_capturing && vod.is_capture_paused" class="icon"><font-awesome-icon icon="pause" /></span>
+
             <!-- capturing -->
-            <span
-                v-else-if="vod.is_capturing"
-                class="icon"
-            ><fa
-                icon="sync"
-                spin
-            /></span>
+            <span v-else-if="vod.is_capturing" class="icon"><fa icon="sync" spin /></span>
 
             <!-- converting -->
-            <span
-                v-else-if="vod.is_converting"
-                class="icon"
-            ><fa
-                icon="cog"
-                spin
-            /></span>
+            <span v-else-if="vod.is_converting" class="icon"><fa icon="cog" spin /></span>
 
             <!-- favourite -->
-            <span
-                v-else-if="isTwitchVOD(vod) && vod.hasFavouriteGame()"
-                class="icon"
-            ><font-awesome-icon icon="star" /></span>
+            <span v-else-if="isTwitchVOD(vod) && vod.hasFavouriteGame()" class="icon"><font-awesome-icon icon="star" /></span>
 
             <!-- failed -->
-            <span
-                v-else-if="(vod.failed || vod.hasError())"
-                class="icon is-error"
-            ><font-awesome-icon icon="exclamation-triangle" /></span>
+            <span v-else-if="vod.failed || vod.hasError()" class="icon is-error"><font-awesome-icon icon="exclamation-triangle" /></span>
 
             <!-- waiting after capture -->
-            <span
-                v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized"
-                class="icon"
-            ><font-awesome-icon :icon="['far', 'hourglass']" /></span>
+            <span v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized" class="icon"
+                ><font-awesome-icon :icon="['far', 'hourglass']"
+            /></span>
 
             <!-- video -->
-            <span
-                v-else-if="vod.is_finalized"
-                class="icon"
-            ><font-awesome-icon :icon="fileIcon(vod)" /></span>
+            <span v-else-if="vod.is_finalized" class="icon"><font-awesome-icon :icon="fileIcon(vod)" /></span>
         </template>
 
         <!--
@@ -79,24 +54,13 @@
         <span v-if="store.sidemenuShow.vod_basename">{{ vod.basename }}</span>
 
         <!-- title -->
-        <span
-            v-if="store.sidemenuShow.vod_title"
-            class="vod-title"
-        >{{ vod.getTitle() }}</span>
+        <span v-if="store.sidemenuShow.vod_title" class="vod-title">{{ vod.getTitle() }}</span>
 
         <!-- SxE -->
-        <span
-            v-if="store.sidemenuShow.vod_sxe"
-            class="sxe"
-        >
-            S{{ vod.stream_season }}E{{ vod.stream_number }}
-        </span>
+        <span v-if="store.sidemenuShow.vod_sxe" class="sxe"> S{{ vod.stream_season }}E{{ vod.stream_number }} </span>
 
         <!-- SxE absolute -->
-        <span
-            v-if="store.sidemenuShow.vod_sxe_absolute"
-            class="sxe"
-        >
+        <span v-if="store.sidemenuShow.vod_sxe_absolute" class="sxe">
             S{{ vod.stream_absolute_season?.toString().padStart(2, "0") }}E{{ vod.stream_number?.toString().padStart(2, "0") }}
         </span>
 
@@ -109,54 +73,37 @@
 
         <!-- when capturing -->
         <template v-if="vod.is_capturing">
-            <span
-                v-if="store.sidemenuShow.vod_duration"
-                class="duration"
-            >
+            <span v-if="store.sidemenuShow.vod_duration" class="duration">
                 (<duration-display
                     v-if="streamer.current_vod?.started_at"
                     :start-date="streamer.current_vod?.started_at"
                     :output-style="store.clientCfg('useRelativeTime') ? 'human' : 'numbers'"
                 />
-                <span v-else>Unknown</span>)
-            </span><!-- duration -->
-            <span
-                v-if="vod.getRecordingSize() && store.sidemenuShow.vod_size"
-                class="size"
-            > {{ formatBytes(vod.getRecordingSize() || 0, 2) }}+</span><!-- filesize -->
+                <span v-else>Unknown</span>) </span
+            ><!-- duration -->
+            <span v-if="vod.getRecordingSize() && store.sidemenuShow.vod_size" class="size"> {{ formatBytes(vod.getRecordingSize() || 0, 2) }}+</span
+            ><!-- filesize -->
         </template>
 
         <!-- when not capturing -->
         <template v-else>
             <!-- duration -->
-            <span
-                v-if="store.sidemenuShow.vod_duration"
-                class="duration"
-            >
-                <template v-if="vod.duration">
-                    ({{ store.clientCfg('useRelativeTime') ? niceDuration(vod.duration) : humanDuration(vod.duration) }})
-                </template>
-                <template v-else>
-                    (Unknown)
-                </template>
+            <span v-if="store.sidemenuShow.vod_duration" class="duration">
+                <template v-if="vod.duration"> ({{ store.clientCfg("useRelativeTime") ? niceDuration(vod.duration) : humanDuration(vod.duration) }}) </template>
+                <template v-else> (Unknown) </template>
             </span>
 
             <!-- filesize -->
-            <span
-                v-if="vod.total_size && store.sidemenuShow.vod_size"
-                class="size"
-            >{{ formatBytes(vod.total_size, 2) }}</span>
+            <span v-if="vod.total_size && store.sidemenuShow.vod_size" class="size">{{ formatBytes(vod.total_size, 2) }}</span>
         </template>
 
         <!-- flags -->
         <template v-if="vod.is_finalized">
             <span class="flags">
                 <!-- vod deleted -->
-                <span
-                    v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === false"
-                    class="icon is-error"
-                    title="Deleted from provider"
-                ><font-awesome-icon icon="trash" /></span>
+                <span v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === false" class="icon is-error" title="Deleted from provider"
+                    ><font-awesome-icon icon="trash"
+                /></span>
 
                 <!-- vod deleted -->
                 <span
@@ -168,39 +115,23 @@
                 </span>
 
                 <!-- vod not checked -->
-                <span
-                    v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === null"
-                    class="icon is-error"
-                    title="Not checked"
-                ><font-awesome-icon icon="question" /></span>
+                <span v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === null" class="icon is-error" title="Not checked"
+                    ><font-awesome-icon icon="question"
+                /></span>
 
                 <!-- vod muted -->
-                <span
-                    v-if="isTwitchVOD(vod) && vod.twitch_vod_muted === MuteStatus.MUTED"
-                    class="icon is-error"
-                    title="Muted"
-                ><font-awesome-icon icon="volume-mute" /></span>
+                <span v-if="isTwitchVOD(vod) && vod.twitch_vod_muted === MuteStatus.MUTED" class="icon is-error" title="Muted"
+                    ><font-awesome-icon icon="volume-mute"
+                /></span>
 
                 <!-- prevent deletion -->
-                <span
-                    v-if="vod.prevent_deletion"
-                    class="icon is-success"
-                    title="Preventing deletion"
-                ><font-awesome-icon icon="lock" /></span>
+                <span v-if="vod.prevent_deletion" class="icon is-success" title="Preventing deletion"><font-awesome-icon icon="lock" /></span>
 
                 <!-- deleted segment -->
-                <span
-                    v-if="vod.hasDeletedSegment"
-                    class="icon is-error"
-                    title="Deleted segment"
-                ><font-awesome-icon icon="film" /></span>
+                <span v-if="vod.hasDeletedSegment" class="icon is-error" title="Deleted segment"><font-awesome-icon icon="film" /></span>
 
                 <!-- has comment -->
-                <span
-                    v-if="vod.comment"
-                    class="icon is-success"
-                    title="Has comment"
-                ><font-awesome-icon icon="comment" /></span>
+                <span v-if="vod.comment" class="icon is-success" title="Has comment"><font-awesome-icon icon="comment" /></span>
             </span>
         </template>
 
@@ -208,17 +139,12 @@
         <div :class="{ tooltip: true, 'is-static': store.clientCfg('tooltipStatic') }">
             <div class="stream-channel">
                 {{ streamer.display_name }}
-                <template v-if="streamer.login.toLowerCase() != streamer.display_name.toLowerCase()">
-                    ({{ streamer.login }})
-                </template>
+                <template v-if="streamer.login.toLowerCase() != streamer.display_name.toLowerCase()"> ({{ streamer.login }}) </template>
             </div>
             <div class="stream-name">
                 {{ vod.basename }}
             </div>
-            <div
-                v-if="isTwitchVOD(vod)"
-                class="boxart-carousel is-small"
-            >
+            <div v-if="isTwitchVOD(vod)" class="boxart-carousel is-small">
                 <div
                     v-for="game in vod.getUniqueGames()"
                     :key="game.name"
@@ -231,11 +157,8 @@
                         :src="game.getBoxArtUrl(140, 190)"
                         loading="lazy"
                         :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }"
-                    >
-                    <span
-                        class="boxart-name"
-                        :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }"
-                    >{{ game.name }}</span>
+                    />
+                    <span class="boxart-name" :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }">{{ game.name }}</span>
                 </div>
             </div>
             <div class="stream-title">
@@ -286,11 +209,9 @@ function isRiskOfBeingDeleted(vod: TwitchVOD) {
     // if the vod is older than 12 days, it is considered risky
     return Date.now() - vod.started_at.getTime() >= maxVodAge;
 }
-
 </script>
 
 <style lang="scss" scoped>
-
 $favourite-base: #356e35;
 $converting-base: #bb15ca;
 $recording-base: #ca1515;
@@ -473,7 +394,7 @@ $waiting-base: #2b2b2b;
         */
     }
 
-    &:hover>.tooltip {
+    &:hover > .tooltip {
         display: block;
     }
 
@@ -487,7 +408,6 @@ $waiting-base: #2b2b2b;
             color: rgba(240, 240, 225, 1);
         }
     }
-
 }
 
 .vod-title {
@@ -499,7 +419,5 @@ $waiting-base: #2b2b2b;
 }
 
 @media screen and (orientation: portrait) {
-    
 }
-
 </style>

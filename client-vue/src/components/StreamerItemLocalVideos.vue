@@ -1,33 +1,15 @@
 <template>
     <!-- local videos -->
-    <div
-        v-if="streamer.video_list && streamer.video_list.length > 0"
-        class="local-videos"
-        aria-label="Videos"
-    >
+    <div v-if="streamer.video_list && streamer.video_list.length > 0" class="local-videos" aria-label="Videos">
         <div class="local-videos-title">
             <h3>{{ t("messages.local-videos") }}</h3>
         </div>
-        <transition-group
-            tag="div"
-            class="local-videos-container"
-        >
-            <div
-                v-for="video in streamer.video_list"
-                :key="video.basename"
-                class="local-video"
-            >
-                <a
-                    target="_blank"
-                    :href="webPath + '/' + video.basename"
-                    @click.prevent="store.playMedia(webPath + '/' + video.basename)"
-                >
-                    <img
-                        :src="basePath + '/cache/thumbs/' + video.thumbnail"
-                        alt="Video thumbnail"
-                    ><br>
-                    <span class="local-video-title">{{ video.basename }}</span>
-                </a><br>
+        <transition-group tag="div" class="local-videos-container">
+            <div v-for="video in streamer.video_list" :key="video.basename" class="local-video">
+                <a target="_blank" :href="webPath + '/' + video.basename" @click.prevent="store.playMedia(webPath + '/' + video.basename)">
+                    <img :src="basePath + '/cache/thumbs/' + video.thumbnail" alt="Video thumbnail" /><br />
+                    <span class="local-video-title">{{ video.basename }}</span> </a
+                ><br />
                 <span class="local-video-info">{{ formatBytes(video.size) }}, {{ humanDuration(video.duration) }}, {{ video.video_metadata.height }}p</span>
             </div>
         </transition-group>
@@ -56,7 +38,6 @@ const webPath = computed(() => {
     if (!props.streamer) return "";
     return store.cfg<string>("basepath", "") + "/vods/" + (store.cfg("channel_folders") ? props.streamer.internalName : "");
 });
-
 </script>
 
 <style lang="scss" scoped>

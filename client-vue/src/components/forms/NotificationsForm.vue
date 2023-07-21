@@ -5,30 +5,15 @@
                 <thead>
                     <tr>
                         <th>Category</th>
-                        <th colspan="999">
-                            Providers
-                        </th>
+                        <th colspan="999">Providers</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr
-                        v-for="cat in NotificationCategories"
-                        :key="cat.id"
-                    >
+                    <tr v-for="cat in NotificationCategories" :key="cat.id">
                         <td>{{ cat.name }}</td>
-                        <td
-                            v-for="provider in NotificationProvidersList"
-                            :key="provider.id"
-                        >
-                            <label
-                                v-if="formData[cat.id] !== undefined"
-                                class="checkbox"
-                            >
-                                <input
-                                    v-model="formData[cat.id][provider.id]"
-                                    type="checkbox"
-                                    :value="provider.id"
-                                >
+                        <td v-for="provider in NotificationProvidersList" :key="provider.id">
+                            <label v-if="formData[cat.id] !== undefined" class="checkbox">
+                                <input v-model="formData[cat.id][provider.id]" type="checkbox" :value="provider.id" />
                                 {{ provider.name }}
                             </label>
                         </td>
@@ -37,26 +22,17 @@
             </table>
         </div>
 
-        <FormSubmit
-            :form-status="formStatus"
-            :form-status-text="formStatusText"
-        >
+        <FormSubmit :form-status="formStatus" :form-status-text="formStatusText">
             <div class="control">
-                <d-button
-                    icon="save"
-                    color="success"
-                    type="submit"
-                >
-                    {{ t('buttons.save') }}
+                <d-button icon="save" color="success" type="submit">
+                    {{ t("buttons.save") }}
                 </d-button>
             </div>
         </FormSubmit>
     </form>
-    <hr>
+    <hr />
     <div>
-        <h2 class="title is-2">
-            Test
-        </h2>
+        <h2 class="title is-2">Test</h2>
         <!--
         <div class="select">
             <select v-model="test.provider">
@@ -73,23 +49,13 @@
         <div class="field">
             <div class="select">
                 <select v-model="test.category">
-                    <option
-                        v-for="cat in NotificationCategories"
-                        :key="cat.id"
-                        :value="cat.id"
-                    >
+                    <option v-for="cat in NotificationCategories" :key="cat.id" :value="cat.id">
                         {{ cat.name }}
                     </option>
                 </select>
             </div>
         </div>
-        <d-button
-            color="success"
-            icon="paper-plane"
-            @click="testNotification"
-        >
-            Test
-        </d-button>
+        <d-button color="success" icon="paper-plane" @click="testNotification"> Test </d-button>
     </div>
 </template>
 
@@ -119,13 +85,11 @@ const formStatus = ref<FormStatus>("IDLE");
 const formData = ref<Record<string, Record<string, boolean>>>({});
 const test = ref<{ provider: string; category: string }>({ provider: "", category: "" });
 
-
 onMounted(() => {
     resetBitmask();
     fetchData();
 });
 
-    
 function resetBitmask() {
     for (const cat of NotificationCategories) {
         formData.value[cat.id] = {};
@@ -236,5 +200,4 @@ function testNotification() {
             }
         });
 }
-    
 </script>

@@ -1,48 +1,26 @@
 <template>
     <!-- local clips -->
-    <div
-        v-if="streamer.clips_list && streamer.clips_list.length > 0"
-        class="streamer-clips"
-        aria-label="Clips"
-    >
+    <div v-if="streamer.clips_list && streamer.clips_list.length > 0" class="streamer-clips" aria-label="Clips">
         <div class="streamer-clips-title">
             <h3>{{ t("messages.clips") }}</h3>
         </div>
         <ul>
-            <li
-                v-for="clip in filteredClips"
-                :key="clip.basename"
-            >
-                <a
-                    class="text-overflow"
-                    :href="clipLink(clip)"
-                    target="_blank"
-                    @click.prevent="store.playMedia(clipLink(clip))"
-                >
-                    <img
-                        :src="basePath + '/cache/thumbs/' + clip.thumbnail"
-                        alt="Clip thumbnail"
-                    >
-                    {{ clip.folder + "/" + clip.basename }}<br>
+            <li v-for="clip in filteredClips" :key="clip.basename">
+                <a class="text-overflow" :href="clipLink(clip)" target="_blank" @click.prevent="store.playMedia(clipLink(clip))">
+                    <img :src="basePath + '/cache/thumbs/' + clip.thumbnail" alt="Clip thumbnail" />
+                    {{ clip.folder + "/" + clip.basename }}<br />
                     <span class="streamer-clips-info">
-                        {{ formatBytes(clip.size) }},
-                        {{ humanDuration(clip.duration) }},
-                        {{ clip.video_metadata.height }}p<template v-if="clip.clip_metadata?.created_at">,
+                        {{ formatBytes(clip.size) }}, {{ humanDuration(clip.duration) }}, {{ clip.video_metadata.height }}p<template
+                            v-if="clip.clip_metadata?.created_at"
+                            >,
                             {{ formatDate(clip.clip_metadata.created_at) }}
                         </template>
                     </span>
                 </a>
             </li>
         </ul>
-        <div
-            v-if="streamer.clips_list.length > 5"
-            class="streamer-clips-expand"
-        >
-            <button
-                class="icon-button white"
-                title="Expand/collapse all clips"
-                @click="expandedClipsList = !expandedClipsList"
-            >
+        <div v-if="streamer.clips_list.length > 5" class="streamer-clips-expand">
+            <button class="icon-button white" title="Expand/collapse all clips" @click="expandedClipsList = !expandedClipsList">
                 <span class="icon"><font-awesome-icon :icon="expandedClipsList ? 'chevron-up' : 'chevron-down'" /></span>
             </button>
         </div>
@@ -82,7 +60,6 @@ function clipLink(clip: LocalClip): string {
     const path = clip.folder + "/" + clip.basename;
     return `${store.cfg<string>("basepath", "")}/saved_clips/${path}`;
 }
-
 </script>
 
 <style lang="scss" scoped>
@@ -143,5 +120,4 @@ function clipLink(clip: LocalClip): string {
         cursor: pointer;
     }
 }
-
 </style>

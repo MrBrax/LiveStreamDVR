@@ -1,23 +1,16 @@
 <template>
     <div class="youtube-auth">
-        <h3><span class="icon"><font-awesome-icon :icon="['fab', 'youtube']" /></span> YouTube authentication</h3>
+        <h3>
+            <span class="icon"><font-awesome-icon :icon="['fab', 'youtube']" /></span> YouTube authentication
+        </h3>
         <div class="youtube-help">
             Follow the guide here and set up the API keys in the config tab:
-            <a
-                href="https://developers.google.com/youtube/v3/getting-started"
-                target="_blank"
-                rel="noreferrer"
-            >
+            <a href="https://developers.google.com/youtube/v3/getting-started" target="_blank" rel="noreferrer">
                 https://developers.google.com/youtube/v3/getting-started
             </a>
         </div>
         <div class="buttons">
-            <button
-                class="button is-confirm"
-                :disabled="loading"
-                type="button"
-                @click="doCheckYouTubeStatus"
-            >
+            <button class="button is-confirm" :disabled="loading" type="button" @click="doCheckYouTubeStatus">
                 <span class="icon"><font-awesome-icon icon="sync" /></span>
                 <span>{{ t("buttons.checkstatus") }}</span>
             </button>
@@ -29,10 +22,7 @@
                 type="button"
                 @click="doAuthenticateYouTubeMethod1"
             >
-                <img
-                    src="../assets/google/btn_google_signin_dark_normal_web.png"
-                    height="36"
-                >
+                <img src="../assets/google/btn_google_signin_dark_normal_web.png" height="36" />
             </button>
             <button
                 class="icon-button"
@@ -42,37 +32,20 @@
                 type="button"
                 @click="doAuthenticateYouTubeMethod2"
             >
-                <img
-                    src="../assets/google/btn_google_signin_light_normal_web.png"
-                    height="36"
-                >
+                <img src="../assets/google/btn_google_signin_light_normal_web.png" height="36" />
             </button>
-            <button
-                class="button is-danger"
-                :disabled="loading"
-                type="button"
-                @click="doDestroyYouTube"
-            >
+            <button class="button is-danger" :disabled="loading" type="button" @click="doDestroyYouTube">
                 <span class="icon"><font-awesome-icon icon="right-from-bracket" /></span>
                 <span>{{ t("buttons.destroy-session") }}</span>
             </button>
         </div>
-        <div
-            v-if="status"
-            class="youtube-status"
-        >
-            <span
-                v-if="loading"
-                class="icon"
-            >
-                <fa
-                    icon="spinner"
-                    spin
-                />
+        <div v-if="status" class="youtube-status">
+            <span v-if="loading" class="icon">
+                <fa icon="spinner" spin />
             </span>
             {{ status }}
         </div>
-        <hr>
+        <hr />
         <div class="youtube-help">
             <h3>Suggested configuration:</h3>
             <ul class="list less-padding">
@@ -93,13 +66,8 @@ import type { ApiResponse } from "@common/Api/Api";
 import { useStore } from "@/store";
 import CodeBox from "@/components/reusables/CodeBox.vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import {
-    faRightFromBracket,
-    faSpinner,
-} from "@fortawesome/free-solid-svg-icons";
-import {
-    faYoutube
-} from "@fortawesome/free-brands-svg-icons";
+import { faRightFromBracket, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { faYoutube } from "@fortawesome/free-brands-svg-icons";
 import axios from "axios";
 import { useI18n } from "vue-i18n";
 library.add(faRightFromBracket, faYoutube, faSpinner);
@@ -109,37 +77,40 @@ const { t } = useI18n();
 
 const status = ref("");
 const loading = ref(false);
-    
+
 function doCheckYouTubeStatus(): void {
     status.value = "Checking YouTube status...";
     loading.value = true;
-    axios.get<ApiResponse>("/api/v0/youtube/status").then((response) => {
-        const json = response.data;
-        if (json.message) status.value = json.message;
-        console.log(json);
-    }).catch((err) => {
-        console.error("youtube check error", err.response);
-        if (err.response.data && err.response.data.message) status.value = err.response.data.message;
-    }).finally(() => {
-        loading.value = false;
-    });
+    axios
+        .get<ApiResponse>("/api/v0/youtube/status")
+        .then((response) => {
+            const json = response.data;
+            if (json.message) status.value = json.message;
+            console.log(json);
+        })
+        .catch((err) => {
+            console.error("youtube check error", err.response);
+            if (err.response.data && err.response.data.message) status.value = err.response.data.message;
+        })
+        .finally(() => {
+            loading.value = false;
+        });
 }
 
 async function doAuthenticateYouTubeMethod1(): Promise<void> {
     const url = `${store.cfg<string>("basepath", "")}/api/v0/youtube/authenticate`;
     const width = 600;
     const height = 600;
-    const left = (screen.width / 2) - (width / 2);
-    const top = (screen.height / 2) - (height / 2);
+    const left = screen.width / 2 - width / 2;
+    const top = screen.height / 2 - height / 2;
     console.debug("youtube auth url", url);
     window.open(url, "_blank", `width=${width},height=${height},top=${top},left=${left}`);
 }
 
 async function doAuthenticateYouTubeMethod2(): Promise<void> {
-
     status.value = "Fetching YouTube authentication URL...";
     loading.value = true;
-    
+
     let res;
     try {
         res = await axios.get<ApiResponse>("/api/v0/youtube/authenticate?rawurl=true");
@@ -149,14 +120,14 @@ async function doAuthenticateYouTubeMethod2(): Promise<void> {
             if (error.response && error.response.data && error.response.data.message) status.value = error.response.data.message;
         }
         loading.value = false;
-        return;                    
+        return;
     }
     loading.value = false;
     const url = res.data.data;
     const width = 600;
     const height = 600;
-    const left = (screen.width / 2) - (width / 2);
-    const top = (screen.height / 2) - (height / 2);
+    const left = screen.width / 2 - width / 2;
+    const top = screen.height / 2 - height / 2;
     console.debug("youtube auth url", url);
     window.open(url, "_blank", `width=${width},height=${height},top=${top},left=${left}`);
 }
@@ -164,22 +135,25 @@ async function doAuthenticateYouTubeMethod2(): Promise<void> {
 function doDestroyYouTube(): void {
     status.value = "Destroying YouTube session...";
     loading.value = true;
-    axios.get<ApiResponse>("/api/v0/youtube/destroy").then((response) => {
-        const json = response.data;
-        if (json.message) status.value = json.message;
-        console.log(json);
-    }).catch((err) => {
-        console.error("youtube destroy error", err.response);
-        if (err.response.data && err.response.data.message) status.value = err.response.data.message;
-    }).finally(() => {
-        loading.value = false;
-    });
+    axios
+        .get<ApiResponse>("/api/v0/youtube/destroy")
+        .then((response) => {
+            const json = response.data;
+            if (json.message) status.value = json.message;
+            console.log(json);
+        })
+        .catch((err) => {
+            console.error("youtube destroy error", err.response);
+            if (err.response.data && err.response.data.message) status.value = err.response.data.message;
+        })
+        .finally(() => {
+            loading.value = false;
+        });
 }
-
 </script>
 
 <style lang="scss" scoped>
-    h3 {
-        margin: 0;
-    }
+h3 {
+    margin: 0;
+}
 </style>

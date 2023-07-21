@@ -1,35 +1,18 @@
 <template>
     <!-- segment list -->
-    <div
-        v-if="vod.is_finalized"
-        class="video-block video-segments"
-        aria-label="Segments"
-    >
-        <div
-            class="video-block-header collapsible"
-            aria-role="button"
-            @click="isCollapsed = !isCollapsed"
-        >
+    <div v-if="vod.is_finalized" class="video-block video-segments" aria-label="Segments">
+        <div class="video-block-header collapsible" aria-role="button" @click="isCollapsed = !isCollapsed">
             <h4>
                 <span class="icon">
                     <font-awesome-icon :icon="isCollapsed ? 'chevron-down' : 'chevron-up'" />
                 </span>
-                {{ t('vod.segments') }} <span
-                    class="amount"
-                    :data-amount="vod.segments.length"
-                >({{ vod.segments.length }})</span>
+                {{ t("vod.segments") }} <span class="amount" :data-amount="vod.segments.length">({{ vod.segments.length }})</span>
             </h4>
         </div>
         <transition name="blinds">
-            <div
-                v-if="!isCollapsed"
-                class="video-block-content"
-            >
+            <div v-if="!isCollapsed" class="video-block-content">
                 <ul class="list-segments">
-                    <li
-                        v-for="(segment, i) of vod.segments"
-                        :key="segment.basename"
-                    >
+                    <li v-for="(segment, i) of vod.segments" :key="segment.basename">
                         <a
                             :href="vod?.webpath + '/' + segment.basename"
                             target="_blank"
@@ -39,26 +22,12 @@
                             <template v-if="!segment.deleted && segment.filesize"> ({{ formatBytes(segment.filesize) }})</template>
                             <!-- delete -->
                         </a>
-                        <button
-                            v-if="!segment.deleted"
-                            class="icon-button is-small delete-button"
-                            title="Delete segment"
-                            @click.prevent="doDeleteSegment(i)"
-                        >
+                        <button v-if="!segment.deleted" class="icon-button is-small delete-button" title="Delete segment" @click.prevent="doDeleteSegment(i)">
                             <span class="icon"><font-awesome-icon icon="xmark" /></span>
                         </button>
-                        <strong
-                            v-if="segment.deleted && !vod.cloud_storage"
-                            class="text-is-error"
-                        >&nbsp;(deleted)</strong>
-                        <strong
-                            v-else-if="segment.deleted && vod.cloud_storage"
-                            class="text-is-error"
-                        >&nbsp;<font-awesome-icon icon="cloud" /></strong> 
-                        <strong
-                            v-else-if="!segment.filesize"
-                            class="text-is-error"
-                        >&nbsp;(filesize missing)</strong>
+                        <strong v-if="segment.deleted && !vod.cloud_storage" class="text-is-error">&nbsp;(deleted)</strong>
+                        <strong v-else-if="segment.deleted && vod.cloud_storage" class="text-is-error">&nbsp;<font-awesome-icon icon="cloud" /></strong>
+                        <strong v-else-if="!segment.filesize" class="text-is-error">&nbsp;(filesize missing)</strong>
                     </li>
 
                     <li v-if="vod.is_vod_downloaded">
@@ -66,29 +35,21 @@
                             :href="vod.webpath + '/' + vod.basename + '_vod.mp4'"
                             target="_blank"
                             @click.prevent="store.playMedia(vod?.webpath + '/' + vod?.basename + '_vod.mp4')"
-                        >Downloaded VOD</a>
+                            >Downloaded VOD</a
+                        >
                     </li>
 
                     <template v-if="vod.is_chat_rendered">
                         <li>
-                            <a
-                                :href="vod.webpath + '/' + vod?.basename + '_chat.mp4'"
-                                target="_blank"
-                            >Rendered chat</a>
+                            <a :href="vod.webpath + '/' + vod?.basename + '_chat.mp4'" target="_blank">Rendered chat</a>
                         </li>
                         <li>
-                            <a
-                                :href="vod.webpath + '/' + vod?.basename + '_chat_mask.mp4'"
-                                target="_blank"
-                            >Rendered chat mask</a>
+                            <a :href="vod.webpath + '/' + vod?.basename + '_chat_mask.mp4'" target="_blank">Rendered chat mask</a>
                         </li>
                     </template>
 
                     <li v-if="vod.is_chat_burned">
-                        <a
-                            :href="vod?.webpath + '/' + vod?.basename + '_burned.mp4'"
-                            target="_blank"
-                        >Burned chat</a>
+                        <a :href="vod?.webpath + '/' + vod?.basename + '_burned.mp4'" target="_blank">Burned chat</a>
                     </li>
                 </ul>
                 <span v-if="vod.segments.length === 0">
@@ -130,7 +91,12 @@ function doDeleteSegment(index = 0) {
     if (!props.vod) return;
     if (!confirm(`Do you want to delete segment ${index} of "${props.vod?.basename}"?`)) return;
     const keepEntry = confirm("Do you want to keep the entry and mark it as cloud storage?");
-    if (isTwitchVOD(props.vod) && props.vod.twitch_vod_exists === false && !confirm(`The VOD "${props.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
+    if (
+        isTwitchVOD(props.vod) &&
+        props.vod.twitch_vod_exists === false &&
+        !confirm(`The VOD "${props.vod?.basename}" has been deleted from twitch, are you still sure?`)
+    )
+        return;
     axios
         .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/delete_segment?segment=${index}&keep_entry=${keepEntry ? "true" : "false"}`)
         .then((response) => {
@@ -145,9 +111,7 @@ function doDeleteSegment(index = 0) {
             if (err.response.data && err.response.data.message) alert(err.response.data.message);
         });
 }
-
 </script>
-
 
 <style lang="scss" scoped>
 .video-segments {
@@ -170,5 +134,4 @@ function doDeleteSegment(index = 0) {
     margin: 0.5em 0;
     padding: 0 1.5em;
 }
-
 </style>

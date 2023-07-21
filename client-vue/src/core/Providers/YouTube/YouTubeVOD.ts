@@ -86,7 +86,9 @@ export default class YouTubeVOD extends BaseVOD {
 
     public getChannel(): YouTubeChannel {
         const store = useStore();
-        const streamer = store.streamerList.find<YouTubeChannel>((streamer): streamer is YouTubeChannel => streamer instanceof YouTubeChannel && streamer.channel_id == this.streamer_id);
+        const streamer = store.streamerList.find<YouTubeChannel>(
+            (streamer): streamer is YouTubeChannel => streamer instanceof YouTubeChannel && streamer.channel_id == this.streamer_id,
+        );
         if (!streamer) {
             throw new Error("No streamer for vod");
         }
@@ -100,5 +102,4 @@ export default class YouTubeVOD extends BaseVOD {
             return undefined;
         }
     }
-
 }

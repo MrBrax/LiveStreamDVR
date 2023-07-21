@@ -1,81 +1,40 @@
 <template>
-    <div
-        v-if="streamer"
-        :id="`streamer_${streamer.uuid}`"
-        class="streamer-box"
-        :aria-label="streamer.displayName"
-    >
+    <div v-if="streamer" :id="`streamer_${streamer.uuid}`" class="streamer-box" :aria-label="streamer.displayName">
         <div :class="{ 'streamer-title': true, 'is-live': streamer.is_live, 'is-capturing': streamer.is_capturing }">
-            <div
-                class="streamer-title-avatar"
-                :style="`background-image: url(${avatarUrl})`"
-            />
+            <div class="streamer-title-avatar" :style="`background-image: url(${avatarUrl})`" />
             <div class="streamer-title-text">
                 <h2>
-                    <a
-                        :href="streamer.url"
-                        rel="noreferrer"
-                        target="_blank"
-                    >
+                    <a :href="streamer.url" rel="noreferrer" target="_blank">
                         {{ streamer.displayName }}
                         <template v-if="streamer.internalName.toLowerCase() != streamer.displayName.toLowerCase()"> ({{ streamer.internalName }})</template>
                     </a>
-                    <span
-                        v-if="streamer.is_live"
-                        class="streamer-live"
-                    >live</span>
-                    <span
-                        v-if="streamer.is_capturing"
-                        class="streamer-capturing"
-                    >capturing</span>
+                    <span v-if="streamer.is_live" class="streamer-live">live</span>
+                    <span v-if="streamer.is_capturing" class="streamer-capturing">capturing</span>
                 </h2>
-                <span
-                    class="streamer-title-subtitle"
-                    aria-label="Streamer information"
-                >
-                    <span
-                        class="streamer-vods-quality help"
-                        title="Quality"
-                    >{{ quality }}</span><!-- quality -->
+                <span class="streamer-title-subtitle" aria-label="Streamer information">
+                    <span class="streamer-vods-quality help" title="Quality">{{ quality }}</span
+                    ><!-- quality -->
                     &middot;
-                    <span
-                        class="streamer-vods-amount"
-                        title="Total vod amount"
-                    >{{ t("vods", streamer.vods_list.length) }}</span><!-- vods -->
+                    <span class="streamer-vods-amount" title="Total vod amount">{{ t("vods", streamer.vods_list.length) }}</span
+                    ><!-- vods -->
                     &middot;
-                    <span
-                        class="streamer-vods-size"
-                        title="Total vod size"
-                    >{{ formatBytes(streamer.vods_size) }}</span><!-- total size -->
+                    <span class="streamer-vods-size" title="Total vod size">{{ formatBytes(streamer.vods_size) }}</span
+                    ><!-- total size -->
                     &middot;
                     <span class="streamer-subbed-status">
                         <template v-if="streamer.api_getSubscriptionStatus">{{ t("messages.subscribed") }}</template>
-                        <span
-                            v-else
-                            class="text-is-error"
-                            title="Could just be that subscriptions were made before this feature was implemented."
-                        >
-                            {{ t('streamer.one-or-more-subscriptions-missing') }}
-                        </span></span><!-- sub status -->
+                        <span v-else class="text-is-error" title="Could just be that subscriptions were made before this feature was implemented.">
+                            {{ t("streamer.one-or-more-subscriptions-missing") }}
+                        </span></span
+                    ><!-- sub status -->
                     &middot;
-                    <span
-                        class="streamer-type"
-                        title="Broadcaster type"
-                    >
+                    <span class="streamer-type" title="Broadcaster type">
                         <template v-if="streamer.broadcaster_type">{{ streamer.broadcaster_type }}</template>
                         <template v-else>Free</template>
                     </span>
-                    <span
-                        v-if="!streamer.saves_vods"
-                        class="streamer-saves-vods text-is-error"
-                    >
-                        &middot; {{ t("streamer.no-save-vods") }}
-                    </span>
+                    <span v-if="!streamer.saves_vods" class="streamer-saves-vods text-is-error"> &middot; {{ t("streamer.no-save-vods") }} </span>
                     &middot;
-                    <span
-                        class="streamer-sxe"
-                        title="Season and episode"
-                    >
+                    <span class="streamer-sxe" title="Season and episode">
                         {{ streamer.current_season }}/{{ streamer.current_stream_number.toString().padStart(2, "0") }}
                     </span>
                     <streamer-item-tools
@@ -93,41 +52,23 @@
 
         <streamer-item-local-videos :streamer="streamer" />
 
-        <div
-            v-if="streamer.vods_list.length == 0"
-            class="notice"
-        >
+        <div v-if="streamer.vods_list.length == 0" class="notice">
             <span v-if="streamer.no_capture">{{ t("streamer.no-vods-not-capturing") }}</span>
             <span v-else>{{ t("messages.no_vods") }}</span>
         </div>
-        <div
-            v-else
-            class="video-list"
-        >
+        <div v-else class="video-list">
             <div
                 v-if="!store.clientCfg('expandDashboardVodList') && streamer.vods_list.length > store.clientCfg('vodsToShowInDashboard', 4)"
                 class="streamer-expand-container"
             >
-                <button
-                    class="streamer-expand-main"
-                    title="Click to toggle VOD list"
-                    @click="toggleLimitVods"
-                >
+                <button class="streamer-expand-main" title="Click to toggle VOD list" @click="toggleLimitVods">
                     <span class="icon"><font-awesome-icon :icon="limitVods ? 'chevron-up' : 'chevron-down'" /></span>
                     <transition>
-                        <span
-                            v-if="!limitVods"
-                            class="text"
-                        >
-                            {{ streamer.vods_list.length - store.clientCfg('vodsToShowInDashboard', 4) }} hidden VODs
-                        </span>
+                        <span v-if="!limitVods" class="text"> {{ streamer.vods_list.length - store.clientCfg("vodsToShowInDashboard", 4) }} hidden VODs </span>
                     </transition>
                 </button>
             </div>
-            <transition-group
-                name="list"
-                tag="div"
-            >
+            <transition-group name="list" tag="div">
                 <vod-item
                     v-for="vod in filteredVodsList"
                     :key="vod.uuid"
@@ -135,7 +76,7 @@
                         callback: (s: boolean, e: IntersectionObserverEntry) => visibilityChanged(vod.basename, s, e),
                         intersection: {
                             threshold: 0.9,
-                        }
+                        },
                     }"
                     :vod="vod"
                     :minimized="toggleVodMinimizedStatus[vod.uuid]"
@@ -144,30 +85,14 @@
                 />
             </transition-group>
         </div>
-        <modal-box
-            :show="showVideoDownloadMenu"
-            title="Video download"
-            @close="showVideoDownloadMenu = false"
-        >
-            <video-download-modal
-                :streamer="streamer"
-                @close="showVideoDownloadMenu = false"
-            />
+        <modal-box :show="showVideoDownloadMenu" title="Video download" @close="showVideoDownloadMenu = false">
+            <video-download-modal :streamer="streamer" @close="showVideoDownloadMenu = false" />
         </modal-box>
-        <modal-box
-            :show="showClipDownloadMenu"
-            title="Clip download"
-            @close="showClipDownloadMenu = false"
-        >
-            <clip-download-modal
-                :streamer="streamer"
-                @close="showClipDownloadMenu = false"
-            />
+        <modal-box :show="showClipDownloadMenu" title="Clip download" @close="showClipDownloadMenu = false">
+            <clip-download-modal :streamer="streamer" @close="showClipDownloadMenu = false" />
         </modal-box>
     </div>
-    <div v-else>
-        Invalid streamer
-    </div>
+    <div v-else>Invalid streamer</div>
 </template>
 
 <script lang="ts" setup>
@@ -261,27 +186,21 @@ function checkHash(hash: string) {
     if (vod_uuid && toggleVodMinimizedStatus.value[vod_uuid] !== undefined) {
         toggleVodMinimizedStatus.value[vod_uuid] = false;
     }
-    if (
-        filteredVodsList.value.findIndex((vod) => vod.uuid === vod_uuid) === -1 &&
-        props.streamer.vods_list.findIndex((vod) => vod.uuid === vod_uuid) !== -1
-    ) {
+    if (filteredVodsList.value.findIndex((vod) => vod.uuid === vod_uuid) === -1 && props.streamer.vods_list.findIndex((vod) => vod.uuid === vod_uuid) !== -1) {
         limitVods.value = true;
     }
 }
 
 onMounted(() => {
-
     toggleAllVodsExpanded.value = areMostVodsExpanded.value;
 
     for (const vod of props.streamer.vods_list) {
-
         if (store.clientCfg("minimizeVodsByDefault")) {
             toggleVodMinimizedStatus.value[vod.uuid] = !vod.is_capturing;
             continue;
         }
 
         toggleVodMinimizedStatus.value[vod.uuid] = false;
-
     }
 
     checkHash(route.hash);
@@ -322,7 +241,6 @@ function visibilityChanged(basename: string, isVisible: boolean, entry: Intersec
 function toggleLimitVods() {
     limitVods.value = !limitVods.value;
 }
-
 </script>
 
 <style lang="scss" scoped>
@@ -416,7 +334,8 @@ function toggleLimitVods() {
         }
     }
 
-    .streamer-live, .streamer-capturing {
+    .streamer-live,
+    .streamer-capturing {
         color: #f00;
         font-weight: 700;
         display: inline-block;
@@ -427,7 +346,6 @@ function toggleLimitVods() {
             animation: none !important;
         }
     }
-
 }
 
 .streamer-expand-container {
@@ -458,5 +376,4 @@ function toggleLimitVods() {
 .streamer-type::first-letter {
     text-transform: capitalize;
 }
-
 </style>

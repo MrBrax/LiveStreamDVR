@@ -1,24 +1,14 @@
 <template>
     <div class="not-found-view">
         <h1>404</h1>
-        <p class="title-1">
-            Page not found
-        </p>
+        <p class="title-1">Page not found</p>
         <p class="info">
-            This was generated clientside. Endpoint <code>{{ route.fullPath }}</code> does not exist.<br>
+            This was generated clientside. Endpoint <code>{{ route.fullPath }}</code> does not exist.<br />
             If you think this is a bug (did you not type the URL manually?), please report it to the developers.
         </p>
-        <p
-            v-if="version"
-            class="is-gray"
-        >
-            Client version {{ version }}/{{ hash }}/{{ date }}
-        </p>
+        <p v-if="version" class="is-gray">Client version {{ version }}/{{ hash }}/{{ date }}</p>
         <p>
-            <router-link
-                to="/"
-                class="button is-primary"
-            >
+            <router-link to="/" class="button is-primary">
                 <span class="icon"><font-awesome-icon icon="home" /></span>
                 <span>Go to home</span>
             </router-link>
@@ -39,7 +29,6 @@ const route = useRoute();
 const version = import.meta.env.VITE_APP_VERSION;
 const hash = import.meta.env.VITE_APP_GIT_HASH;
 const date = import.meta.env.VITE_APP_BUILDDATE;
-
 </script>
 
 <style lang="scss" scoped>

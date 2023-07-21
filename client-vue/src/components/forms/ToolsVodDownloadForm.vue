@@ -1,40 +1,18 @@
 <template>
-    <form
-        method="POST"
-        @submit.prevent="submitForm"
-    >
+    <form method="POST" @submit.prevent="submitForm">
         <div class="field">
-            <label
-                class="label"
-                for="voddownload_url"
-            >VOD URL</label>
+            <label class="label" for="voddownload_url">VOD URL</label>
             <div class="control">
-                <input
-                    id="voddownload_url"
-                    v-model="formData.url"
-                    class="input"
-                    type="text"
-                    required
-                >
+                <input id="voddownload_url" v-model="formData.url" class="input" type="text" required />
             </div>
         </div>
 
         <div class="field">
-            <label
-                class="label"
-                for="voddownload_quality"
-            >Quality</label>
+            <label class="label" for="voddownload_quality">Quality</label>
             <div class="control">
                 <div class="select">
-                    <select
-                        id="voddownload_quality"
-                        v-model="formData.quality"
-                        required
-                    >
-                        <option
-                            v-for="quality of VideoQualityArray"
-                            :key="quality"
-                        >
+                    <select id="voddownload_quality" v-model="formData.quality" required>
+                        <option v-for="quality of VideoQualityArray" :key="quality">
                             {{ quality }}
                         </option>
                     </select>
@@ -42,25 +20,15 @@
             </div>
         </div>
 
-        <FormSubmit
-            :form-status="formStatus"
-            :form-status-text="formStatusText"
-        >
+        <FormSubmit :form-status="formStatus" :form-status-text="formStatusText">
             <div class="control">
-                <d-button
-                    color="success"
-                    icon="download"
-                    type="submit"
-                >
-                    {{ t('buttons.execute') }}
+                <d-button color="success" icon="download" type="submit">
+                    {{ t("buttons.execute") }}
                 </d-button>
             </div>
         </FormSubmit>
 
-        <div
-            v-if="fileLink"
-            class="field"
-        >
+        <div v-if="fileLink" class="field">
             <a :href="fileLink">{{ fileLink }}</a>
         </div>
     </form>
@@ -88,7 +56,6 @@ const formData = reactive({
     quality: "best",
 });
 const fileLink = ref("");
-
 
 function submitForm(event: Event) {
     formStatusText.value = t("messages.loading");
@@ -144,6 +111,5 @@ function submitForm(event: Event) {
 
     event.preventDefault();
     return false;
-    
 }
 </script>

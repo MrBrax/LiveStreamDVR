@@ -12,16 +12,10 @@
         <div class="video-title-text">
             <h3>
                 <span class="icon"><font-awesome-icon icon="file-video" /></span>
-                <span
-                    v-if="vod.started_at"
-                    class="video-date"
-                    :title="formatDate(vod.started_at)"
-                >{{
-                    store.clientCfg('useRelativeTime') ? humanDate(vod.started_at, true) : formatDate(vod.started_at)
+                <span v-if="vod.started_at" class="video-date" :title="formatDate(vod.started_at)">{{
+                    store.clientCfg("useRelativeTime") ? humanDate(vod.started_at, true) : formatDate(vod.started_at)
                 }}</span>
-                <span class="video-sxe">
-                    {{ vod.stream_season }}x{{ vod.stream_number?.toString().padStart(2, "0") }}
-                </span>
+                <span class="video-sxe"> {{ vod.stream_season }}x{{ vod.stream_number?.toString().padStart(2, "0") }} </span>
                 <span class="video-filename">{{ vod.basename }}</span>
             </h3>
         </div>
@@ -47,11 +41,9 @@ const emit = defineEmits<{
 
 const store = useStore();
 // const { t } = useI18n();
-
 </script>
 
 <style lang="scss" scoped>
-
 .video-title {
     padding: 10px;
     $bg-color: #2b61d6;
@@ -114,5 +106,4 @@ const store = useStore();
         content: " · ";
     }
 }
-
 </style>

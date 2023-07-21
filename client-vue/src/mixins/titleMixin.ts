@@ -18,7 +18,7 @@ export default {
              */
             if (store.isAnyoneLive) {
                 document.title = `[${store.channelsOnline}] ${title} - ${store.app_name}`;
-            } else{
+            } else {
                 document.title = `${title} - ${store.app_name}`;
             }
         }

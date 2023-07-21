@@ -11,7 +11,8 @@
     "type-check": "vue-tsc --noEmit -p tsconfig.app.json --composite false",
     "test": "vitest",
     "generate-licenses": "yarn licenses generate-disclaimer > LICENSES.txt",
-    "lint": "eslint --ext .ts,.vue src"
+    "lint": "eslint --ext .ts,.vue src",
+    "format": "prettier --write \"src/**/*.{js,ts,vue}\""
   },
   "dependencies": {
     "@fontsource/montserrat": "^5.0.5",

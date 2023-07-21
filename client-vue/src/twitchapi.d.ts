@@ -20,7 +20,7 @@ export declare namespace TwitchAPI {
             {
                 duration: number;
                 offset: number;
-            }
+            },
         ];
     };
 }

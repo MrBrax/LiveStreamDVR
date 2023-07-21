@@ -1,17 +1,9 @@
 <template>
-    <form
-        method="POST"
-        @submit="submitForm"
-    >
+    <form method="POST" @submit="submitForm">
         <div class="field">
             <label class="label">VOD URL</label>
             <div class="control">
-                <input
-                    v-model="formData.url"
-                    class="input"
-                    type="text"
-                    required
-                >
+                <input v-model="formData.url" class="input" type="text" required />
             </div>
         </div>
 
@@ -20,36 +12,22 @@
             <div class="control">
                 <div class="select">
                     <select v-model="formData.method">
-                        <option value="td">
-                            TwitchDownloaderCLI
-                        </option>
-                        <option value="tcd">
-                            Twitch Chat Downloader
-                        </option>
+                        <option value="td">TwitchDownloaderCLI</option>
+                        <option value="tcd">Twitch Chat Downloader</option>
                     </select>
                 </div>
             </div>
         </div>
 
-        <FormSubmit
-            :form-status="formStatus"
-            :form-status-text="formStatusText"
-        >
+        <FormSubmit :form-status="formStatus" :form-status-text="formStatusText">
             <div class="control">
-                <d-button
-                    icon="download"
-                    color="success"
-                    type="submit"
-                >
-                    {{ t('buttons.execute') }}
+                <d-button icon="download" color="success" type="submit">
+                    {{ t("buttons.execute") }}
                 </d-button>
             </div>
         </FormSubmit>
 
-        <div
-            v-if="fileLink"
-            class="field"
-        >
+        <div v-if="fileLink" class="field">
             <a :href="fileLink">{{ fileLink }}</a>
         </div>
     </form>
@@ -74,7 +52,7 @@ const { t, te } = useI18n();
 // data
 const formStatusText = ref<string>("Ready");
 const formStatus = ref<FormStatus>("IDLE");
-const formData = ref<{ url: string, method: string }>({ url: "", method: "td" });
+const formData = ref<{ url: string; method: string }>({ url: "", method: "td" });
 const fileLink = ref<string>("");
 
 function submitForm(event: Event) {
@@ -132,5 +110,4 @@ function submitForm(event: Event) {
     event.preventDefault();
     return false;
 }
-
 </script>

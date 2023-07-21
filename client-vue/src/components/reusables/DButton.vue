@@ -1,16 +1,7 @@
 <template>
-    <button
-        :class="buttonClass"
-        @click="onClick"
-    >
-        <span
-            v-if="icon"
-            class="icon"
-        >
-            <font-awesome-icon
-                :icon="properIcon"
-                :spin="iconSpin"
-            />
+    <button :class="buttonClass" @click="onClick">
+        <span v-if="icon" class="icon">
+            <font-awesome-icon :icon="properIcon" :spin="iconSpin" />
         </span>
         <span v-if="slots.default"><slot /></span>
         <span v-else>{{ text }}</span>
@@ -51,5 +42,4 @@ const buttonClass = computed((): Record<string, boolean> => {
     }
     return classes;
 });
-
 </script>

@@ -1,85 +1,42 @@
 <template>
     <div class="side-menu">
         <div class="menu-top">
-            <div
-                v-if="store.config"
-                class="top-menu-item title"
-                :class="{ fancy: store.clientCfg('animationsEnabled') }"
-            >
-                <router-link
-                    to="/dashboard"
-                    class="link"
-                    aria-label="Go to dashboard"
-                >
+            <div v-if="store.config" class="top-menu-item title" :class="{ fancy: store.clientCfg('animationsEnabled') }">
+                <router-link to="/dashboard" class="link" aria-label="Go to dashboard">
                     <div class="bg" />
-                    <img
-                        src="../assets/logo.png"
-                        class="favicon"
-                        width="24"
-                        height="24"
-                        :alt="store.cfg('app_name', 'TA') ?? 'TA'"
-                        aria-hidden="true"
-                    >
-                    <h1
-                        class="title"
-                        :title="verboseVersion"
-                    >
-                        <span>{{ store.app_name }}</span> <template v-if="isDevelopmentBranch">
-                            <span
-                                class="githash"
-                                @click="copyDebugStuff"
-                            >{{ debugVersionString }}</span>
+                    <img src="../assets/logo.png" class="favicon" width="24" height="24" :alt="store.cfg('app_name', 'TA') ?? 'TA'" aria-hidden="true" />
+                    <h1 class="title" :title="verboseVersion">
+                        <span>{{ store.app_name }}</span>
+                        <template v-if="isDevelopmentBranch">
+                            <span class="githash" @click="copyDebugStuff">{{ debugVersionString }}</span>
                         </template>
                         <template v-else>
-                            <span>S{{ store.version }}</span>/<span :class="{ dev: isDev }">C{{ clientVersion }}</span>
+                            <span>S{{ store.version }}</span
+                            >/<span :class="{ dev: isDev }">C{{ clientVersion }}</span>
                         </template>
-                        <span
-                            v-if="store.cfg('debug')"
-                            class="debug-mode"
-                            title="Debug"
-                        >👽</span>
+                        <span v-if="store.cfg('debug')" class="debug-mode" title="Debug">👽</span>
                     </h1>
                 </router-link>
             </div>
         </div>
 
-        <div
-            v-if="store.streamerList && store.streamerList.length > 0"
-            class="menu-middle"
-        >
-            <side-menu-streamer
-                v-for="streamer in sortedStreamers"
-                :key="streamer.login"
-                ref="streamer"
-                :streamer="streamer"
-            />
+        <div v-if="store.streamerList && store.streamerList.length > 0" class="menu-middle">
+            <side-menu-streamer v-for="streamer in sortedStreamers" :key="streamer.login" ref="streamer" :streamer="streamer" />
         </div>
 
         <!-- what was the point of this divider? -->
         <!--<div class="top-menu-item divider"></div>-->
 
-        <div
-            v-if="store.authentication && !store.authenticated"
-            class="menu-auth"
-        >
+        <div v-if="store.authentication && !store.authenticated" class="menu-auth">
             <form @submit.prevent="login">
                 <div class="field">
                     <div class="control">
-                        <input
-                            v-model="password"
-                            type="password"
-                            class="input is-small"
-                            placeholder="Password"
-                        >
+                        <input v-model="password" type="password" class="input is-small" placeholder="Password" />
                     </div>
                 </div>
                 <div class="field">
                     <div class="control">
-                        <button
-                            class="button is-small is-confirm"
-                            type="submit"
-                            :disabled="!password"
-                        >
+                        <button class="button is-small is-confirm" type="submit" :disabled="!password">
                             <span class="icon"><font-awesome-icon icon="sign-in-alt" /></span>
                             <span>Login</span>
                         </button>
@@ -89,53 +46,23 @@
         </div>
 
         <div class="menu-bottom">
-            <div
-                :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': route.name == 'Dashboard' }"
-                data-menuitem="dashboard"
-            >
-                <router-link
-                    to="/dashboard"
-                    :title="t('pages.dashboard')"
-                    class="link"
-                >
+            <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': route.name == 'Dashboard' }" data-menuitem="dashboard">
+                <router-link to="/dashboard" :title="t('pages.dashboard')" class="link">
                     <span class="icon"><font-awesome-icon icon="tachometer-alt" /></span>
                 </router-link>
             </div>
-            <div
-                v-if="store.authElement"
-                :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': route.name == 'Files' }"
-                data-menuitem="files"
-            >
-                <router-link
-                    to="/files"
-                    :title="t('pages.files')"
-                    class="link"
-                >
+            <div v-if="store.authElement" :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': route.name == 'Files' }" data-menuitem="files">
+                <router-link to="/files" :title="t('pages.files')" class="link">
                     <span class="icon"><font-awesome-icon icon="archive" /></span>
                 </router-link>
             </div>
-            <div
-                v-if="store.authElement"
-                :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': route.name == 'Tools' }"
-                data-menuitem="tools"
-            >
-                <router-link
-                    to="/tools"
-                    :title="t('pages.tools')"
-                    class="link"
-                >
+            <div v-if="store.authElement" :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': route.name == 'Tools' }" data-menuitem="tools">
+                <router-link to="/tools" :title="t('pages.tools')" class="link">
                     <span class="icon"><font-awesome-icon icon="wrench" /></span>
                 </router-link>
             </div>
-            <div
-                :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': route.name == 'Settings' }"
-                data-menuitem="settings"
-            >
-                <router-link
-                    to="/settings"
-                    :title="t('pages.settings')"
-                    class="link"
-                >
+            <div :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': route.name == 'Settings' }" data-menuitem="settings">
+                <router-link to="/settings" :title="t('pages.settings')" class="link">
                     <span class="icon"><font-awesome-icon icon="cog" /></span>
                 </router-link>
             </div>
@@ -144,25 +71,12 @@
                 :class="{ 'top-menu-item': true, icon: true, right: true, 'is-active': route.name == 'About' }"
                 data-menuitem="github"
             >
-                <router-link
-                    to="/about"
-                    :title="t('pages.about')"
-                    class="link"
-                >
+                <router-link to="/about" :title="t('pages.about')" class="link">
                     <span class="icon"><font-awesome-icon icon="info-circle" /></span>
                 </router-link>
             </div>
-            <div
-                class="top-menu-item icon right"
-                data-menuitem="github"
-            >
-                <a
-                    class="linkback link"
-                    :href="homepageLink"
-                    target="_blank"
-                    rel="noreferrer"
-                    title="GitHub"
-                >
+            <div class="top-menu-item icon right" data-menuitem="github">
+                <a class="linkback link" :href="homepageLink" target="_blank" rel="noreferrer" title="GitHub">
                     <span class="icon"><font-awesome-icon :icon="['fab', 'github']" /></span>
                 </a>
             </div>
@@ -192,7 +106,9 @@ const { t } = useI18n();
 
 const password = ref("");
 const expandAll = ref(false);
-const keySub = ref(() => { console.log("key"); });
+const keySub = ref(() => {
+    console.log("key");
+});
 const keyMeme = ref<string[]>([]);
 
 /*
@@ -228,13 +144,12 @@ const sortedStreamers = computed(() => {
 
 const clientVersion: string = import.meta.env.VITE_APP_VERSION; // injected
 
-const clientHash: string = (import.meta.env.VITE_APP_GIT_HASH).substring(1); // injected
+const clientHash: string = import.meta.env.VITE_APP_GIT_HASH.substring(1); // injected
 
 const clientBuildDate: string = import.meta.env.VITE_APP_BUILDDATE; // injected
 
 const verboseVersion = computed(() => {
-    return `Server ${store.version} (${store.serverGitHash} / ${store.serverGitBranch})\n` +
-        `Client ${clientVersion} (${clientBuildDate} / ${clientHash})`;
+    return `Server ${store.version} (${store.serverGitHash} / ${store.serverGitBranch})\n` + `Client ${clientVersion} (${clientBuildDate} / ${clientHash})`;
 });
 
 const homepageLink = computed(() => {
@@ -300,8 +215,10 @@ onMounted(() => {
             
         }
         */
-        keyMeme.value.push(key); if (keyMeme.value.length > 10) keyMeme.value.splice(0, 1);
-        if (keyMeme.value.join(" ") == "ArrowUp ArrowUp ArrowDown ArrowDown ArrowLeft ArrowRight ArrowLeft ArrowRight b a") document.location = "https://youtu.be/dQw4w9WgXcQ";
+        keyMeme.value.push(key);
+        if (keyMeme.value.length > 10) keyMeme.value.splice(0, 1);
+        if (keyMeme.value.join(" ") == "ArrowUp ArrowUp ArrowDown ArrowDown ArrowLeft ArrowRight ArrowLeft ArrowRight b a")
+            document.location = "https://youtu.be/dQw4w9WgXcQ";
     });
 });
 
@@ -324,7 +241,6 @@ function copyDebugStuff(e: Event) {
     alert("Copied to clipboard");
     e.preventDefault();
 }
-
 </script>
 
 <style lang="scss" scoped>
@@ -464,7 +380,6 @@ function copyDebugStuff(e: Event) {
 
         // .favicon { animation: 1s speeen linear; }
         &:hover {
-            
         }
 
         span.dev {
@@ -477,7 +392,9 @@ function copyDebugStuff(e: Event) {
             }
             &:hover {
                 h1 {
-                    text-shadow: 0 0 10px #fff, 0 0 5px #1598fd;
+                    text-shadow:
+                        0 0 10px #fff,
+                        0 0 5px #1598fd;
                     letter-spacing: -0.02em;
                 }
 
@@ -513,7 +430,6 @@ function copyDebugStuff(e: Event) {
     }
 
     &.right {
-
         // flex-grow: 1;
         // text-align: right;
         a {
@@ -571,7 +487,7 @@ function copyDebugStuff(e: Event) {
 .githash {
     font-weight: 100;
     font-size: 0.8rem;
-    font-family: 'Courier New', Courier, monospace;
+    font-family: "Courier New", Courier, monospace;
     &:hover {
         color: #ff0;
     }
@@ -610,7 +526,6 @@ function copyDebugStuff(e: Event) {
             }
 
             .top-menu-item {
-
                 .icon {
                     transition: all 0.1s ease-in-out;
                 }
@@ -622,11 +537,8 @@ function copyDebugStuff(e: Event) {
                         }
                     }
                 }
-
             }
-
         }
-
     }
 }
 
@@ -644,5 +556,4 @@ function copyDebugStuff(e: Event) {
         transform: translateY(-130px);
     }
 }
-
 </style>

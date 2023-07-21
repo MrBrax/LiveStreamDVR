@@ -5,10 +5,7 @@
         </div>
         <div :class="formStatusClass">
             <span class="icon">
-                <font-awesome-icon
-                    :icon="formStatusIcon"
-                    :spin="formStatus == 'LOADING'"
-                />
+                <font-awesome-icon :icon="formStatusIcon" :spin="formStatus == 'LOADING'" />
             </span>
             {{ computedText }}
         </div>
@@ -58,7 +55,6 @@ const computedText = computed(() => {
         return props.formStatusText;
     }
 });
-
 </script>
 
 <style lang="scss" scoped>
@@ -73,11 +69,11 @@ const computedText = computed(() => {
         flex-grow: 1;
         display: flex;
         align-items: center;
-        
+
         // background-color: #eee;
         background-color: rgba(128, 128, 128, 0.1);
         padding: 0.3rem 0.5rem;
-        
+
         margin-left: 0.5em;
         border-radius: 0.3em;
         .icon {
@@ -120,8 +116,7 @@ const computedText = computed(() => {
     justify-content: flex-start;
     &:deep(.button:not(:last-child):not(.is-fullwidth)),
     &:deep(.icon-button:not(:last-child):not(.is-fullwidth)) {
-        margin-right: .5rem;
+        margin-right: 0.5rem;
     }
 }
-
 </style>

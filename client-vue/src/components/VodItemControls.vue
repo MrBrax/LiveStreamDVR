@@ -1,25 +1,11 @@
 <template>
     <!-- controls -->
-    <div
-        v-if="vod.is_finalized"
-        class="video-block video-controls buttons no-margin"
-        aria-label="Controls"
-    >
+    <div v-if="vod.is_finalized" class="video-block video-controls buttons no-margin" aria-label="Controls">
         <div class="video-block-content">
-            <button
-                :class="{ 'button': true, 'details-toggle': true, 'is-active': showAdvanced }"
-                title="Show advanced"
-                @click="emit('toggleAdvanced')"
-            >
+            <button :class="{ button: true, 'details-toggle': true, 'is-active': showAdvanced }" title="Show advanced" @click="emit('toggleAdvanced')">
                 <span class="icon">
-                    <fa
-                        v-if="showAdvanced"
-                        icon="minus"
-                    />
-                    <fa
-                        v-else
-                        icon="plus"
-                    />
+                    <fa v-if="showAdvanced" icon="minus" />
+                    <fa v-else icon="plus" />
                 </span>
             </button>
             <!-- Editor -->
@@ -28,11 +14,8 @@
                 class="button is-blue"
                 :to="{ name: 'Editor', params: { uuid: vod?.uuid } }"
             >
-                <span class="icon"><fa
-                    icon="cut"
-                    type="fa"
-                /></span>
-                <span>{{ t('vod.controls.editor') }}</span>
+                <span class="icon"><fa icon="cut" type="fa" /></span>
+                <span>{{ t("vod.controls.editor") }}</span>
             </router-link>
             <!-- Player -->
             <d-button
@@ -42,27 +25,16 @@
                 icon="play"
                 @click="emit('showModal', 'player')"
             >
-                {{ t('vod.controls.player') }}
+                {{ t("vod.controls.player") }}
             </d-button>
             <!-- JSON -->
-            <a
-                v-if="showAdvanced"
-                class="button"
-                :href="vod?.webpath + '/' + vod?.basename + '.json'"
-                target="_blank"
-            >
-                <span class="icon"><fa
-                    icon="database"
-                    type="fa"
-                /></span>
+            <a v-if="showAdvanced" class="button" :href="vod?.webpath + '/' + vod?.basename + '.json'" target="_blank">
+                <span class="icon"><fa icon="database" type="fa" /></span>
                 <span>JSON</span>
             </a>
             <!-- Archive -->
-            <d-button
-                icon="archive"
-                @click="doArchive"
-            >
-                {{ t('vod.controls.archive') }}
+            <d-button icon="archive" @click="doArchive">
+                {{ t("vod.controls.archive") }}
             </d-button>
             <!-- Download chat-->
             <d-button
@@ -71,81 +43,45 @@
                 :loading="compDownloadChat"
                 @click="emit('showModal', 'chatDownload')"
             >
-                {{ t('vod.controls.download-chat') }}
+                {{ t("vod.controls.download-chat") }}
             </d-button>
             <template v-if="vod.provider == 'twitch' && vod.twitch_vod_id">
                 <!-- Download VOD -->
-                <d-button
-                    v-if="!vod.is_vod_downloaded"
-                    icon="download"
-                    @click="emit('showModal', 'vodDownload')"
-                >
+                <d-button v-if="!vod.is_vod_downloaded" icon="download" @click="emit('showModal', 'vodDownload')">
                     <template v-if="vod.twitch_vod_muted == MuteStatus.MUTED">
-                        {{ t('vod.controls.download-vod-muted') }}
+                        {{ t("vod.controls.download-vod-muted") }}
                     </template>
                     <template v-else>
-                        {{ t('vod.controls.download-vod') }}
+                        {{ t("vod.controls.download-vod") }}
                     </template>
                 </d-button>
                 <!-- Check mute -->
-                <d-button
-                    v-if="showAdvanced"
-                    class="button"
-                    icon="volume-mute"
-                    @click="doCheckMute"
-                >
-                    {{ t('vod.controls.check-mute') }}
+                <d-button v-if="showAdvanced" class="button" icon="volume-mute" @click="doCheckMute">
+                    {{ t("vod.controls.check-mute") }}
                 </d-button>
             </template>
-            <d-button
-                v-if="vod.video_metadata && vod.video_metadata.type !== 'audio'"
-                icon="burn"
-                @click="emit('showModal', 'burn')"
-            >
-                {{ t('vod.controls.render-menu') }}
+            <d-button v-if="vod.video_metadata && vod.video_metadata.type !== 'audio'" icon="burn" @click="emit('showModal', 'burn')">
+                {{ t("vod.controls.render-menu") }}
             </d-button>
             <!-- Fix issues -->
-            <d-button
-                v-if="showAdvanced"
-                icon="wrench"
-                @click="emit('fixIssues')"
-            >
-                {{ t('vod.controls.fix-issues') }}
+            <d-button v-if="showAdvanced" icon="wrench" @click="emit('fixIssues')">
+                {{ t("vod.controls.fix-issues") }}
             </d-button>
             <!-- Fix issues -->
-            <d-button
-                v-if="showAdvanced"
-                icon="sync"
-                @click="doRefreshMetadata"
-            >
-                {{ t('vod.controls.refresh-metadata') }}
+            <d-button v-if="showAdvanced" icon="sync" @click="doRefreshMetadata">
+                {{ t("vod.controls.refresh-metadata") }}
             </d-button>
             <!-- Vod export menu -->
-            <d-button
-                v-if="showAdvanced"
-                class="is-confirm"
-                icon="upload"
-                @click="emit('showModal', 'export')"
-            >
-                {{ t('buttons.export') }}
+            <d-button v-if="showAdvanced" class="is-confirm" icon="upload" @click="emit('showModal', 'export')">
+                {{ t("buttons.export") }}
             </d-button>
             <!-- Vod edit menu -->
-            <d-button
-                v-if="showAdvanced"
-                class="is-confirm"
-                icon="pencil"
-                @click="emit('showModal', 'edit')"
-            >
-                {{ t('buttons.edit') }}
+            <d-button v-if="showAdvanced" class="is-confirm" icon="pencil" @click="emit('showModal', 'edit')">
+                {{ t("buttons.edit") }}
             </d-button>
             <!-- Rename vod menu -->
-            <d-button
-                v-if="showAdvanced"
-                class="is-confirm"
-                icon="pencil"
-                @click="emit('showModal', 'rename')"
-            >
-                {{ t('buttons.rename') }}
+            <d-button v-if="showAdvanced" class="is-confirm" icon="pencil" @click="emit('showModal', 'rename')">
+                {{ t("buttons.rename") }}
             </d-button>
             <!-- Delete segment -->
             <!--
@@ -165,13 +101,8 @@
             </button>
             -->
             <!-- Delete -->
-            <d-button
-                color="danger"
-                :disabled="vod.prevent_deletion"
-                icon="trash"
-                @click="emit('delete')"
-            >
-                {{ t('buttons.delete') }}
+            <d-button color="danger" :disabled="vod.prevent_deletion" icon="trash" @click="emit('delete')">
+                {{ t("buttons.delete") }}
             </d-button>
         </div>
     </div>
@@ -294,11 +225,9 @@ function doCheckMute(): void {
             }
         });
 }
-
 </script>
 
 <style lang="scss" scoped>
-
 .video-controls {
     // padding: 1em 1em 0.5em 1em;
     // background-color: var(--video-controls-background-color);
@@ -311,7 +240,6 @@ function doCheckMute(): void {
     .icon {
         margin-right: 0.3em;
     }
-    
 }
 
 .details-toggle {
@@ -330,5 +258,4 @@ function doCheckMute(): void {
         box-shadow: inset 0 2px 0px rgba(0, 0, 0, 0.05);
     }
 }
-
 </style>

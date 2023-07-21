@@ -75,7 +75,7 @@ const routes: Array<RouteRecordRaw> = [
                 component: () => import(/* webpackChunkName: "settingsKeyvalue" */ "../views/Settings/SettingsKeyvalue.vue"),
                 meta: {
                     title: "Settings - KeyValue",
-                }
+                },
             },
             {
                 path: "/settings/notifications",
@@ -109,7 +109,7 @@ const routes: Array<RouteRecordRaw> = [
                     title: "Settings - Tips",
                 },
             },
-        ]
+        ],
     },
     {
         path: "/about",

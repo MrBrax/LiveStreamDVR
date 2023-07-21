@@ -1,17 +1,10 @@
 <template>
-    <div
-        v-if="store.cfg('twitchapi.auth_type') == 'user'"
-        class="youtube-auth"
-    >
-        <h3><span class="icon"><font-awesome-icon :icon="['fab', 'twitch']" /></span> Twitch authentication</h3>
+    <div v-if="store.cfg('twitchapi.auth_type') == 'user'" class="youtube-auth">
+        <h3>
+            <span class="icon"><font-awesome-icon :icon="['fab', 'twitch']" /></span> Twitch authentication
+        </h3>
         <div class="buttons">
-            <d-button
-                class="is-confirm"
-                :disabled="loading"
-                type="button"
-                icon="sync"
-                @click="doCheckTwitchStatus"
-            >
+            <d-button class="is-confirm" :disabled="loading" type="button" icon="sync" @click="doCheckTwitchStatus">
                 {{ t("buttons.checkstatus") }}
             </d-button>
             <button
@@ -34,32 +27,17 @@
                 <span class="icon"><font-awesome-icon icon="sign-in-alt" /></span>
                 <span>{{ t("buttons.authmethod2") }}</span>
             </button>
-            <d-button
-                class="button is-danger"
-                :disabled="loading"
-                type="button"
-                icon="right-from-bracket"
-                @click="doDestroyTwitch"
-            >
+            <d-button class="button is-danger" :disabled="loading" type="button" icon="right-from-bracket" @click="doDestroyTwitch">
                 {{ t("buttons.destroy-session") }}
             </d-button>
         </div>
-        <div
-            v-if="status"
-            class="youtube-status"
-        >
-            <span
-                v-if="loading"
-                class="icon"
-            >
-                <fa
-                    icon="spinner"
-                    spin
-                />
+        <div v-if="status" class="youtube-status">
+            <span v-if="loading" class="icon">
+                <fa icon="spinner" spin />
             </span>
             {{ status }}
         </div>
-        <hr>
+        <hr />
         <div class="youtube-help">
             <h3>Suggested configuration:</h3>
             <ul class="list less-padding">
@@ -69,10 +47,7 @@
             </ul>
         </div>
     </div>
-    <div
-        v-else
-        class="youtube-auth"
-    >
+    <div v-else class="youtube-auth">
         <font-awesome-icon :icon="['fab', 'twitch']" /> Twitch authentication is disabled because you are using app token authentication.
     </div>
 </template>
@@ -83,13 +58,8 @@ import type { ApiResponse, ApiErrorResponse } from "@common/Api/Api";
 import { useStore } from "@/store";
 import CodeBox from "@/components/reusables/CodeBox.vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import {
-    faRightFromBracket,
-    faSpinner,
-} from "@fortawesome/free-solid-svg-icons";
-import {
-    faTwitch
-} from "@fortawesome/free-brands-svg-icons";
+import { faRightFromBracket, faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { faTwitch } from "@fortawesome/free-brands-svg-icons";
 import axios, { AxiosError } from "axios";
 import { useI18n } from "vue-i18n";
 library.add(faRightFromBracket, faTwitch, faSpinner);
@@ -103,38 +73,41 @@ const loading = ref(false);
 function doCheckTwitchStatus(): void {
     status.value = "Checking Twitch status...";
     loading.value = true;
-    axios.get<ApiResponse>("/api/v0/twitch/status").then((response) => {
-        const json = response.data;
-        if (json.message) status.value = json.message;
-        console.log(json);
-    }).catch((err: Error | AxiosError) => {
-        console.error("twitch check error", err);
-        if (axios.isAxiosError<ApiErrorResponse>(err)) {
-            if (err.response && err.response.data && err.response.data.message) {
-                status.value = err.response.data.message;
+    axios
+        .get<ApiResponse>("/api/v0/twitch/status")
+        .then((response) => {
+            const json = response.data;
+            if (json.message) status.value = json.message;
+            console.log(json);
+        })
+        .catch((err: Error | AxiosError) => {
+            console.error("twitch check error", err);
+            if (axios.isAxiosError<ApiErrorResponse>(err)) {
+                if (err.response && err.response.data && err.response.data.message) {
+                    status.value = err.response.data.message;
+                } else {
+                    status.value = err.message;
+                }
             } else {
-                status.value = err.message;
+                status.value = `Error checking Twitch status (${err.message})`;
             }
-        } else {
-            status.value = `Error checking Twitch status (${err.message})`;
-        }
-    }).finally(() => {
-        loading.value = false;
-    });
+        })
+        .finally(() => {
+            loading.value = false;
+        });
 }
 
 async function doAuthenticateTwitchMethod1(): Promise<void> {
     const url = `${store.cfg<string>("basepath", "")}/api/v0/twitch/authenticate`;
     const width = 600;
     const height = 600;
-    const left = (screen.width / 2) - (width / 2);
-    const top = (screen.height / 2) - (height / 2);
+    const left = screen.width / 2 - width / 2;
+    const top = screen.height / 2 - height / 2;
     console.debug("twitch auth url", url);
     window.open(url, "_blank", `width=${width},height=${height},top=${top},left=${left}`);
 }
 
 async function doAuthenticateTwitchMethod2(): Promise<void> {
-
     status.value = "Fetching Twitch authentication URL...";
     loading.value = true;
 
@@ -153,8 +126,8 @@ async function doAuthenticateTwitchMethod2(): Promise<void> {
     const url = res.data.data;
     const width = 600;
     const height = 600;
-    const left = (screen.width / 2) - (width / 2);
-    const top = (screen.height / 2) - (height / 2);
+    const left = screen.width / 2 - width / 2;
+    const top = screen.height / 2 - height / 2;
     console.debug("twitch auth url", url);
     window.open(url, "_blank", `width=${width},height=${height},top=${top},left=${left}`);
 }
@@ -162,22 +135,25 @@ async function doAuthenticateTwitchMethod2(): Promise<void> {
 function doDestroyTwitch(): void {
     status.value = "Destroying Twitch session...";
     loading.value = true;
-    axios.get<ApiResponse>("/api/v0/twitch/destroy").then((response) => {
-        const json = response.data;
-        if (json.message) status.value = json.message;
-        console.log(json);
-    }).catch((err) => {
-        console.error("twitch destroy error", err.response);
-        if (err.response.data && err.response.data.message) status.value = err.response.data.message;
-    }).finally(() => {
-        loading.value = false;
-    });
+    axios
+        .get<ApiResponse>("/api/v0/twitch/destroy")
+        .then((response) => {
+            const json = response.data;
+            if (json.message) status.value = json.message;
+            console.log(json);
+        })
+        .catch((err) => {
+            console.error("twitch destroy error", err.response);
+            if (err.response.data && err.response.data.message) status.value = err.response.data.message;
+        })
+        .finally(() => {
+            loading.value = false;
+        });
 }
-
 </script>
 
 <style lang="scss" scoped>
-    h3 {
-        margin: 0 0 0.5rem 0;
-    }
+h3 {
+    margin: 0 0 0.5rem 0;
+}
 </style>

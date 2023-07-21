@@ -9,14 +9,15 @@ module.exports = {
         "plugin:vue/vue3-recommended",
         // "eslint:recommended",
         "@vue/typescript/recommended",
+        "prettier",
         // "@vue/prettier",
         // "@vue/prettier/@typescript-eslint"
     ],
-    // parser: "vue-eslint-parser",
+    parser: "vue-eslint-parser",
     parserOptions: {
-        ecmaVersion: 2021,
+        ecmaVersion: 2022,
         parser: "@typescript-eslint/parser",
-        // sourceType: "module",
+        sourceType: "module",
         project: "./tsconfig.app.json",
         // extraFileExtensions: [".vue"],
     },

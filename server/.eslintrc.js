@@ -21,7 +21,7 @@ module.exports = {
         //     4,
         // ],
         "linebreak-style": ["error", "unix"],
-        quotes: ["error", "double"],
+        // quotes: ["error", "double"],
         semi: ["error", "always"],
         "no-constructor-return": "error",
         "no-template-curly-in-string": "warn",

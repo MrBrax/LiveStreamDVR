@@ -1,59 +1,57 @@
-import { mount } from '@vue/test-utils'
-import SettingsForm from './SettingsForm.vue'
-import { assert, describe, expect, it, test, vitest } from 'vitest'
+import { mount } from "@vue/test-utils";
+import SettingsForm from "./SettingsForm.vue";
+import { assert, describe, expect, it, test, vitest } from "vitest";
 
 import axios from "axios";
 import VueAxios from "vue-axios";
-import { VideoQualityArray } from '@common/Defs';
-import { createPinia } from 'pinia';
-import { ApiChannelConfig, ApiGame } from '@common/Api/Client';
-import helpers from '@/mixins/helpers';
-import { GamesData, MockApiSettingsConfig } from '@/../test/mockdata';
+import { VideoQualityArray } from "@common/Defs";
+import { createPinia } from "pinia";
+import { ApiChannelConfig, ApiGame } from "@common/Api/Client";
+import helpers from "@/mixins/helpers";
+import { GamesData, MockApiSettingsConfig } from "@/../test/mockdata";
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 
 // mock $http on vue
 
-test('SettingsForm', async () => {
+test("SettingsForm", async () => {
     expect(SettingsForm).toBeTruthy();
 
     const defaultSettings = MockApiSettingsConfig;
 
     // mock fetchData on vm
-    console.debug('mock fetchData on vm');
-    const fetchDataSpy = vitest.spyOn(SettingsForm.methods, 'fetchData');
+    console.debug("mock fetchData on vm");
+    const fetchDataSpy = vitest.spyOn(SettingsForm.methods, "fetchData");
     fetchDataSpy.mockImplementation((t) => {
-        console.log('mock fetchData', t);
+        console.log("mock fetchData", t);
     });
 
-
-    console.debug('mount SettingsForm');
+    console.debug("mount SettingsForm");
     const wrapper = mount(SettingsForm, {
         global: {
             mocks: {
                 $http: {
                     put: vitest.fn((url, data) => {
-                        console.log('mock $http.put', url, data);
+                        console.log("mock $http.put", url, data);
                         return new Promise((resolve, reject) => {
                             resolve({
                                 data: {
                                     status: "OK",
-                                    message: "Settings updated"
-                                }
+                                    message: "Settings updated",
+                                },
                             });
                         });
                     }),
-                }
+                },
             },
             mixins: [helpers],
             components: {
-                "fa": FontAwesomeIcon
+                fa: FontAwesomeIcon,
             },
             plugins: [createPinia()],
             // plugins: [VueAxios, [axios]],
         },
     });
 
-    
     /*
 
     // expect favourites list to have two items
@@ -72,13 +70,12 @@ test('SettingsForm', async () => {
     */
 
     // submit
-    await wrapper.find('form').trigger('submit');
+    await wrapper.find("form").trigger("submit");
 
     // check if put was called
     expect(wrapper.vm.$http.put).toHaveBeenCalled();
-    expect(wrapper.vm.$http.put).toHaveBeenCalledWith('/api/v0/settings', wrapper.vm.formData);
+    expect(wrapper.vm.$http.put).toHaveBeenCalledWith("/api/v0/settings", wrapper.vm.formData);
 
     // expect emit
     expect(wrapper.emitted().formSuccess).toBeTruthy();
-
 });

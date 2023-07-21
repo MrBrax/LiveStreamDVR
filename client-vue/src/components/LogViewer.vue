@@ -3,34 +3,18 @@
         <div class="control has-addon">
             <div class="select is-small">
                 <select v-model="logFilename">
-                    <option
-                        v-for="fn in logFilenames"
-                        :key="fn"
-                    >
+                    <option v-for="fn in logFilenames" :key="fn">
                         {{ fn }}
                     </option>
                 </select>
             </div>
-            <d-button
-                class="is-small is-confirm"
-                icon="sync"
-                @click="fetchLog(true)"
-            >
-                Fetch
-            </d-button>
+            <d-button class="is-small is-confirm" icon="sync" @click="fetchLog(true)"> Fetch </d-button>
         </div>
     </div>
 
-    <div
-        ref="logViewer"
-        class="log_viewer"
-    >
+    <div ref="logViewer" class="log_viewer">
         <table>
-            <tr
-                v-for="(line, lineIndex) in logFiltered"
-                :key="lineIndex"
-                :class="logLineClass(line)"
-            >
+            <tr v-for="(line, lineIndex) in logFiltered" :key="lineIndex" :class="logLineClass(line)">
                 <td v-if="line.date">
                     {{ formatDate(line.date) }}
                 </td>
@@ -40,9 +24,7 @@
                 <td v-else-if="line.date_string">
                     {{ line.date_string }}
                 </td>
-                <td v-else>
-                    (no date)
-                </td>
+                <td v-else>(no date)</td>
                 <td>
                     <a @click="logSetFilter(line.module)">{{ line.module }}</a>
                 </td>
@@ -68,19 +50,21 @@ import { formatDate, formatTimestamp } from "@/mixins/newhelpers";
 
 // setup
 const store = useStore();
-        
+
 // data
 const logFilename = ref<string>("");
 const logFilenames = ref<string[]>([]);
 const logFromLine = ref<number>(0);
 const logVisible = ref<boolean>(false);
 const logModule = ref<string>("");
-const watcher = ref<() => void>(() => { console.log("watcher"); });
+const watcher = ref<() => void>(() => {
+    console.log("watcher");
+});
 const logViewer = ref<HTMLElement | null>(null);
 
 // computed
 const logFiltered = computed((): ApiLogLine[] => {
-    return logLines.value.filter(line => {
+    return logLines.value.filter((line) => {
         if (logModule.value) {
             return line.module === logModule.value;
         }
@@ -109,7 +93,6 @@ onUnmounted(() => {
 });
 
 async function fetchLog(clear = false) {
-
     // today's log file
     if (logFilename.value == "") {
         logFilename.value = format(new Date(), "yyyy-MM-dd");
@@ -180,9 +163,8 @@ function expandLog(lineNumber: number) {
 }
 
 defineExpose({
-    scrollLog
+    scrollLog,
 });
-
 </script>
 
 <style lang="scss" scoped>

@@ -1,38 +1,19 @@
 <template>
-    <div
-        v-if="vod.viewers && vod.viewers.length > 0"
-        class="video-block video-viewers"
-    >
-        <div
-            class="video-block-header collapsible"
-            aria-role="button"
-            @click="isCollapsed = !isCollapsed"
-        >
+    <div v-if="vod.viewers && vod.viewers.length > 0" class="video-block video-viewers">
+        <div class="video-block-header collapsible" aria-role="button" @click="isCollapsed = !isCollapsed">
             <h4>
                 <span class="icon">
                     <font-awesome-icon :icon="isCollapsed ? 'chevron-down' : 'chevron-up'" />
                 </span>
-                {{ t('vod.blocks.viewers') }}
+                {{ t("vod.blocks.viewers") }}
             </h4>
         </div>
         <transition name="blinds">
-            <div
-                v-if="!isCollapsed"
-                class="video-block-content"
-            >
-                <div
-                    v-if="chartData"
-                    class="viewer-chart"
-                >
-                    <ViewerChart
-                        :chart-options="chartOptions"
-                        :chart-data="chartData"
-                        :chart-id="chartId"
-                    />
+            <div v-if="!isCollapsed" class="video-block-content">
+                <div v-if="chartData" class="viewer-chart">
+                    <ViewerChart :chart-options="chartOptions" :chart-data="chartData" :chart-id="chartId" />
                 </div>
-                <div v-else>
-                    No data
-                </div>
+                <div v-else>No data</div>
             </div>
         </transition>
     </div>
@@ -55,7 +36,7 @@ const props = defineProps({
         type: Object as () => VODTypes,
         default: null,
         // required: true,
-    }
+    },
 });
 
 const chartOptions = reactive<ChartOptions>({
@@ -65,7 +46,7 @@ const chartOptions = reactive<ChartOptions>({
         x: {
             ticks: {
                 color: "white",
-            }
+            },
         },
         y: {
             ticks: {
@@ -90,7 +71,6 @@ const chartId = computed(() => `viewer-chart-${props.vod.uuid}`);
 const isCollapsed = ref(true);
 
 onMounted(() => {
-
     isCollapsed.value = store.videoBlockShow.viewers;
 
     if (!chartOptions?.scales?.x?.ticks) return; // why, typescript
@@ -106,8 +86,8 @@ const chartData = computed((): ChartData<"line", number[], string> | null => {
         return null;
     }
 
-    const labels = props.vod.viewers.map(entry => humanDuration(props.vod.dateToTimestamp(entry.timestamp) || 0));
-    const data = props.vod.viewers.map(entry => entry.amount);
+    const labels = props.vod.viewers.map((entry) => humanDuration(props.vod.dateToTimestamp(entry.timestamp) || 0));
+    const data = props.vod.viewers.map((entry) => entry.amount);
 
     return {
         labels,
@@ -125,7 +105,6 @@ const chartData = computed((): ChartData<"line", number[], string> | null => {
 
 const store = useStore();
 const { t } = useI18n();
-
 </script>
 
 <style lang="scss" scoped>

@@ -1,40 +1,22 @@
 <template>
     <div class="video-download-menu">
         <p>
-            {{ t('messages.video_download_help') }}<br>
+            {{ t("messages.video_download_help") }}<br />
             <!--<span v-if="averageVodBitrate">Average bitrate: {{ averageVodBitrate / 1000 }} kbps</span>-->
         </p>
-        <d-button
-            v-if="isTwitch(streamer)"
-            color="success"
-            icon="download"
-            @click="fetchTwitchVods"
-        >
-            {{ t('vod.fetch-vod-list') }}
+        <d-button v-if="isTwitch(streamer)" color="success" icon="download" @click="fetchTwitchVods">
+            {{ t("vod.fetch-vod-list") }}
         </d-button>
-        <d-button
-            v-if="isYouTube(streamer)"
-            color="success"
-            icon="download"
-            @click="fetchYouTubeVods"
-        >
-            {{ t('vod.fetch-vod-list') }}
+        <d-button v-if="isYouTube(streamer)" color="success" icon="download" @click="fetchYouTubeVods">
+            {{ t("vod.fetch-vod-list") }}
         </d-button>
-        <hr>
+        <hr />
         <template v-if="!loading">
-            <div
-                v-for="vod in onlineVods"
-                :key="vod.id"
-                class="video-download-menu-item"
-            >
+            <div v-for="vod in onlineVods" :key="vod.id" class="video-download-menu-item">
                 <h2>
-                    <a
-                        :href="vod.url"
-                        rel="nofollow"
-                        target="_blank"
-                    >{{ vod.created_at }}</a>
+                    <a :href="vod.url" rel="nofollow" target="_blank">{{ vod.created_at }}</a>
                 </h2>
-                <img :src="imageUrl(vod.thumbnail, 320, 240)"><br>
+                <img :src="imageUrl(vod.thumbnail, 320, 240)" /><br />
                 <p>{{ vod.title }}</p>
                 <ul>
                     <li>{{ humanDuration(vod.duration) }}</li>
@@ -44,13 +26,8 @@
                     </li>
                     <!--<li>Estimated size: {{ formatBytes(((averageVodBitrate || 6000000) / 10) * parseTwitchDuration(vod.duration)) }}</li>-->
                 </ul>
-                <br>
-                <d-button
-                    size="small"
-                    color="success"
-                    icon="download"
-                    @click="downloadVideo(vod.id.toString())"
-                >
+                <br />
+                <d-button size="small" color="success" icon="download" @click="downloadVideo(vod.id.toString())">
                     {{ t("buttons.download") }}
                 </d-button>
             </div>
@@ -170,7 +147,6 @@ function imageUrl(url: string, width: number, height: number) {
     if (!url) return "";
     return url.replace(/%\{width\}/g, width.toString()).replace(/%\{height\}/g, height.toString());
 }
-
 </script>
 
 <style lang="scss" scoped>
@@ -181,5 +157,4 @@ function imageUrl(url: string, width: number, height: number) {
         margin-bottom: 1em;
     }
 }
-
 </style>

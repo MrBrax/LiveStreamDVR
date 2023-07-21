@@ -1,44 +1,31 @@
 <template>
     <!-- game list / chapters -->
     <div class="video-block video-chapters">
-        <div
-            class="video-block-header collapsible"
-            aria-role="button"
-            @click="isCollapsed = !isCollapsed"
-        >
+        <div class="video-block-header collapsible" aria-role="button" @click="isCollapsed = !isCollapsed">
             <h4>
                 <span class="icon">
                     <font-awesome-icon :icon="isCollapsed ? 'chevron-down' : 'chevron-up'" />
                 </span>
-                {{ t('vod.block.chapters') }} <span
-                    class="amount"
-                    :data-amount="vod.chapters.length"
-                >({{ vod.chapters.length }})</span>
+                {{ t("vod.block.chapters") }} <span class="amount" :data-amount="vod.chapters.length">({{ vod.chapters.length }})</span>
             </h4>
         </div>
         <transition name="blinds">
-            <div
-                v-if="!isCollapsed"
-                class="video-block-content no-padding"
-            >
-                <table
-                    v-if="vod && vod.chapters && vod.chapters.length > 0"
-                    class="table game-list is-slim"
-                >
+            <div v-if="!isCollapsed" class="video-block-content no-padding">
+                <table v-if="vod && vod.chapters && vod.chapters.length > 0" class="table game-list is-slim">
                     <thead>
                         <tr>
-                            <th>{{ t('vod.chapters.offset') }}</th>
+                            <th>{{ t("vod.chapters.offset") }}</th>
                             <th v-if="showAdvanced">
-                                {{ t('vod.chapters.started') }}
+                                {{ t("vod.chapters.started") }}
                             </th>
                             <th v-if="showAdvanced">
-                                {{ t('vod.chapters.ended') }}
+                                {{ t("vod.chapters.ended") }}
                             </th>
-                            <th>{{ t('vod.chapters.duration') }}</th>
-                            <th>{{ t('vod.chapters.category') }}</th>
-                            <th>{{ t('vod.chapters.title') }}</th>
+                            <th>{{ t("vod.chapters.duration") }}</th>
+                            <th>{{ t("vod.chapters.category") }}</th>
+                            <th>{{ t("vod.chapters.title") }}</th>
                             <th v-if="hasViewerCount">
-                                {{ t('vod.chapters.viewers') }}
+                                {{ t("vod.chapters.viewers") }}
                             </th>
                             <th />
                         </tr>
@@ -49,29 +36,20 @@
                             v-for="(chapter, chapterIndex) in vod.chapters"
                             :key="chapterIndex"
                             :class="{
-                                favourite: isTwitchChapter(chapter) && store.config && chapter.game_id && store.favourite_games.includes(chapter.game_id.toString()),
+                                favourite:
+                                    isTwitchChapter(chapter) && store.config && chapter.game_id && store.favourite_games.includes(chapter.game_id.toString()),
                                 current: vod && chapterIndex === vod.chapters.length - 1 && vod.is_capturing,
                             }"
                         >
                             <!-- start timestamp -->
-                            <td
-                                data-contents="offset"
-                                :title="formatDate(chapter.started_at)"
-                            >
+                            <td data-contents="offset" :title="formatDate(chapter.started_at)">
                                 {{ chapter.offset !== undefined ? humanDuration(chapter.offset) : "Unknown" }}
                             </td>
 
                             <!-- start time -->
-                            <td
-                                v-if="showAdvanced"
-                                data-contents="started_at"
-                                :title="chapter.started_at.toISOString()"
-                            >
+                            <td v-if="showAdvanced" data-contents="started_at" :title="chapter.started_at.toISOString()">
                                 <template v-if="store.clientCfg('useRelativeTime')">
-                                    <duration-display
-                                        :start-date="chapter.started_at.toISOString()"
-                                        output-style="human"
-                                    /> ago
+                                    <duration-display :start-date="chapter.started_at.toISOString()" output-style="human" /> ago
                                 </template>
                                 <template v-else>
                                     {{ formatDate(chapter.started_at, "HH:mm:ss") }}
@@ -79,10 +57,7 @@
                             </td>
 
                             <!-- end time -->
-                            <td
-                                v-if="showAdvanced"
-                                data-contents="ended_at"
-                            >
+                            <td v-if="showAdvanced" data-contents="ended_at">
                                 <template v-if="chapter.offset !== undefined && chapter.duration !== undefined">
                                     {{ humanDuration(chapter.offset + chapter.duration) }}
                                 </template>
@@ -90,16 +65,11 @@
 
                             <!-- duration -->
                             <td data-contents="duration">
-                                <template
-                                    v-if="chapter.duration"
-                                >
+                                <template v-if="chapter.duration">
                                     {{ niceDuration(chapter.duration) }}
                                 </template>
                                 <template v-else>
-                                    <duration-display
-                                        :start-date="chapter.started_at.toISOString()"
-                                        output-style="human"
-                                    />
+                                    <duration-display :start-date="chapter.started_at.toISOString()" output-style="human" />
                                 </template>
                             </td>
 
@@ -112,7 +82,7 @@
                                     :alt="chapter.game_name"
                                     :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }"
                                     loading="lazy"
-                                >
+                                />
                                 <template v-if="vod?.is_finalized">
                                     <span class="game-name">
                                         <!-- title with video player link -->
@@ -153,13 +123,15 @@
                                         </a>
                                     </span>
                                 </template>
-                                <span
-                                    v-else
-                                    class="game-name px-1"
-                                >{{ chapter.game_name ? chapter.game_name : "None" }}</span>
+                                <span v-else class="game-name px-1">{{ chapter.game_name ? chapter.game_name : "None" }}</span>
                                 <!-- favourite button -->
                                 <button
-                                    v-if="store.config && isTwitchChapter(chapter) && chapter.game_id && !store.favourite_games.includes(chapter.game_id.toString())"
+                                    v-if="
+                                        store.config &&
+                                        isTwitchChapter(chapter) &&
+                                        chapter.game_id &&
+                                        !store.favourite_games.includes(chapter.game_id.toString())
+                                    "
                                     class="icon-button favourite-button"
                                     title="Add to favourites"
                                     @click="chapter.game_id && addFavouriteGame(chapter.game_id.toString())"
@@ -169,44 +141,27 @@
                             </td>
 
                             <!-- title -->
-                            <td
-                                class="text-overflow text-long"
-                                :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }"
-                                data-contents="title"
-                            >
+                            <td class="text-overflow text-long" :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }" data-contents="title">
                                 {{ chapter.title }}
                             </td>
 
                             <!-- viewer count -->
-                            <td
-                                v-if="hasViewerCount"
-                                data-contents="viewers"
-                            >
-                                <template
-                                    v-if="chapter.viewer_count"
-                                >
+                            <td v-if="hasViewerCount" data-contents="viewers">
+                                <template v-if="chapter.viewer_count">
                                     {{ formatNumber(chapter.viewer_count) }}
                                 </template>
                             </td>
 
                             <!-- mature -->
-                            <td
-                                v-if="isTwitchChapter(chapter) && chapter.is_mature"
-                                data-contents="mature"
-                            >
-                                🔞
-                            </td>
+                            <td v-if="isTwitchChapter(chapter) && chapter.is_mature" data-contents="mature">🔞</td>
                         </tr>
 
                         <tr v-if="vod.ended_at">
                             <td :title="formatDate(vod.ended_at)">
                                 {{ vod.getWebhookDuration() }}
                             </td>
-                            <td
-                                colspan="10"
-                                class="has-text-italic"
-                            >
-                                {{ t('vod.chapters.end') }}
+                            <td colspan="10" class="has-text-italic">
+                                {{ t("vod.chapters.end") }}
                             </td>
                         </tr>
 
@@ -215,21 +170,13 @@
                                 <!--{{ humanDuration(vod?.api_getDurationLive) }}-->
                                 <duration-display :start-date="vod.started_at.toISOString()" />
                             </td>
-                            <td
-                                colspan="10"
-                                class="has-text-italic has-text-bold"
-                            >
-                                {{ t('vod.chapters.ongoing') }}
+                            <td colspan="10" class="has-text-italic has-text-bold">
+                                {{ t("vod.chapters.ongoing") }}
                             </td>
                         </tr>
                     </tbody>
                 </table>
-                <div
-                    v-else
-                    class="text-is-error padding-1"
-                >
-                    No chapters found
-                </div>
+                <div v-else class="text-is-error padding-1">No chapters found</div>
             </div>
         </transition>
     </div>
@@ -312,13 +259,10 @@ function addFavouriteGame(game_id: string) {
             if (err.response.data && err.response.data.message) alert(err.response.data.message);
         });
 }
-
 </script>
 
 <style lang="scss" scoped>
-
 .game-list {
-
     width: 100%;
     border-collapse: collapse;
 
@@ -379,16 +323,14 @@ function addFavouriteGame(game_id: string) {
         // &:hover {
         //     color: #4481d1;
         // }
-        // 
+        //
         // &:visited {
         //     color: purple;
         // }
     }
-
 }
 
 .video-chapters {
     background-color: var(--video-block-background-color);
 }
-
 </style>
