@@ -1,9 +1,8 @@
+import type { KickVODJSON } from "@/Storage/JSON";
+import type { ApiKickVod } from "@common/Api/Client";
+import type { Providers } from "@common/Defs";
 import { parseJSON } from "date-fns";
 import { BaseVOD } from "../Base/BaseVOD";
-import type { Providers } from "@common/Defs";
-import { JobStatus, MuteStatus } from "@common/Defs";
-import type { KickVODJSON } from "../../../Storage/JSON";
-import type { ApiKickVod } from "@common/Api/Client";
 
 export class KickVOD extends BaseVOD {
     public provider: Providers = "kick";
@@ -43,7 +42,7 @@ export class KickVOD extends BaseVOD {
         if (!this.uuid) throw new Error(`No UUID set on VOD ${this.basename}`);
         if (!this.channel_uuid)
             throw new Error(`No channel UUID set on VOD ${this.basename}`);
-        return {
+        return await Promise.resolve({
             provider: "kick",
             uuid: this.uuid,
             channel_uuid: this.channel_uuid,
@@ -150,6 +149,6 @@ export class KickVOD extends BaseVOD {
                     end: v.end.toISOString(),
                 };
             }),
-        };
+        });
     }
 }

@@ -1,3 +1,4 @@
+import { imageThumbnail } from "@/Helpers/Image";
 import type { ApiTwitchChannel } from "@common/Api/Client";
 import type { TwitchChannelConfig, VideoQuality } from "@common/Config";
 import type { Providers } from "@common/Defs";
@@ -55,7 +56,6 @@ import { Webhook } from "../../Webhook";
 import { BaseChannel } from "../Base/BaseChannel";
 import { TwitchGame } from "./TwitchGame";
 import { TwitchVOD } from "./TwitchVOD";
-import { imageThumbnail } from "@/Helpers/Image";
 
 export class TwitchChannel extends BaseChannel {
     public provider: Providers = "twitch";
@@ -1864,7 +1864,7 @@ export class TwitchChannel extends BaseChannel {
         );
     }
 
-    public static isType(channel: any): channel is TwitchChannel {
+    public static isType(channel: unknown): channel is TwitchChannel {
         return channel instanceof TwitchChannel;
     }
 

@@ -1,7 +1,7 @@
-import type express from "express";
-import { YouTubeHelper } from "../Providers/YouTube";
 import { log, LOGLEVEL } from "@/Core/Log";
 import { formatDistanceToNow, formatISO9075 } from "date-fns";
+import type express from "express";
+import { YouTubeHelper } from "../Providers/YouTube";
 
 export function Authenticate(
     req: express.Request,
@@ -94,7 +94,7 @@ export function Callback(
 ): Promise<void> {
     log(LOGLEVEL.INFO, "YouTube.Callback", "Got callback from YouTube...");
 
-    return new Promise<void>((resolve, reject) => {
+    return new Promise<void>((resolve) => {
         if (!YouTubeHelper.oAuth2Client) {
             res.status(500).send({
                 status: "ERROR",

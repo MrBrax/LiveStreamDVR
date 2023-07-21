@@ -1,19 +1,19 @@
 // const { cli } = require('webpack');
-import type { AxiosError } from "axios";
-import axios from "axios";
-import chalk from "chalk";
-import type { IncomingMessage } from "node:http";
-import type WebSocket from "ws";
-import fs from "node:fs";
-import type express from "express";
+import { debugLog } from "@/Helpers/Console";
 import type { NotificationCategory } from "@common/Defs";
 import { NotificationCategories, NotificationProvider } from "@common/Defs";
 import type { NotifyData } from "@common/Webhook";
+import type { AxiosError } from "axios";
+import axios from "axios";
+import chalk from "chalk";
+import type express from "express";
+import fs from "node:fs";
+import type { IncomingMessage } from "node:http";
+import type WebSocket from "ws";
 import { BaseConfigPath } from "./BaseConfig";
 import { Config } from "./Config";
-import { log, LOGLEVEL } from "./Log";
 import { LiveStreamDVR } from "./LiveStreamDVR";
-import { debugLog } from "@/Helpers/Console";
+import { LOGLEVEL, log } from "./Log";
 
 interface Client {
     id: string;
@@ -28,13 +28,13 @@ interface TelegramSendMessagePayload {
     chat_id: number;
     text: string;
     parse_mode?: "MarkdownV2" | "Markdown" | "HTML";
-    entities?: any;
+    entities?: unknown;
     disable_web_page_preview?: boolean;
     disable_notification?: boolean;
     protect_content?: boolean;
     reply_to_message_id?: number;
     allow_sending_without_reply?: boolean;
-    reply_markup?: any;
+    reply_markup?: unknown;
 }
 
 interface DiscordSendMessagePayload {
@@ -42,13 +42,74 @@ interface DiscordSendMessagePayload {
     username?: string;
     avatar_url?: string;
     tts?: boolean;
-    embeds?: any;
-    allowed_mentions?: any;
-    components?: any;
-    files?: any;
+    embeds?: DiscordEmbed[];
+    allowed_mentions?: unknown;
+    components?: unknown;
+    files?: unknown;
     payload_json?: string;
-    attachments?: any;
+    attachments?: unknown;
     flags?: number;
+}
+
+interface DiscordEmbed {
+    title?: string;
+    type?: string;
+    description?: string;
+    url?: string;
+    timestamp?: string;
+    color?: number;
+    footer?: DiscordEmbedFooter;
+    image?: DiscordEmbedImage;
+    thumbnail?: DiscordEmbedThumbnail;
+    video?: DiscordEmbedVideo;
+    provider?: DiscordEmbedProvider;
+    author?: DiscordEmbedAuthor;
+    fields?: DiscordEmbedField[];
+}
+
+interface DiscordEmbedFooter {
+    text: string;
+    icon_url?: string;
+    proxy_icon_url?: string;
+}
+
+interface DiscordEmbedImage {
+    url?: string;
+    proxy_url?: string;
+    height?: number;
+    width?: number;
+}
+
+interface DiscordEmbedThumbnail {
+    url?: string;
+    proxy_url?: string;
+    height?: number;
+    width?: number;
+}
+
+interface DiscordEmbedVideo {
+    url?: string;
+    proxy_url?: string;
+    height?: number;
+    width?: number;
+}
+
+interface DiscordEmbedProvider {
+    name?: string;
+    url?: string;
+}
+
+interface DiscordEmbedAuthor {
+    name?: string;
+    url?: string;
+    icon_url?: string;
+    proxy_icon_url?: string;
+}
+
+interface DiscordEmbedField {
+    name: string;
+    value: string;
+    inline?: boolean;
 }
 
 interface PushoverSendMessagePayload {
@@ -163,7 +224,7 @@ export class ClientBroker {
                 return;
             }
 
-            let data: any;
+            let data: unknown;
 
             try {
                 data = JSON.parse(message);

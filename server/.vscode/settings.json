@@ -1,39 +1,33 @@
 {
-  "search.exclude": {
-    "**/.yarn": true,
-    "**/.pnp.*": true
-  },
-  "eslint.nodePath": ".yarn/sdks",
-  "typescript.tsdk": ".yarn/sdks/typescript/lib",
-  "typescript.enablePromptUseWorkspaceTsdk": true,
-  "i18n-ally.localesPaths": [
-    "./src/Translations"
-  ],
-  "i18n-ally.sourceLanguage": "en",
-  "i18n-ally.keystyle": "nested",
-  "i18n-ally.refactor.templates": [
-    {
-      "templates": [
-        "req.t(\"{key}\"{args})",
-        "t(\"{key}\"{args})"
-      ],
-      "exclude": [
-        "src/config/**"
-      ]
+    "search.exclude": {
+        "**/.yarn": true,
+        "**/.pnp.*": true
+    },
+    "eslint.nodePath": ".yarn/sdks",
+    "typescript.tsdk": ".yarn/sdks/typescript/lib",
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+    "i18n-ally.localesPaths": ["./src/Translations"],
+    "i18n-ally.sourceLanguage": "en",
+    "i18n-ally.keystyle": "nested",
+    "i18n-ally.refactor.templates": [
+        {
+            "templates": ["req.t(\"{key}\"{args})", "t(\"{key}\"{args})"],
+            "exclude": ["src/config/**"]
+        }
+    ],
+    "editor.formatOnSave": true,
+    "eslint.options": {
+        "rulePaths": ["./src/Extend"]
+    },
+    "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "[javascript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "[typescript]": {
+        "editor.defaultFormatter": "esbenp.prettier-vscode"
+    },
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true
     }
-  ],
-  "editor.formatOnSave": true,
-  "eslint.options": {
-    "rulePaths": [
-      "./src/Extend"
-    ]
-  },
-  "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
-  "editor.defaultFormatter": "esbenp.prettier-vscode",
-  "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
 }

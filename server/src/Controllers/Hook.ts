@@ -1,18 +1,18 @@
-import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
-import { Config } from "@/Core/Config";
-import type express from "express";
-import crypto from "node:crypto";
-import path from "node:path";
 import { BaseConfigDataFolder } from "@/Core/BaseConfig";
-import fs from "node:fs";
-import type { EventSubResponse } from "@common/TwitchAPI/EventSub";
-import type { ChallengeResponse } from "@common/TwitchAPI/Challenge";
-import { log, LOGLEVEL } from "@/Core/Log";
+import { Config } from "@/Core/Config";
 import { KeyValue } from "@/Core/KeyValue";
-import { SubStatus } from "@common/Defs";
+import { log, LOGLEVEL } from "@/Core/Log";
 import type { AutomatorMetadata } from "@/Core/Providers/Twitch/TwitchAutomator";
 import { TwitchAutomator } from "@/Core/Providers/Twitch/TwitchAutomator";
+import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
+import { SubStatus } from "@common/Defs";
+import type { ChallengeResponse } from "@common/TwitchAPI/Challenge";
+import type { EventSubResponse } from "@common/TwitchAPI/EventSub";
+import type express from "express";
 import { XMLParser } from "fast-xml-parser";
+import crypto from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
 
 const verifyTwitchSignature = (request: express.Request): boolean => {
     // calculate signature
@@ -70,7 +70,7 @@ const verifyTwitchSignature = (request: express.Request): boolean => {
     }
 
     // const body = JSON.stringify(request.body); // needs raw body
-    const body: string = (request as any).rawBody;
+    const body = request.rawBody.toString();
 
     const hmac_message = twitch_message_id + twitch_message_timestamp + body;
 
@@ -327,6 +327,12 @@ export async function HookTwitch(
     return;
 }
 
+/**
+ * TODO: implement, currently youtube does not broadcast events related to live streams
+ * @param req
+ * @param res
+ * @returns
+ */
 export async function HookYouTube(
     req: express.Request,
     res: express.Response

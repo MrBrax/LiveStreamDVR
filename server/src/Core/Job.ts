@@ -15,7 +15,7 @@ import { Webhook } from "./Webhook";
 export interface TwitchAutomatorJobJSON {
     name: string;
     pid: number;
-    metadata?: Record<string, any>;
+    metadata?: Record<string, unknown>;
     dt_started_at: string;
     bin?: string;
     args?: string[];
@@ -44,7 +44,7 @@ export class Job extends EventEmitter {
     public pid: number | undefined;
     public pidfile: string | undefined;
     public pidfile_simple: string | undefined;
-    public metadata: Record<string, any> | undefined;
+    public metadata: Record<string, unknown> | undefined;
     public status: JobStatus = JobStatus.NONE;
     public error: number | undefined;
 
@@ -552,13 +552,13 @@ export class Job extends EventEmitter {
      * @param {any} metadata An object or array or any other data to attach
      * @return {void}
      */
-    public setMetadata(metadata: Record<string, any>): void {
+    public setMetadata(metadata: Record<string, unknown>): void {
         this.emit("metadata_set", this.metadata, metadata);
         this.metadata = metadata;
         this.broadcastUpdate();
     }
 
-    public addMetadata(metadata: Record<string, any>): void {
+    public addMetadata(metadata: Record<string, unknown>): void {
         this.emit("metadata_add", this.metadata, metadata);
         this.metadata = { ...this.metadata, ...metadata };
         this.broadcastUpdate();
@@ -1074,15 +1074,15 @@ export declare interface Job {
     on(
         event: "metadata_set",
         listener: (
-            old_metadata: Record<string, any> | undefined,
-            new_metadata: Record<string, any>
+            old_metadata: Record<string, unknown> | undefined,
+            new_metadata: Record<string, unknown>
         ) => void
     ): this;
     on(
         event: "metadata_add",
         listener: (
-            old_metadata: Record<string, any> | undefined,
-            new_metadata: Record<string, any>
+            old_metadata: Record<string, unknown> | undefined,
+            new_metadata: Record<string, unknown>
         ) => void
     ): this;
     on(event: "pre_kill", listener: (method: NodeJS.Signals) => void): this;

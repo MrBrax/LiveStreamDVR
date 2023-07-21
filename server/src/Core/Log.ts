@@ -1,3 +1,5 @@
+import { formatBytes } from "@/Helpers/Format";
+import { xClearTimeout, xTimeout } from "@/Helpers/Timeout";
 import chalk from "chalk";
 import { format } from "date-fns";
 import fs from "node:fs";
@@ -5,8 +7,6 @@ import path from "node:path";
 import { BaseConfigDataFolder } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
-import { xClearTimeout, xTimeout } from "@/Helpers/Timeout";
-import { formatBytes } from "@/Helpers/Format";
 
 export enum LOGLEVEL {
     ERROR = "ERROR",
@@ -24,7 +24,7 @@ export interface LogLine {
     level: LOGLEVEL;
     text: string;
     pid?: number;
-    metadata?: any;
+    metadata?: unknown;
     g?: string; // git hash
 }
 
@@ -96,7 +96,7 @@ export function log(
     level: LOGLEVEL,
     module: string,
     text: string,
-    metadata?: any
+    metadata?: unknown
 ): void {
     if (!Config.debug && level == LOGLEVEL.DEBUG) return;
 

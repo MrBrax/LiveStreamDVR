@@ -1,22 +1,21 @@
+import type { TwitchVODChapterJSON } from "@/Storage/JSON";
+import type { EventSubResponse } from "@common/TwitchAPI/EventSub";
+import type { ChannelUpdateEvent } from "@common/TwitchAPI/EventSub/ChannelUpdate";
+import type { ChapterUpdateData } from "@common/Webhook";
+import { t } from "i18next";
+import fs from "node:fs";
+import path from "node:path";
+import { TwitchHelper } from "../../../Providers/Twitch";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
-import { TwitchHelper } from "../../../Providers/Twitch";
+import { Config } from "../../Config";
 import { KeyValue } from "../../KeyValue";
-import { censoredLogWords, log, LOGLEVEL } from "../../Log";
-import path from "node:path";
-import type { EventSubResponse } from "@common/TwitchAPI/EventSub";
+import { LOGLEVEL, censoredLogWords, log } from "../../Log";
+import { Webhook } from "../../Webhook";
 import { BaseAutomator } from "../Base/BaseAutomator";
 import { TwitchChannel } from "./TwitchChannel";
 import { TwitchVOD } from "./TwitchVOD";
-import express from "express";
-import fs from "node:fs";
-import { Config } from "../../Config";
-import { Webhook } from "../../Webhook";
-import type { TwitchVODChapterJSON } from "@/Storage/JSON";
-import type { ChannelUpdateEvent } from "@common/TwitchAPI/EventSub/ChannelUpdate";
-import type { ChapterUpdateData } from "@common/Webhook";
 import { TwitchVODChapter } from "./TwitchVODChapter";
-import { t } from "i18next";
 
 export interface AutomatorMetadata {
     message_id: string;

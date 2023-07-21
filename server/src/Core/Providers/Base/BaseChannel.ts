@@ -1,28 +1,28 @@
-import type chokidar from "chokidar";
-import { format } from "date-fns";
-import fs, { readdirSync } from "node:fs";
-import readdirSyncRecursive from "fs-readdir-recursive";
-import path from "node:path";
+import { debugLog } from "@/Helpers/Console";
+import { directorySize } from "@/Helpers/Filesystem";
 import type { ApiChannels } from "@common/Api/Client";
 import type { ChannelConfig, VideoQuality } from "@common/Config";
 import type { LocalClip } from "@common/LocalClip";
 import type { LocalVideo } from "@common/LocalVideo";
 import type { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
 import type { ChannelUpdated } from "@common/Webhook";
+import type chokidar from "chokidar";
+import { format } from "date-fns";
+import readdirSyncRecursive from "fs-readdir-recursive";
+import fs, { readdirSync } from "node:fs";
+import path from "node:path";
+import { xClearTimeout, xTimeout } from "../../../Helpers/Timeout";
+import { videoThumbnail, videometadata } from "../../../Helpers/Video";
+import type { BaseVODChapterJSON } from "../../../Storage/JSON";
 import { BaseConfigDataFolder } from "../../BaseConfig";
 import { Config } from "../../Config";
 import { Helper } from "../../Helper";
 import { KeyValue } from "../../KeyValue";
 import { LiveStreamDVR } from "../../LiveStreamDVR";
-import { log, LOGLEVEL } from "../../Log";
-import type { BaseVODChapterJSON } from "../../../Storage/JSON";
+import { LOGLEVEL, log } from "../../Log";
 import { Webhook } from "../../Webhook";
 import type { BaseVOD } from "./BaseVOD";
 import type { BaseVODChapter } from "./BaseVODChapter";
-import { xClearTimeout, xTimeout } from "../../../Helpers/Timeout";
-import { videoThumbnail, videometadata } from "../../../Helpers/Video";
-import { debugLog } from "@/Helpers/Console";
-import { directorySize } from "@/Helpers/Filesystem";
 
 export class BaseChannel {
     public declare uuid: string;
@@ -626,15 +626,15 @@ export class BaseChannel {
     }
 
     public async refreshData(): Promise<boolean> {
-        return false;
+        return await Promise.resolve(false);
     }
 
     public async isLiveApi(): Promise<boolean> {
-        return false;
+        return await Promise.resolve(false);
     }
 
     public async rename(new_login: string): Promise<boolean> {
-        return false;
+        return await Promise.resolve(false);
     }
 
     public parseVODs(rescan = false): Promise<void> {

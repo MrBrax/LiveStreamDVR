@@ -1,7 +1,6 @@
 import { Config } from "@/Core/Config";
+import type { ApiAuthResponse, ApiLoginResponse } from "@common/Api/Api";
 import type express from "express";
-import type { ApiLoginResponse, ApiAuthResponse } from "@common/Api/Api";
-import { t } from "i18next";
 export function Login(req: express.Request, res: express.Response): void {
     const password = Config.getInstance().cfg<string>("password");
     const client_password = req.body.password;

@@ -17,9 +17,9 @@ const timeouts: ExtendedTimeout[] = [];
 const intervals: ExtendedTimeout[] = [];
 
 export function xTimeout(
-    callback: (...args: any[]) => void,
+    callback: (...args: unknown[]) => void,
     ms: number,
-    ...args: any[]
+    ...args: unknown[]
 ): NodeJS.Timeout {
     const src = new Error().stack?.split("\n")[2].trim();
     const timeout = setTimeout(callback, ms, ...args);
@@ -32,9 +32,9 @@ export function xTimeout(
 }
 
 export function xInterval(
-    callback: (...args: any[]) => void,
+    callback: (...args: unknown[]) => void,
     ms: number,
-    ...args: any[]
+    ...args: unknown[]
 ): NodeJS.Timeout {
     const src = new Error().stack?.split("\n")[2].trim();
     const interval = setInterval(callback, ms, ...args);

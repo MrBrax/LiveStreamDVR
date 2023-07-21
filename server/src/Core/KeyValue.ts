@@ -1,3 +1,4 @@
+import { debugLog } from "@/Helpers/Console";
 import chalk from "chalk";
 import { isDate } from "date-fns";
 import { minimatch } from "minimatch";
@@ -5,9 +6,7 @@ import EventEmitter from "node:events";
 import fs from "node:fs";
 import path from "node:path";
 import { BaseConfigCacheFolder, BaseConfigPath } from "./BaseConfig";
-import { Config } from "./Config";
-import { log, LOGLEVEL } from "./Log";
-import { debugLog } from "@/Helpers/Console";
+import { LOGLEVEL, log } from "./Log";
 
 export interface KeyValueData {
     value: string;

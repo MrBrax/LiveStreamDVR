@@ -17,7 +17,7 @@ export function progressOutput(text: string) {
     }
 }
 
-export function debugLog(...args: any[]) {
+export function debugLog(...args: unknown[]) {
     if (Config && Config.debug) {
         console.debug(
             chalk.redBright(`[debug/${new Date().toISOString()}]`),

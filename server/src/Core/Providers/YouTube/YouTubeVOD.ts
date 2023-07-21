@@ -1,22 +1,22 @@
-import { youtube_v3 } from "@googleapis/youtube";
-import chalk from "chalk";
-import fs from "node:fs";
-import path from "node:path";
+import { BaseConfigCacheFolder } from "@/Core/BaseConfig";
+import { Helper } from "@/Core/Helper";
+import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
+import { log, LOGLEVEL } from "@/Core/Log";
+import { execAdvanced } from "@/Helpers/Execute";
+import { isYouTubeVOD } from "@/Helpers/Types";
+import { YouTubeHelper } from "@/Providers/YouTube";
+import type { VODJSON, YouTubeVODJSON } from "@/Storage/JSON";
 import type { ApiYouTubeVod } from "@common/Api/Client";
 import type { VideoQuality } from "@common/Config";
 import type { Providers } from "@common/Defs";
 import type { ProxyVideo } from "@common/Proxies/Video";
-import { BaseConfigCacheFolder } from "../../../Core/BaseConfig";
-import { Helper } from "../../../Core/Helper";
-import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
-import { log, LOGLEVEL } from "../../../Core/Log";
-import { isYouTubeVOD } from "../../../Helpers/Types";
-import { YouTubeHelper } from "../../../Providers/YouTube";
-import type { VODJSON, YouTubeVODJSON } from "../../../Storage/JSON";
+import { youtube_v3 } from "@googleapis/youtube";
+import chalk from "chalk";
+import fs from "node:fs";
+import path from "node:path";
 import { BaseVOD } from "../Base/BaseVOD";
 import type { BaseVODChapter } from "../Base/BaseVODChapter";
 import type { YouTubeChannel } from "./YouTubeChannel";
-import { execAdvanced } from "../../../Helpers/Execute";
 
 export class YouTubeVOD extends BaseVOD {
     public provider: Providers = "youtube";
@@ -34,7 +34,7 @@ export class YouTubeVOD extends BaseVOD {
         if (!this.uuid) throw new Error(`No UUID set on VOD ${this.basename}`);
         if (!this.channel_uuid)
             throw new Error(`No channel UUID set on VOD ${this.basename}`);
-        return {
+        return await Promise.resolve({
             provider: "youtube",
             uuid: this.uuid,
             channel_uuid: this.channel_uuid,
@@ -150,7 +150,7 @@ export class YouTubeVOD extends BaseVOD {
             // automator_fail: this.automator_fail,
             // dt_started_at: this.dt_started_at ? TwitchHelper.JSDateToPHPDate(this.dt_started_at) : null,
             // dt_ended_at: this.dt_ended_at ? TwitchHelper.JSDateToPHPDate(this.dt_ended_at) : null,
-        };
+        });
     }
 
     public async saveJSON(reason = ""): Promise<boolean> {
@@ -312,6 +312,8 @@ export class YouTubeVOD extends BaseVOD {
                 `No channel UUID for VOD ${this.basename}`
             );
         }
+
+        return await Promise.resolve();
     }
 
     public static async load(

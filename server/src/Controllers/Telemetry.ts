@@ -1,14 +1,13 @@
-import type express from "express";
-import fs from "node:fs";
-import path from "node:path";
-import type { ApiResponse } from "@common/Api/Api";
 import { BaseConfigFolder } from "@/Core/BaseConfig";
 import { ClientBroker } from "@/Core/ClientBroker";
 import { Config } from "@/Core/Config";
 import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
 import { generateStreamerList } from "@/Helpers/StreamerList";
-import { Helper } from "@/Core/Helper";
 import { is_docker, is_windows } from "@/Helpers/System";
+import type { ApiResponse } from "@common/Api/Api";
+import type express from "express";
+import fs from "node:fs";
+import path from "node:path";
 
 /**
  * I don't like telemetry myself, but I do get curious sometimes.

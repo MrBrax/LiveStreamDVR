@@ -68,9 +68,8 @@ export class FileExporter extends BaseExporter {
     }
 
     async verify(): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
-            const exists = fs.existsSync(this.final_path);
-            resolve(exists);
+        return await new Promise<boolean>((resolve, reject) => {
+            resolve(fs.existsSync(this.final_path));
         });
     }
 }

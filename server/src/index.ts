@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import chalk from "chalk";
-import { LiveStreamDVR } from "./Core/LiveStreamDVR";
 import dotenv from "dotenv";
 import express from "express";
 import session from "express-session";
@@ -12,19 +11,32 @@ import { WebSocketServer } from "ws";
 import { version } from "../package.json";
 import {
     AppName,
+    BaseConfigCacheFolder,
     BaseConfigDataFolder,
     BaseConfigFolder,
 } from "./Core/BaseConfig";
 import { ClientBroker } from "./Core/ClientBroker";
 import { Config } from "./Core/Config";
+import { LiveStreamDVR } from "./Core/LiveStreamDVR";
 import { Webhook } from "./Core/Webhook";
+import { debugLog } from "./Helpers/Console";
 import i18n from "./Helpers/i18n";
 import ApiRouter from "./Routes/Api";
-import { debugLog } from "./Helpers/Console";
 
 declare module "express-session" {
     interface SessionData {
         authenticated: boolean;
+    }
+}
+
+declare module "express" {
+    interface Request {
+        /**
+         * Raw body buffer
+         * https://flaviocopes.com/express-get-raw-body/
+         * Super bad hack
+         */
+        rawBody: Buffer;
     }
 }
 
@@ -139,7 +151,10 @@ LiveStreamDVR.init().then(() => {
         "/saved_clips",
         express.static(BaseConfigDataFolder.saved_clips)
     );
-    baserouter.use("/cache", express.static(BaseConfigDataFolder.public_cache));
+    baserouter.use(
+        "/cache",
+        express.static(BaseConfigCacheFolder.public_cache)
+    );
     if (process.env.TCD_EXPOSE_LOGS_TO_PUBLIC == "1") {
         baserouter.use("/logs", express.static(BaseConfigDataFolder.logs));
     }

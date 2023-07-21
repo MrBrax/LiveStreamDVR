@@ -1,3 +1,4 @@
+import type { TwitchVODChapterJSON } from "@/Storage/JSON";
 import type { VideoQuality } from "@common/Config";
 import type { NotificationCategory } from "@common/Defs";
 import { JobStatus, nonGameCategories } from "@common/Defs";
@@ -20,7 +21,6 @@ import fs from "node:fs";
 import type { IncomingHttpHeaders } from "node:http";
 import path from "node:path";
 import sanitize from "sanitize-filename";
-import type { TwitchVODChapterJSON } from "@/Storage/JSON";
 import type { Exporter } from "../../../Controllers/Exporter";
 import { GetExporter } from "../../../Controllers/Exporter";
 import { progressOutput } from "../../../Helpers/Console";
@@ -31,7 +31,7 @@ import { xClearInterval, xInterval } from "../../../Helpers/Timeout";
 import { isTwitchVOD, isTwitchVODChapter } from "../../../Helpers/Types";
 import { remuxFile } from "../../../Helpers/Video";
 import type { RemuxReturn } from "../../../Providers/Twitch";
-import { BaseConfigDataFolder } from "../../BaseConfig";
+import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
 import { Config } from "../../Config";
 import { Helper } from "../../Helper";
@@ -39,7 +39,7 @@ import { Job } from "../../Job";
 import { KeyValue } from "../../KeyValue";
 import type { ChannelTypes, VODTypes } from "../../LiveStreamDVR";
 import { LiveStreamDVR } from "../../LiveStreamDVR";
-import { log, LOGLEVEL } from "../../Log";
+import { LOGLEVEL, log } from "../../Log";
 import { Webhook } from "../../Webhook";
 import { TwitchChannel } from "../Twitch/TwitchChannel";
 import { TwitchVOD } from "../Twitch/TwitchVOD";
@@ -506,7 +506,7 @@ export class BaseAutomator {
         // write to history
         fs.writeFileSync(
             path.join(
-                BaseConfigDataFolder.history,
+                BaseConfigCacheFolder.history,
                 `${this.broadcaster_user_login}.jsonline`
             ),
             JSON.stringify({ time: new Date(), action: "offline" }) + "\n",
@@ -945,7 +945,7 @@ export class BaseAutomator {
 
         if (Config.getInstance().cfg("capture.use_cache", false)) {
             this.capture_filename = path.join(
-                BaseConfigDataFolder.capture,
+                BaseConfigCacheFolder.capture,
                 `${basename}.ts`
             );
         } else {

@@ -50,36 +50,6 @@ export const BaseConfigFolder = {
  */
 export const BaseConfigDataFolder = {
     config: path.join(DataRoot, "config"),
-
-    /**
-     * TODO: Separate cache to its own object
-     */
-
-    /** @deprecated **/
-    cache: path.join(DataRoot, "cache"),
-    /** @deprecated **/
-    cron: path.join(DataRoot, "cache", "cron"),
-    /** @deprecated **/
-    pids: path.join(DataRoot, "cache", "pids"),
-    /** @deprecated **/
-    playlist: path.join(DataRoot, "cache", "playlist"),
-    /** @deprecated **/
-    keyvalue: path.join(DataRoot, "cache", "kv"),
-    /** @deprecated **/
-    history: path.join(DataRoot, "cache", "history"),
-    /** @deprecated **/
-    dotnet: path.join(DataRoot, "cache", "dotnet"),
-    /** @deprecated **/
-    capture: path.join(DataRoot, "cache", "capture"),
-    /** @deprecated **/
-    public_cache: path.join(DataRoot, "cache", "public"),
-    /** @deprecated **/
-    public_cache_avatars: path.join(DataRoot, "cache", "public", "avatars"),
-    /** @deprecated **/
-    public_cache_banners: path.join(DataRoot, "cache", "public", "banners"),
-    /** @deprecated **/
-    public_cache_thumbs: path.join(DataRoot, "cache", "public", "thumbs"),
-
     logs: path.join(DataRoot, "logs"),
     logs_software: path.join(DataRoot, "logs", "software"),
     payloads: path.join(DataRoot, "payloads"),
@@ -92,6 +62,10 @@ export const BaseConfigDataFolder = {
     streamlink_plugins: path.join(DataRoot, "streamlink_plugins"),
 };
 
+/**
+ * All the folders in this object will be created if they don't exist.
+ * It should be used for temporary data only.
+ */
 export const BaseConfigCacheFolder = {
     cache: path.join(DataRoot, "cache"),
     cron: path.join(DataRoot, "cache", "cron"),
@@ -115,15 +89,15 @@ export const BaseConfigPath = {
         BaseConfigDataFolder.config,
         "favourite_games.json"
     ),
-    gameDb: path.join(BaseConfigDataFolder.cache, "games_v2.json"),
-    history: path.join(BaseConfigDataFolder.cache, "history.json"),
-    streamerCache: path.join(BaseConfigDataFolder.cache, "streamers_v2.json"),
+    gameDb: path.join(BaseConfigCacheFolder.cache, "games_v2.json"),
+    history: path.join(BaseConfigCacheFolder.cache, "history.json"),
+    streamerCache: path.join(BaseConfigCacheFolder.cache, "streamers_v2.json"),
     streamerYouTubeCache: path.join(
-        BaseConfigDataFolder.cache,
+        BaseConfigCacheFolder.cache,
         "streamers_youtube.json"
     ),
-    keyvalue: path.join(BaseConfigDataFolder.keyvalue, "kv.json"),
-    keyvalueDatabase: path.join(BaseConfigDataFolder.keyvalue, "kv2.json"),
+    keyvalue: path.join(BaseConfigCacheFolder.keyvalue, "kv.json"),
+    keyvalueDatabase: path.join(BaseConfigCacheFolder.keyvalue, "kv2.json"),
     notifications: path.join(BaseConfigDataFolder.config, "notifications.json"),
     clientSettings: path.join(
         BaseConfigDataFolder.config,
