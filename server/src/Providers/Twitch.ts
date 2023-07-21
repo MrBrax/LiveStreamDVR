@@ -118,7 +118,7 @@ export class TwitchHelper {
     // public static eventWebsocketTimeoutCheck?: NodeJS.Timeout;
     // public static eventWebsocketConnectedAt?: Date;
     public static eventWebsocketMaxWebsockets = 3;
-    public static eventWebsocketMaxSubscriptions = 100;
+    public static eventWebsocketMaxSubscriptions = 300;
 
     /*
     static readonly SUBSTATUS = {
