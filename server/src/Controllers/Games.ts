@@ -4,10 +4,11 @@ import type { ApiGamesResponse } from "@common/Api/Api";
 import type { ApiGame } from "@common/Api/Client";
 
 export function ListGames(req: express.Request, res: express.Response): void {
-
     const games: Record<string, ApiGame> = {};
-    Object.values(TwitchGame.game_db).forEach((game: TwitchGame) => { games[game.id || ""] = game.toAPI(); });
-    
+    Object.values(TwitchGame.game_db).forEach((game: TwitchGame) => {
+        games[game.id || ""] = game.toAPI();
+    });
+
     const fmt = req.query.format == "array" ? "array" : "hash";
 
     res.send({
@@ -15,11 +16,12 @@ export function ListGames(req: express.Request, res: express.Response): void {
         data: games,
         status: "OK",
     } as ApiGamesResponse);
-
 }
 
-export async function RefreshGame(req: express.Request, res: express.Response): Promise<void> {
-
+export async function RefreshGame(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const game_id = req.params.id;
 
     if (!game_id) {
@@ -36,5 +38,4 @@ export async function RefreshGame(req: express.Request, res: express.Response): 
         data: game ? game.toAPI() : null,
         status: "OK",
     });
-
 }

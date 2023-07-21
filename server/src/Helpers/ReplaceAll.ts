@@ -1,14 +1,18 @@
 // ReplaceAll polyfill
 
 /**
- * 
- * @param str 
- * @param find 
- * @param replace 
+ *
+ * @param str
+ * @param find
+ * @param replace
  * @deprecated
- * @returns 
+ * @returns
  */
-export function replaceAll(str: string, find: string | RegExp, replace: string): string {
+export function replaceAll(
+    str: string,
+    find: string | RegExp,
+    replace: string
+): string {
     if (typeof find === "string") {
         return str.replace(new RegExp(find, "g"), replace);
     } else {

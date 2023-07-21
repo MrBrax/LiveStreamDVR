@@ -7,10 +7,11 @@ import { BaseConfigDataFolder } from "@/Core/BaseConfig";
 import { fetchLog } from "@/Core/Log";
 
 export function GetLog(req: express.Request, res: express.Response) {
-
     const filename = req.params.filename;
 
-    const start_from = req.params.startFrom ? parseInt(req.params.startFrom) : 0;
+    const start_from = req.params.startFrom
+        ? parseInt(req.params.startFrom)
+        : 0;
 
     if (!filename) {
         res.status(400).send({
@@ -25,20 +26,29 @@ export function GetLog(req: express.Request, res: express.Response) {
     try {
         log_lines = fetchLog(filename, start_from) as ApiLogLine[];
     } catch (error) {
-        res.status(400).send({ status: "ERROR", message: (error as Error).message } as ApiErrorResponse);
+        res.status(400).send({
+            status: "ERROR",
+            message: (error as Error).message,
+        } as ApiErrorResponse);
         return;
     }
 
     for (const i in log_lines) {
         if (log_lines[i].time) {
-            log_lines[i].date_string = format(new Date(log_lines[i].time), "yyyy-MM-dd HH:mm:ss");
+            log_lines[i].date_string = format(
+                new Date(log_lines[i].time),
+                "yyyy-MM-dd HH:mm:ss"
+            );
             log_lines[i].date = new Date(log_lines[i].time).toISOString();
         }
     }
 
     const line_num = log_lines.length;
 
-    const logfiles = fs.readdirSync(BaseConfigDataFolder.logs).filter(f => f.endsWith(".jsonline")).map(f => f.replace(".log.jsonline", ""));
+    const logfiles = fs
+        .readdirSync(BaseConfigDataFolder.logs)
+        .filter((f) => f.endsWith(".jsonline"))
+        .map((f) => f.replace(".log.jsonline", ""));
 
     res.send({
         data: {
@@ -48,5 +58,4 @@ export function GetLog(req: express.Request, res: express.Response) {
         },
         status: "OK",
     } as ApiLogResponse);
-
 }

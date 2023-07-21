@@ -15,17 +15,19 @@ function redirectUri(): string {
     }
     return `${app_url}/api/v0/twitch/callback`;
 }
-export function Authenticate(req: express.Request, res: express.Response): void {
-
+export function Authenticate(
+    req: express.Request,
+    res: express.Response
+): void {
     log(LOGLEVEL.INFO, "route.twitch", "Begin auth process...");
 
     const clientId = Config.getInstance().cfg("api_client_id");
 
-    
-
     const scopes: string[] = [];
 
-    const url = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri()}&response_type=code&scope=${scopes.join(" ")}`;
+    const url = `https://id.twitch.tv/oauth2/authorize?client_id=${clientId}&redirect_uri=${redirectUri()}&response_type=code&scope=${scopes.join(
+        " "
+    )}`;
 
     if (req.query.rawurl) {
         log(LOGLEVEL.SUCCESS, "route.twitch", `Send raw URL to user: ${url}`);
@@ -38,11 +40,12 @@ export function Authenticate(req: express.Request, res: express.Response): void 
         log(LOGLEVEL.SUCCESS, "route.twitch", `Send user to: ${url}`);
         res.redirect(302, url);
     }
-
 }
 
-export async function Callback(req: express.Request, res: express.Response): Promise<void> {
-
+export async function Callback(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     log(LOGLEVEL.INFO, "route.twitch", "Callback received");
 
     const code = req.query.code as string;
@@ -52,7 +55,11 @@ export async function Callback(req: express.Request, res: express.Response): Pro
             status: "ERROR",
             message: "No code received from Twitch. Check your settings.",
         });
-        log(LOGLEVEL.ERROR, "route.twitch", "No code received from Twitch, user stuck.");
+        log(
+            LOGLEVEL.ERROR,
+            "route.twitch",
+            "No code received from Twitch, user stuck."
+        );
         return;
     }
 
@@ -81,7 +88,13 @@ export async function Callback(req: express.Request, res: express.Response): Pro
         });
     } catch (e) {
         if (axios.isAxiosError(e)) {
-            log(LOGLEVEL.ERROR, "route.twitch", `Error while getting access token: ${(e as Error).message || e}, ${JSON.stringify(e.response?.data)}`);
+            log(
+                LOGLEVEL.ERROR,
+                "route.twitch",
+                `Error while getting access token: ${
+                    (e as Error).message || e
+                }, ${JSON.stringify(e.response?.data)}`
+            );
             console.log(body);
             console.error(e.response?.data);
             res.status(500).send({
@@ -92,7 +105,8 @@ export async function Callback(req: express.Request, res: express.Response): Pro
             console.error(e);
             res.status(500).send({
                 status: "ERROR",
-                message: "Error while getting access token. Check the log for more information.",
+                message:
+                    "Error while getting access token. Check the log for more information.",
             });
         }
         return;
@@ -105,16 +119,24 @@ export async function Callback(req: express.Request, res: express.Response): Pro
     TwitchHelper.accessTokenTime = Date.now() + tokenResponse.data.expires_in;
     TwitchHelper.userRefreshToken = tokenResponse.data.refresh_token;
 
-    fs.writeFileSync(TwitchHelper.accessTokenUserFile, JSON.stringify(tokenResponse.data));
+    fs.writeFileSync(
+        TwitchHelper.accessTokenUserFile,
+        JSON.stringify(tokenResponse.data)
+    );
 
     res.send("Success! You can now close this window.");
 
-    log(LOGLEVEL.SUCCESS, "route.twitch", "Successfully authenticated user, switched to user token.");
-
+    log(
+        LOGLEVEL.SUCCESS,
+        "route.twitch",
+        "Successfully authenticated user, switched to user token."
+    );
 }
 
-export async function Status(req: express.Request, res: express.Response): Promise<void> {
-
+export async function Status(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     if (TwitchHelper.accessTokenType !== "user") {
         res.status(500).send({
             status: "ERROR",
@@ -141,7 +163,9 @@ export async function Status(req: express.Request, res: express.Response): Promi
 
     let data;
     try {
-        data = await TwitchChannel.getUserDataById(TwitchHelper.userTokenUserId);
+        data = await TwitchChannel.getUserDataById(
+            TwitchHelper.userTokenUserId
+        );
     } catch (error) {
         res.status(500).send({
             status: "ERROR",
@@ -158,7 +182,11 @@ export async function Status(req: express.Request, res: express.Response): Promi
         if (TwitchHelper.accessTokenTime > 0) {
             res.send({
                 status: "OK",
-                message: `Twitch authenticated with user: ${data.login}, expires in ${expires_in} (${formatISO9075(end_date)})`, /*, ${TwitchHelper.eventWebsocketSubscriptions.length} websocket subscriptions of which ${TwitchHelper.eventWebsocketSubscriptions.filter((s) => s.status === "enabled").length} are active.`,*/
+                message: `Twitch authenticated with user: ${
+                    data.login
+                }, expires in ${expires_in} (${formatISO9075(
+                    end_date
+                )})` /*, ${TwitchHelper.eventWebsocketSubscriptions.length} websocket subscriptions of which ${TwitchHelper.eventWebsocketSubscriptions.filter((s) => s.status === "enabled").length} are active.`,*/,
             });
         } else {
             res.send({
@@ -172,5 +200,4 @@ export async function Status(req: express.Request, res: express.Response): Promi
             message: "Twitch not authenticated, login is blank",
         });
     }
-
 }

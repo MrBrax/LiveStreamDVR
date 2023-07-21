@@ -7,7 +7,6 @@ import type { ExportData } from "@common/Exporter";
 import type { VodViewerEntry, StreamPause } from "@common/Vod";
 
 export interface VODJSON {
-
     version: number;
     type: Providers;
 
@@ -62,7 +61,6 @@ export interface VODJSON {
     stream_pauses?: { start?: string; end?: string }[];
 
     bookmarks: VODBookmark[];
-
 }
 export interface TwitchVODJSON extends VODJSON {
     type: "twitch";
@@ -76,7 +74,7 @@ export interface TwitchVODJSON extends VODJSON {
     chapters: TwitchVODChapterJSON[];
 
     twitch_vod_id?: string;
-    twitch_vod_duration?: number
+    twitch_vod_duration?: number;
     twitch_vod_title?: string;
     twitch_vod_date?: string;
     twitch_vod_muted?: MuteStatus;
@@ -84,7 +82,6 @@ export interface TwitchVODJSON extends VODJSON {
     twitch_vod_neversaved?: boolean;
     twitch_vod_exists?: boolean;
     twitch_vod_attempted?: boolean;
-
 }
 
 export interface YouTubeVODJSON extends VODJSON {

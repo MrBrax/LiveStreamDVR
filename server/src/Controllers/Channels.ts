@@ -4,9 +4,19 @@ import type express from "express";
 import fs from "node:fs";
 import path from "node:path";
 import sanitize from "sanitize-filename";
-import type { ApiChannelResponse, ApiChannelsResponse, ApiErrorResponse, ApiResponse } from "@common/Api/Api";
-import type { TwitchChannelConfig, VideoQuality, YouTubeChannelConfig, KickChannelConfig } from "@common/Config";
-import type { Providers} from "@common/Defs";
+import type {
+    ApiChannelResponse,
+    ApiChannelsResponse,
+    ApiErrorResponse,
+    ApiResponse,
+} from "@common/Api/Api";
+import type {
+    TwitchChannelConfig,
+    VideoQuality,
+    YouTubeChannelConfig,
+    KickChannelConfig,
+} from "@common/Config";
+import type { Providers } from "@common/Defs";
 import { VideoQualityArray } from "@common/Defs";
 import { formatString } from "@common/Format";
 import type { ProxyVideo } from "@common/Proxies/Video";
@@ -17,7 +27,7 @@ import { Config } from "@/Core/Config";
 import { KeyValue } from "@/Core/KeyValue";
 import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
 import { log, LOGLEVEL } from "@/Core/Log";
-import type { AutomatorMetadata} from "@/Core/Providers/Twitch/TwitchAutomator";
+import type { AutomatorMetadata } from "@/Core/Providers/Twitch/TwitchAutomator";
 import { TwitchAutomator } from "@/Core/Providers/Twitch/TwitchAutomator";
 import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "@/Core/Providers/Twitch/TwitchVOD";
@@ -30,17 +40,21 @@ import { isTwitchChannel, isYouTubeChannel } from "@/Helpers/Types";
 import { TwitchHelper } from "../Providers/Twitch";
 import type { TwitchVODChapterJSON } from "../Storage/JSON";
 import { Job } from "@/Core/Job";
-import type { Exporter} from "./Exporter";
+import type { Exporter } from "./Exporter";
 import { GetExporter } from "./Exporter";
 import type { ExporterOptions } from "@common/Exporter";
 import { KickChannel } from "@/Core/Providers/Kick/KickChannel";
 import { debugLog } from "@/Helpers/Console";
 
-export async function ListChannels(req: express.Request, res: express.Response): Promise<void> {
-
+export async function ListChannels(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const { channels, total_size } = generateStreamerList();
 
-    const streamer_list = await Promise.all(channels.map(async c => await c.toAPI()));
+    const streamer_list = await Promise.all(
+        channels.map(async (c) => await c.toAPI())
+    );
 
     res.send({
         data: {
@@ -53,23 +67,31 @@ export async function ListChannels(req: express.Request, res: express.Response):
     } as ApiChannelsResponse);
 }
 
-const getChannelFromRequest = (req: express.Request): TwitchChannel | YouTubeChannel | KickChannel | undefined => {
-
+const getChannelFromRequest = (
+    req: express.Request
+): TwitchChannel | YouTubeChannel | KickChannel | undefined => {
     if (req.params.uuid) {
-        return LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid) || undefined;
+        return (
+            LiveStreamDVR.getInstance().getChannelByUUID(req.params.uuid) ||
+            undefined
+        );
     }
 
     if (req.params.name) {
-        return LiveStreamDVR.getInstance().getChannelByInternalName(req.params.internalname) || undefined;
+        return (
+            LiveStreamDVR.getInstance().getChannelByInternalName(
+                req.params.internalname
+            ) || undefined
+        );
     }
 
     return undefined;
-
 };
 
-
-export async function GetChannel(req: express.Request, res: express.Response): Promise<void> {
-
+export async function GetChannel(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const channel = getChannelFromRequest(req);
 
     if (!channel) {
@@ -84,11 +106,12 @@ export async function GetChannel(req: express.Request, res: express.Response): P
         data: await channel.toAPI(),
         status: "OK",
     } as ApiChannelResponse);
-
 }
 
-export function UpdateChannel(req: express.Request, res: express.Response): void {
-
+export function UpdateChannel(
+    req: express.Request,
+    res: express.Response
+): void {
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
@@ -113,8 +136,12 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
         download_vod_at_end_quality: VideoQuality;
     } = req.body;
 
-    const quality = formdata.quality ? formdata.quality.split(" ") as VideoQuality[] : [];
-    const match = formdata.match ? formdata.match.split(",").map(m => m.trim()) : [];
+    const quality = formdata.quality
+        ? (formdata.quality.split(" ") as VideoQuality[])
+        : [];
+    const match = formdata.match
+        ? formdata.match.split(",").map((m) => m.trim())
+        : [];
     const download_chat = formdata.download_chat;
     const burn_chat = formdata.burn_chat;
     const no_capture = formdata.no_capture;
@@ -167,26 +194,42 @@ export function UpdateChannel(req: express.Request, res: express.Response): void
 
     res.send({
         status: "OK",
-        message: req.t("route.channels.channel-internalname-updated", [channel.internalName]),
+        message: req.t("route.channels.channel-internalname-updated", [
+            channel.internalName,
+        ]),
     });
-
 }
 
-export async function DeleteChannel(req: express.Request, res: express.Response): Promise<void> {
-
+export async function DeleteChannel(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
-
-        if (LiveStreamDVR.getInstance().channels_config.find(c => c instanceof TwitchChannel && c.uuid === req.params.uuid)) {
-            LiveStreamDVR.getInstance().channels_config = LiveStreamDVR.getInstance().channels_config.filter(c => c instanceof TwitchChannel && c.uuid !== req.params.uuid);
+        if (
+            LiveStreamDVR.getInstance().channels_config.find(
+                (c) => c instanceof TwitchChannel && c.uuid === req.params.uuid
+            )
+        ) {
+            LiveStreamDVR.getInstance().channels_config =
+                LiveStreamDVR.getInstance().channels_config.filter(
+                    (c) =>
+                        c instanceof TwitchChannel && c.uuid !== req.params.uuid
+                );
             LiveStreamDVR.getInstance().saveChannelsConfig();
 
             res.send({
                 status: "OK",
-                message: req.t("route.channels.channel-found-in-config-but-not-in-memory-removed-from-config"),
+                message: req.t(
+                    "route.channels.channel-found-in-config-but-not-in-memory-removed-from-config"
+                ),
             });
-            log(LOGLEVEL.INFO, "route.channels.delete", `Channel ${req.params.login} found in config but not in memory, removed from config`);
+            log(
+                LOGLEVEL.INFO,
+                "route.channels.delete",
+                `Channel ${req.params.login} found in config but not in memory, removed from config`
+            );
             return;
         }
 
@@ -201,7 +244,13 @@ export async function DeleteChannel(req: express.Request, res: express.Response)
         try {
             await channel.deleteAllVods();
         } catch (error) {
-            log(LOGLEVEL.ERROR, "route.channels.deleteAllVods", `Failed to delete all VODs of channel: ${(error as Error).message}`);
+            log(
+                LOGLEVEL.ERROR,
+                "route.channels.deleteAllVods",
+                `Failed to delete all VODs of channel: ${
+                    (error as Error).message
+                }`
+            );
             res.status(400).send({
                 status: "ERROR",
                 message: (error as Error).message,
@@ -218,13 +267,16 @@ export async function DeleteChannel(req: express.Request, res: express.Response)
 
     res.send({
         status: "OK",
-        message: req.t("route.channels.channel-internalname-deleted", [channel.internalName]),
+        message: req.t("route.channels.channel-internalname-deleted", [
+            channel.internalName,
+        ]),
     });
-
 }
 
-export async function AddChannel(req: express.Request, res: express.Response): Promise<void> {
-
+export async function AddChannel(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const provider = req.body.provider as Providers;
 
     if (!provider) {
@@ -255,13 +307,16 @@ export async function AddChannel(req: express.Request, res: express.Response): P
     let new_channel;
 
     if (provider == "twitch") {
-
         const channel_config: TwitchChannelConfig = {
             uuid: "",
             provider: "twitch",
             login: formdata.login || "",
-            quality: formdata.quality ? formdata.quality.split(" ") as VideoQuality[] : [],
-            match: formdata.match ? formdata.match.split(",").map(m => m.trim()) : [],
+            quality: formdata.quality
+                ? (formdata.quality.split(" ") as VideoQuality[])
+                : [],
+            match: formdata.match
+                ? formdata.match.split(",").map((m) => m.trim())
+                : [],
             download_chat: formdata.download_chat,
             burn_chat: formdata.burn_chat,
             no_capture: formdata.no_capture,
@@ -289,7 +344,9 @@ export async function AddChannel(req: express.Request, res: express.Response): P
             return;
         }
 
-        if (channel_config.quality.some(q => !VideoQualityArray.includes(q))) {
+        if (
+            channel_config.quality.some((q) => !VideoQualityArray.includes(q))
+        ) {
             res.status(400).send({
                 status: "ERROR",
                 message: req.t("route.channels.invalid-quality-selected"),
@@ -299,7 +356,11 @@ export async function AddChannel(req: express.Request, res: express.Response): P
 
         const channel = TwitchChannel.getChannelByLogin(channel_config.login);
         if (channel) {
-            log(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, channel already exists: ${channel_config.login}`);
+            log(
+                LOGLEVEL.ERROR,
+                "route.channels.add",
+                `Failed to create channel, channel already exists: ${channel_config.login}`
+            );
             res.status(400).send({
                 status: "ERROR",
                 message: req.t("route.channels.channel-already-exists"),
@@ -310,9 +371,17 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         let api_channel_data;
 
         try {
-            api_channel_data = await TwitchChannel.getUserDataByLogin(channel_config.login);
+            api_channel_data = await TwitchChannel.getUserDataByLogin(
+                channel_config.login
+            );
         } catch (error) {
-            log(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, API error: ${(error as Error).message}`);
+            log(
+                LOGLEVEL.ERROR,
+                "route.channels.add",
+                `Failed to create channel, API error: ${
+                    (error as Error).message
+                }`
+            );
             res.status(400).send({
                 status: "ERROR",
                 message: `API error: ${(error as Error).message}`,
@@ -320,19 +389,27 @@ export async function AddChannel(req: express.Request, res: express.Response): P
             return;
         }
 
-        if (api_channel_data && api_channel_data.login !== channel_config.login) {
+        if (
+            api_channel_data &&
+            api_channel_data.login !== channel_config.login
+        ) {
             res.status(400).send({
                 status: "ERROR",
-                message: req.t("route.channels.channel-login-does-not-match-data-fetched-from-api"),
+                message: req.t(
+                    "route.channels.channel-login-does-not-match-data-fetched-from-api"
+                ),
             } as ApiErrorResponse);
             return;
         }
 
-
         try {
             new_channel = await TwitchChannel.create(channel_config);
         } catch (error) {
-            log(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel: ${error}`);
+            log(
+                LOGLEVEL.ERROR,
+                "route.channels.add",
+                `Failed to create channel: ${error}`
+            );
             res.status(400).send({
                 status: "ERROR",
                 message: (error as Error).message,
@@ -340,16 +417,22 @@ export async function AddChannel(req: express.Request, res: express.Response): P
             return;
         }
 
-        log(LOGLEVEL.SUCCESS, "route.channels.add", `Created channel: ${new_channel.internalName}`);
-
+        log(
+            LOGLEVEL.SUCCESS,
+            "route.channels.add",
+            `Created channel: ${new_channel.internalName}`
+        );
     } else if (provider == "youtube") {
-
         const channel_config: YouTubeChannelConfig = {
             uuid: "",
             provider: "youtube",
             channel_id: formdata.channel_id || "",
-            quality: formdata.quality ? formdata.quality.split(" ") as VideoQuality[] : [],
-            match: formdata.match ? formdata.match.split(",").map(m => m.trim()) : [],
+            quality: formdata.quality
+                ? (formdata.quality.split(" ") as VideoQuality[])
+                : [],
+            match: formdata.match
+                ? formdata.match.split(",").map((m) => m.trim())
+                : [],
             download_chat: formdata.download_chat,
             burn_chat: formdata.burn_chat,
             no_capture: formdata.no_capture,
@@ -369,9 +452,15 @@ export async function AddChannel(req: express.Request, res: express.Response): P
             return;
         }
 
-        const channel = YouTubeChannel.getChannelById(channel_config.channel_id);
+        const channel = YouTubeChannel.getChannelById(
+            channel_config.channel_id
+        );
         if (channel) {
-            log(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, channel already exists: ${channel_config.channel_id}`);
+            log(
+                LOGLEVEL.ERROR,
+                "route.channels.add",
+                `Failed to create channel, channel already exists: ${channel_config.channel_id}`
+            );
             res.status(400).send({
                 status: "ERROR",
                 message: req.t("route.channels.channel-already-exists"),
@@ -382,9 +471,17 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         let api_channel_data;
 
         try {
-            api_channel_data = await YouTubeChannel.getUserDataById(channel_config.channel_id);
+            api_channel_data = await YouTubeChannel.getUserDataById(
+                channel_config.channel_id
+            );
         } catch (error) {
-            log(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, API error: ${(error as Error).message}`);
+            log(
+                LOGLEVEL.ERROR,
+                "route.channels.add",
+                `Failed to create channel, API error: ${
+                    (error as Error).message
+                }`
+            );
             res.status(400).send({
                 status: "ERROR",
                 message: `API error: ${(error as Error).message}`,
@@ -405,7 +502,11 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         try {
             new_channel = await YouTubeChannel.create(channel_config);
         } catch (error) {
-            log(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel: ${error}`);
+            log(
+                LOGLEVEL.ERROR,
+                "route.channels.add",
+                `Failed to create channel: ${error}`
+            );
             res.status(400).send({
                 status: "ERROR",
                 message: (error as Error).message,
@@ -413,16 +514,22 @@ export async function AddChannel(req: express.Request, res: express.Response): P
             return;
         }
 
-        log(LOGLEVEL.SUCCESS, "route.channels.add", `Created channel: ${new_channel.displayName}`);
-
+        log(
+            LOGLEVEL.SUCCESS,
+            "route.channels.add",
+            `Created channel: ${new_channel.displayName}`
+        );
     } else if (provider == "kick") {
-
         const channel_config: KickChannelConfig = {
             uuid: "",
             provider: "kick",
             slug: formdata.slug || "",
-            quality: formdata.quality ? formdata.quality.split(" ") as VideoQuality[] : [],
-            match: formdata.match ? formdata.match.split(",").map(m => m.trim()) : [],
+            quality: formdata.quality
+                ? (formdata.quality.split(" ") as VideoQuality[])
+                : [],
+            match: formdata.match
+                ? formdata.match.split(",").map((m) => m.trim())
+                : [],
             download_chat: formdata.download_chat,
             burn_chat: formdata.burn_chat,
             no_capture: formdata.no_capture,
@@ -444,7 +551,11 @@ export async function AddChannel(req: express.Request, res: express.Response): P
 
         const channel = KickChannel.getChannelBySlug(channel_config.slug);
         if (channel) {
-            log(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, channel already exists: ${channel_config.slug}`);
+            log(
+                LOGLEVEL.ERROR,
+                "route.channels.add",
+                `Failed to create channel, channel already exists: ${channel_config.slug}`
+            );
             res.status(400).send({
                 status: "ERROR",
                 message: req.t("route.channels.channel-already-exists"),
@@ -455,9 +566,17 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         let api_channel_data;
 
         try {
-            api_channel_data = await KickChannel.getUserDataBySlug(channel_config.slug);
+            api_channel_data = await KickChannel.getUserDataBySlug(
+                channel_config.slug
+            );
         } catch (error) {
-            log(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel, API error: ${(error as Error).message}`);
+            log(
+                LOGLEVEL.ERROR,
+                "route.channels.add",
+                `Failed to create channel, API error: ${
+                    (error as Error).message
+                }`
+            );
             res.status(400).send({
                 status: "ERROR",
                 message: `API error: ${(error as Error).message}`,
@@ -468,7 +587,11 @@ export async function AddChannel(req: express.Request, res: express.Response): P
         try {
             new_channel = await KickChannel.create(channel_config);
         } catch (error) {
-            log(LOGLEVEL.ERROR, "route.channels.add", `Failed to create channel: ${error}`);
+            log(
+                LOGLEVEL.ERROR,
+                "route.channels.add",
+                `Failed to create channel: ${error}`
+            );
             res.status(400).send({
                 status: "ERROR",
                 message: (error as Error).message,
@@ -476,11 +599,12 @@ export async function AddChannel(req: express.Request, res: express.Response): P
             return;
         }
 
-        log(LOGLEVEL.SUCCESS, "route.channels.add", `Created channel: ${new_channel.displayName}`);
-
+        log(
+            LOGLEVEL.SUCCESS,
+            "route.channels.add",
+            `Created channel: ${new_channel.displayName}`
+        );
     }
-
-
 
     if (!new_channel) {
         res.status(400).send({
@@ -493,15 +617,18 @@ export async function AddChannel(req: express.Request, res: express.Response): P
     res.send({
         data: await new_channel.toAPI(),
         status: "OK",
-        message: req.t("route.channels.channel-displayname-created", [new_channel.displayName]),
+        message: req.t("route.channels.channel-displayname-created", [
+            new_channel.displayName,
+        ]),
     });
 
     new_channel.broadcastUpdate();
-
 }
 
-export async function DownloadVideo(req: express.Request, res: express.Response): Promise<void> {
-
+export async function DownloadVideo(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
@@ -513,7 +640,11 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
     }
 
     const video_id = req.params.video_id;
-    const quality = req.query.quality && VideoQualityArray.includes(req.query.quality as string) ? req.query.quality as VideoQuality : "best";
+    const quality =
+        req.query.quality &&
+        VideoQualityArray.includes(req.query.quality as string)
+            ? (req.query.quality as VideoQuality)
+            : "best";
 
     const template = (video: ProxyVideo, what: string) => {
         if (!video) return "";
@@ -521,7 +652,11 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         const date = parseJSON(video.created_at);
 
         if (!date || !isValid(date)) {
-            log(LOGLEVEL.ERROR, "route.channels.download", `Invalid start date: ${video.created_at}`);
+            log(
+                LOGLEVEL.ERROR,
+                "route.channels.download",
+                `Invalid start date: ${video.created_at}`
+            );
         }
 
         const variables: VodBasenameTemplate = {
@@ -538,7 +673,9 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
             second: isValid(date) ? format(date, "ss") : "",
             id: video.stream_id?.toString() || randomUUID(), // bad solution
             season: channel.current_season, // TODO: make from date
-            absolute_season: channel.current_absolute_season ? channel.current_absolute_season.toString().padStart(2, "0") : "", // TODO: make from date
+            absolute_season: channel.current_absolute_season
+                ? channel.current_absolute_season.toString().padStart(2, "0")
+                : "", // TODO: make from date
             absolute_episode: "0", // episode won't work with random downloads
             // episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
             episode: "0", // episode won't work with random downloads
@@ -546,11 +683,12 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
             game_name: "", // not exposed by twitch api
         };
 
-        return sanitize(formatString(Config.getInstance().cfg(what), variables));
+        return sanitize(
+            formatString(Config.getInstance().cfg(what), variables)
+        );
     };
 
     if (isTwitchChannel(channel)) {
-
         if (TwitchVOD.getVodByProviderId(video_id)) {
             res.status(400).send({
                 status: "ERROR",
@@ -565,7 +703,10 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         } catch (error) {
             res.status(400).send({
                 status: "ERROR",
-                message: req.t("route.channels.error-while-fetching-video-data-error", [(error as Error).message]),
+                message: req.t(
+                    "route.channels.error-while-fetching-video-data-error",
+                    [(error as Error).message]
+                ),
             } as ApiErrorResponse);
             return;
         }
@@ -604,14 +745,22 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         */
 
         const basename = template(video, "filename_vod");
-        const basefolder = path.join(channel.getFolder(), template(video, "filename_vod_folder"));
+        const basefolder = path.join(
+            channel.getFolder(),
+            template(video, "filename_vod_folder")
+        );
 
-        const filepath = path.join(basefolder, `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`);
+        const filepath = path.join(
+            basefolder,
+            `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`
+        );
 
         if (TwitchVOD.hasVod(basename)) {
             res.status(400).send({
                 status: "ERROR",
-                message: req.t("route.channels.vod-already-exists-basename", [basename]),
+                message: req.t("route.channels.vod-already-exists-basename", [
+                    basename,
+                ]),
             } as ApiErrorResponse);
             return;
         }
@@ -623,9 +772,15 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         let status = false;
 
         try {
-            status = await TwitchVOD.downloadVideo(video_id, quality, filepath) != "";
+            status =
+                (await TwitchVOD.downloadVideo(video_id, quality, filepath)) !=
+                "";
         } catch (error) {
-            log(LOGLEVEL.ERROR, "route.channels.download", `Failed to download video: ${(error as Error).message}`);
+            log(
+                LOGLEVEL.ERROR,
+                "route.channels.download",
+                `Failed to download video: ${(error as Error).message}`
+            );
             res.status(400).send({
                 status: "ERROR",
                 message: (error as Error).message,
@@ -634,11 +789,12 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         }
 
         if (status) {
-
             let vod;
 
             try {
-                vod = await channel.createVOD(path.join(basefolder, `${basename}.json`));
+                vod = await channel.createVOD(
+                    path.join(basefolder, `${basename}.json`)
+                );
             } catch (error) {
                 res.status(400).send({
                     status: "ERROR",
@@ -656,7 +812,9 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
             if (video.stream_id) vod.capture_id = video.stream_id;
 
             // const duration = TwitchHelper.parseTwitchDuration(video.duration);
-            vod.ended_at = new Date(vod.started_at.getTime() + (video.duration * 1000));
+            vod.ended_at = new Date(
+                vod.started_at.getTime() + video.duration * 1000
+            );
             await vod.saveJSON("manual creation");
 
             vod.addSegment(path.basename(filepath));
@@ -666,7 +824,6 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
             Webhook.dispatchAll("end_download", {
                 vod: await vod.toAPI(),
             });
-
         } else {
             res.status(400).send({
                 status: "ERROR",
@@ -674,9 +831,7 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
             } as ApiErrorResponse);
             return;
         }
-
     } else if (isYouTubeChannel(channel)) {
-
         if (YouTubeVOD.getVodByProviderId(video_id)) {
             res.status(400).send({
                 status: "ERROR",
@@ -691,7 +846,9 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         } catch (error) {
             res.status(400).send({
                 status: "ERROR",
-                message: `Error while fetching video data: ${(error as Error).message}`,
+                message: `Error while fetching video data: ${
+                    (error as Error).message
+                }`,
             } as ApiErrorResponse);
             return;
         }
@@ -707,14 +864,22 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         debugLog("video", video);
 
         const basename = template(video, "filename_vod");
-        const basefolder = path.join(channel.getFolder(), template(video, "filename_vod_folder"));
+        const basefolder = path.join(
+            channel.getFolder(),
+            template(video, "filename_vod_folder")
+        );
 
-        const filepath = path.join(basefolder, `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`);
+        const filepath = path.join(
+            basefolder,
+            `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`
+        );
 
         if (YouTubeVOD.hasVod(basename)) {
             res.status(400).send({
                 status: "ERROR",
-                message: req.t("route.channels.vod-already-exists-basename", [basename]),
+                message: req.t("route.channels.vod-already-exists-basename", [
+                    basename,
+                ]),
             } as ApiErrorResponse);
             return;
         }
@@ -726,9 +891,15 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         let status = false;
 
         try {
-            status = await YouTubeVOD.downloadVideo(video_id, quality, filepath) != "";
+            status =
+                (await YouTubeVOD.downloadVideo(video_id, quality, filepath)) !=
+                "";
         } catch (error) {
-            log(LOGLEVEL.ERROR, "route.channels.download", `Failed to download video: ${(error as Error).message}`);
+            log(
+                LOGLEVEL.ERROR,
+                "route.channels.download",
+                `Failed to download video: ${(error as Error).message}`
+            );
             res.status(400).send({
                 status: "ERROR",
                 message: (error as Error).message,
@@ -737,11 +908,12 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         }
 
         if (status) {
-
             let vod;
 
             try {
-                vod = await channel.createVOD(path.join(basefolder, `${basename}.json`));
+                vod = await channel.createVOD(
+                    path.join(basefolder, `${basename}.json`)
+                );
             } catch (error) {
                 res.status(400).send({
                     status: "ERROR",
@@ -757,7 +929,9 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
             vod.started_at = parseJSON(video.created_at);
 
             // const duration = TwitchHelper.parseTwitchDuration(video.duration);
-            vod.ended_at = new Date(vod.started_at.getTime() + (video.duration * 1000));
+            vod.ended_at = new Date(
+                vod.started_at.getTime() + video.duration * 1000
+            );
             await vod.saveJSON("manual creation");
 
             vod.addSegment(path.basename(filepath));
@@ -765,7 +939,11 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
             await vod.saveJSON("manual finalize");
 
             if (!vod.channel_uuid) {
-                log(LOGLEVEL.FATAL, "route.channels.download", `Channel UUID is empty for VOD ${vod.uuid}`);
+                log(
+                    LOGLEVEL.FATAL,
+                    "route.channels.download",
+                    `Channel UUID is empty for VOD ${vod.uuid}`
+                );
                 res.status(500).send({
                     status: "ERROR",
                     message: req.t("route.channels.channel-uuid-is-empty"),
@@ -776,7 +954,6 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
             Webhook.dispatchAll("end_download", {
                 vod: await vod.toAPI(),
             });
-
         } else {
             res.status(400).send({
                 status: "ERROR",
@@ -784,7 +961,6 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
             } as ApiErrorResponse);
             return;
         }
-
     } else {
         res.status(400).send({
             status: "ERROR",
@@ -792,11 +968,12 @@ export async function DownloadVideo(req: express.Request, res: express.Response)
         } as ApiErrorResponse);
         return;
     }
-
 }
 
-export async function SubscribeToChannel(req: express.Request, res: express.Response): Promise<void> {
-
+export async function SubscribeToChannel(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const channel = getChannelFromRequest(req);
 
     if (!channel || !(channel instanceof TwitchChannel) || !channel.userid) {
@@ -812,15 +989,18 @@ export async function SubscribeToChannel(req: express.Request, res: express.Resp
     res.send({
         data: {
             login: channel.login,
-            status: sub ? "Subscription request sent, check logs for details" : "ERROR",
+            status: sub
+                ? "Subscription request sent, check logs for details"
+                : "ERROR",
         },
         status: "OK",
     });
-
 }
 
-export async function UnsubscribeFromChannel(req: express.Request, res: express.Response): Promise<void> {
-
+export async function UnsubscribeFromChannel(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const channel = getChannelFromRequest(req);
 
     if (!channel || !(channel instanceof TwitchChannel) || !channel.userid) {
@@ -837,11 +1017,12 @@ export async function UnsubscribeFromChannel(req: express.Request, res: express.
         status: "OK",
         message: sub ? "Unsubscribed" : "ERROR",
     });
-
 }
 
-export async function CheckSubscriptions(req: express.Request, res: express.Response): Promise<void> {
-
+export async function CheckSubscriptions(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const channel = getChannelFromRequest(req);
 
     if (!channel || !(channel instanceof TwitchChannel) || !channel.userid) {
@@ -857,25 +1038,32 @@ export async function CheckSubscriptions(req: express.Request, res: express.Resp
     if (!all_subs) {
         res.status(400).send({
             status: "ERROR",
-            message: req.t("route.channels.no-subscriptions-for-channel-internalname"),
+            message: req.t(
+                "route.channels.no-subscriptions-for-channel-internalname"
+            ),
         } as ApiErrorResponse);
         return;
     }
 
-    const channel_subs = all_subs.filter(sub => sub.condition.broadcaster_user_id == channel.internalId);
+    const channel_subs = all_subs.filter(
+        (sub) => sub.condition.broadcaster_user_id == channel.internalId
+    );
 
     res.send({
         data: {
             raw: channel_subs,
         },
-        message: channel_subs.map(sub => `${sub.type}: ${sub.status}`).join("\n"),
+        message: channel_subs
+            .map((sub) => `${sub.type}: ${sub.status}`)
+            .join("\n"),
         status: "OK",
     });
-
 }
 
-export async function CleanupChannelVods(req: express.Request, res: express.Response): Promise<void> {
-
+export async function CleanupChannelVods(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
@@ -893,11 +1081,12 @@ export async function CleanupChannelVods(req: express.Request, res: express.Resp
         // message: `Deleted ${deleted ? deleted : "no"} ${deleted === 1 ? "VOD" : "VODs"}`,
         message: req.t("route.channels.deleted-vods", { count: deleted || 0 }),
     });
-
 }
 
-export async function RefreshChannel(req: express.Request, res: express.Response): Promise<void> {
-
+export async function RefreshChannel(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
@@ -912,7 +1101,11 @@ export async function RefreshChannel(req: express.Request, res: express.Response
     try {
         success = await channel.refreshData();
     } catch (error) {
-        log(LOGLEVEL.ERROR, "route.channels.refresh", `Failed to refresh channel: ${(error as Error).message}`);
+        log(
+            LOGLEVEL.ERROR,
+            "route.channels.refresh",
+            `Failed to refresh channel: ${(error as Error).message}`
+        );
         res.status(400).send({
             status: "ERROR",
             message: (error as Error).message,
@@ -924,7 +1117,11 @@ export async function RefreshChannel(req: express.Request, res: express.Response
     try {
         isLive = await channel.isLiveApi();
     } catch (error) {
-        log(LOGLEVEL.ERROR, "route.channels.refresh", `Could not get live status for ${channel.internalName}`);
+        log(
+            LOGLEVEL.ERROR,
+            "route.channels.refresh",
+            `Could not get live status for ${channel.internalName}`
+        );
     }
 
     if (!isLive) {
@@ -934,24 +1131,36 @@ export async function RefreshChannel(req: express.Request, res: express.Response
     }
 
     if (success) {
-        log(LOGLEVEL.SUCCESS, "route.channels.refresh", `Refreshed channel: ${channel.internalName}`);
+        log(
+            LOGLEVEL.SUCCESS,
+            "route.channels.refresh",
+            `Refreshed channel: ${channel.internalName}`
+        );
         res.send({
             status: "OK",
-            message: req.t("route.channels.refreshed-channel-channel-internalname", [channel.internalName]),
+            message: req.t(
+                "route.channels.refreshed-channel-channel-internalname",
+                [channel.internalName]
+            ),
         });
         channel.broadcastUpdate();
     } else {
-        log(LOGLEVEL.ERROR, "route.channels.refresh", `Failed to refresh channel: ${channel.internalName}`);
+        log(
+            LOGLEVEL.ERROR,
+            "route.channels.refresh",
+            `Failed to refresh channel: ${channel.internalName}`
+        );
         res.status(400).send({
             status: "ERROR",
             message: req.t("route.channels.failed-to-refresh-channel"),
         } as ApiErrorResponse);
     }
-
 }
 
-export async function ForceRecord(req: express.Request, res: express.Response): Promise<void> {
-
+export async function ForceRecord(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalId) {
@@ -963,38 +1172,37 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
     }
 
     if (isTwitchChannel(channel)) {
-
         const streams = await TwitchChannel.getStreams(channel.internalId);
 
         if (streams) {
             const stream = streams.find((s) => s.type === "live");
             if (stream) {
                 const mock_data: EventSubStreamOnline = {
-                    "subscription": {
-                        "id": "fake",
-                        "type": "stream.online",
-                        "condition": {
-                            "broadcaster_user_id": stream.user_id,
+                    subscription: {
+                        id: "fake",
+                        type: "stream.online",
+                        condition: {
+                            broadcaster_user_id: stream.user_id,
                         },
-                        "version": "1",
-                        "status": "enabled",
-                        "created_at": new Date().toISOString(),
-                        "cost": 0,
-                        "transport": {
-                            "method": "webhook",
-                            "callback": "https://example.com/webhook",
+                        version: "1",
+                        status: "enabled",
+                        created_at: new Date().toISOString(),
+                        cost: 0,
+                        transport: {
+                            method: "webhook",
+                            callback: "https://example.com/webhook",
                         },
                     },
-                    "event": {
-                        "type": "live",
-                        "id": stream.id,
-                        "broadcaster_user_id": stream.user_id,
-                        "broadcaster_user_login": stream.user_login,
-                        "broadcaster_user_name": stream.user_name,
+                    event: {
+                        type: "live",
+                        id: stream.id,
+                        broadcaster_user_id: stream.user_id,
+                        broadcaster_user_login: stream.user_login,
+                        broadcaster_user_name: stream.user_name,
                         // "title": stream.title,
                         // "category_id": stream.game_id,
                         // "category_name": stream.game_name,
-                        "started_at": stream.started_at,
+                        started_at: stream.started_at,
                         // "is_mature": stream.is_mature,
                     },
                 };
@@ -1022,20 +1230,29 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
                     is_mature: stream.is_mature,
                     online: true,
                 } as TwitchVODChapterJSON;
-                KeyValue.getInstance().setObject(`${stream.user_login}.chapterdata`, chapter_data);
+                KeyValue.getInstance().setObject(
+                    `${stream.user_login}.chapterdata`,
+                    chapter_data
+                );
 
-                log(LOGLEVEL.INFO, "route.channels.force_record", `Forcing record for ${channel.internalName}`);
+                log(
+                    LOGLEVEL.INFO,
+                    "route.channels.force_record",
+                    `Forcing record for ${channel.internalName}`
+                );
 
                 const TA = new TwitchAutomator();
                 TA.handle(mock_data, metadata_proxy);
 
                 res.send({
                     status: "OK",
-                    message: req.t("route.channels.forced-recording-of-channel-channel-internalname", [channel.internalName]),
+                    message: req.t(
+                        "route.channels.forced-recording-of-channel-channel-internalname",
+                        [channel.internalName]
+                    ),
                 });
 
                 return;
-
             } else {
                 res.status(400).send({
                     status: "ERROR",
@@ -1043,7 +1260,6 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
                 } as ApiErrorResponse);
                 return;
             }
-
         } else {
             res.status(400).send({
                 status: "ERROR",
@@ -1051,14 +1267,15 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
             } as ApiErrorResponse);
             return;
         }
-
     } else if (isYouTubeChannel(channel)) {
-
         const streams = await channel.getStreams();
 
         if (streams) {
-
-            log(LOGLEVEL.INFO, "route.channels.force_record", `Forcing record for ${channel.internalName}`);
+            log(
+                LOGLEVEL.INFO,
+                "route.channels.force_record",
+                `Forcing record for ${channel.internalName}`
+            );
 
             const YA = new YouTubeAutomator();
             YA.broadcaster_user_id = channel.internalId;
@@ -1067,33 +1284,39 @@ export async function ForceRecord(req: express.Request, res: express.Response): 
             YA.channel = channel;
             // YA.handle(mock_data, req);
 
-            KeyValue.getInstance().set(`yt.${YA.getUserID()}.vod.started_at`, streams.snippet?.publishedAt || new Date().toISOString());
-            KeyValue.getInstance().set(`yt.${YA.getUserID()}.vod.id`, streams.id?.videoId || "fake");
+            KeyValue.getInstance().set(
+                `yt.${YA.getUserID()}.vod.started_at`,
+                streams.snippet?.publishedAt || new Date().toISOString()
+            );
+            KeyValue.getInstance().set(
+                `yt.${YA.getUserID()}.vod.id`,
+                streams.id?.videoId || "fake"
+            );
 
             YA.download();
 
             res.send({
                 status: "OK",
-                message: req.t("route.channels.forced-recording-of-channel-channel-internalname", [channel.internalName]),
+                message: req.t(
+                    "route.channels.forced-recording-of-channel-channel-internalname",
+                    [channel.internalName]
+                ),
             });
-
         } else {
-
             res.status(400).send({
                 status: "ERROR",
                 message: req.t("route.channels.no-streams-found"),
             } as ApiErrorResponse);
-
         }
 
         return;
-
     }
-
 }
 
-export async function RenameChannel(req: express.Request, res: express.Response): Promise<void> {
-
+export async function RenameChannel(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
@@ -1107,24 +1330,36 @@ export async function RenameChannel(req: express.Request, res: express.Response)
     const success = await channel.rename(req.body.new_login);
 
     if (success) {
-        log(LOGLEVEL.SUCCESS, "route.channels.rename", `Renamed channel: ${channel.internalName} to ${req.body.new_login}`);
+        log(
+            LOGLEVEL.SUCCESS,
+            "route.channels.rename",
+            `Renamed channel: ${channel.internalName} to ${req.body.new_login}`
+        );
         res.send({
             status: "OK",
-            message: req.t("route.channels.renamed-channel-channel-internalname-to-req-body-new_login", [channel.internalName, req.body.new_login]),
+            message: req.t(
+                "route.channels.renamed-channel-channel-internalname-to-req-body-new_login",
+                [channel.internalName, req.body.new_login]
+            ),
         });
         channel.broadcastUpdate();
     } else {
-        log(LOGLEVEL.ERROR, "route.channels.rename", `Failed to rename channel: ${channel.internalName} to ${req.body.new_login}`);
+        log(
+            LOGLEVEL.ERROR,
+            "route.channels.rename",
+            `Failed to rename channel: ${channel.internalName} to ${req.body.new_login}`
+        );
         res.status(400).send({
             status: "ERROR",
             message: req.t("route.channels.failed-to-rename-channel"),
         } as ApiErrorResponse);
     }
-
 }
 
-export async function DeleteAllChannelVods(req: express.Request, res: express.Response): Promise<void> {
-
+export async function DeleteAllChannelVods(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
@@ -1140,7 +1375,11 @@ export async function DeleteAllChannelVods(req: express.Request, res: express.Re
     try {
         success = await channel.deleteAllVods();
     } catch (error) {
-        log(LOGLEVEL.ERROR, "route.channels.deleteAllVods", `Failed to delete all VODs of channel: ${(error as Error).message}`);
+        log(
+            LOGLEVEL.ERROR,
+            "route.channels.deleteAllVods",
+            `Failed to delete all VODs of channel: ${(error as Error).message}`
+        );
         res.status(400).send({
             status: "ERROR",
             message: (error as Error).message,
@@ -1149,20 +1388,30 @@ export async function DeleteAllChannelVods(req: express.Request, res: express.Re
     }
 
     if (success) {
-        log(LOGLEVEL.SUCCESS, "route.channels.deleteallvods", `Deleted all VODs of channel: ${channel.internalName}`);
+        log(
+            LOGLEVEL.SUCCESS,
+            "route.channels.deleteallvods",
+            `Deleted all VODs of channel: ${channel.internalName}`
+        );
         res.send({
             status: "OK",
-            message: req.t("route.channels.deleted-all-vods-of-channel-channel-internalname", [channel.internalName]),
+            message: req.t(
+                "route.channels.deleted-all-vods-of-channel-channel-internalname",
+                [channel.internalName]
+            ),
         });
         channel.broadcastUpdate();
     } else {
-        log(LOGLEVEL.ERROR, "route.channels.deleteallvods", `Failed to delete all VODs of channel: ${channel.internalName}`);
+        log(
+            LOGLEVEL.ERROR,
+            "route.channels.deleteallvods",
+            `Failed to delete all VODs of channel: ${channel.internalName}`
+        );
         res.status(400).send({
             status: "ERROR",
             message: req.t("route.channels.failed-to-delete-all-vods"),
         } as ApiErrorResponse);
     }
-
 }
 
 interface StreamEvent {
@@ -1173,7 +1422,6 @@ interface StreamEvent {
 type HistoryEntry = TwitchVODChapterJSON | StreamEvent;
 
 export function GetHistory(req: express.Request, res: express.Response): void {
-
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
@@ -1186,7 +1434,10 @@ export function GetHistory(req: express.Request, res: express.Response): void {
 
     const history: HistoryEntry[] = [];
 
-    const file = path.join(BaseConfigCacheFolder.history, `${channel.internalName}.jsonline`);
+    const file = path.join(
+        BaseConfigCacheFolder.history,
+        `${channel.internalName}.jsonline`
+    );
     if (!fs.existsSync(file)) {
         res.status(400).send({
             status: "ERROR",
@@ -1210,11 +1461,12 @@ export function GetHistory(req: express.Request, res: express.Response): void {
     } as ApiResponse);
 
     return;
-
 }
 
-export async function ScanVods(req: express.Request, res: express.Response): Promise<void> {
-
+export async function ScanVods(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
@@ -1228,7 +1480,9 @@ export async function ScanVods(req: express.Request, res: express.Response): Pro
     if (channel.is_capturing || channel.is_converting) {
         res.status(400).send({
             status: "ERROR",
-            message: req.t("route.channels.channel-is-currently-capturing-please-stop-the-capture-first-or-wait-until-it-is-finished"),
+            message: req.t(
+                "route.channels.channel-is-currently-capturing-please-stop-the-capture-first-or-wait-until-it-is-finished"
+            ),
         } as ApiErrorResponse);
         return;
     }
@@ -1254,11 +1508,12 @@ export async function ScanVods(req: express.Request, res: express.Response): Pro
         status: "OK",
         message: `Channel '${channel.internalName}' scanned, found ${channel.vods_raw.length} VODs.`,
     });
-
 }
 
-export function ScanLocalVideos(req: express.Request, res: express.Response): void {
-
+export function ScanLocalVideos(
+    req: express.Request,
+    res: express.Response
+): void {
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
@@ -1280,11 +1535,12 @@ export function ScanLocalVideos(req: express.Request, res: express.Response): vo
         status: "OK",
         message: `Channel '${channel.internalName}' scanned, found ${channel.video_list.length} local videos.`,
     });
-
 }
 
-export async function GetClips(req: express.Request, res: express.Response): Promise<void> {
-
+export async function GetClips(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
@@ -1309,11 +1565,12 @@ export async function GetClips(req: express.Request, res: express.Response): Pro
         status: "OK",
         data: clips,
     });
-
 }
 
-export async function ExportAllVods(req: express.Request, res: express.Response): Promise<void> {
-
+export async function ExportAllVods(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const channel = getChannelFromRequest(req);
     const force = req.query.force === "true";
 
@@ -1335,14 +1592,20 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
     let failedVods = 0;
 
     for (const vod of channel.vods_list) {
-
         if (vod.exportData.exported_at && !force) {
             completedVods++;
-            log(LOGLEVEL.INFO, "route.channels.exportallvods", `Skipping VOD ${vod.basename} because it was already exported`);
+            log(
+                LOGLEVEL.INFO,
+                "route.channels.exportallvods",
+                `Skipping VOD ${vod.basename} because it was already exported`
+            );
             continue;
         }
 
-        const exporter_name = Config.getInstance().cfg<string>("exporter.default.exporter", "");
+        const exporter_name = Config.getInstance().cfg<string>(
+            "exporter.default.exporter",
+            ""
+        );
 
         const options: ExporterOptions = {
             vod: vod.uuid,
@@ -1350,41 +1613,67 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
             host: Config.getInstance().cfg("exporter.default.host"),
             username: Config.getInstance().cfg("exporter.default.username"),
             password: Config.getInstance().cfg("exporter.default.password"),
-            description: Config.getInstance().cfg("exporter.default.description"),
+            description: Config.getInstance().cfg(
+                "exporter.default.description"
+            ),
             tags: Config.getInstance().cfg("exporter.default.tags"),
             category: Config.getInstance().cfg("exporter.default.category"),
             remote: Config.getInstance().cfg("exporter.default.remote"),
-            title_template: Config.getInstance().cfg("exporter.default.title_template"),
+            title_template: Config.getInstance().cfg(
+                "exporter.default.title_template"
+            ),
             privacy: Config.getInstance().cfg("exporter.default.privacy"),
         };
 
         let exporter: Exporter | undefined;
         try {
-            exporter = GetExporter(
-                exporter_name,
-                "vod",
-                options
-            );
+            exporter = GetExporter(exporter_name, "vod", options);
         } catch (error) {
-            log(LOGLEVEL.ERROR, "route.channel.ExportAllVods", `Auto exporter error for '${vod.basename}': ${(error as Error).message}`);
+            log(
+                LOGLEVEL.ERROR,
+                "route.channel.ExportAllVods",
+                `Auto exporter error for '${vod.basename}': ${
+                    (error as Error).message
+                }`
+            );
             failedVods++;
             job.setProgress((completedVods + failedVods) / totalVods);
             continue;
         }
 
         if (exporter) {
-
-            log(LOGLEVEL.INFO, "route.channel.ExportAllVods", `Exporting VOD '${vod.basename}' as '${exporter.getFormattedTitle()}' with exporter '${exporter_name}'`);
+            log(
+                LOGLEVEL.INFO,
+                "route.channel.ExportAllVods",
+                `Exporting VOD '${
+                    vod.basename
+                }' as '${exporter.getFormattedTitle()}' with exporter '${exporter_name}'`
+            );
 
             let out_path;
             try {
                 out_path = await exporter.export();
             } catch (error) {
-                log(LOGLEVEL.ERROR, "route.channel.ExportAllVods", (error as Error).message ? `Export error for '${vod.basename}': ${(error as Error).message}` : "Unknown error occurred while exporting export");
+                log(
+                    LOGLEVEL.ERROR,
+                    "route.channel.ExportAllVods",
+                    (error as Error).message
+                        ? `Export error for '${vod.basename}': ${
+                              (error as Error).message
+                          }`
+                        : "Unknown error occurred while exporting export"
+                );
                 failedVods++;
                 job.setProgress((completedVods + failedVods) / totalVods);
-                if ((error as Error).message && (error as Error).message.includes("exceeded your")) {
-                    log(LOGLEVEL.FATAL, "route.channel.ExportAllVods", "Stopping mass export because of quota exceeded");
+                if (
+                    (error as Error).message &&
+                    (error as Error).message.includes("exceeded your")
+                ) {
+                    log(
+                        LOGLEVEL.FATAL,
+                        "route.channel.ExportAllVods",
+                        "Stopping mass export because of quota exceeded"
+                    );
                     break; // stop exporting if we hit the quota
                 }
                 continue;
@@ -1395,17 +1684,30 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
                 try {
                     status = await exporter.verify();
                 } catch (error) {
-                    log(LOGLEVEL.ERROR, "route.channel.ExportAllVods", (error as Error).message ? `Verify error for '${vod.basename}': ${(error as Error).message}` : "Unknown error occurred while verifying export");
+                    log(
+                        LOGLEVEL.ERROR,
+                        "route.channel.ExportAllVods",
+                        (error as Error).message
+                            ? `Verify error for '${vod.basename}': ${
+                                  (error as Error).message
+                              }`
+                            : "Unknown error occurred while verifying export"
+                    );
                     failedVods++;
                     job.setProgress((completedVods + failedVods) / totalVods);
                     continue;
                 }
 
-                log(LOGLEVEL.SUCCESS, "route.channel.ExportAllVods", `Exporter finished for '${vod.basename}', status: ${status}`);
+                log(
+                    LOGLEVEL.SUCCESS,
+                    "route.channel.ExportAllVods",
+                    `Exporter finished for '${vod.basename}', status: ${status}`
+                );
 
                 if (status) {
                     if (exporter.vod && status) {
-                        exporter.vod.exportData.exported_at = new Date().toISOString();
+                        exporter.vod.exportData.exported_at =
+                            new Date().toISOString();
                         exporter.vod.exportData.exporter = exporter_name;
                         await exporter.vod.saveJSON("export successful");
                     }
@@ -1414,22 +1716,31 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
                 } else {
                     failedVods++;
                     job.setProgress((completedVods + failedVods) / totalVods);
-                    log(LOGLEVEL.ERROR, "route.channel.ExportAllVods", `Exporter failed for '${vod.basename}'`);
+                    log(
+                        LOGLEVEL.ERROR,
+                        "route.channel.ExportAllVods",
+                        `Exporter failed for '${vod.basename}'`
+                    );
                 }
-
             } else {
-                log(LOGLEVEL.ERROR, "route.channel.ExportAllVods", `Exporter finished but no path output for '${vod.basename}'`);
+                log(
+                    LOGLEVEL.ERROR,
+                    "route.channel.ExportAllVods",
+                    `Exporter finished but no path output for '${vod.basename}'`
+                );
             }
-
         }
 
         if (!Job.hasJob(job.name)) {
             break; // job was deleted
         }
-
     }
 
-    log(LOGLEVEL.INFO, "route.channel.ExportAllVods", `Exported ${completedVods} VODs, ${failedVods} failed`);
+    log(
+        LOGLEVEL.INFO,
+        "route.channel.ExportAllVods",
+        `Exported ${completedVods} VODs, ${failedVods} failed`
+    );
 
     job.clear();
 
@@ -1437,5 +1748,4 @@ export async function ExportAllVods(req: express.Request, res: express.Response)
         status: "OK",
         message: `Exported ${completedVods} VODs, ${failedVods} failed`,
     });
-
 }

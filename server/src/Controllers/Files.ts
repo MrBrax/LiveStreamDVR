@@ -1,4 +1,3 @@
-
 import { BaseConfigDataFolder, DataRoot } from "@/Core/BaseConfig";
 import type express from "express";
 import path from "node:path";
@@ -6,13 +5,9 @@ import fs from "node:fs";
 import sanitize from "sanitize-filename";
 import chalk from "chalk";
 
-const allowedDataPaths = [
-    "storage",
-    "logs",
-];
+const allowedDataPaths = ["storage", "logs"];
 
 export function validatePath(nastyPath: string): string | boolean {
-
     // sanitize user path
     nastyPath = nastyPath.normalize();
 
@@ -28,7 +23,11 @@ export function validatePath(nastyPath: string): string | boolean {
     }
 
     // only allow paths that are in the allowed paths
-    if (!allowedDataPaths.some(allowedPath => nastyPath.startsWith(path.join(DataRoot, allowedPath)))) {
+    if (
+        !allowedDataPaths.some((allowedPath) =>
+            nastyPath.startsWith(path.join(DataRoot, allowedPath))
+        )
+    ) {
         return "Access denied";
     }
 
@@ -43,20 +42,22 @@ export function validatePath(nastyPath: string): string | boolean {
     }
 
     return true;
-
 }
 
 function isPublic(file_path: string): boolean {
-    if (file_path.startsWith(BaseConfigDataFolder.logs)){
+    if (file_path.startsWith(BaseConfigDataFolder.logs)) {
         return process.env.TCD_EXPOSE_LOGS_TO_PUBLIC === "1";
     }
     return true;
 }
 
 export function ListFiles(req: express.Request, res: express.Response): void {
-
     if (process.env.TCD_ENABLE_FILES_API !== "1") {
-        res.status(404).send({ status: "ERROR", message: "Files API is disabled on this server. Enable with the TCD_ENABLE_FILES_API environment variable." });
+        res.status(404).send({
+            status: "ERROR",
+            message:
+                "Files API is disabled on this server. Enable with the TCD_ENABLE_FILES_API environment variable.",
+        });
         return;
     }
 
@@ -83,18 +84,20 @@ export function ListFiles(req: express.Request, res: express.Response): void {
 
     const raw_files = fs.readdirSync(full_path);
 
-    const files = raw_files.filter((file) => {
-        return !file.startsWith(".");
-    }).map((file) => {
-        return {
-            name: file,
-            size: fs.statSync(path.join(full_path, file)).size,
-            date: fs.statSync(path.join(full_path, file)).mtime,
-            is_dir: fs.lstatSync(path.join(full_path, file)).isDirectory(),
-            is_public: isPublic(path.join(full_path, file)),
-            extension: path.extname(file).substring(1),
-        };
-    });
+    const files = raw_files
+        .filter((file) => {
+            return !file.startsWith(".");
+        })
+        .map((file) => {
+            return {
+                name: file,
+                size: fs.statSync(path.join(full_path, file)).size,
+                date: fs.statSync(path.join(full_path, file)).mtime,
+                is_dir: fs.lstatSync(path.join(full_path, file)).isDirectory(),
+                is_public: isPublic(path.join(full_path, file)),
+                extension: path.extname(file).substring(1),
+            };
+        });
 
     res.send({
         status: "OK",
@@ -102,13 +105,15 @@ export function ListFiles(req: express.Request, res: express.Response): void {
             files: files,
         },
     });
-
 }
 
 export function DeleteFile(req: express.Request, res: express.Response): void {
-
     if (process.env.TCD_ENABLE_FILES_API !== "1") {
-        res.status(404).send({ status: "ERROR", message: "Files API is disabled on this server. Enable with the TCD_ENABLE_FILES_API environment variable." });
+        res.status(404).send({
+            status: "ERROR",
+            message:
+                "Files API is disabled on this server. Enable with the TCD_ENABLE_FILES_API environment variable.",
+        });
         return;
     }
 
@@ -147,11 +152,12 @@ export function DeleteFile(req: express.Request, res: express.Response): void {
     }
 
     fs.unlinkSync(full_file_path);
-    console.log(chalk.bgRedBright.whiteBright(`Deleting file: ${full_file_path}`));
+    console.log(
+        chalk.bgRedBright.whiteBright(`Deleting file: ${full_file_path}`)
+    );
 
     res.send({
         status: "OK",
         message: "File deleted",
     });
-
 }

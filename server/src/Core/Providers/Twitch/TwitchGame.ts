@@ -18,7 +18,6 @@ interface TwitchGameJSON {
 }
 
 export class TwitchGame {
-
     static game_db: Record<string, TwitchGame> = {};
     static favourite_games: string[] = [];
 
@@ -33,7 +32,9 @@ export class TwitchGame {
         if (!fs.existsSync(BaseConfigPath.gameDb)) return;
         log(LOGLEVEL.INFO, "game", "Populating game database...");
         this.game_db = {};
-        const raw_games: Record<string, TwitchGameJSON> = JSON.parse(fs.readFileSync(BaseConfigPath.gameDb, "utf8"));
+        const raw_games: Record<string, TwitchGameJSON> = JSON.parse(
+            fs.readFileSync(BaseConfigPath.gameDb, "utf8")
+        );
         for (const id in raw_games) {
             const raw_game = raw_games[id];
             const game = new this();
@@ -44,23 +45,39 @@ export class TwitchGame {
             if (raw_game.deleted) game.deleted = raw_game.deleted;
             this.game_db[id] = game;
         }
-        log(LOGLEVEL.INFO, "game", `Game database populated with ${Object.keys(this.game_db).length} games.`);
+        log(
+            LOGLEVEL.INFO,
+            "game",
+            `Game database populated with ${
+                Object.keys(this.game_db).length
+            } games.`
+        );
     }
 
     public static populateFavouriteGames(): void {
         if (!fs.existsSync(BaseConfigPath.favouriteGames)) {
-            log(LOGLEVEL.INFO, "game", "Favourite games file not found, creating...");
+            log(
+                LOGLEVEL.INFO,
+                "game",
+                "Favourite games file not found, creating..."
+            );
             fs.writeFileSync(BaseConfigPath.favouriteGames, "[]");
         }
         log(LOGLEVEL.INFO, "game", "Populating favourite games...");
-        this.favourite_games = JSON.parse(fs.readFileSync(BaseConfigPath.favouriteGames, "utf8"));
-        log(LOGLEVEL.INFO, "game", `Favourite games populated with ${this.favourite_games.length} games.`);
+        this.favourite_games = JSON.parse(
+            fs.readFileSync(BaseConfigPath.favouriteGames, "utf8")
+        );
+        log(
+            LOGLEVEL.INFO,
+            "game",
+            `Favourite games populated with ${this.favourite_games.length} games.`
+        );
     }
 
     /**
      * Get game data from cache. **Does not fetch from server.**
-     * @param game_id 
-     * @returns 
+     * @param game_id
+     * @returns
      */
     public static getGameFromCache(game_id: string): TwitchGame | null {
         if (!this.game_db) {
@@ -74,8 +91,10 @@ export class TwitchGame {
         return this.game_db[game_id];
     }
 
-    public static async getGameAsync(game_id: string, force = false): Promise<TwitchGame | null> {
-
+    public static async getGameAsync(
+        game_id: string,
+        force = false
+    ): Promise<TwitchGame | null> {
         if (!game_id) {
             log(LOGLEVEL.ERROR, "game", "No game id supplied for game fetch!");
             return null;
@@ -84,20 +103,45 @@ export class TwitchGame {
         const cachedGame = this.getGameFromCache(game_id);
 
         if (cachedGame && !force) {
-            if (cachedGame && cachedGame.added && Date.now() > cachedGame.added.getTime() + (60 * 60 * 24 * 60 * 1000)) { // two months?
-                log(LOGLEVEL.INFO, "game", `Game id ${game_id} (${cachedGame.name}) needs refreshing (${cachedGame.added.toISOString()}).`);
-            } else if (cachedGame && cachedGame.added) { // check if date is set
+            if (
+                cachedGame &&
+                cachedGame.added &&
+                Date.now() >
+                    cachedGame.added.getTime() + 60 * 60 * 24 * 60 * 1000
+            ) {
+                // two months?
+                log(
+                    LOGLEVEL.INFO,
+                    "game",
+                    `Game id ${game_id} (${
+                        cachedGame.name
+                    }) needs refreshing (${cachedGame.added.toISOString()}).`
+                );
+            } else if (cachedGame && cachedGame.added) {
+                // check if date is set
                 return this.game_db[game_id];
             } else {
-                log(LOGLEVEL.INFO, "game", `Game id ${game_id} needs refreshing (no date set).`);
+                log(
+                    LOGLEVEL.INFO,
+                    "game",
+                    `Game id ${game_id} needs refreshing (no date set).`
+                );
             }
             if (cachedGame.deleted) {
-                log(LOGLEVEL.INFO, "game", `Game id ${game_id} is marked as deleted, return cached game.`);
+                log(
+                    LOGLEVEL.INFO,
+                    "game",
+                    `Game id ${game_id} is marked as deleted, return cached game.`
+                );
                 return this.game_db[game_id];
             }
         }
 
-        log(LOGLEVEL.DEBUG, "game", `Game id ${game_id} not in cache, fetching...`);
+        log(
+            LOGLEVEL.DEBUG,
+            "game",
+            `Game id ${game_id} not in cache, fetching...`
+        );
 
         if (!TwitchHelper.hasAxios()) {
             throw new Error("Axios is not initialized");
@@ -105,9 +149,15 @@ export class TwitchGame {
 
         let response;
         try {
-            response = await TwitchHelper.getRequest<GamesResponse>(`/helix/games?id=${game_id}`);
+            response = await TwitchHelper.getRequest<GamesResponse>(
+                `/helix/games?id=${game_id}`
+            );
         } catch (th) {
-            log(LOGLEVEL.FATAL, "game", `Tried to get game data for ${game_id} but server returned: ${th}`);
+            log(
+                LOGLEVEL.FATAL,
+                "game",
+                `Tried to get game data for ${game_id} but server returned: ${th}`
+            );
             return null;
         }
 
@@ -116,7 +166,6 @@ export class TwitchGame {
         const game_data = json.data[0];
 
         if (game_data) {
-
             /*
             const game = {
                 "id": game_id,
@@ -136,23 +185,38 @@ export class TwitchGame {
             try {
                 await game.fetchBoxArt();
             } catch (error) {
-                log(LOGLEVEL.ERROR, "game", `Failed to fetch box art for game ${game_id}: ${error}`);
+                log(
+                    LOGLEVEL.ERROR,
+                    "game",
+                    `Failed to fetch box art for game ${game_id}: ${error}`
+                );
             }
 
             game.save();
 
             // $game_db[ $id ] = $game_data["name"];
 
-            log(LOGLEVEL.SUCCESS, "game", `New game saved to cache: ${game.name}`);
+            log(
+                LOGLEVEL.SUCCESS,
+                "game",
+                `New game saved to cache: ${game.name}`
+            );
 
             return game;
-
         } else {
-
-            log(LOGLEVEL.ERROR, "game", `Invalid game returned in query for ${game_id}`, json);
+            log(
+                LOGLEVEL.ERROR,
+                "game",
+                `Invalid game returned in query for ${game_id}`,
+                json
+            );
 
             if (cachedGame) {
-                log(LOGLEVEL.INFO, "game", `Cached game ${cachedGame.name} must have been deleted, marking as deleted.`);
+                log(
+                    LOGLEVEL.INFO,
+                    "game",
+                    `Cached game ${cachedGame.name} must have been deleted, marking as deleted.`
+                );
                 cachedGame.deleted = true;
                 cachedGame.save();
             }
@@ -163,7 +227,7 @@ export class TwitchGame {
 
     /**
      * Get favourite games in a string array.
-     * 
+     *
      * @returns {string[]} Favourite games
      */
     public static getFavouriteGames(): string[] {
@@ -174,7 +238,6 @@ export class TwitchGame {
      * Save game data to cache.
      */
     public save(): void {
-
         if (!this.id) {
             throw new Error("Cannot save game without id!");
         }
@@ -195,7 +258,6 @@ export class TwitchGame {
         }
 
         fs.writeFileSync(BaseConfigPath.gameDb, JSON.stringify(json_db));
-
     }
 
     public fetchBoxArt(): Promise<string> {
@@ -203,69 +265,108 @@ export class TwitchGame {
             if (!this.box_art_url) {
                 reject("No box art url set!");
             }
-            const url = this.box_art_url.replace("{width}", "140").replace("{height}", "190");
-            const file = path.join(BaseConfigCacheFolder.public_cache_covers, `${this.id}.${path.extname(url).substring(1)}`);
+            const url = this.box_art_url
+                .replace("{width}", "140")
+                .replace("{height}", "190");
+            const file = path.join(
+                BaseConfigCacheFolder.public_cache_covers,
+                `${this.id}.${path.extname(url).substring(1)}`
+            );
             if (fs.existsSync(file)) {
                 resolve(file);
             } else {
                 const writer = fs.createWriteStream(file);
                 writer.on("finish", () => {
-                    log(LOGLEVEL.SUCCESS, "game", `Box art saved to cache: ${this.name}`);
+                    log(
+                        LOGLEVEL.SUCCESS,
+                        "game",
+                        `Box art saved to cache: ${this.name}`
+                    );
                     resolve(file);
                 });
                 writer.on("error", (err) => {
-                    log(LOGLEVEL.ERROR, "game", `Failed to save box art to cache: ${err}`, err);
+                    log(
+                        LOGLEVEL.ERROR,
+                        "game",
+                        `Failed to save box art to cache: ${err}`,
+                        err
+                    );
                     reject(err);
                 });
-                axios.get(url, { responseType: "stream" }).then((response) => {
-                    response.data.pipe(writer);
-                }).catch((err) => {
-                    log(LOGLEVEL.ERROR, "game", `Failed to fetch box art: ${err}`, err);
-                    reject(err);
-                });
+                axios
+                    .get(url, { responseType: "stream" })
+                    .then((response) => {
+                        response.data.pipe(writer);
+                    })
+                    .catch((err) => {
+                        log(
+                            LOGLEVEL.ERROR,
+                            "game",
+                            `Failed to fetch box art: ${err}`,
+                            err
+                        );
+                        reject(err);
+                    });
             }
         });
     }
 
     /**
      * Make box art url from dimensions.
-     * 
-     * @param width 
-     * @param height 
+     *
+     * @param width
+     * @param height
      * @returns string URL
      */
     public getBoxArtUrl(width = 140, height = 190): string {
         if (!this.box_art_url) {
             return "";
         }
-        if (fs.existsSync(path.join(BaseConfigCacheFolder.public_cache_covers, `${this.id}.${path.extname(this.box_art_url).substring(1)}`))) {
+        if (
+            fs.existsSync(
+                path.join(
+                    BaseConfigCacheFolder.public_cache_covers,
+                    `${this.id}.${path.extname(this.box_art_url).substring(1)}`
+                )
+            )
+        ) {
             // console.debug("Using cached box art", this.box_art_url);
             const app_url = Config.getInstance().cfg<string>("app_url", "");
             if (app_url && app_url !== "debug") {
-                return `${app_url}/cache/covers/${this.id}.${path.extname(this.box_art_url).substring(1)}`;
+                return `${app_url}/cache/covers/${this.id}.${path
+                    .extname(this.box_art_url)
+                    .substring(1)}`;
             } else {
-                return `${Config.getInstance().cfg<string>("basepath", "")}/cache/covers/${this.id}.${path.extname(this.box_art_url).substring(1)}`;
+                return `${Config.getInstance().cfg<string>(
+                    "basepath",
+                    ""
+                )}/cache/covers/${this.id}.${path
+                    .extname(this.box_art_url)
+                    .substring(1)}`;
             }
         } else {
             this.fetchBoxArt(); // for next time
         }
-        return this.box_art_url.replace("{width}", width.toString()).replace("{height}", height.toString()); // does {width} have a % next to it?
+        return this.box_art_url
+            .replace("{width}", width.toString())
+            .replace("{height}", height.toString()); // does {width} have a % next to it?
     }
 
     public async getThumbnailUrl(): Promise<string> {
-
         if (!this.id) {
             throw new Error("Cannot get thumbnail url without id!");
         }
 
-        const file = path.join(BaseConfigCacheFolder.public_cache_covers, `${this.id}.${path.extname(this.box_art_url).substring(1)}`);
+        const file = path.join(
+            BaseConfigCacheFolder.public_cache_covers,
+            `${this.id}.${path.extname(this.box_art_url).substring(1)}`
+        );
 
         if (fs.existsSync(file)) {
             return await imageThumbnail(file, 64);
         }
 
         throw new Error("Thumbnail not found!");
-
     }
 
     public isFavourite(): boolean {
@@ -275,8 +376,8 @@ export class TwitchGame {
 
     /**
      * Set game as favourite and save the database.
-     * 
-     * @param fav 
+     *
+     * @param fav
      */
     public setFavourite(fav: boolean): void {
         if (!this.id) return;
@@ -295,7 +396,10 @@ export class TwitchGame {
 
     public static saveFavouriteGames(): void {
         log(LOGLEVEL.INFO, "game", "Saving favourite games...");
-        fs.writeFileSync(BaseConfigPath.favouriteGames, JSON.stringify(TwitchGame.favourite_games));
+        fs.writeFileSync(
+            BaseConfigPath.favouriteGames,
+            JSON.stringify(TwitchGame.favourite_games)
+        );
     }
 
     public toAPI(): ApiGame {
@@ -310,5 +414,4 @@ export class TwitchGame {
             deleted: this.deleted || undefined,
         };
     }
-
 }

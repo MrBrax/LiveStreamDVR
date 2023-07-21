@@ -4,12 +4,17 @@ import type express from "express";
 import type { ApiErrorResponse } from "@common/Api/Api";
 import { log, LOGLEVEL } from "@/Core/Log";
 
-export async function TwitchAPIVideos(req: express.Request, res: express.Response): Promise<void> {
-
+export async function TwitchAPIVideos(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const channel_id = await TwitchChannel.channelIdFromLogin(req.params.login);
 
     if (!channel_id) {
-        res.status(400).send({ status: "ERROR", message: "Invalid channel login" });
+        res.status(400).send({
+            status: "ERROR",
+            message: "Invalid channel login",
+        });
         return;
     }
 
@@ -27,11 +32,12 @@ export async function TwitchAPIVideos(req: express.Request, res: express.Respons
         data: videos,
         status: "OK",
     });
-
 }
 
-export async function TwitchAPIVideo(req: express.Request, res: express.Response): Promise<void> {
-
+export async function TwitchAPIVideo(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const video_id = req.params.video_id;
 
     if (!video_id) {
@@ -45,7 +51,9 @@ export async function TwitchAPIVideo(req: express.Request, res: express.Response
     } catch (error) {
         res.status(400).send({
             status: "ERROR",
-            message: `Error while fetching video data: ${(error as Error).message}`,
+            message: `Error while fetching video data: ${
+                (error as Error).message
+            }`,
         } as ApiErrorResponse);
         return;
     }
@@ -62,11 +70,12 @@ export async function TwitchAPIVideo(req: express.Request, res: express.Response
         data: video,
         status: "OK",
     });
-
 }
 
-export async function TwitchAPIUser(req: express.Request, res: express.Response): Promise<void> {
-
+export async function TwitchAPIUser(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const login = req.params.login;
 
     if (!login) {
@@ -78,7 +87,12 @@ export async function TwitchAPIUser(req: express.Request, res: express.Response)
     try {
         user = await TwitchChannel.getUserDataByLogin(login, true);
     } catch (error) {
-        log(LOGLEVEL.FATAL, "route.twitchapi.user", `Error getting channel data: ${(error as Error).message}`, error);
+        log(
+            LOGLEVEL.FATAL,
+            "route.twitchapi.user",
+            `Error getting channel data: ${(error as Error).message}`,
+            error
+        );
         res.status(400).send({
             status: "ERROR",
             message: `User not found: ${(error as Error).message}`,
@@ -98,11 +112,12 @@ export async function TwitchAPIUser(req: express.Request, res: express.Response)
         data: user,
         status: "OK",
     });
-
 }
 
-export async function TwitchAPIClips(req: express.Request, res: express.Response): Promise<void> {
-
+export async function TwitchAPIClips(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const broadcaster_id = req.query.broadcaster_id as string | undefined;
     const game_id = req.query.game_id as string | undefined;
     const id = req.query.id as string | undefined;
@@ -118,7 +133,9 @@ export async function TwitchAPIClips(req: express.Request, res: express.Response
     } catch (error) {
         res.status(400).send({
             status: "ERROR",
-            message: `Error while fetching clip data: ${(error as Error).message}`,
+            message: `Error while fetching clip data: ${
+                (error as Error).message
+            }`,
         } as ApiErrorResponse);
         return;
     }
@@ -135,11 +152,12 @@ export async function TwitchAPIClips(req: express.Request, res: express.Response
         data,
         status: "OK",
     });
-
 }
 
-export async function TwitchAPIStreams(req: express.Request, res: express.Response): Promise<void> {
-
+export async function TwitchAPIStreams(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const login = req.params.login;
 
     if (!login) {
@@ -171,11 +189,12 @@ export async function TwitchAPIStreams(req: express.Request, res: express.Respon
         data: streams,
         status: "OK",
     });
-
 }
 
-export async function TwitchAPIChannel(req: express.Request, res: express.Response): Promise<void> {
-
+export async function TwitchAPIChannel(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const login = req.params.login;
 
     if (!login) {
@@ -207,5 +226,4 @@ export async function TwitchAPIChannel(req: express.Request, res: express.Respon
         data: channel,
         status: "OK",
     });
-
 }

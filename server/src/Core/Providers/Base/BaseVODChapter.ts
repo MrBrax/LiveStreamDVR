@@ -6,7 +6,6 @@ import type { ApiVodBaseChapter } from "@common/Api/Client";
 import type { Providers } from "@common/Defs";
 
 export class BaseVODChapter {
-
     public provider: Providers = "base";
 
     /**
@@ -20,44 +19,64 @@ export class BaseVODChapter {
     public title = "";
 
     /**
-    * Was it added when the channel was online?
-    */
+     * Was it added when the channel was online?
+     */
     public online = false;
 
-    declare public vod_uuid: string;
+    public declare vod_uuid: string;
 
-    public calculateDurationAndOffset(vod_started_at: Date, vod_ended_at: Date | undefined, next_chapter_started_at: Date | undefined): void {
-
-        if (vod_started_at.getTime() > this.started_at.getTime()) { // this chapter started before the vod started
+    public calculateDurationAndOffset(
+        vod_started_at: Date,
+        vod_ended_at: Date | undefined,
+        next_chapter_started_at: Date | undefined
+    ): void {
+        if (vod_started_at.getTime() > this.started_at.getTime()) {
+            // this chapter started before the vod started
 
             const started_at = vod_started_at;
 
             if (next_chapter_started_at) {
-                this.duration = (next_chapter_started_at.getTime() - started_at.getTime()) / 1000;
+                this.duration =
+                    (next_chapter_started_at.getTime() - started_at.getTime()) /
+                    1000;
             } else if (vod_ended_at) {
-                this.duration = (vod_ended_at.getTime() - started_at.getTime()) / 1000;
+                this.duration =
+                    (vod_ended_at.getTime() - started_at.getTime()) / 1000;
             } else {
-                log(LOGLEVEL.WARNING, "chapter", `No next chapter or vod end time for chapter ${this.title} (${this.started_at.toISOString()}), duration will probably be 0.`);
+                log(
+                    LOGLEVEL.WARNING,
+                    "chapter",
+                    `No next chapter or vod end time for chapter ${
+                        this.title
+                    } (${this.started_at.toISOString()}), duration will probably be 0.`
+                );
             }
 
             this.offset = 0;
-
         } else {
-
             if (next_chapter_started_at) {
-                this.duration = (next_chapter_started_at.getTime() - this.started_at.getTime()) / 1000;
+                this.duration =
+                    (next_chapter_started_at.getTime() -
+                        this.started_at.getTime()) /
+                    1000;
             } else if (vod_ended_at) {
-                this.duration = (vod_ended_at.getTime() - this.started_at.getTime()) / 1000;
+                this.duration =
+                    (vod_ended_at.getTime() - this.started_at.getTime()) / 1000;
             } else {
-                log(LOGLEVEL.WARNING, "chapter", `No next chapter or vod end time for chapter ${this.title} (${this.started_at.toISOString()}), duration will probably be 0.`);
+                log(
+                    LOGLEVEL.WARNING,
+                    "chapter",
+                    `No next chapter or vod end time for chapter ${
+                        this.title
+                    } (${this.started_at.toISOString()}), duration will probably be 0.`
+                );
             }
 
-            this.offset = (this.started_at.getTime() - vod_started_at.getTime()) / 1000;
-
+            this.offset =
+                (this.started_at.getTime() - vod_started_at.getTime()) / 1000;
         }
 
         // console.debug(`Calculated duration and offset for chapter: ${this.title}`, this.offset, this.duration);
-
     }
 
     public toAPI(): ApiVodBaseChapter {
@@ -100,5 +119,4 @@ export class BaseVODChapter {
         if (!vod) throw new Error("no vod for chapter");
         return vod;
     }
-
 }

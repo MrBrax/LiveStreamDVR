@@ -16,17 +16,24 @@ import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
 import { debugLog } from "@/Helpers/Console";
 
 export class Scheduler {
-
     public static jobs: Record<string, cron.CronJob> = {};
 
-    public static schedule(name: string, cronTime: string, callback: () => void): cron.CronJob {
+    public static schedule(
+        name: string,
+        cronTime: string,
+        callback: () => void
+    ): cron.CronJob {
         if (this.hasJob(name)) {
             this.removeJob(name);
         }
         const job = new cron.CronJob(cronTime, callback, undefined, false);
         this.jobs[name] = job;
         job.start();
-        log(LOGLEVEL.INFO, "scheduler.schedule", `Scheduled job '${name}' with cronTime '${cronTime}'`);
+        log(
+            LOGLEVEL.INFO,
+            "scheduler.schedule",
+            `Scheduled job '${name}' with cronTime '${cronTime}'`
+        );
         return job;
     }
 
@@ -45,7 +52,11 @@ export class Scheduler {
 
         this.schedule("check_muted_vods", "0 */12 * * *", () => {
             if (!Config.getInstance().cfg<boolean>("schedule_muted_vods")) {
-                log(LOGLEVEL.INFO, "scheduler.defaultJobs", "Scheduler: check_muted_vods - disabled");
+                log(
+                    LOGLEVEL.INFO,
+                    "scheduler.defaultJobs",
+                    "Scheduler: check_muted_vods - disabled"
+                );
                 return;
             }
             CronController.fCheckMutedVods();
@@ -53,7 +64,11 @@ export class Scheduler {
 
         this.schedule("check_deleted_vods", "10 */12 * * *", () => {
             if (!Config.getInstance().cfg<boolean>("schedule_deleted_vods")) {
-                log(LOGLEVEL.INFO, "scheduler.defaultJobs", "Scheduler: check_deleted_vods - disabled");
+                log(
+                    LOGLEVEL.INFO,
+                    "scheduler.defaultJobs",
+                    "Scheduler: check_deleted_vods - disabled"
+                );
                 return;
             }
             CronController.fCheckDeletedVods();
@@ -61,7 +76,11 @@ export class Scheduler {
 
         this.schedule("match_vods", "30 */12 * * *", () => {
             if (!Config.getInstance().cfg<boolean>("schedule_match_vods")) {
-                log(LOGLEVEL.INFO, "scheduler.defaultJobs", "Scheduler: match_vods - disabled");
+                log(
+                    LOGLEVEL.INFO,
+                    "scheduler.defaultJobs",
+                    "Scheduler: match_vods - disabled"
+                );
                 return;
             }
             CronController.fMatchVods();
@@ -77,7 +96,10 @@ export class Scheduler {
         // validate oauth token every hour
         this.schedule("validate_oauth", "0 */1 * * *", () => {
             // if (Config.getInstance().cfg("twitchapi.auth_type") == "app") return;
-            if (TwitchHelper.accessToken && TwitchHelper.accessTokenType !== "user") {
+            if (
+                TwitchHelper.accessToken &&
+                TwitchHelper.accessTokenType !== "user"
+            ) {
                 return;
             }
             TwitchHelper.validateOAuth();
@@ -92,11 +114,44 @@ export class Scheduler {
         //     TwitchHelper.refreshUserAccessToken();
         // });
 
-        log(LOGLEVEL.INFO, "scheduler.defaultJobs", `Default job 'check_muted_vods' ${Config.getInstance().cfg<boolean>("schedule_muted_vods") ? "enabled" : "disabled"}`);
-        log(LOGLEVEL.INFO, "scheduler.defaultJobs", `Default job 'check_deleted_vods' ${Config.getInstance().cfg<boolean>("schedule_deleted_vods") ? "enabled" : "disabled"}`);
-        log(LOGLEVEL.INFO, "scheduler.defaultJobs", `Default job 'match_vods' ${Config.getInstance().cfg<boolean>("schedule_match_vods") ? "enabled" : "disabled"}`);
-        log(LOGLEVEL.INFO, "scheduler.defaultJobs", `Default job 'clipdownload' ${Config.getInstance().cfg<boolean>("scheduler.clipdownload.enabled") ? "enabled" : "disabled"}`);
-
+        log(
+            LOGLEVEL.INFO,
+            "scheduler.defaultJobs",
+            `Default job 'check_muted_vods' ${
+                Config.getInstance().cfg<boolean>("schedule_muted_vods")
+                    ? "enabled"
+                    : "disabled"
+            }`
+        );
+        log(
+            LOGLEVEL.INFO,
+            "scheduler.defaultJobs",
+            `Default job 'check_deleted_vods' ${
+                Config.getInstance().cfg<boolean>("schedule_deleted_vods")
+                    ? "enabled"
+                    : "disabled"
+            }`
+        );
+        log(
+            LOGLEVEL.INFO,
+            "scheduler.defaultJobs",
+            `Default job 'match_vods' ${
+                Config.getInstance().cfg<boolean>("schedule_match_vods")
+                    ? "enabled"
+                    : "disabled"
+            }`
+        );
+        log(
+            LOGLEVEL.INFO,
+            "scheduler.defaultJobs",
+            `Default job 'clipdownload' ${
+                Config.getInstance().cfg<boolean>(
+                    "scheduler.clipdownload.enabled"
+                )
+                    ? "enabled"
+                    : "disabled"
+            }`
+        );
     }
 
     public static hasJob(name: string) {
@@ -132,44 +187,72 @@ export class Scheduler {
     }
 
     public static async scheduleClipDownload() {
-
         debugLog("Scheduler: scheduleClipDownload");
 
-        if (!Config.getInstance().cfg<boolean>("scheduler.clipdownload.enabled")) {
-            log(LOGLEVEL.INFO, "Scheduler", "Scheduler: scheduleClipDownload - disabled");
+        if (
+            !Config.getInstance().cfg<boolean>("scheduler.clipdownload.enabled")
+        ) {
+            log(
+                LOGLEVEL.INFO,
+                "Scheduler",
+                "Scheduler: scheduleClipDownload - disabled"
+            );
             return;
         }
 
-        log(LOGLEVEL.INFO, "Scheduler", "Scheduler: scheduleClipDownload - start");
+        log(
+            LOGLEVEL.INFO,
+            "Scheduler",
+            "Scheduler: scheduleClipDownload - start"
+        );
 
-        const amount = Config.getInstance().cfg<number>("scheduler.clipdownload.amount");
-        const age = Config.getInstance().cfg<number>("scheduler.clipdownload.age");
-        const logins = Config.getInstance().cfg<string>("scheduler.clipdownload.channels").split(",").map(s => s.trim());
+        const amount = Config.getInstance().cfg<number>(
+            "scheduler.clipdownload.amount"
+        );
+        const age = Config.getInstance().cfg<number>(
+            "scheduler.clipdownload.age"
+        );
+        const logins = Config.getInstance()
+            .cfg<string>("scheduler.clipdownload.channels")
+            .split(",")
+            .map((s) => s.trim());
 
-        const clips_database = path.join(BaseConfigCacheFolder.cache, "downloaded_clips.json");
-        const downloaded_clips: string[] =
-            fs.existsSync(clips_database) ?
-                JSON.parse(
-                    fs.readFileSync(clips_database, "utf-8")
-                ) : [];
+        const clips_database = path.join(
+            BaseConfigCacheFolder.cache,
+            "downloaded_clips.json"
+        );
+        const downloaded_clips: string[] = fs.existsSync(clips_database)
+            ? JSON.parse(fs.readFileSync(clips_database, "utf-8"))
+            : [];
 
         for (const login of logins) {
             const channel = TwitchChannel.getChannelByLogin(login);
             const clips = await channel?.getClips(age, amount);
             let skipped = 0;
             if (clips) {
-
-                for (let i = 0; i < Math.min(amount, clips.length) + skipped; i++) {
+                for (
+                    let i = 0;
+                    i < Math.min(amount, clips.length) + skipped;
+                    i++
+                ) {
                     if (!clips[i]) continue;
                     const clip = clips[i];
 
                     if (downloaded_clips.includes(clip.id)) {
-                        log(LOGLEVEL.INFO, "Scheduler", `Scheduler: scheduleClipDownload - clip ${clip.id} already downloaded`);
+                        log(
+                            LOGLEVEL.INFO,
+                            "Scheduler",
+                            `Scheduler: scheduleClipDownload - clip ${clip.id} already downloaded`
+                        );
                         skipped++;
                         continue;
                     }
 
-                    const basefolder = path.join(BaseConfigDataFolder.saved_clips, "scheduler", login);
+                    const basefolder = path.join(
+                        BaseConfigDataFolder.saved_clips,
+                        "scheduler",
+                        login
+                    );
                     if (!fs.existsSync(basefolder)) {
                         fs.mkdirSync(basefolder, { recursive: true });
                     }
@@ -179,57 +262,100 @@ export class Scheduler {
                     const variables: ClipBasenameTemplate = {
                         id: clip.id,
                         quality: "best", // TODO: get quality somehow
-                        clip_date: format(clip_date, Config.getInstance().dateFormat),
+                        clip_date: format(
+                            clip_date,
+                            Config.getInstance().dateFormat
+                        ),
                         title: clip.title,
                         creator: clip.creator_name,
                         broadcaster: clip.broadcaster_name,
                     };
 
-                    const basename = sanitize(formatString(Config.getInstance().cfg("filename_clip", "{broadcaster} - {title} [{id}] [{quality}]"), variables));
+                    const basename = sanitize(
+                        formatString(
+                            Config.getInstance().cfg(
+                                "filename_clip",
+                                "{broadcaster} - {title} [{id}] [{quality}]"
+                            ),
+                            variables
+                        )
+                    );
 
                     const outPath = path.join(basefolder, basename);
 
                     if (fs.existsSync(`${outPath}.mp4`)) {
-                        log(LOGLEVEL.WARNING, "scheduler", `Clip ${clip.id} already exists`);
+                        log(
+                            LOGLEVEL.WARNING,
+                            "scheduler",
+                            `Clip ${clip.id} already exists`
+                        );
                         downloaded_clips.push(clip.id); // already passed the first check
                         skipped++;
                         continue;
                     }
 
                     try {
-                        await TwitchVOD.downloadClip(clip.id, `${outPath}.mp4`, "best");
+                        await TwitchVOD.downloadClip(
+                            clip.id,
+                            `${outPath}.mp4`,
+                            "best"
+                        );
                     } catch (error) {
-                        log(LOGLEVEL.ERROR, "scheduler", `Failed to download clip ${clip.id}: ${(error as Error).message}`);
+                        log(
+                            LOGLEVEL.ERROR,
+                            "scheduler",
+                            `Failed to download clip ${clip.id}: ${
+                                (error as Error).message
+                            }`
+                        );
                         return;
                     }
 
                     try {
-                        await TwitchVOD.downloadChatTD(clip.id, `${outPath}.chat.json`);
+                        await TwitchVOD.downloadChatTD(
+                            clip.id,
+                            `${outPath}.chat.json`
+                        );
                     } catch (error) {
-                        log(LOGLEVEL.ERROR, "scheduler", `Failed to download chat for clip ${clip.id}: ${(error as Error).message}`);
+                        log(
+                            LOGLEVEL.ERROR,
+                            "scheduler",
+                            `Failed to download chat for clip ${clip.id}: ${
+                                (error as Error).message
+                            }`
+                        );
                         return;
                     }
 
-                    fs.writeFileSync(`${outPath}.info.json`, JSON.stringify(clip, null, 4));
+                    fs.writeFileSync(
+                        `${outPath}.info.json`,
+                        JSON.stringify(clip, null, 4)
+                    );
 
-                    log(LOGLEVEL.INFO, "scheduler", `Downloaded clip ${clip.id}`);
+                    log(
+                        LOGLEVEL.INFO,
+                        "scheduler",
+                        `Downloaded clip ${clip.id}`
+                    );
 
                     downloaded_clips.push(clip.id);
 
                     await Sleep(5000); // hehe
-
                 }
 
                 await channel?.findClips();
-
             }
-
         }
 
-        fs.writeFileSync(clips_database, JSON.stringify(downloaded_clips, null, 4));
+        fs.writeFileSync(
+            clips_database,
+            JSON.stringify(downloaded_clips, null, 4)
+        );
 
-        log(LOGLEVEL.INFO, "Scheduler", "Scheduler: scheduleClipDownload - end");
-
+        log(
+            LOGLEVEL.INFO,
+            "Scheduler",
+            "Scheduler: scheduleClipDownload - end"
+        );
     }
-
 }

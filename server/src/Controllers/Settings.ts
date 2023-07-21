@@ -9,8 +9,9 @@ import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
 import { TwitchGame } from "@/Core/Providers/Twitch/TwitchGame";
 
 export function GetSettings(req: express.Request, res: express.Response): void {
-
-    const is_guest = Config.getInstance().cfg<boolean>("guest_mode", false) && !req.session.authenticated;
+    const is_guest =
+        Config.getInstance().cfg<boolean>("guest_mode", false) &&
+        !req.session.authenticated;
 
     const config: Record<string, any> = {};
     for (const key in Config.settingsFields) {
@@ -44,8 +45,11 @@ export function GetSettings(req: express.Request, res: express.Response): void {
             guest: is_guest,
             quotas: {
                 twitch: {
-                    max_total_cost: KeyValue.getInstance().getInt("twitch.max_total_cost"),
-                    total_cost: KeyValue.getInstance().getInt("twitch.total_cost"),
+                    max_total_cost: KeyValue.getInstance().getInt(
+                        "twitch.max_total_cost"
+                    ),
+                    total_cost:
+                        KeyValue.getInstance().getInt("twitch.total_cost"),
                     total: KeyValue.getInstance().getInt("twitch.total"),
                 },
             },
@@ -56,17 +60,24 @@ export function GetSettings(req: express.Request, res: express.Response): void {
     } as ApiSettingsResponse);
 }
 
-export function SaveSettings(req: express.Request, res: express.Response): void {
-
+export function SaveSettings(
+    req: express.Request,
+    res: express.Response
+): void {
     const postConfig = req.body.config;
 
     if (!postConfig) {
-        res.status(400).send({ status: "ERROR", message: "No config provided" });
+        res.status(400).send({
+            status: "ERROR",
+            message: "No config provided",
+        });
         return;
     }
 
     let force_new_token = false;
-    if (Config.getInstance().cfg("api_client_id") !== postConfig.api_client_id) {
+    if (
+        Config.getInstance().cfg("api_client_id") !== postConfig.api_client_id
+    ) {
         force_new_token = true;
     }
 
@@ -99,7 +110,10 @@ export function SaveSettings(req: express.Request, res: express.Response): void 
             Config.getInstance().setConfig<boolean>(key, postConfig[key]);
         } else if (setting.type === "number") {
             if (postConfig[key] !== undefined) {
-                Config.getInstance().setConfig<number>(key, parseInt(postConfig[key]));
+                Config.getInstance().setConfig<number>(
+                    key,
+                    parseInt(postConfig[key])
+                );
             }
         } else {
             if (postConfig[key] !== undefined) {
@@ -122,8 +136,10 @@ export function SaveSettings(req: express.Request, res: express.Response): void 
     return;
 }
 
-export async function ValidateExternalURL(req: express.Request, res: express.Response): Promise<void> {
-
+export async function ValidateExternalURL(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     // const test_url = req.body.url;
 
     /*
@@ -161,11 +177,9 @@ export async function ValidateExternalURL(req: express.Request, res: express.Res
     });
 
     return;
-
 }
 
 export function SetDebug(req: express.Request, res: express.Response): void {
-
     if (req.query.enable === undefined) {
         res.status(400).send({
             status: "ERROR",
@@ -180,5 +194,4 @@ export function SetDebug(req: express.Request, res: express.Response): void {
         status: "OK",
         message: `Debug mode set to ${Config.getInstance().forceDebug}`,
     });
-
 }

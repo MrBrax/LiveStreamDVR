@@ -19,7 +19,6 @@ import type { YouTubeChannel } from "./YouTubeChannel";
 import { execAdvanced } from "../../../Helpers/Execute";
 
 export class YouTubeVOD extends BaseVOD {
-
     public provider: Providers = "youtube";
 
     json?: YouTubeVODJSON;
@@ -33,7 +32,8 @@ export class YouTubeVOD extends BaseVOD {
 
     public async toAPI(): Promise<ApiYouTubeVod> {
         if (!this.uuid) throw new Error(`No UUID set on VOD ${this.basename}`);
-        if (!this.channel_uuid) throw new Error(`No channel UUID set on VOD ${this.basename}`);
+        if (!this.channel_uuid)
+            throw new Error(`No channel UUID set on VOD ${this.basename}`);
         return {
             provider: "youtube",
             uuid: this.uuid,
@@ -54,9 +54,15 @@ export class YouTubeVOD extends BaseVOD {
             saved_at: this.saved_at ? this.saved_at.toISOString() : "",
             started_at: this.started_at ? this.started_at.toISOString() : "",
             ended_at: this.ended_at ? this.ended_at.toISOString() : undefined,
-            capture_started: this.capture_started ? this.capture_started.toISOString() : undefined,
-            capture_started2: this.capture_started2 ? this.capture_started2.toISOString() : undefined,
-            conversion_started: this.conversion_started ? this.conversion_started.toISOString() : undefined,
+            capture_started: this.capture_started
+                ? this.capture_started.toISOString()
+                : undefined,
+            capture_started2: this.capture_started2
+                ? this.capture_started2.toISOString()
+                : undefined,
+            conversion_started: this.conversion_started
+                ? this.conversion_started.toISOString()
+                : undefined,
 
             is_converted: this.is_converted,
             is_capturing: this.is_capturing,
@@ -117,8 +123,18 @@ export class YouTubeVOD extends BaseVOD {
 
             bookmarks: this.bookmarks,
 
-            viewers: this.viewers.map((v) => { return { timestamp: v.timestamp.toISOString(), amount: v.amount }; }),
-            stream_pauses: this.stream_pauses.map((v) => { return { start: v.start.toISOString(), end: v.end.toISOString() }; }),
+            viewers: this.viewers.map((v) => {
+                return {
+                    timestamp: v.timestamp.toISOString(),
+                    amount: v.amount,
+                };
+            }),
+            stream_pauses: this.stream_pauses.map((v) => {
+                return {
+                    start: v.start.toISOString(),
+                    end: v.end.toISOString(),
+                };
+            }),
 
             // bookmarks: this.bookmarks,
 
@@ -126,7 +142,7 @@ export class YouTubeVOD extends BaseVOD {
             // twitch_vod_url: this.twitch_vod_url,
             // twitch_vod_exists: this.twitch_vod_exists,
             // twitch_vod_attempted: this.twitch_vod_attempted,
-            // twitch_vod_neversaved: this.twitch_vod_neversaved,            
+            // twitch_vod_neversaved: this.twitch_vod_neversaved,
             // video_fail2: this.video_fail2,
             // json_hash: this.json_hash,
             // created: this.created,
@@ -138,7 +154,6 @@ export class YouTubeVOD extends BaseVOD {
     }
 
     public async saveJSON(reason = ""): Promise<boolean> {
-
         if (!this.filename) {
             throw new Error("Filename not set.");
         }
@@ -147,8 +162,15 @@ export class YouTubeVOD extends BaseVOD {
         //     TwitchlogAdvanced(LOGLEVEL.WARNING, "vod", `Saving JSON of ${this.basename} while not finalized!`);
         // }
 
-        if (!this.not_started && (!this.chapters || this.chapters.length == 0)) {
-            log(LOGLEVEL.WARNING, "vod", `Saving JSON of ${this.basename} with no chapters!!`);
+        if (
+            !this.not_started &&
+            (!this.chapters || this.chapters.length == 0)
+        ) {
+            log(
+                LOGLEVEL.WARNING,
+                "vod",
+                `Saving JSON of ${this.basename} with no chapters!!`
+            );
         }
 
         /*
@@ -159,7 +181,10 @@ export class YouTubeVOD extends BaseVOD {
         */
 
         // clone this.json
-        const generated: YouTubeVODJSON = this.json && Object.keys(this.json).length > 0 ? JSON.parse(JSON.stringify(this.json)) : {};
+        const generated: YouTubeVODJSON =
+            this.json && Object.keys(this.json).length > 0
+                ? JSON.parse(JSON.stringify(this.json))
+                : {};
         // const generated: TwitchVODJSON = Object.assign({}, this.json || {});
 
         generated.version = 2;
@@ -177,7 +202,9 @@ export class YouTubeVOD extends BaseVOD {
         // generated.chapters = this.chapters_raw;
         // generated.segments = this.segments_raw;
         generated.chapters = this.chapters.map((chapter) => chapter.toJSON());
-        generated.segments = this.segments.map((segment) => segment.filename || ""); // hack?
+        generated.segments = this.segments.map(
+            (segment) => segment.filename || ""
+        ); // hack?
 
         generated.is_capturing = this.is_capturing;
         generated.is_converting = this.is_converting;
@@ -189,11 +216,17 @@ export class YouTubeVOD extends BaseVOD {
 
         generated.saved_at = new Date().toISOString();
 
-        if (this.created_at) generated.created_at = this.created_at.toISOString();
-        if (this.capture_started) generated.capture_started = this.capture_started.toISOString();
-        if (this.capture_started2) generated.capture_started2 = this.capture_started2.toISOString();
-        if (this.conversion_started) generated.conversion_started = this.conversion_started.toISOString();
-        if (this.started_at) generated.started_at = this.started_at.toISOString();
+        if (this.created_at)
+            generated.created_at = this.created_at.toISOString();
+        if (this.capture_started)
+            generated.capture_started = this.capture_started.toISOString();
+        if (this.capture_started2)
+            generated.capture_started2 = this.capture_started2.toISOString();
+        if (this.conversion_started)
+            generated.conversion_started =
+                this.conversion_started.toISOString();
+        if (this.started_at)
+            generated.started_at = this.started_at.toISOString();
         if (this.ended_at) generated.ended_at = this.ended_at.toISOString();
 
         generated.not_started = this.not_started;
@@ -213,7 +246,13 @@ export class YouTubeVOD extends BaseVOD {
 
         // generated.bookmarks = this.bookmarks;
 
-        log(LOGLEVEL.SUCCESS, "vod", `Saving JSON of ${this.basename} ${(reason ? " (" + reason + ")" : "")}`);
+        log(
+            LOGLEVEL.SUCCESS,
+            "vod",
+            `Saving JSON of ${this.basename} ${
+                reason ? " (" + reason + ")" : ""
+            }`
+        );
 
         //file_put_contents(this.filename, json_encode(generated));
         // this.setPermissions();
@@ -225,8 +264,20 @@ export class YouTubeVOD extends BaseVOD {
         try {
             fs.writeFileSync(this.filename, JSON.stringify(generated, null, 4));
         } catch (error) {
-            log(LOGLEVEL.FATAL, "vod", `Failed to save JSON of ${this.basename}: ${(error as Error).message}`);
-            console.log(chalk.bgRedBright.whiteBright(`Failed to save JSON of ${this.basename}: ${(error as Error).message}`));
+            log(
+                LOGLEVEL.FATAL,
+                "vod",
+                `Failed to save JSON of ${this.basename}: ${
+                    (error as Error).message
+                }`
+            );
+            console.log(
+                chalk.bgRedBright.whiteBright(
+                    `Failed to save JSON of ${this.basename}: ${
+                        (error as Error).message
+                    }`
+                )
+            );
             return false;
         }
 
@@ -237,11 +288,9 @@ export class YouTubeVOD extends BaseVOD {
         this.broadcastUpdate(); // should this be here?
 
         return true;
-
     }
 
     public setupProvider(): void {
-
         if (!this.json) {
             throw new Error("No JSON loaded for provider setup!");
         }
@@ -250,7 +299,6 @@ export class YouTubeVOD extends BaseVOD {
     }
 
     public async setupUserData(): Promise<void> {
-
         if (!this.json) {
             throw new Error("No JSON loaded for user data setup!");
         }
@@ -258,12 +306,18 @@ export class YouTubeVOD extends BaseVOD {
         if (this.json.channel_uuid) {
             this.channel_uuid = this.json.channel_uuid;
         } else {
-            log(LOGLEVEL.ERROR, "vod", `No channel UUID for VOD ${this.basename}`);
+            log(
+                LOGLEVEL.ERROR,
+                "vod",
+                `No channel UUID for VOD ${this.basename}`
+            );
         }
     }
 
-    public static async load(filename: string, noFixIssues = false): Promise<YouTubeVOD> {
-
+    public static async load(
+        filename: string,
+        noFixIssues = false
+    ): Promise<YouTubeVOD> {
         const basename = path.basename(filename);
 
         // check if file exists
@@ -311,7 +365,7 @@ export class YouTubeVOD extends BaseVOD {
 
         await vod.startWatching();
 
-        if (!noFixIssues){
+        if (!noFixIssues) {
             let noIssues = false;
             do {
                 noIssues = await vod.fixIssues("VOD load");
@@ -319,7 +373,11 @@ export class YouTubeVOD extends BaseVOD {
         }
 
         if (!vod.not_started && !vod.is_finalized) {
-            log(LOGLEVEL.WARNING, "vod", `Loaded VOD ${vod.basename} is not finalized!`);
+            log(
+                LOGLEVEL.WARNING,
+                "vod",
+                `Loaded VOD ${vod.basename} is not finalized!`
+            );
         }
 
         // vod.compareDumpedChatAndDownloadedChat();
@@ -328,18 +386,33 @@ export class YouTubeVOD extends BaseVOD {
         vod.loaded = true;
 
         return vod;
-
     }
 
-    public static getVodByCaptureId(capture_id: string): YouTubeVOD | undefined {
-        return LiveStreamDVR.getInstance().getVods().find<YouTubeVOD>((vod): vod is YouTubeVOD => isYouTubeVOD(vod) && vod.capture_id == capture_id);
+    public static getVodByCaptureId(
+        capture_id: string
+    ): YouTubeVOD | undefined {
+        return LiveStreamDVR.getInstance()
+            .getVods()
+            .find<YouTubeVOD>(
+                (vod): vod is YouTubeVOD =>
+                    isYouTubeVOD(vod) && vod.capture_id == capture_id
+            );
     }
 
-    public static getVodByProviderId(provider_id: string): YouTubeVOD | undefined {
-        return LiveStreamDVR.getInstance().getVods().find<YouTubeVOD>((vod): vod is YouTubeVOD => isYouTubeVOD(vod) && vod.youtube_vod_id == provider_id);
+    public static getVodByProviderId(
+        provider_id: string
+    ): YouTubeVOD | undefined {
+        return LiveStreamDVR.getInstance()
+            .getVods()
+            .find<YouTubeVOD>(
+                (vod): vod is YouTubeVOD =>
+                    isYouTubeVOD(vod) && vod.youtube_vod_id == provider_id
+            );
     }
 
-    static async getVideosProxy(channel_id: string): Promise<false | ProxyVideo[]> {
+    static async getVideosProxy(
+        channel_id: string
+    ): Promise<false | ProxyVideo[]> {
         if (!channel_id) throw new Error("No channel id");
 
         const service = new youtube_v3.Youtube({
@@ -355,17 +428,24 @@ export class YouTubeVOD extends BaseVOD {
                 part: ["snippet"],
             });
         } catch (error) {
-            log(LOGLEVEL.WARNING, "helper", `Channel video search for ${channel_id} error: ${(error as Error).message}`);
+            log(
+                LOGLEVEL.WARNING,
+                "helper",
+                `Channel video search for ${channel_id} error: ${
+                    (error as Error).message
+                }`
+            );
             return false;
         }
 
         // console.log(searchResponse.data);
 
         if (!searchResponse.data) return false;
-        if (!searchResponse.data.items || searchResponse.data.items.length == 0) return false;
+        if (!searchResponse.data.items || searchResponse.data.items.length == 0)
+            return false;
 
         const ids: string[] = [];
-        searchResponse.data.items.forEach(item => {
+        searchResponse.data.items.forEach((item) => {
             if (item && item.id && item.id.videoId) ids.push(item.id.videoId);
         });
 
@@ -378,14 +458,22 @@ export class YouTubeVOD extends BaseVOD {
                 part: ["contentDetails"],
             });
         } catch (error) {
-            log(LOGLEVEL.WARNING, "helper", `Channel video details for ${channel_id} error: ${(error as Error).message}`);
+            log(
+                LOGLEVEL.WARNING,
+                "helper",
+                `Channel video details for ${channel_id} error: ${
+                    (error as Error).message
+                }`
+            );
             return false;
         }
 
         if (!videosResponse.data) return false;
-        if (!videosResponse.data.items || videosResponse.data.items.length == 0) return false;
+        if (!videosResponse.data.items || videosResponse.data.items.length == 0)
+            return false;
 
-        const details: Record<string, youtube_v3.Schema$VideoContentDetails> = {};
+        const details: Record<string, youtube_v3.Schema$VideoContentDetails> =
+            {};
         videosResponse.data.items.forEach((item) => {
             if (!item.id || !item.contentDetails) return;
             details[item.id] = item.contentDetails;
@@ -393,7 +481,7 @@ export class YouTubeVOD extends BaseVOD {
 
         // durations[item.id] = item.contentDetails?.duration ? Helper.parseYouTubeDuration(item.contentDetails?.duration) : -1;
 
-        return searchResponse.data.items.map(item => {
+        return searchResponse.data.items.map((item) => {
             return {
                 id: item.id?.videoId,
                 title: item.snippet?.title,
@@ -401,14 +489,19 @@ export class YouTubeVOD extends BaseVOD {
                 url: `https://www.youtube.com/watch?v=${item.id?.videoId}`,
                 thumbnail: item.snippet?.thumbnails?.default?.url,
                 created_at: item.snippet?.publishedAt,
-                duration: item.id?.videoId ? YouTubeHelper.parseYouTubeDuration(details[item.id?.videoId].duration || "") : -1,
+                duration: item.id?.videoId
+                    ? YouTubeHelper.parseYouTubeDuration(
+                          details[item.id?.videoId].duration || ""
+                      )
+                    : -1,
                 view_count: -1, // what
             } as ProxyVideo;
         });
-
     }
 
-    static async getVideo(video_id: string): Promise<false | youtube_v3.Schema$Video> {
+    static async getVideo(
+        video_id: string
+    ): Promise<false | youtube_v3.Schema$Video> {
         const service = new youtube_v3.Youtube({
             auth: YouTubeHelper.oAuth2Client,
         });
@@ -420,19 +513,24 @@ export class YouTubeVOD extends BaseVOD {
                 part: ["contentDetails", "snippet"],
             });
         } catch (error) {
-            log(LOGLEVEL.WARNING, "helper", `Channel video details for ${video_id} error: ${(error as Error).message}`);
+            log(
+                LOGLEVEL.WARNING,
+                "helper",
+                `Channel video details for ${video_id} error: ${
+                    (error as Error).message
+                }`
+            );
             return false;
         }
 
         if (!searchResponse.data) return false;
-        if (!searchResponse.data.items || searchResponse.data.items.length == 0) return false;
+        if (!searchResponse.data.items || searchResponse.data.items.length == 0)
+            return false;
 
         return searchResponse.data.items[0];
-
     }
 
     static async getVideoProxy(video_id: string): Promise<false | ProxyVideo> {
-        
         const item = await this.getVideo(video_id);
 
         if (!item) return false;
@@ -444,14 +542,21 @@ export class YouTubeVOD extends BaseVOD {
             url: `https://www.youtube.com/watch?v=${item.id}`,
             thumbnail: item.snippet?.thumbnails?.default?.url,
             created_at: item.snippet?.publishedAt,
-            duration: item.contentDetails?.duration ? YouTubeHelper.parseYouTubeDuration(item.contentDetails?.duration) : -1,
+            duration: item.contentDetails?.duration
+                ? YouTubeHelper.parseYouTubeDuration(
+                      item.contentDetails?.duration
+                  )
+                : -1,
             view_count: -1, // what
             stream_id: item.id,
         } as ProxyVideo;
     }
 
-    static async downloadVideo(video_id: string, quality: VideoQuality, filename: string): Promise<string> {
-
+    static async downloadVideo(
+        video_id: string,
+        quality: VideoQuality,
+        filename: string
+    ): Promise<string> {
         log(LOGLEVEL.INFO, "channel", `Download VOD ${video_id}`);
 
         const video = await this.getVideoProxy(video_id);
@@ -463,11 +568,13 @@ export class YouTubeVOD extends BaseVOD {
 
         const basename = path.basename(filename);
 
-        const capture_filename = path.join(BaseConfigCacheFolder.cache, `${video_id}.ts`);
+        const capture_filename = path.join(
+            BaseConfigCacheFolder.cache,
+            `${video_id}.ts`
+        );
         const converted_filename = filename;
 
         if (!fs.existsSync(converted_filename)) {
-
             const video_url = video.url;
 
             const ytdl_bin = Helper.path_youtubedl();
@@ -487,36 +594,52 @@ export class YouTubeVOD extends BaseVOD {
 
             log(LOGLEVEL.INFO, "channel", `Downloading VOD ${video_id}...`);
 
-            const ret = await execAdvanced(ytdl_bin, cmd, `download_vod_${video_id}`, (log_line: string) => {
-                const progressMatch = log_line.match(/([\d.]+)%/);
-                if (progressMatch) {
-                    const progress = parseFloat(progressMatch[1]);
-                    return progress / 100;
+            const ret = await execAdvanced(
+                ytdl_bin,
+                cmd,
+                `download_vod_${video_id}`,
+                (log_line: string) => {
+                    const progressMatch = log_line.match(/([\d.]+)%/);
+                    if (progressMatch) {
+                        const progress = parseFloat(progressMatch[1]);
+                        return progress / 100;
+                    }
                 }
-            });
-
+            );
         }
 
-        const successful = fs.existsSync(converted_filename) && fs.statSync(converted_filename).size > 0;
+        const successful =
+            fs.existsSync(converted_filename) &&
+            fs.statSync(converted_filename).size > 0;
 
         if (!successful) {
-            log(LOGLEVEL.ERROR, "channel", `Failed to download VOD ${video_id}`);
+            log(
+                LOGLEVEL.ERROR,
+                "channel",
+                `Failed to download VOD ${video_id}`
+            );
             throw new Error(`Failed to download VOD ${video_id}`);
         }
 
         log(LOGLEVEL.INFO, "channel", `Downloaded VOD ${video_id}`);
 
         return converted_filename;
-
     }
 
     public async finalize(): Promise<boolean> {
-
-        log(LOGLEVEL.INFO, "vod.finalize", `Finalize ${this.basename} @ ${this.directory}`);
+        log(
+            LOGLEVEL.INFO,
+            "vod.finalize",
+            `Finalize ${this.basename} @ ${this.directory}`
+        );
         try {
             await this.getMediainfo();
         } catch (error) {
-            log(LOGLEVEL.ERROR, "vod.finalize", `Failed to get mediainfo for ${this.basename}: ${error}`);
+            log(
+                LOGLEVEL.ERROR,
+                "vod.finalize",
+                `Failed to get mediainfo for ${this.basename}: ${error}`
+            );
         }
 
         this.is_finalized = true;
@@ -524,11 +647,17 @@ export class YouTubeVOD extends BaseVOD {
     }
 
     public getChannel(): YouTubeChannel {
-        if (!this.channel_uuid) throw new Error("No channel UUID set for getChannel");
+        if (!this.channel_uuid)
+            throw new Error("No channel UUID set for getChannel");
         // return YouTubeChannel.getChannelByLogin(this.streamer_login);
-        const channel = LiveStreamDVR.getInstance().getChannelByUUID<YouTubeChannel>(this.channel_uuid);
-        if (!channel) throw new Error(`No channel found for getChannel (uuid: ${this.channel_uuid})`);
+        const channel =
+            LiveStreamDVR.getInstance().getChannelByUUID<YouTubeChannel>(
+                this.channel_uuid
+            );
+        if (!channel)
+            throw new Error(
+                `No channel found for getChannel (uuid: ${this.channel_uuid})`
+            );
         return channel;
     }
-
 }

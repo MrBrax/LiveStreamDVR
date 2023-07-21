@@ -10,12 +10,19 @@ import { Helper } from "@/Core/Helper";
 import { KeyValue } from "@/Core/KeyValue";
 import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
 import { GetRunningProcesses } from "@/Helpers/Execute";
-import { DVRBinaries, DVRPipPackages, PipRequirements, getBinaryVersion } from "@/Helpers/Software";
+import {
+    DVRBinaries,
+    DVRPipPackages,
+    PipRequirements,
+    getBinaryVersion,
+} from "@/Helpers/Software";
 import { is_docker } from "@/Helpers/System";
 import { getLogLines } from "@/Core/Log";
 
-export async function About(req: express.Request, res: express.Response): Promise<void> {
-
+export async function About(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const bins: Record<string, BinaryStatus> = {};
 
     const b = DVRBinaries();
@@ -54,32 +61,42 @@ export async function About(req: express.Request, res: express.Response): Promis
         }
     }
 
-    const watcher_amount = LiveStreamDVR.getInstance().getChannels().reduce((a, b) => {
-        return a + (b.fileWatcher ? 1 : 0);
-    }, 0);
+    const watcher_amount = LiveStreamDVR.getInstance()
+        .getChannels()
+        .reduce((a, b) => {
+            return a + (b.fileWatcher ? 1 : 0);
+        }, 0);
 
-    const storage_data_file_count = readdirRecursive(BaseConfigDataFolder.storage).length;
-    const cache_data_file_count = readdirRecursive(BaseConfigCacheFolder.cache).length;
+    const storage_data_file_count = readdirRecursive(
+        BaseConfigDataFolder.storage
+    ).length;
+    const cache_data_file_count = readdirRecursive(
+        BaseConfigCacheFolder.cache
+    ).length;
 
-    const debug = Config.debug ? {
-        watcher_amount,
-        channel_amount: LiveStreamDVR.getInstance().getChannels().length,
-        vod_amount: LiveStreamDVR.getInstance().getChannels().reduce((a, b) => {
-            return a + b.vods_list.length;
-        }, 0),
-        keyvalue_amount: KeyValue.getInstance().count(),
-        storage_data_file_count,
-        cache_data_file_count,
-        free_disk_space: LiveStreamDVR.getInstance().freeStorageDiskSpace,
-        arch: process.arch,
-        platform: process.platform,
-        cpu_usage: process.cpuUsage(),
-        date: new Date(),
-        uptime: process.uptime(),
-        child_processes: GetRunningProcesses().length,
-        log_lines: getLogLines().length,
-        keyvalues: Object.keys(KeyValue.getInstance().getData()).length,
-    } : undefined;
+    const debug = Config.debug
+        ? {
+              watcher_amount,
+              channel_amount: LiveStreamDVR.getInstance().getChannels().length,
+              vod_amount: LiveStreamDVR.getInstance()
+                  .getChannels()
+                  .reduce((a, b) => {
+                      return a + b.vods_list.length;
+                  }, 0),
+              keyvalue_amount: KeyValue.getInstance().count(),
+              storage_data_file_count,
+              cache_data_file_count,
+              free_disk_space: LiveStreamDVR.getInstance().freeStorageDiskSpace,
+              arch: process.arch,
+              platform: process.platform,
+              cpu_usage: process.cpuUsage(),
+              date: new Date(),
+              uptime: process.uptime(),
+              child_processes: GetRunningProcesses().length,
+              log_lines: getLogLines().length,
+              keyvalues: Object.keys(KeyValue.getInstance().getData()).length,
+          }
+        : undefined;
 
     res.send({
         data: {
@@ -92,11 +109,12 @@ export async function About(req: express.Request, res: express.Response): Promis
         },
         status: "OK",
     } as ApiAboutResponse);
-
 }
 
-export async function License(req: express.Request, res: express.Response): Promise<void> {
-
+export async function License(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const package_name = req.query.package_name as string;
 
     if (!package_name) {
@@ -120,7 +138,10 @@ export async function License(req: express.Request, res: express.Response): Prom
         }
     }
 
-    const contents = fs.readFileSync(license_path, "utf-8").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+    const contents = fs
+        .readFileSync(license_path, "utf-8")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;");
 
     res.send(`
         <title>${package_name} LICENSE</title>
@@ -138,5 +159,4 @@ export async function License(req: express.Request, res: express.Response): Prom
             }
         </style>
     `);
-
 }

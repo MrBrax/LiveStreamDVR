@@ -8,14 +8,20 @@ import { TwitchVOD } from "@/Core/Providers/Twitch/TwitchVOD";
 import { Job } from "@/Core/Job";
 import { xInterval } from "@/Helpers/Timeout";
 
-export function ListVodsInMemory(req: express.Request, res: express.Response): void {
+export function ListVodsInMemory(
+    req: express.Request,
+    res: express.Response
+): void {
     res.send({
         status: "OK",
         data: LiveStreamDVR.getInstance().getVods(),
     });
 }
 
-export function ListChannelsInMemory(req: express.Request, res: express.Response): void {
+export function ListChannelsInMemory(
+    req: express.Request,
+    res: express.Response
+): void {
     res.send({
         status: "OK",
         data: LiveStreamDVR.getInstance().getChannels(),
@@ -23,11 +29,19 @@ export function ListChannelsInMemory(req: express.Request, res: express.Response
 }
 
 export function NotifyTest(req: express.Request, res: express.Response): void {
-    ClientBroker.notify(req.query.title as string, req.query.body as string, "", "debug");
+    ClientBroker.notify(
+        req.query.title as string,
+        req.query.body as string,
+        "",
+        "debug"
+    );
     res.send("OK");
 }
 
-export async function VodDownloadAtEnd(req: express.Request, res: express.Response): Promise<void> {
+export async function VodDownloadAtEnd(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const login = req.query.login as string;
     const quality = req.query.quality as VideoQuality;
     const channel = TwitchChannel.getChannelByLogin(login);
@@ -43,13 +57,22 @@ export async function VodDownloadAtEnd(req: express.Request, res: express.Respon
     res.send(status);
 }
 
-export async function ReencodeVod(req: express.Request, res: express.Response): Promise<void> {
+export async function ReencodeVod(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const basename = req.params.basename as string;
 
-    const vod = LiveStreamDVR.getInstance().getVods().find((v) => v.basename === basename);
+    const vod = LiveStreamDVR.getInstance()
+        .getVods()
+        .find((v) => v.basename === basename);
 
     if (!vod) {
-        res.status(500).send(LiveStreamDVR.getInstance().getVods().map((v) => v.basename));
+        res.status(500).send(
+            LiveStreamDVR.getInstance()
+                .getVods()
+                .map((v) => v.basename)
+        );
         return;
     }
 
@@ -64,9 +87,12 @@ export async function ReencodeVod(req: express.Request, res: express.Response): 
     res.send(status);
 }
 
-export async function GetYouTubeChannel(req: express.Request, res: express.Response): Promise<void> {
+export async function GetYouTubeChannel(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const id = req.query.id as string;
-    
+
     let d;
 
     try {
@@ -79,8 +105,10 @@ export async function GetYouTubeChannel(req: express.Request, res: express.Respo
     res.send(d);
 }
 
-export async function JobProgress(req: express.Request, res: express.Response): Promise<void> {
-    
+export async function JobProgress(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const job = Job.create("progress_test" + Math.round(Math.random() * 1000));
     job.dummy = true;
     job.save();
@@ -100,7 +128,10 @@ export async function JobProgress(req: express.Request, res: express.Response): 
     res.send("ok");
 }
 
-export async function rebuildSegmentList(req: express.Request, res: express.Response): Promise<void> {
+export async function rebuildSegmentList(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const uuid = req.query.uuid as string;
 
     const vod = LiveStreamDVR.getInstance().getVodByUUID(uuid);
@@ -121,7 +152,10 @@ export async function rebuildSegmentList(req: express.Request, res: express.Resp
     res.send(status);
 }
 
-export function TranslateTest(req: express.Request, res: express.Response): void {
+export function TranslateTest(
+    req: express.Request,
+    res: express.Response
+): void {
     res.send({
         status: "OK",
         data: req.t("test"),

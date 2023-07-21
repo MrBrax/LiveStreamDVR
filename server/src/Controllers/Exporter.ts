@@ -12,18 +12,27 @@ import { SFTPExporter } from "@/Exporters/SFTP";
 import { YouTubeExporter } from "@/Exporters/YouTube";
 import { validatePath } from "./Files";
 
-export type Exporter = FileExporter | YouTubeExporter | SFTPExporter | FTPExporter | RCloneExporter;
+export type Exporter =
+    | FileExporter
+    | YouTubeExporter
+    | SFTPExporter
+    | FTPExporter
+    | RCloneExporter;
 
-
-export function GetExporter(name: string, mode: string, options: ExporterOptions): Exporter {
-
+export function GetExporter(
+    name: string,
+    mode: string,
+    options: ExporterOptions
+): Exporter {
     let exporter: Exporter | undefined;
 
     let output_directory = "";
     if (options.directory) {
         const dircheck = validatePath(options.directory);
         if (dircheck !== true && name == "file") {
-            console.error(`Invalid path, using file exporter: ${options.directory}`);
+            console.error(
+                `Invalid path, using file exporter: ${options.directory}`
+            );
             throw new Error(dircheck.toString());
         }
         output_directory = options.directory;
@@ -34,7 +43,9 @@ export function GetExporter(name: string, mode: string, options: ExporterOptions
     try {
         if (name == "file") {
             exporter = new FileExporter();
-            exporter.setDirectory(output_directory || BaseConfigDataFolder.saved_vods);
+            exporter.setDirectory(
+                output_directory || BaseConfigDataFolder.saved_vods
+            );
         } else if (name == "sftp") {
             if (!output_directory) throw new Error("No directory set");
             if (!options.host) throw new Error("No host set");
@@ -49,7 +60,8 @@ export function GetExporter(name: string, mode: string, options: ExporterOptions
             if (!options.username) throw new Error("No username set");
             if (!options.password) throw new Error("No password set");
             exporter = new FTPExporter();
-            if (exporter instanceof FTPExporter) { // why does typescript need this??
+            if (exporter instanceof FTPExporter) {
+                // why does typescript need this??
                 exporter.setDirectory(output_directory);
                 exporter.setHost(options.host);
                 exporter.setUsername(options.username);
@@ -60,7 +72,13 @@ export function GetExporter(name: string, mode: string, options: ExporterOptions
             if (!options.privacy) throw new Error("No privacy level set");
             exporter = new YouTubeExporter();
             exporter.setDescription(options.description || "");
-            exporter.setTags(options.tags ? (options.tags as string).split(",").map(tag => tag.trim()) : []);
+            exporter.setTags(
+                options.tags
+                    ? (options.tags as string)
+                          .split(",")
+                          .map((tag) => tag.trim())
+                    : []
+            );
             exporter.setCategory(options.category);
             exporter.setPrivacy(options.privacy);
             if (options.playlist_id) exporter.setPlaylist(options.playlist_id);
@@ -80,7 +98,6 @@ export function GetExporter(name: string, mode: string, options: ExporterOptions
     }
 
     if (mode === "vod") {
-
         if (!options.vod) {
             throw new Error("No VOD chosen");
         }
@@ -100,9 +117,7 @@ export function GetExporter(name: string, mode: string, options: ExporterOptions
         }
 
         exporter.loadVOD(vod);
-
     } else if (mode == "file") {
-
         const input_folder = options.file_folder;
         const input_name = options.file_name;
 
@@ -121,7 +136,6 @@ export function GetExporter(name: string, mode: string, options: ExporterOptions
         }
 
         exporter.loadFile(full_input_path);
-
     } else {
         throw new Error("Unknown mode");
     }
@@ -130,24 +144,31 @@ export function GetExporter(name: string, mode: string, options: ExporterOptions
         try {
             exporter.setSource(options.file_source);
         } catch (error) {
-            throw new Error((error as Error).message ? `Set source error: ${(error as Error).message}` : "Unknown error occurred while setting source");
+            throw new Error(
+                (error as Error).message
+                    ? `Set source error: ${(error as Error).message}`
+                    : "Unknown error occurred while setting source"
+            );
         }
     }
 
     if (options.vod) {
-        if (options.title_template) exporter.setTemplate(options.title_template);
+        if (options.title_template)
+            exporter.setTemplate(options.title_template);
         if (options.title) exporter.setOutputFilename(options.title);
     } else {
-        if (options.title_template) exporter.setTemplate(options.title_template);
+        if (options.title_template)
+            exporter.setTemplate(options.title_template);
         if (options.title) exporter.setTemplate(options.title);
     }
 
     return exporter;
-
 }
 
-export async function ExportFile(req: express.Request, res: express.Response): Promise<void> {
-
+export async function ExportFile(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const mode = req.query.mode as string;
     const input_exporter = req.query.exporter as string;
 
@@ -162,7 +183,8 @@ export async function ExportFile(req: express.Request, res: express.Response): P
     if (mode == "file" && process.env.TCD_ENABLE_FILES_API !== "1") {
         res.status(500).send({
             status: "ERROR",
-            message: "Files API is disabled on this server. Enable with the TCD_ENABLE_FILES_API environment variable.",
+            message:
+                "Files API is disabled on this server. Enable with the TCD_ENABLE_FILES_API environment variable.",
         } as ApiErrorResponse);
         return;
     }
@@ -187,7 +209,9 @@ export async function ExportFile(req: express.Request, res: express.Response): P
     } catch (error) {
         res.status(400).send({
             status: "ERROR",
-            message: (error as Error).message ? `Export error: ${(error as Error).message}` : "Unknown error occurred while exporting vod",
+            message: (error as Error).message
+                ? `Export error: ${(error as Error).message}`
+                : "Unknown error occurred while exporting vod",
         } as ApiErrorResponse);
         return;
     }
@@ -206,7 +230,9 @@ export async function ExportFile(req: express.Request, res: express.Response): P
     } catch (error) {
         res.status(400).send({
             status: "ERROR",
-            message: (error as Error).message ? `Verify error: ${(error as Error).message}` : "Unknown error occurred while verifying export",
+            message: (error as Error).message
+                ? `Verify error: ${(error as Error).message}`
+                : "Unknown error occurred while verifying export",
         } as ApiErrorResponse);
         return;
     }
@@ -223,18 +249,21 @@ export async function ExportFile(req: express.Request, res: express.Response): P
     } as ApiResponse);
 
     return;
-
 }
 
-export async function GetRcloneRemotes(req: express.Request, res: express.Response): Promise<void> {
-
+export async function GetRcloneRemotes(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     let remotes;
     try {
         remotes = await RCloneExporter.getRemotes();
     } catch (error) {
         res.status(400).send({
             status: "ERROR",
-            message: (error as Error).message ? `Rclone error: ${(error as Error).message}` : "Unknown error occurred while getting remotes",
+            message: (error as Error).message
+                ? `Rclone error: ${(error as Error).message}`
+                : "Unknown error occurred while getting remotes",
         } as ApiErrorResponse);
         return;
     }
@@ -245,5 +274,4 @@ export async function GetRcloneRemotes(req: express.Request, res: express.Respon
     } as ApiResponse);
 
     return;
-
 }

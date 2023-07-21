@@ -74,6 +74,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["minimist", "npm:1.2.8"],\
             ["morgan", "npm:1.10.0"],\
             ["nodemon", "npm:3.0.1"],\
+            ["prettier", "npm:3.0.0"],\
             ["sanitize-filename", "npm:1.6.3"],\
             ["supertest", "npm:6.3.3"],\
             ["true-case-path", "npm:2.2.1"],\
@@ -6986,6 +6987,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["minimist", "npm:1.2.8"],\
             ["morgan", "npm:1.10.0"],\
             ["nodemon", "npm:3.0.1"],\
+            ["prettier", "npm:3.0.0"],\
             ["sanitize-filename", "npm:1.6.3"],\
             ["supertest", "npm:6.3.3"],\
             ["true-case-path", "npm:2.2.1"],\
@@ -7861,6 +7863,15 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/prelude-ls-npm-1.2.1-3e4d272a55-cd192ec0d0.zip/node_modules/prelude-ls/",\
           "packageDependencies": [\
             ["prelude-ls", "npm:1.2.1"]\
+          ],\
+          "linkType": "HARD"\
+        }]\
+      ]],\
+      ["prettier", [\
+        ["npm:3.0.0", {\
+          "packageLocation": "./.yarn/cache/prettier-npm-3.0.0-7ffbcce680-6a832876a1.zip/node_modules/prettier/",\
+          "packageDependencies": [\
+            ["prettier", "npm:3.0.0"]\
           ],\
           "linkType": "HARD"\
         }]\

@@ -21,5 +21,6 @@
         "src/config/**"
       ]
     }
-  ]
+  ],
+  "editor.formatOnSave": true
 }

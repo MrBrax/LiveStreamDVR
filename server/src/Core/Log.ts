@@ -73,22 +73,31 @@ export function readTodaysLog(): void {
 
     const newLines = fs.readFileSync(jsonlinename, "utf8").split("\n");
     // console.log(`Read ${lines.length} lines from ${jsonlinename}`);
-    lines = newLines.map(line => line.length > 0 ? JSON.parse(line) : null).filter(line => line !== null);
-    console.log(chalk.green(`✔ Parsed ${lines.length} lines from ${jsonlinename}`));
+    lines = newLines
+        .map((line) => (line.length > 0 ? JSON.parse(line) : null))
+        .filter((line) => line !== null);
+    console.log(
+        chalk.green(`✔ Parsed ${lines.length} lines from ${jsonlinename}`)
+    );
     currentDate = today;
 }
 
 /**
  * Log a message to the log file. Do NOT call before loading the config.
- * 
- * @param level 
- * @param module 
- * @param text 
- * @param metadata 
+ *
+ * @param level
+ * @param module
+ * @param text
+ * @param metadata
  * @test disable
- * @returns 
+ * @returns
  */
-export function log(level: LOGLEVEL, module: string, text: string, metadata?: any): void {
+export function log(
+    level: LOGLEVEL,
+    module: string,
+    text: string,
+    metadata?: any
+): void {
     if (!Config.debug && level == LOGLEVEL.DEBUG) return;
 
     // if testing, don't log
@@ -99,11 +108,15 @@ export function log(level: LOGLEVEL, module: string, text: string, metadata?: an
 
     // check if folder exists
     if (!fs.existsSync(BaseConfigDataFolder.logs)) {
-        throw new Error(`Log folder '${BaseConfigDataFolder.logs}' does not exist!`);
+        throw new Error(
+            `Log folder '${BaseConfigDataFolder.logs}' does not exist!`
+        );
     }
 
     if (!currentDate) {
-        console.error(chalk.bgRed.whiteBright("😤 Log called before date was set!"));
+        console.error(
+            chalk.bgRed.whiteBright("😤 Log called before date was set!")
+        );
     }
 
     // clear old logs from memory
@@ -114,19 +127,26 @@ export function log(level: LOGLEVEL, module: string, text: string, metadata?: an
 
     const loglevel_category = LogLevel[level];
 
-    const filename_combined     = format(date, "yyyy-MM-dd") + ".log";
-    const filename_separate     = format(date, "yyyy-MM-dd") + "." + level + ".log";
-    const filename_level        = format(date, "yyyy-MM-dd") + "." + loglevel_category + ".jsonline";
+    const filename_combined = format(date, "yyyy-MM-dd") + ".log";
+    const filename_separate = format(date, "yyyy-MM-dd") + "." + level + ".log";
+    const filename_level =
+        format(date, "yyyy-MM-dd") + "." + loglevel_category + ".jsonline";
 
-    const filepath_combined     = path.join(BaseConfigDataFolder.logs, filename_combined);
-    const filepath_separate     = path.join(BaseConfigDataFolder.logs, filename_separate);
-    const filepath_level        = path.join(BaseConfigDataFolder.logs, filename_level);
+    const filepath_combined = path.join(
+        BaseConfigDataFolder.logs,
+        filename_combined
+    );
+    const filepath_separate = path.join(
+        BaseConfigDataFolder.logs,
+        filename_separate
+    );
+    const filepath_level = path.join(BaseConfigDataFolder.logs, filename_level);
 
     // console.debug(`Logging to ${filepath_separate}`);
 
     const jsonlinename_combined = `${filepath_combined}.jsonline`;
     const jsonlinename_separate = `${filepath_separate}.jsonline`;
-    const jsonlinename_level    = `${filepath_level}.jsonline`;
+    const jsonlinename_level = `${filepath_level}.jsonline`;
 
     const dateFormat = "yyyy-MM-dd HH:mm:ss.SSS";
     const dateString = format(date, dateFormat);
@@ -137,7 +157,8 @@ export function log(level: LOGLEVEL, module: string, text: string, metadata?: an
 
     let ident = "";
     if (process.pid) ident += process.pid;
-    if (Config.getInstance().gitHash) ident += `+${Config.getInstance().gitHash?.substring(0, 4)}`;
+    if (Config.getInstance().gitHash)
+        ident += `+${Config.getInstance().gitHash?.substring(0, 4)}`;
 
     // write cleartext
     const textOutput = `TXT ${dateString} ${ident} | ${module} <${level}> ${text}`;
@@ -153,7 +174,11 @@ export function log(level: LOGLEVEL, module: string, text: string, metadata?: an
     if (Config && Config.debug) {
         const mem = process.memoryUsage();
         console.log(
-            LogColor[level](`${dateString} | ${formatBytes(mem.heapUsed)}/${formatBytes(mem.heapTotal)}/${formatBytes(mem.rss)} | ${module} <${level}> ${text}`)
+            LogColor[level](
+                `${dateString} | ${formatBytes(mem.heapUsed)}/${formatBytes(
+                    mem.heapTotal
+                )}/${formatBytes(mem.rss)} | ${module} <${level}> ${text}`
+            )
         );
     } else {
         console.log(
@@ -176,7 +201,10 @@ export function log(level: LOGLEVEL, module: string, text: string, metadata?: an
     try {
         stringy_log_data = JSON.stringify(log_data);
     } catch (e) {
-        console.error(chalk.bgRed.whiteBright("😤 Error stringifying log data!"), log_data);
+        console.error(
+            chalk.bgRed.whiteBright("😤 Error stringifying log data!"),
+            log_data
+        );
         log(LOGLEVEL.ERROR, `Log.${module}`, "Error stringifying log data!");
         return;
     }
@@ -188,8 +216,10 @@ export function log(level: LOGLEVEL, module: string, text: string, metadata?: an
     lines.push(log_data);
 
     // send over websocket, probably extremely slow
-    if (Config.getInstance().initialised && Config.getInstance().cfg<boolean>("websocket_log")) {
-
+    if (
+        Config.getInstance().initialised &&
+        Config.getInstance().cfg<boolean>("websocket_log")
+    ) {
         websocket_buffer.push(log_data);
 
         if (websocket_timer) xClearTimeout(websocket_timer);
@@ -203,7 +233,6 @@ export function log(level: LOGLEVEL, module: string, text: string, metadata?: an
             websocket_buffer.length = 0;
             websocket_timer = undefined;
         }, 5000);
-
     }
 
     // if (metadata instanceof Error) {
@@ -223,28 +252,34 @@ export function log(level: LOGLEVEL, module: string, text: string, metadata?: an
             }, 100);
         } else {
     */
-
 }
 
 function nextLog(): void {
     const today = format(new Date(), "yyyy-MM-dd");
     if (today != currentDate) {
-        console.log(chalk.yellow(`Clearing log memory from ${currentDate} to ${today}`));
+        console.log(
+            chalk.yellow(`Clearing log memory from ${currentDate} to ${today}`)
+        );
         currentDate = today;
         lines = [];
-        log(LOGLEVEL.INFO, "log", `Starting new log file for ${today}, git hash ${Config.getInstance().gitHash}`);
+        log(
+            LOGLEVEL.INFO,
+            "log",
+            `Starting new log file for ${today}, git hash ${
+                Config.getInstance().gitHash
+            }`
+        );
     }
 }
 
 /**
  * Fetch n lines from a log file.
- * @param date 
- * @param fromLine 
+ * @param date
+ * @param fromLine
  * @throws
- * @returns 
+ * @returns
  */
 export function fetchLog(date: string, fromLine = 0): LogLine[] {
-
     // return lines from n to end
     if (date == currentDate) {
         // console.debug(`Fetching ${this.lines.length} lines starting from ${fromLine} from memory`);
@@ -260,7 +295,9 @@ export function fetchLog(date: string, fromLine = 0): LogLine[] {
     }
 
     const newLines = fs.readFileSync(jsonlinename, "utf8").split("\n");
-    const parsed_lines: LogLine[] = newLines.map(line => line.length > 0 ? JSON.parse(line) : null).filter(line => line !== null);
+    const parsed_lines: LogLine[] = newLines
+        .map((line) => (line.length > 0 ? JSON.parse(line) : null))
+        .filter((line) => line !== null);
     // console.debug(`Fetched ${parsed_lines.length} lines from ${jsonlinename}`);
     return parsed_lines;
 }
@@ -268,7 +305,11 @@ export function fetchLog(date: string, fromLine = 0): LogLine[] {
 export function measureLogMemoryUsage(): void {
     // return Buffer.byteLength(JSON.stringify(lines), "utf8");
     const mem = process.memoryUsage();
-    console.log(`Memory usage: ${formatBytes(mem.heapUsed)}/${formatBytes(mem.heapTotal)}/${formatBytes(mem.rss)}`);
+    console.log(
+        `Memory usage: ${formatBytes(mem.heapUsed)}/${formatBytes(
+            mem.heapTotal
+        )}/${formatBytes(mem.rss)}`
+    );
     const linesUsage = Buffer.byteLength(JSON.stringify(lines), "utf8");
     console.log(`Log memory usage: ${formatBytes(linesUsage)}`);
 }

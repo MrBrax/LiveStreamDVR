@@ -2,12 +2,17 @@ import type express from "express";
 import type { ApiErrorResponse } from "@common/Api/Api";
 import { YouTubeChannel } from "@/Core/Providers/YouTube/YouTubeChannel";
 import { YouTubeVOD } from "@/Core/Providers/YouTube/YouTubeVOD";
-export async function YouTubeAPIVideos(req: express.Request, res: express.Response): Promise<void> {
-
+export async function YouTubeAPIVideos(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const channel_id = req.params.channel_id;
 
     if (!channel_id) {
-        res.status(400).send({ status: "ERROR", message: "Invalid channel login" });
+        res.status(400).send({
+            status: "ERROR",
+            message: "Invalid channel login",
+        });
         return;
     }
 
@@ -25,11 +30,12 @@ export async function YouTubeAPIVideos(req: express.Request, res: express.Respon
         data: videos,
         status: "OK",
     });
-
 }
 
-export async function YouTubeAPIVideo(req: express.Request, res: express.Response): Promise<void> {
-
+export async function YouTubeAPIVideo(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const video_id = req.params.video_id;
 
     if (!video_id) {
@@ -51,11 +57,12 @@ export async function YouTubeAPIVideo(req: express.Request, res: express.Respons
         data: video,
         status: "OK",
     });
-
 }
 
-export async function YouTubeAPIChannelID(req: express.Request, res: express.Response): Promise<void> {
-
+export async function YouTubeAPIChannelID(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const url = req.body.url;
 
     if (!url) {
@@ -77,5 +84,4 @@ export async function YouTubeAPIChannelID(req: express.Request, res: express.Res
         data: channel_id,
         status: "OK",
     });
-
 }

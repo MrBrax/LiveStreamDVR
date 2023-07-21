@@ -15,22 +15,24 @@ import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "@/Core/Providers/Twitch/TwitchVOD";
 import { Scheduler } from "@/Core/Scheduler";
 
-
-export async function ResetChannels(req: express.Request, res: express.Response): Promise<void> {
-
+export async function ResetChannels(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     await Config.resetChannels();
 
     res.send({
         status: "OK",
         message: "Reset channels.",
     });
-
 }
 
-export async function DownloadVod(req: express.Request, res: express.Response): Promise<void> {
-
+export async function DownloadVod(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const url = req.body.url as string | undefined;
-    const quality = req.body.quality as VideoQuality | undefined || "best";
+    const quality = (req.body.quality as VideoQuality | undefined) || "best";
 
     if (!url) {
         res.status(400).send({
@@ -88,14 +90,15 @@ export async function DownloadVod(req: express.Request, res: express.Response): 
             message: "Failed to download",
         });
     }
-
 }
 
-export async function DownloadChat(req: express.Request, res: express.Response): Promise<void> {
-
+export async function DownloadChat(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const url = req.body.url as string | undefined;
 
-    const method = req.body.method as string | undefined || "td";
+    const method = (req.body.method as string | undefined) || "td";
 
     if (!url) {
         res.status(400).send({
@@ -132,7 +135,9 @@ export async function DownloadChat(req: express.Request, res: express.Response):
     } catch (error) {
         res.status(400).send({
             status: "ERROR",
-            message: `Error while fetching video data: ${(error as Error).message}`,
+            message: `Error while fetching video data: ${
+                (error as Error).message
+            }`,
         } as ApiErrorResponse);
         return;
     }
@@ -171,11 +176,12 @@ export async function DownloadChat(req: express.Request, res: express.Response):
             message: "Failed to download",
         });
     }
-
 }
 
-export async function ChatDump(req: express.Request, res: express.Response): Promise<void> {
-
+export async function ChatDump(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const login = req.body.login as string | undefined;
     if (!login) {
         res.status(400).send({
@@ -194,11 +200,19 @@ export async function ChatDump(req: express.Request, res: express.Response): Pro
         return;
     }
 
-    const name = `${channel_data.login}-${new Date().toISOString().replace(/:/g, "-")}.json`;
+    const name = `${channel_data.login}-${new Date()
+        .toISOString()
+        .replace(/:/g, "-")}.json`;
     const started = new Date();
     const output = path.join(BaseConfigDataFolder.saved_vods, name);
 
-    const job = TwitchChannel.startChatDump(name, login, channel_data.id, started, output);
+    const job = TwitchChannel.startChatDump(
+        name,
+        login,
+        channel_data.id,
+        started,
+        output
+    );
 
     if (!job) {
         res.status(400).send({
@@ -212,13 +226,14 @@ export async function ChatDump(req: express.Request, res: express.Response): Pro
         status: "OK",
         message: `Started chat dump for ${login}. It does not end by itself.`,
     });
-
 }
 
-export async function DownloadClip(req: express.Request, res: express.Response): Promise<void> {
-
+export async function DownloadClip(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const url = req.body.url as string | undefined;
-    const quality = req.body.quality as VideoQuality | undefined || "best";
+    const quality = (req.body.quality as VideoQuality | undefined) || "best";
 
     if (!url) {
         res.status(400).send({
@@ -261,7 +276,15 @@ export async function DownloadClip(req: express.Request, res: express.Response):
         broadcaster: metadata.broadcaster_name,
     };
 
-    const basename = sanitize(formatString(Config.getInstance().cfg("filename_clip", "{broadcaster} - {title} [{id}] [{quality}]"), variables));
+    const basename = sanitize(
+        formatString(
+            Config.getInstance().cfg(
+                "filename_clip",
+                "{broadcaster} - {title} [{id}] [{quality}]"
+            ),
+            variables
+        )
+    );
     // const basename = sanitize(`[${format(clip_date, "yyyy-MM-dd")}] ${metadata.broadcaster_name} - ${metadata.title} [${metadata.id}] [${quality}].mp4`); // new filename? sanitize(`${metadata.broadcaster_name}.${metadata.title}.${metadata.id}.${quality}.mp4`);
 
     const user = await TwitchChannel.getUserDataById(metadata.broadcaster_id);
@@ -273,7 +296,12 @@ export async function DownloadClip(req: express.Request, res: express.Response):
         return;
     }
 
-    const file_path = path.join(BaseConfigDataFolder.saved_clips, "downloader", user.login, basename);
+    const file_path = path.join(
+        BaseConfigDataFolder.saved_clips,
+        "downloader",
+        user.login,
+        basename
+    );
 
     if (!fs.existsSync(path.dirname(file_path))) {
         fs.mkdirSync(path.dirname(file_path), { recursive: true });
@@ -291,7 +319,10 @@ export async function DownloadClip(req: express.Request, res: express.Response):
         return;
     }
 
-    fs.writeFileSync(`${file_path}.info.json`, JSON.stringify(metadata, null, 4));
+    fs.writeFileSync(
+        `${file_path}.info.json`,
+        JSON.stringify(metadata, null, 4)
+    );
 
     if (success) {
         res.send({
@@ -301,10 +332,18 @@ export async function DownloadClip(req: express.Request, res: express.Response):
 
         const channel = TwitchChannel.getChannelById(metadata.broadcaster_id);
         if (channel) {
-            log(LOGLEVEL.INFO, "route.tools.DownloadClip", `Downloaded clip ${metadata.id}, scan channel ${metadata.broadcaster_name} for new clips`);
+            log(
+                LOGLEVEL.INFO,
+                "route.tools.DownloadClip",
+                `Downloaded clip ${metadata.id}, scan channel ${metadata.broadcaster_name} for new clips`
+            );
             await channel.findClips();
         } else {
-            log(LOGLEVEL.INFO, "route.tools.DownloadClip", `Downloaded clip ${metadata.id}, channel ${metadata.broadcaster_name} not found`);
+            log(
+                LOGLEVEL.INFO,
+                "route.tools.DownloadClip",
+                `Downloaded clip ${metadata.id}, channel ${metadata.broadcaster_name} not found`
+            );
         }
     } else {
         res.status(400).send({
@@ -312,32 +351,36 @@ export async function DownloadClip(req: express.Request, res: express.Response):
             message: "Failed to download",
         });
     }
-
 }
 
 export function Shutdown(req: express.Request, res: express.Response): void {
-
     const force = req.query.force == "true";
 
-    if (!force && LiveStreamDVR.getInstance().getChannels().some(c => c.is_capturing || c.is_converting)) {
+    if (
+        !force &&
+        LiveStreamDVR.getInstance()
+            .getChannels()
+            .some((c) => c.is_capturing || c.is_converting)
+    ) {
         res.status(500).send({
             status: "ERROR",
             message: "There are still active streams",
         });
         return;
     }
-        
+
     res.send({
         status: "OK",
         message: "Shutting down",
     });
 
     LiveStreamDVR.shutdown("tools");
-
 }
 
-export function RunScheduler(req: express.Request, res: express.Response): void {
-
+export function RunScheduler(
+    req: express.Request,
+    res: express.Response
+): void {
     const name = req.params.name as string | undefined;
 
     if (!name) {
@@ -362,7 +405,6 @@ export function RunScheduler(req: express.Request, res: express.Response): void 
         status: "OK",
         message: `Running job ${name}`,
     });
-
 }
 
 /*

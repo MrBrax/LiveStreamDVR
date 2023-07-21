@@ -1,5 +1,11 @@
 import axios, { isAxiosError } from "axios";
-import type { KickChannel, KickUser, KickChannelVideo, KickChannelLivestream, KickChannelLivestreamResponse } from "@common/KickAPI/Kick";
+import type {
+    KickChannel,
+    KickUser,
+    KickChannelVideo,
+    KickChannelLivestream,
+    KickChannelLivestreamResponse,
+} from "@common/KickAPI/Kick";
 import { log, LOGLEVEL } from "@/Core/Log";
 
 /*
@@ -43,9 +49,12 @@ const cookies: Record<string, string> = {};
 function baseFetchOptions(): RequestInit {
     return {
         headers: {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; rv:114.0) Gecko/20100101 Firefox/114.0",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*;q=0.8",
-            "Cookie": Object.entries(cookies).map(([key, value]) => `${key}=${value}`).join("; "),
+            "User-Agent":
+                "Mozilla/5.0 (Windows NT 10.0; rv:114.0) Gecko/20100101 Firefox/114.0",
+            Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*;q=0.8",
+            Cookie: Object.entries(cookies)
+                .map(([key, value]) => `${key}=${value}`)
+                .join("; "),
         },
         credentials: "include",
         mode: "cors",
@@ -75,7 +84,9 @@ export async function fetchXSFRToken(): Promise<boolean> {
     if (!cookies) {
         throw new Error("No cookies");
     }
-    const xsrfCookie = cookies.split(";").find(cookie => cookie.includes("XSRF-TOKEN"));
+    const xsrfCookie = cookies
+        .split(";")
+        .find((cookie) => cookie.includes("XSRF-TOKEN"));
     if (!xsrfCookie) {
         console.log(cookies);
         throw new Error("No XSRF-TOKEN cookie");
@@ -86,18 +97,29 @@ export async function fetchXSFRToken(): Promise<boolean> {
 
 // fetchXSFRToken();
 
-export async function getRequest<T>(url: string, options?: RequestInit): Promise<FetchResponse<T>> {
+export async function getRequest<T>(
+    url: string,
+    options?: RequestInit
+): Promise<FetchResponse<T>> {
     const mergedOptions = {
         ...baseFetchOptions(),
-        ...options ?? {},
+        ...(options ?? {}),
     };
     const request = await fetch(baseURL + url, mergedOptions);
     const body = await request.text();
 
     if (request.status !== 200) {
-        log(LOGLEVEL.ERROR, "KickAPI.getRequest", `Error getting data (${request.url}): ${request.status} ${request.statusText}`);
+        log(
+            LOGLEVEL.ERROR,
+            "KickAPI.getRequest",
+            `Error getting data (${request.url}): ${request.status} ${request.statusText}`
+        );
         if (body.includes("challenge-form")) {
-            log(LOGLEVEL.ERROR, "KickAPI.getRequest", "Error getting data: Cloudflare challenge");
+            log(
+                LOGLEVEL.ERROR,
+                "KickAPI.getRequest",
+                "Error getting data: Cloudflare challenge"
+            );
         }
         // throw new Error(`Error getting data (${request.url}): ${request.statusText}`);
     }
@@ -118,12 +140,28 @@ export async function GetUser(username: string): Promise<KickUser | undefined> {
         response = await getRequest<KickUser>(`users/${username}`);
     } catch (error) {
         if (isAxiosError(error)) {
-            log(LOGLEVEL.ERROR, "KickAPI.GetUser", `Error getting user data (${axios.getUri(error.request)}): ${error.response?.statusText}`, error);
+            log(
+                LOGLEVEL.ERROR,
+                "KickAPI.GetUser",
+                `Error getting user data (${axios.getUri(
+                    error.request
+                )}): ${error.response?.statusText}`,
+                error
+            );
             if (error.response?.data.includes("challenge-form")) {
-                log(LOGLEVEL.ERROR, "KickAPI.GetUser", "Error getting user data: Cloudflare challenge");
+                log(
+                    LOGLEVEL.ERROR,
+                    "KickAPI.GetUser",
+                    "Error getting user data: Cloudflare challenge"
+                );
             }
         } else {
-            log(LOGLEVEL.ERROR, "KickAPI.GetUser", `Error getting user data: ${(error as Error).message}`, error);
+            log(
+                LOGLEVEL.ERROR,
+                "KickAPI.GetUser",
+                `Error getting user data: ${(error as Error).message}`,
+                error
+            );
         }
         return undefined;
     }
@@ -131,11 +169,17 @@ export async function GetUser(username: string): Promise<KickUser | undefined> {
         log(LOGLEVEL.ERROR, "KickAPI.GetUser", `User ${username} not found`);
         return undefined;
     }
-    log(LOGLEVEL.DEBUG, "KickAPI.GetUser", `Got user ${response.data.username}`);
+    log(
+        LOGLEVEL.DEBUG,
+        "KickAPI.GetUser",
+        `Got user ${response.data.username}`
+    );
     return response.data;
 }
 
-export async function GetChannel(username: string): Promise<KickChannel | undefined> {
+export async function GetChannel(
+    username: string
+): Promise<KickChannel | undefined> {
     // const request = axiosInstance.get<KickChannel>(`channels/${username}`);
     // const response = await request;
     // return response.data;
@@ -144,18 +188,26 @@ export async function GetChannel(username: string): Promise<KickChannel | undefi
 }
 
 // TODO: don't know if to use videos/latest or getchannel
-export async function GetChannelVideos(username: string): Promise<KickChannelVideo[] | undefined> {
+export async function GetChannelVideos(
+    username: string
+): Promise<KickChannelVideo[] | undefined> {
     // const request = axiosInstance.get<KickChannelVideo[]>(`channels/${username}/videos/latest`);
     // const response = await request;
     // return response.data;
-    const response = await getRequest<KickChannelVideo[]>(`channels/${username}/videos/latest`);
+    const response = await getRequest<KickChannelVideo[]>(
+        `channels/${username}/videos/latest`
+    );
     return response.data;
 }
 
-export async function GetStream(username: string): Promise<KickChannelLivestream | undefined> {
+export async function GetStream(
+    username: string
+): Promise<KickChannelLivestream | undefined> {
     // const request = axiosInstance.get<KickChannelLivestreamResponse>(`channels/${username}/livestream`);
     // const response = await request;
     // return response.data ? response.data.data : undefined;
-    const response = await getRequest<KickChannelLivestreamResponse>(`channels/${username}/livestream`);
+    const response = await getRequest<KickChannelLivestreamResponse>(
+        `channels/${username}/livestream`
+    );
     return response.data ? response.data.data : undefined;
 }

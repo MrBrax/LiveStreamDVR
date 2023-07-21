@@ -3,8 +3,10 @@ import type express from "express";
 import type { ApiErrorResponse, ApiJobsResponse } from "@common/Api/Api";
 import { log, LOGLEVEL } from "@/Core/Log";
 
-export async function ListJobs(req: express.Request, res: express.Response): Promise<void> {
-
+export async function ListJobs(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const jobs = Job.jobs;
 
     for (const job of jobs) {
@@ -12,14 +14,15 @@ export async function ListJobs(req: express.Request, res: express.Response): Pro
     }
 
     res.send({
-        data: jobs.map(job => job.toAPI()),
+        data: jobs.map((job) => job.toAPI()),
         status: "OK",
     } as ApiJobsResponse);
-
 }
 
-export async function KillJob(req: express.Request, res: express.Response): Promise<void> {
-
+export async function KillJob(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     let job: Job | boolean;
 
     if (req.params.name.endsWith("*")) {
@@ -30,7 +33,10 @@ export async function KillJob(req: express.Request, res: express.Response): Prom
     }
 
     const clear = req.query.clear;
-    const method: NodeJS.Signals = req.query.method !== undefined && req.query.method !== "" ? req.query.method as NodeJS.Signals : "SIGTERM";
+    const method: NodeJS.Signals =
+        req.query.method !== undefined && req.query.method !== ""
+            ? (req.query.method as NodeJS.Signals)
+            : "SIGTERM";
 
     if (!job) {
         res.status(404).send({
@@ -40,10 +46,13 @@ export async function KillJob(req: express.Request, res: express.Response): Prom
         return;
     }
 
-    log(LOGLEVEL.INFO, "route.jobs.kill", `Killing job ${job.name} with clear=${clear} and method=${method}`);
+    log(
+        LOGLEVEL.INFO,
+        "route.jobs.kill",
+        `Killing job ${job.name} with clear=${clear} and method=${method}`
+    );
 
     if (clear) {
-
         const success = job.clear();
 
         if (success) {
@@ -59,7 +68,6 @@ export async function KillJob(req: express.Request, res: express.Response): Prom
         }
 
         return;
-
     }
 
     const success = await job.kill(method);
@@ -75,11 +83,12 @@ export async function KillJob(req: express.Request, res: express.Response): Prom
             message: "Job could not be killed.",
         } as ApiErrorResponse);
     }
-
 }
 
-export function DetachJobProcess(req: express.Request, res: express.Response): void {
-
+export function DetachJobProcess(
+    req: express.Request,
+    res: express.Response
+): void {
     const job = Job.getJob(req.params.name);
 
     if (!job) {
@@ -96,5 +105,4 @@ export function DetachJobProcess(req: express.Request, res: express.Response): v
         status: "OK",
         message: `Job ${req.params.name} detached`,
     });
-
 }
