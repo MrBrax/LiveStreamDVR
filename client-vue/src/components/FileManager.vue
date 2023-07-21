@@ -524,7 +524,7 @@ function doExportFile() {
 }
 
 function doCheckYouTubeStatus() {
-    axios.get<ApiResponse>(`/api/v0/youtube/status`).then((response) => {
+    axios.get<ApiResponse>("/api/v0/youtube/status").then((response) => {
         const json = response.data;
         if (json.message) alert(json.message);
         console.log(json);

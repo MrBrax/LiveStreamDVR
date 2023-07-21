@@ -18,7 +18,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, useSlots } from 'vue';
+import { computed, ref, useSlots } from "vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCopy, faCheck } from "@fortawesome/free-solid-svg-icons";
 library.add(faCopy, faCheck);

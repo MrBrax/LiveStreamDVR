@@ -316,18 +316,18 @@
 </template>
 
 <script lang="ts" setup>
-import { useStore } from '@/store';
-import type { ApiGamesResponse, ApiResponse } from '@common/Api/Api';
-import axios from 'axios';
-import { computed, onMounted, ref } from 'vue';
+import { useStore } from "@/store";
+import type { ApiGamesResponse, ApiResponse } from "@common/Api/Api";
+import axios from "axios";
+import { computed, onMounted, ref } from "vue";
 
-import { faUndo } from '@fortawesome/free-solid-svg-icons';
+import { faUndo } from "@fortawesome/free-solid-svg-icons";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import type { ApiGame, EditableChapter } from '@common/Api/Client';
-import { TwitchVODChapter } from '@/core/Providers/Twitch/TwitchVODChapter';
-import { humanDuration } from '@/mixins/newhelpers';
-import { useI18n } from 'vue-i18n';
-import type { ChapterTypes, VODTypes } from '@/twitchautomator';
+import type { ApiGame, EditableChapter } from "@common/Api/Client";
+import { TwitchVODChapter } from "@/core/Providers/Twitch/TwitchVODChapter";
+import { humanDuration } from "@/mixins/newhelpers";
+import { useI18n } from "vue-i18n";
+import type { ChapterTypes, VODTypes } from "@/twitchautomator";
 library.add(faUndo);
 
 const store = useStore();
@@ -338,7 +338,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    (event: 'close'): void;
+    (event: "close"): void;
 }>();
 
 const editVodSettings = ref<{
@@ -395,7 +395,7 @@ function doEditVod() {
         console.log(json);
         if (props.vod) store.fetchAndUpdateVod(props.vod.uuid);
         // if (this.editVodMenu) this.editVodMenu.show = false;
-        emit('close');
+        emit("close");
     }).catch((err) => {
         console.error("form error", err.response);
         if (err.response.data && err.response.data.message) alert(err.response.data.message);
@@ -472,13 +472,13 @@ onMounted(() => {
         editChapters: false,
     };
 
-    axios.get<ApiGamesResponse>(`/api/v0/games`)
+    axios.get<ApiGamesResponse>("/api/v0/games")
         .then((response) => {
             const json = response.data;
             if (json.message) alert(json.message);
             const games = json.data;
             gamesData.value = games;
-        })
+        });
 });
 
 function resetChapters() {

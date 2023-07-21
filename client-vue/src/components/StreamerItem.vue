@@ -214,7 +214,7 @@ const showClipDownloadMenu = ref(false);
 
 const quality = computed(() => {
     if (!props.streamer || !props.streamer.quality) return "";
-    return props.streamer.quality.join(", ")
+    return props.streamer.quality.join(", ");
 });
 
 const averageVodBitrate = computed(() => {
@@ -244,8 +244,8 @@ const basePath = computed(() => {
 
 const filteredVodsList = computed((): VODTypes[] => {
     if (!props.streamer) return [];
-    if (limitVods.value || store.clientCfg('expandDashboardVodList')) return props.streamer.vods_list;
-    const vodsToShow = store.clientCfg('vodsToShowInDashboard', 4);
+    if (limitVods.value || store.clientCfg("expandDashboardVodList")) return props.streamer.vods_list;
+    const vodsToShow = store.clientCfg("vodsToShowInDashboard", 4);
     if (vodsToShow === 0) return [];
     // return last 4 vods
     return props.streamer.vods_list.slice(-vodsToShow);

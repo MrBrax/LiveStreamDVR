@@ -400,7 +400,7 @@ function submitForm(event: Event) {
     formStatus.value = "LOADING";
 
     axios
-        .put<ApiResponse>(`/api/v0/settings`, formData.value)
+        .put<ApiResponse>("/api/v0/settings", formData.value)
         .then((response) => {
             const json: ApiResponse = response.data;
             formStatusText.value = json.message || "No message";
@@ -432,7 +432,7 @@ function configValue(key: string): string | number | boolean | undefined {
 
 function doValidateExternalURL() {
     axios
-        .post<ApiResponse>(`/api/v0/settings/validate_url`)
+        .post<ApiResponse>("/api/v0/settings/validate_url")
         .then((response) => {
             const json: ApiResponse = response.data;
             if (json.message) alert(json.message);

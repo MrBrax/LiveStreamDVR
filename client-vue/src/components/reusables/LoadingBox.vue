@@ -16,10 +16,10 @@
 </template>
 
 <script lang="ts" setup>
-import { useI18n } from 'vue-i18n';
+import { useI18n } from "vue-i18n";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSync, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from "vue";
 
 library.add(faSync, faExclamationTriangle);
 

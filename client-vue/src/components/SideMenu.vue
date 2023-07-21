@@ -256,7 +256,7 @@ const debugVersionString = computed(() => {
 });
 
 const isDevelopmentBranch = computed(() => {
-    if (store.serverGitBranch == 'develop-ts') return true;
+    if (store.serverGitBranch == "develop-ts") return true;
     if (import.meta.env.IS_DEV) return true;
     return false;
 });
@@ -301,7 +301,7 @@ onMounted(() => {
         }
         */
         keyMeme.value.push(key); if (keyMeme.value.length > 10) keyMeme.value.splice(0, 1);
-        if (keyMeme.value.join(" ") == "ArrowUp ArrowUp ArrowDown ArrowDown ArrowLeft ArrowRight ArrowLeft ArrowRight b a") document.location = 'https://youtu.be/dQw4w9WgXcQ';
+        if (keyMeme.value.join(" ") == "ArrowUp ArrowUp ArrowDown ArrowDown ArrowLeft ArrowRight ArrowLeft ArrowRight b a") document.location = "https://youtu.be/dQw4w9WgXcQ";
     });
 });
 

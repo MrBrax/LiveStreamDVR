@@ -178,13 +178,13 @@
 </template>
 
 <script lang="ts" setup>
-import { useStore } from '@/store';
-import type { ApiResponse } from '@common/Api/Api';
+import { useStore } from "@/store";
+import type { ApiResponse } from "@common/Api/Api";
 import { MuteStatus } from "../../../common/Defs";
-import axios from 'axios';
-import { computed } from 'vue';
-import { useI18n } from 'vue-i18n';
-import type { VODTypes } from '@/twitchautomator';
+import axios from "axios";
+import { computed } from "vue";
+import { useI18n } from "vue-i18n";
+import type { VODTypes } from "@/twitchautomator";
 
 const props = defineProps({
     vod: {
@@ -210,11 +210,11 @@ const emit = defineEmits([
 */
 
 const emit = defineEmits<{
-    (event: 'toggleAdvanced'): void;
-    (event: 'showModal', modal: string): void;
-    (event: 'delete'): void;
+    (event: "toggleAdvanced"): void;
+    (event: "showModal", modal: string): void;
+    (event: "delete"): void;
     // (event: 'deleteSegment', segment: number): void;
-    (event: 'fixIssues'): void;
+    (event: "fixIssues"): void;
     // (event: 'checkMute'): void;
 }>();
 

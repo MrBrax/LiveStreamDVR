@@ -1,10 +1,10 @@
-import { MockApiChannelData, MockApiChapterData, MockApiGameData, MockApiVODData, MockApiVODSegmentData } from '@/../test/mockdata';
-import { expect, test } from 'vitest'
+import { MockApiChannelData, MockApiChapterData, MockApiGameData, MockApiVODData, MockApiVODSegmentData } from "@/../test/mockdata";
+import { expect, test } from "vitest";
 import TwitchChannel from "./Providers/Twitch/TwitchChannel";
-import TwitchVOD from './Providers/Twitch/TwitchVOD';
-import { TwitchGame } from './Providers/Twitch/TwitchGame';
-import { TwitchVODChapter } from './Providers/Twitch/TwitchVODChapter';
-import { BaseVODSegment } from './Providers/Base/BaseVODSegment';
+import TwitchVOD from "./Providers/Twitch/TwitchVOD";
+import { TwitchGame } from "./Providers/Twitch/TwitchGame";
+import { TwitchVODChapter } from "./Providers/Twitch/TwitchVODChapter";
+import { BaseVODSegment } from "./Providers/Base/BaseVODSegment";
 
 test("makeFromApiResponse", () => {
 

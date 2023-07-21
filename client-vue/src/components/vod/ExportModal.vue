@@ -368,16 +368,16 @@
 <script lang="ts" setup>
 import CodeBox from "@/components/reusables/CodeBox.vue";
 import YoutubeAuth from "@/components/YoutubeAuth.vue";
-import { useStore } from '@/store';
-import type { VODTypes } from '@/twitchautomator';
-import type { ApiResponse } from '@common/Api/Api';
+import { useStore } from "@/store";
+import type { VODTypes } from "@/twitchautomator";
+import type { ApiResponse } from "@common/Api/Api";
 import type { ExporterOptions } from "@common/Exporter";
-import { formatString } from '@common/Format';
+import { formatString } from "@common/Format";
 import { ExporterFilenameFields } from "@common/ReplacementsConsts";
 import { YouTubeCategories } from "@common/YouTube";
-import axios from 'axios';
-import { onMounted, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
+import axios from "axios";
+import { onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
     vod: VODTypes;
@@ -483,7 +483,7 @@ function doExportVod() {
 
 function getYouTubePlaylists() {
     LoadingPlaylists.value = true;
-    axios.get<ApiResponse>(`/api/v0/youtube/playlists`).then((response) => {
+    axios.get<ApiResponse>("/api/v0/youtube/playlists").then((response) => {
         const json = response.data;
         if (json.message) alert(json.message);
         console.log(json);
@@ -507,7 +507,7 @@ function createYouTubePlaylist() {
     const title = prompt("Playlist Title");
     if (!title) return;
     const description = prompt("Playlist Description");
-    axios.post<ApiResponse>(`/api/v0/youtube/playlists`, {
+    axios.post<ApiResponse>("/api/v0/youtube/playlists", {
         title: title,
         description: description,
         // privacy: exportVodSettings.value.privacy,
@@ -533,7 +533,7 @@ function createYouTubePlaylist() {
 
 function getRemotes() {
     LoadingRemotes.value = true;
-    axios.get<ApiResponse>(`/api/v0/exporter/rclone/remotes`).then((response) => {
+    axios.get<ApiResponse>("/api/v0/exporter/rclone/remotes").then((response) => {
         const json = response.data;
         if (json.message) alert(json.message);
         console.log(json);

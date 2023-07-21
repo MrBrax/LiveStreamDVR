@@ -60,16 +60,16 @@
 </template>
 
 <script lang="ts" setup>
-import YouTubeChannel from '@/core/Providers/YouTube/YouTubeChannel';
-import { isTwitch, isYouTube, humanDuration, formatNumber } from '@/mixins/newhelpers';
-import type { ProxyVideo } from '@common/Proxies/Video';
-import axios from 'axios';
-import { ref } from 'vue';
+import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
+import { isTwitch, isYouTube, humanDuration, formatNumber } from "@/mixins/newhelpers";
+import type { ProxyVideo } from "@common/Proxies/Video";
+import axios from "axios";
+import { ref } from "vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
-import { useI18n } from 'vue-i18n';
+import { useI18n } from "vue-i18n";
 import type { ApiResponse } from "@common/Api/Api";
-import type { ChannelTypes } from '@/twitchautomator';
+import type { ChannelTypes } from "@/twitchautomator";
 library.add(faSpinner);
 
 const props = defineProps<{

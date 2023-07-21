@@ -97,7 +97,7 @@ export const useStore = defineStore("twitchAutomator", {
             let response;
 
             try {
-                response = await axios.get<ApiSettingsResponse>(`/api/v0/settings`);
+                response = await axios.get<ApiSettingsResponse>("/api/v0/settings");
             } catch (error) {
                 alert(error);
                 return;
@@ -166,7 +166,7 @@ export const useStore = defineStore("twitchAutomator", {
             this.loading = true;
             let response;
             try {
-                response = await axios.get<ApiChannelsResponse | ApiErrorResponse>(`/api/v0/channels`);
+                response = await axios.get<ApiChannelsResponse | ApiErrorResponse>("/api/v0/channels");
             } catch (error) {
                 console.error(error);
                 this.loading = false;
@@ -388,7 +388,7 @@ export const useStore = defineStore("twitchAutomator", {
             let response;
 
             try {
-                response = await axios.get<ApiJobsResponse | ApiErrorResponse>(`/api/v0/jobs`);
+                response = await axios.get<ApiJobsResponse | ApiErrorResponse>("/api/v0/jobs");
             } catch (error) {
                 console.error(error);
                 this.loading = false;
@@ -530,7 +530,7 @@ export const useStore = defineStore("twitchAutomator", {
             let response;
 
             try {
-                response = await axios.post<ApiLoginResponse>(`/api/v0/auth/login`, { password });
+                response = await axios.post<ApiLoginResponse>("/api/v0/auth/login", { password });
             } catch (error) {
                 console.error(error);
                 this.loading = false;
@@ -551,7 +551,7 @@ export const useStore = defineStore("twitchAutomator", {
             let response;
 
             try {
-                response = await axios.post<ApiResponse>(`/api/v0/auth/logout`);
+                response = await axios.post<ApiResponse>("/api/v0/auth/logout");
             } catch (error) {
                 console.error(error);
                 this.loading = false;

@@ -183,7 +183,7 @@ function submitForm(event: Event) {
     formStatusText.value = t("messages.loading");
 
     axios
-        .put<ApiResponse>(`/api/v0/notifications`, bitmasks)
+        .put<ApiResponse>("/api/v0/notifications", bitmasks)
         .then((response) => {
             const json = response.data;
             console.debug("notifications", json);
@@ -211,7 +211,7 @@ function submitForm(event: Event) {
 
 function testNotification() {
     axios
-        .post<ApiResponse>(`/api/v0/notifications/test`, {
+        .post<ApiResponse>("/api/v0/notifications/test", {
             provider: test.value.provider,
             category: test.value.category,
         })

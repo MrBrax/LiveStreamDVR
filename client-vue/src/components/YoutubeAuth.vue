@@ -113,7 +113,7 @@ const loading = ref(false);
 function doCheckYouTubeStatus(): void {
     status.value = "Checking YouTube status...";
     loading.value = true;
-    axios.get<ApiResponse>(`/api/v0/youtube/status`).then((response) => {
+    axios.get<ApiResponse>("/api/v0/youtube/status").then((response) => {
         const json = response.data;
         if (json.message) status.value = json.message;
         console.log(json);
@@ -142,7 +142,7 @@ async function doAuthenticateYouTubeMethod2(): Promise<void> {
     
     let res;
     try {
-        res = await axios.get<ApiResponse>(`/api/v0/youtube/authenticate?rawurl=true`);
+        res = await axios.get<ApiResponse>("/api/v0/youtube/authenticate?rawurl=true");
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error("youtube auth error", error.response);
@@ -164,7 +164,7 @@ async function doAuthenticateYouTubeMethod2(): Promise<void> {
 function doDestroyYouTube(): void {
     status.value = "Destroying YouTube session...";
     loading.value = true;
-    axios.get<ApiResponse>(`/api/v0/youtube/destroy`).then((response) => {
+    axios.get<ApiResponse>("/api/v0/youtube/destroy").then((response) => {
         const json = response.data;
         if (json.message) status.value = json.message;
         console.log(json);

@@ -450,7 +450,7 @@ function resetForm() {
 
 function submitForm(event: Event) {
 
-    formStatusText.value = t('messages.loading');
+    formStatusText.value = t("messages.loading");
     formStatus.value = "LOADING";
 
     axios

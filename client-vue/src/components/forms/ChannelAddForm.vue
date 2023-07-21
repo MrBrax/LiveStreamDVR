@@ -424,7 +424,7 @@ function submitForm(event: Event) {
     formStatus.value = "LOADING";
 
     axios
-        .post<ApiResponse>(`/api/v0/channels`, formData.value)
+        .post<ApiResponse>("/api/v0/channels", formData.value)
         .then((response) => {
             const json = response.data;
             formStatusText.value = json.message || "No message";
@@ -502,7 +502,7 @@ function fetchLogin() {
         if (json.status == "OK") {
             channelData.value = json.data;
             if (channelData.value && channelData.value.login !== formData.value.login) {
-                alert(t('messages.login-mismatch-fixing'));
+                alert(t("messages.login-mismatch-fixing"));
                 formData.value.login = channelData.value.login;
             }
             field.setCustomValidity("");
@@ -529,7 +529,7 @@ function fetchLogin() {
 
 function getChannelId() {
     fetchingUrl.value = true;
-    axios.post<ApiResponse>(`/api/v0/youtubeapi/channelid`, { url: channelUrl.value } ).then((response) => {
+    axios.post<ApiResponse>("/api/v0/youtubeapi/channelid", { url: channelUrl.value } ).then((response) => {
         const json = response.data;
         if (json.status == "OK") {
             formData.value.channel_id = json.data;

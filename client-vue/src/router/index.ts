@@ -42,8 +42,8 @@ const routes: Array<RouteRecordRaw> = [
         },
         children: [
             {
-                path: '',
-                redirect: '/settings/channels', // default child path
+                path: "",
+                redirect: "/settings/channels", // default child path
             },
             {
                 path: "/settings/channels/:channel?",

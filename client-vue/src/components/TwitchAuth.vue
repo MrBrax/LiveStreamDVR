@@ -103,7 +103,7 @@ const loading = ref(false);
 function doCheckTwitchStatus(): void {
     status.value = "Checking Twitch status...";
     loading.value = true;
-    axios.get<ApiResponse>(`/api/v0/twitch/status`).then((response) => {
+    axios.get<ApiResponse>("/api/v0/twitch/status").then((response) => {
         const json = response.data;
         if (json.message) status.value = json.message;
         console.log(json);
@@ -140,7 +140,7 @@ async function doAuthenticateTwitchMethod2(): Promise<void> {
 
     let res;
     try {
-        res = await axios.get<ApiResponse>(`/api/v0/twitch/authenticate?rawurl=true`);
+        res = await axios.get<ApiResponse>("/api/v0/twitch/authenticate?rawurl=true");
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error("twitch auth error", error.response);
@@ -162,7 +162,7 @@ async function doAuthenticateTwitchMethod2(): Promise<void> {
 function doDestroyTwitch(): void {
     status.value = "Destroying Twitch session...";
     loading.value = true;
-    axios.get<ApiResponse>(`/api/v0/twitch/destroy`).then((response) => {
+    axios.get<ApiResponse>("/api/v0/twitch/destroy").then((response) => {
         const json = response.data;
         if (json.message) status.value = json.message;
         console.log(json);

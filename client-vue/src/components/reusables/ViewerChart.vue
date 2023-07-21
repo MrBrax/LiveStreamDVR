@@ -13,30 +13,30 @@
 </template>
 
 <script lang="ts" setup>
-import { Line } from 'vue-chartjs';
-import { Chart as ChartJS, Title, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement } from 'chart.js';
-import type { Plugin, ChartOptions, ChartData } from 'chart.js';
+import { Line } from "vue-chartjs";
+import { Chart as ChartJS, Title, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement } from "chart.js";
+import type { Plugin, ChartOptions, ChartData } from "chart.js";
 
 ChartJS.register(Title, Tooltip, Legend, CategoryScale, LinearScale, PointElement, LineElement);
 
 const props = withDefaults(defineProps<{
     chartOptions: ChartOptions;
-    chartData: ChartData<'line', number[], string>;
+    chartData: ChartData<"line", number[], string>;
     chartId: string;
     datasetIdKey?: string;
     cssClasses?: string;
     styles?: Partial<CSSStyleDeclaration>;
     width?: number;
     height?: number;
-    plugins: Plugin<'line'>[];
+    plugins: Plugin<"line">[];
 }>(), {
     width: 400,
     height: 400,
-    cssClasses: '',
+    cssClasses: "",
     styles: () => ({}),
     plugins: () => [],
-    datasetIdKey: 'id',
-    chartId: 'chart',
+    datasetIdKey: "id",
+    chartId: "chart",
     data: () => ({ datasets: [] }),
     options: () => ({}),
 });

@@ -434,7 +434,7 @@ const exportSize = computed((): number => {
 
 const videoSource = computed((): string => {
     if (!vodData.value) return "";
-    return `${vodData.value.webpath}/${vodData.value.basename}.mp4`
+    return `${vodData.value.webpath}/${vodData.value.basename}.mp4`;
 });
 
 const chapterSource = computed((): string => {
@@ -653,7 +653,7 @@ function videoError(event: Event): void {
 
 function videoPlay(event: Event): void {
     console.debug("play", event);
-    videoStatus.value = "playing"
+    videoStatus.value = "playing";
 }
 
 function videoPause(event: Event): void {

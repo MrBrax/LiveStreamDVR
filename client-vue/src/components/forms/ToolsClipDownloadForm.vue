@@ -87,7 +87,7 @@ function submitForm(event: Event) {
     formStatus.value = "LOADING";
 
     axios
-        .post<ApiResponse>(`/api/v0/tools/clip_download`, formData)
+        .post<ApiResponse>("/api/v0/tools/clip_download", formData)
         .then((response) => {
             const json = response.data;
             console.log("form success", json);

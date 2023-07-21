@@ -32,9 +32,9 @@
 </template>
 
 <script lang="ts" setup>
-import { formatDate, humanDate } from '@/mixins/newhelpers';
-import { useStore } from '@/store';
-import type { VODTypes } from '@/twitchautomator';
+import { formatDate, humanDate } from "@/mixins/newhelpers";
+import { useStore } from "@/store";
+import type { VODTypes } from "@/twitchautomator";
 
 const props = defineProps<{
     vod: VODTypes;
@@ -42,7 +42,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    (event: 'toggleMinimize'): void;
+    (event: "toggleMinimize"): void;
 }>();
 
 const store = useStore();

@@ -45,15 +45,15 @@
 </template>
 
 <script lang="ts" setup>
-import { humanDuration, isTwitch, formatNumber } from '@/mixins/newhelpers';
-import type { Clip } from '@common/TwitchAPI/Clips';
-import axios from 'axios';
-import { ref } from 'vue';
+import { humanDuration, isTwitch, formatNumber } from "@/mixins/newhelpers";
+import type { Clip } from "@common/TwitchAPI/Clips";
+import axios from "axios";
+import { ref } from "vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
-import { useI18n } from 'vue-i18n';
+import { useI18n } from "vue-i18n";
 import type { ApiResponse } from "@common/Api/Api";
-import type { ChannelTypes } from '@/twitchautomator';
+import type { ChannelTypes } from "@/twitchautomator";
 library.add(faSpinner);
 
 const props = defineProps<{
@@ -101,7 +101,7 @@ async function downloadClip(clip: Clip) {
     let response;
 
     try {
-        response = await axios.post<ApiResponse>(`/api/v0/tools/clip_download`, {
+        response = await axios.post<ApiResponse>("/api/v0/tools/clip_download", {
             url: clip.url,
         });
     } catch (error) {

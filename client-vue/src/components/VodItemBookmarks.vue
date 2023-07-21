@@ -90,13 +90,13 @@
 </template>
 
 <script lang="ts" setup>
-import { useStore } from '@/store';
-import type { ApiResponse } from '@common/Api/Api';
-import axios from 'axios';
+import { useStore } from "@/store";
+import type { ApiResponse } from "@common/Api/Api";
+import axios from "axios";
 import { humanDuration, isTwitchVOD } from "@/mixins/newhelpers";
-import { onMounted, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
-import type { VODTypes } from '@/twitchautomator';
+import { onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
+import type { VODTypes } from "@/twitchautomator";
 import type { VODBookmark } from "@common/Bookmark";
 
 const props = defineProps({

@@ -162,7 +162,7 @@ onMounted(() => {
 
 function fetchData(): void {
     axios
-        .get<ApiResponse>(`/api/v0/keyvalue`)
+        .get<ApiResponse>("/api/v0/keyvalue")
         .then((response) => {
             const json = response.data;
             const kv = json.data;
@@ -193,11 +193,11 @@ function deleteKeyValue(key: string) {
 
 function deleteAllKeyValues() {
     axios
-        .delete(`/api/v0/keyvalue`)
+        .delete("/api/v0/keyvalue")
         .then((response) => {
             const json = response.data;
             console.debug("deleteAllKeyValues", json);
-            alert(`Deleted all key values`);
+            alert("Deleted all key values");
             fetchData();
         })
         .catch((err) => {

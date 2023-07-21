@@ -328,7 +328,7 @@ function sendHookDebug(e: Event) {
             console.log("payload", data);
 
             axios
-                .post<ApiResponse>(`/api/v0/hook`, data.body, {
+                .post<ApiResponse>("/api/v0/hook", data.body, {
                     headers: data.headers,
                 })
                 .then((response) => {
@@ -348,7 +348,7 @@ function resetChannels() {
     if (!confirm("Reset channels?")) return;
 
     axios
-        .post<ApiResponse>(`/api/v0/tools/reset_channels`)
+        .post<ApiResponse>("/api/v0/tools/reset_channels")
         .then((response) => {
             const json = response.data;
             if (json.message) alert(json.message);
@@ -363,7 +363,7 @@ function shutdown() {
     if (!confirm("Shutdown?")) return;
 
     axios
-        .post<ApiResponse>(`/api/v0/tools/shutdown`)
+        .post<ApiResponse>("/api/v0/tools/shutdown")
         .then((response) => {
             const json = response.data;
             if (json.message) alert(json.message);

@@ -396,7 +396,7 @@ const renameVodTemplatePreview = computed(() => {
     if (!props.vod) return "";
     const date = props.vod.started_at;
     const replacements: VodBasenameTemplate = {
-        login:              props.vod.provider == 'twitch' ? props.vod.streamer_login : "",
+        login:              props.vod.provider == "twitch" ? props.vod.streamer_login : "",
         internalName:       props.vod.getChannel().internalName,
         displayName:        props.vod.getChannel().displayName,
         date:               date ? format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'").replaceAll(":", "_") : "",
@@ -517,8 +517,8 @@ function doFixIssues(): void {
     if (!props.vod) return;
     const c = confirm(
         `Do you want to fix issues for "${props.vod?.basename}"?\n` +
-        `Please only do this if you know what you are doing.\n` +
-        `Using this function can cause issues with the VOD, especially if it is currently capturing or converting.`
+        "Please only do this if you know what you are doing.\n" +
+        "Using this function can cause issues with the VOD, especially if it is currently capturing or converting."
     );
     if (!c) return;
     axios

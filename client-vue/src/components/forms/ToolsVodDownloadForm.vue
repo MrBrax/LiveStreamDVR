@@ -95,7 +95,7 @@ function submitForm(event: Event) {
     formStatus.value = "LOADING";
 
     axios
-        .post<ApiResponse>(`/api/v0/tools/vod_download`, formData)
+        .post<ApiResponse>("/api/v0/tools/vod_download", formData)
         .then((response) => {
             const json = response.data;
             formStatusText.value = json.message || "No message";

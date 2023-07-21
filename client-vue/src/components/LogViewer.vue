@@ -100,7 +100,7 @@ onMounted(() => {
             setTimeout(() => {
                 scrollLog();
             }, 100);
-        })
+        });
     });
     fetchLog();
 });

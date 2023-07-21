@@ -32,6 +32,18 @@ module.exports = {
             4,
         ],
         */
+        "linebreak-style": [
+            "error",
+            "unix",
+        ],
+        "quotes": [
+            "error",
+            "double",
+        ],
+        "semi": [
+            "error",
+            "always",
+        ],
         "vue/html-indent": ["error", 4, {
             "attribute": 1,
             "baseIndent": 1,

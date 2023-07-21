@@ -18,7 +18,7 @@
 </template>
 
 <script lang="ts" setup>
-import { computed, useSlots } from 'vue';
+import { computed, useSlots } from "vue";
 
 const slots = useSlots();
 
@@ -30,12 +30,12 @@ const props = defineProps<{
     iconSpin?: boolean;
     loading?: boolean;
     text?: string;
-    size?: 'small';
+    size?: "small";
 }>();
 
 const properIcon = computed(() => {
     if (props.loading) {
-        return 'spinner';
+        return "spinner";
     }
     return props.icon;
 });
@@ -44,7 +44,7 @@ const buttonClass = computed((): Record<string, boolean> => {
     const classes: Record<string, boolean> = {
         button: true,
         // 'is-loading': props.loading,
-        'is-small': props.size === 'small',
+        "is-small": props.size === "small",
     };
     if (props.color) {
         classes[`is-${props.color}`] = true;

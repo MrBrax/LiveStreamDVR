@@ -39,16 +39,16 @@
 </template>
 
 <script lang="ts" setup>
-import { useStore } from '@/store';
-import { useI18n } from 'vue-i18n';
-import type { VODTypes } from '@/twitchautomator';
-import { humanDuration } from '@/mixins/newhelpers';
-import { computed, onMounted, reactive, ref, defineAsyncComponent } from 'vue';
-import type { ChartData, ChartOptions } from 'chart.js';
+import { useStore } from "@/store";
+import { useI18n } from "vue-i18n";
+import type { VODTypes } from "@/twitchautomator";
+import { humanDuration } from "@/mixins/newhelpers";
+import { computed, onMounted, reactive, ref, defineAsyncComponent } from "vue";
+import type { ChartData, ChartOptions } from "chart.js";
 // import ViewerChart from '@/components/reusables/ViewerChart.vue';
 // const ViewerChart = () => import('@/components/reusables/ViewerChart.vue');
 
-const ViewerChart = defineAsyncComponent(() => import('@/components/reusables/ViewerChart.vue'));
+const ViewerChart = defineAsyncComponent(() => import("@/components/reusables/ViewerChart.vue"));
 
 const props = defineProps({
     vod: {
@@ -64,12 +64,12 @@ const chartOptions = reactive<ChartOptions>({
     scales: {
         x: {
             ticks: {
-                color: 'white',
+                color: "white",
             }
         },
         y: {
             ticks: {
-                color: 'white',
+                color: "white",
             },
         },
     },
@@ -96,12 +96,12 @@ onMounted(() => {
     if (!chartOptions?.scales?.x?.ticks) return; // why, typescript
     if (!chartOptions?.scales?.y?.ticks) return; // why, typescript
     // if (!chartOptions?.plugins?.title) return; // why, typescript
-    chartOptions.scales.x.ticks.color = getComputedStyle(document.body).getPropertyValue('--body-color');
-    chartOptions.scales.y.ticks.color = getComputedStyle(document.body).getPropertyValue('--body-color');
+    chartOptions.scales.x.ticks.color = getComputedStyle(document.body).getPropertyValue("--body-color");
+    chartOptions.scales.y.ticks.color = getComputedStyle(document.body).getPropertyValue("--body-color");
     // chartOptions.plugins.title.color = getComputedStyle(document.body).getPropertyValue('--body-color');
 });
 
-const chartData = computed((): ChartData<'line', number[], string> | null => {
+const chartData = computed((): ChartData<"line", number[], string> | null => {
     if (!props.vod.viewers || props.vod.viewers.length === 0) {
         return null;
     }
@@ -113,10 +113,10 @@ const chartData = computed((): ChartData<'line', number[], string> | null => {
         labels,
         datasets: [
             {
-                label: 'Viewers',
+                label: "Viewers",
                 data,
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                borderColor: 'rgba(255, 99, 132, 1)',
+                backgroundColor: "rgba(255, 99, 132, 0.2)",
+                borderColor: "rgba(255, 99, 132, 1)",
                 borderWidth: 1,
             },
         ],

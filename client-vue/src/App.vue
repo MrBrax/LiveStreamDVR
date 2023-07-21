@@ -217,7 +217,7 @@ onMounted(() => {
         if (name !== "playMedia" || !mediaplayer.value) return;
         const full_path = args[0];
         console.log("onaction", name, args);
-        mediaPlayerSource.value = full_path
+        mediaPlayerSource.value = full_path;
         mediaplayer.value.showModal();
 
         // json metadata from full_path replacing the extension with .json
@@ -253,12 +253,12 @@ function fetchInitialData() {
     console.debug("App fetchInitialData");
     store.fetchData().then(() => {
         updateTitle();
-        if (store.cfg("websocket_enabled") && store.clientCfg('useWebsockets')) {
+        if (store.cfg("websocket_enabled") && store.clientCfg("useWebsockets")) {
             console.debug("Connecting websocket...");
             connectWebsocket();
         } else {
             console.debug("Websocket disabled");
-            if (store.clientCfg('useBackgroundTicker')) {
+            if (store.clientCfg("useBackgroundTicker")) {
                 console.debug("Starting background ticker...");
                 tickerInterval.value = window.setInterval(() => {
                     tickTicker();
@@ -267,7 +267,7 @@ function fetchInitialData() {
         }
 
         // update vods every 15 minutes
-        if (store.clientCfg('useBackgroundRefresh')) {
+        if (store.clientCfg("useBackgroundRefresh")) {
             vodUpdateInterval.value = window.setInterval(() => {
                 store.updateCapturingVods();
             }, 1000 * 60 * 15);
@@ -282,9 +282,9 @@ function connectWebsocket(): WebSocket | undefined {
 
     let websocket_url = "";
 
-    if (store.clientCfg('websocketAddressOverride')) {
-        websocket_url = store.clientCfg('websocketAddressOverride');
-        console.debug(`Overriding generated websocket URL with client config '${store.clientCfg('websocketAddressOverride')}'`);
+    if (store.clientCfg("websocketAddressOverride")) {
+        websocket_url = store.clientCfg("websocketAddressOverride");
+        console.debug(`Overriding generated websocket URL with client config '${store.clientCfg("websocketAddressOverride")}'`);
     } else {
         if (!store.websocketUrl || store.websocketUrl == "") {
             console.error("No websocket URL found");
@@ -331,7 +331,7 @@ function connectWebsocket(): WebSocket | undefined {
     });
 
     websocket.value.addEventListener("error", (ev: Event) => {
-        console.error(`Websocket error!`, ev);
+        console.error("Websocket error!", ev);
         websocketConnected.value = false;
         websocketConnecting.value = false;
         clearInterval(websocketKeepalive.value);
@@ -490,7 +490,7 @@ function handleWebsocketMessage(action: WebhookAction, data: any) {
         }
         */
     } else {
-        console.log(`Websocket unknown data`, action, data);
+        console.log("Websocket unknown data", action, data);
     }
 }
 
@@ -506,7 +506,7 @@ function onNotify(title: string, body: string, icon: string, url: string, tts: b
         };
     }
 
-    if (tts && store.clientCfg('useSpeech')) {
+    if (tts && store.clientCfg("useSpeech")) {
         const utterance = new SpeechSynthesisUtterance(`${title} ${body}`);
         utterance.lang = "en-US";
         speechSynthesis.speak(utterance);

@@ -362,14 +362,14 @@
 </template>
 
 <script lang="ts" setup>
-import { useStore } from '@/store';
-import type { ApiResponse } from '@common/Api/Api';
-import axios from 'axios';
-import { useI18n } from 'vue-i18n';
+import { useStore } from "@/store";
+import type { ApiResponse } from "@common/Api/Api";
+import axios from "axios";
+import { useI18n } from "vue-i18n";
 import { MuteStatus } from "../../../common/Defs";
-import { formatDate, humanDuration, formatBytes, isTwitchVOD } from '@/mixins/newhelpers';
-import type { VODTypes } from '@/twitchautomator';
-import { computed, ref } from 'vue';
+import { formatDate, humanDuration, formatBytes, isTwitchVOD } from "@/mixins/newhelpers";
+import type { VODTypes } from "@/twitchautomator";
+import { computed, ref } from "vue";
 
 const props = defineProps({
     vod: {

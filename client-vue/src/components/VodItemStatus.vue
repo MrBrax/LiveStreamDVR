@@ -144,18 +144,18 @@
 </template>
 
 <script lang="ts" setup>
-import { formatBytes, formatDate } from '@/mixins/newhelpers';
-import { useStore } from '@/store';
-import type { VODTypes } from '@/twitchautomator';
-import { useI18n } from 'vue-i18n';
+import { formatBytes, formatDate } from "@/mixins/newhelpers";
+import { useStore } from "@/store";
+import type { VODTypes } from "@/twitchautomator";
+import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
     vod: VODTypes;
 }>();
 
 const emit = defineEmits<{
-    (event: 'delete'): void;
-    (event: 'fixIssues'): void;
+    (event: "delete"): void;
+    (event: "fixIssues"): void;
 }>();
 
 const store = useStore();

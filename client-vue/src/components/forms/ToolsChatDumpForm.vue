@@ -69,7 +69,7 @@ function submitForm(event: Event) {
     formStatus.value = "LOADING";
 
     axios
-        .post<ApiResponse>(`/api/v0/tools/chat_dump`, formData.value)
+        .post<ApiResponse>("/api/v0/tools/chat_dump", formData.value)
         .then((response) => {
             const json = response.data;
             formStatusText.value = json.message || "No message";

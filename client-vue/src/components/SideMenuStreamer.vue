@@ -156,8 +156,8 @@ const expanded = ref(false);
     
 const filteredVodsList = computed((): VODTypes[] => {
     if (!props.streamer) return [];
-    if (expanded.value || store.clientCfg('expandVodList')) return props.streamer.vods_list;
-    const vodsToShow = store.clientCfg('vodsToShowInMenu', 4);
+    if (expanded.value || store.clientCfg("expandVodList")) return props.streamer.vods_list;
+    const vodsToShow = store.clientCfg("vodsToShowInMenu", 4);
     if (vodsToShow === 0) return [];
     // return last 4 vods
     return props.streamer.vods_list.slice(-vodsToShow);

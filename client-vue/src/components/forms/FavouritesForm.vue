@@ -129,7 +129,7 @@ function submitForm(event: Event) {
     formStatus.value = "LOADING";
 
     axios
-        .put(`/api/v0/favourites`, formData.value)
+        .put("/api/v0/favourites", formData.value)
         .then((response) => {
             const json = response.data;
             formStatusText.value = json.message;
@@ -160,7 +160,7 @@ function fetchData() {
     console.debug("FavouritesForm fetchData");
     loading.value = true;
     axios.all([
-        axios.get<ApiGamesResponse>(`api/v0/games`)
+        axios.get<ApiGamesResponse>("api/v0/games")
         .then((response) => {
             const json = response.data;
             if (json.message) alert(json.message);
@@ -171,7 +171,7 @@ function fetchData() {
             console.error("settings fetch error", err.response);
         }),
         axios
-            .get<ApiSettingsResponse>(`api/v0/settings`)
+            .get<ApiSettingsResponse>("api/v0/settings")
             .then((response) => {
                 const json = response.data;
                 if (json.message) alert(json.message);

@@ -236,16 +236,16 @@
 </template>
 
 <script lang="ts" setup>
-import { TwitchVODChapter } from '@/core/Providers/Twitch/TwitchVODChapter';
-import { niceDuration } from '@/mixins/newhelpers';
-import { useStore } from '@/store';
-import type { ApiResponse, ApiSettingsResponse } from '@common/Api/Api';
-import axios from 'axios';
-import { computed, onMounted, ref } from 'vue';
+import { TwitchVODChapter } from "@/core/Providers/Twitch/TwitchVODChapter";
+import { niceDuration } from "@/mixins/newhelpers";
+import { useStore } from "@/store";
+import type { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
+import axios from "axios";
+import { computed, onMounted, ref } from "vue";
 import DurationDisplay from "@/components/DurationDisplay.vue";
-import { useI18n } from 'vue-i18n';
+import { useI18n } from "vue-i18n";
 import { formatDate, formatNumber, humanDuration, twitchDuration } from "@/mixins/newhelpers";
-import type { ChapterTypes, VODTypes } from '@/twitchautomator';
+import type { ChapterTypes, VODTypes } from "@/twitchautomator";
 
 function isTwitchChapter(chapter: ChapterTypes): chapter is TwitchVODChapter {
     return chapter instanceof TwitchVODChapter;
@@ -294,14 +294,14 @@ function twitchVideoLink(video_id: string): string {
 function addFavouriteGame(game_id: string) {
     if (!store.config) return;
     axios
-        .patch(`/api/v0/favourites`, { game: game_id })
+        .patch("/api/v0/favourites", { game: game_id })
         .then((response) => {
             const json: ApiResponse = response.data;
             if (json.message) alert(json.message);
             console.log(json);
 
             // fetch the new config
-            axios.get<ApiSettingsResponse>(`/api/v0/settings`).then((response) => {
+            axios.get<ApiSettingsResponse>("/api/v0/settings").then((response) => {
                 const settings_json = response.data;
                 store.updateConfig(settings_json.data.config);
                 store.updateFavouriteGames(settings_json.data.favourite_games);

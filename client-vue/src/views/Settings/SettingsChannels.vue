@@ -86,7 +86,7 @@ function fetchData() {
     console.debug("Fetching channels");
     loading.value = true;
     axios
-        .get<ApiSettingsResponse>(`api/v0/settings`)
+        .get<ApiSettingsResponse>("api/v0/settings")
         .then((response) => {
             const json = response.data;
             if (json.message) alert(json.message);

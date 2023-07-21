@@ -100,14 +100,14 @@
 </template>
 
 <script lang="ts" setup>
-import { isTwitchVOD } from '@/mixins/newhelpers';
-import { useStore } from '@/store';
-import type { ApiResponse } from '@common/Api/Api';
-import axios from 'axios';
-import { useI18n } from 'vue-i18n';
-import { formatBytes } from '@/mixins/newhelpers';
-import type { VODTypes } from '@/twitchautomator';
-import { onMounted, ref } from 'vue';
+import { isTwitchVOD } from "@/mixins/newhelpers";
+import { useStore } from "@/store";
+import type { ApiResponse } from "@common/Api/Api";
+import axios from "axios";
+import { useI18n } from "vue-i18n";
+import { formatBytes } from "@/mixins/newhelpers";
+import type { VODTypes } from "@/twitchautomator";
+import { onMounted, ref } from "vue";
 
 const props = defineProps({
     vod: {
@@ -129,7 +129,7 @@ onMounted(() => {
 function doDeleteSegment(index = 0) {
     if (!props.vod) return;
     if (!confirm(`Do you want to delete segment ${index} of "${props.vod?.basename}"?`)) return;
-    const keepEntry = confirm(`Do you want to keep the entry and mark it as cloud storage?`);
+    const keepEntry = confirm("Do you want to keep the entry and mark it as cloud storage?");
     if (isTwitchVOD(props.vod) && props.vod.twitch_vod_exists === false && !confirm(`The VOD "${props.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
     axios
         .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/delete_segment?segment=${index}&keep_entry=${keepEntry ? "true" : "false"}`)

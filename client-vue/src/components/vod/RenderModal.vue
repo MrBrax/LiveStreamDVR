@@ -371,20 +371,20 @@
 <script lang="ts" setup>
 import FormSubmit from "@/components/reusables/FormSubmit.vue";
 import { formatBytes } from "@/mixins/newhelpers";
-import { useStore } from '@/store';
-import type { FormStatus, VODTypes } from '@/twitchautomator';
-import type { ApiResponse } from '@common/Api/Api';
-import type { ApiJob } from '@common/Api/Client';
-import axios from 'axios';
-import { computed, onMounted, ref } from 'vue';
-import { useI18n } from 'vue-i18n';
+import { useStore } from "@/store";
+import type { FormStatus, VODTypes } from "@/twitchautomator";
+import type { ApiResponse } from "@common/Api/Api";
+import type { ApiJob } from "@common/Api/Client";
+import axios from "axios";
+import { computed, onMounted, ref } from "vue";
+import { useI18n } from "vue-i18n";
 
 const props = defineProps<{
     vod: VODTypes,
 }>();
 
 const emit = defineEmits<{
-    (event: 'refresh'): void
+    (event: "refresh"): void
 }>();
 
 const store = useStore();
@@ -413,7 +413,7 @@ const burnSettings = ref({
 });
 
 const burnPreviewChat = computed((): Record<string, string> => {
-    if (!props.vod || !props.vod.video_metadata || props.vod.video_metadata.type == 'audio') return {};
+    if (!props.vod || !props.vod.video_metadata || props.vod.video_metadata.type == "audio") return {};
     return {
         width: `${(burnSettings.value.chatWidth / props.vod.video_metadata.width) * 100}%`,
         height: `${(burnSettings.value.chatHeight / props.vod.video_metadata.height) * 100}%`,
@@ -441,7 +441,7 @@ onMounted(() => {
         const chatHeight: number = 
             props.vod && 
             props.vod.video_metadata && 
-            props.vod.video_metadata.type !== 'audio' && 
+            props.vod.video_metadata.type !== "audio" && 
             store.cfg<boolean>("chatburn.default.auto_chat_height")
             ?
             props.vod.video_metadata.height

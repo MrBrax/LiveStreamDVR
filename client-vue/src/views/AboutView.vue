@@ -341,7 +341,7 @@ function fetchData() {
     aboutData.value = undefined;
 
     axios
-        .get<ApiAboutResponse>(`/api/v0/about`)
+        .get<ApiAboutResponse>("/api/v0/about")
         .then((response) => {
             const json = response.data;
             const about = json.data;
@@ -366,7 +366,7 @@ function fetchData() {
 function fetchSubscriptions() {
     subscriptionsLoading.value = true;
     axios
-        .get<IApiResponse<{ channels: ApiSubscription[] }>>(`/api/v0/subscriptions`)
+        .get<IApiResponse<{ channels: ApiSubscription[] }>>("/api/v0/subscriptions")
         .then((response) => {
             const json = response.data;
             console.log("subscriptions", json);
@@ -401,7 +401,7 @@ function unsubscribe(id: string) {
 function subscribeAll() {
     subscriptionsLoading.value = true;
     axios
-        .post<ApiResponse>(`/api/v0/subscriptions`)
+        .post<ApiResponse>("/api/v0/subscriptions")
         .then((response) => {
             const json = response.data;
             console.debug("subscribeAll", json);
