@@ -377,7 +377,7 @@ export class BaseAutomator {
         if (this.channel) {
             ClientBroker.notify(
                 t("notify.this-broadcaster_user_login-has-gone-offline", [this.broadcaster_user_login]),
-                this.channel && this.channel.latest_vod && this.channel.latest_vod.started_at ? t("notify.was-streaming-for-formatdistancetonow-this-channel-latest_vod-started_at", [formatDistanceToNow(this.channel.latest_vod.started_at)]) : "",
+                this.channel && this.channel.latest_vod && this.channel.latest_vod.started_at ? t("notify.was-streaming-for-formatdistancetonow-this-channel-latest_vod-started_at", [formatDistanceToNow(this.channel.latest_vod.started_at)]).toString() : "",
                 this.channel.profilePictureUrl,
                 "streamOffline",
                 this.channel.livestreamUrl
@@ -1035,7 +1035,7 @@ export class BaseAutomator {
             log(LOGLEVEL.ERROR, "automator.captureVideo", `Capturing of ${basename} failed, no streams available!`);
             ClientBroker.notify(
                 "Streamlink error",
-                t("notify.capturing-of-basename-failed-no-streams-available-nis-there-a-configuration-error", [basename]),
+                t("notify.capturing-of-basename-failed-no-streams-available-nis-there-a-configuration-error", [basename]).toString(),
                 "",
                 "system"
             );
