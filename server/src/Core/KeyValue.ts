@@ -292,7 +292,7 @@ export class KeyValue extends EventEmitter {
         if (deleted == 0) {
             log(
                 LOGLEVEL.WARNING,
-                "keyvalue",
+                "keyvalue.cleanWildcard",
                 `No keys deleted for wildcard ${keyWildcard}`
             );
         }
@@ -306,7 +306,7 @@ export class KeyValue extends EventEmitter {
             if (value.expires && value.expires.getTime() < Date.now()) {
                 log(
                     LOGLEVEL.DEBUG,
-                    "keyvalue",
+                    "keyvalue.filterExpired",
                     `Deleting expired key ${key} (expired at ${value.expires.toISOString()})`
                 );
                 delete this.data[key];

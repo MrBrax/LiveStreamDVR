@@ -40,7 +40,7 @@ module.exports = {
         "no-var": "error",
         "prefer-const": "error",
         "@typescript-eslint/consistent-type-imports": "error",
-        "log-module": "error",
+        "log-module": "warn",
         // "import/no-relative-parent-imports": "error",
     },
     ignorePatterns: [".eslintrc.js"],

@@ -36,7 +36,7 @@ export class FileExporter extends BaseExporter {
 
         log(
             LOGLEVEL.INFO,
-            "FileExporter",
+            "FileExporter.export",
             `Exporting ${this.filename} to ${this.final_path}...`
         );
 

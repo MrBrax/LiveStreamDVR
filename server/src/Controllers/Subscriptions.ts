@@ -59,7 +59,7 @@ export async function ListSubscriptions(
             } catch (e) {
                 log(
                     LOGLEVEL.ERROR,
-                    "ListSubscriptions",
+                    "subscriptions.ListSubscriptions",
                     "Failed to get username for channel " +
                         sub.condition.broadcaster_user_id,
                     e
@@ -70,7 +70,7 @@ export async function ListSubscriptions(
             if (!username) {
                 log(
                     LOGLEVEL.WARNING,
-                    "ListSubscriptions",
+                    "subscriptions.ListSubscriptions",
                     `Could not find username for channel ${sub.condition.broadcaster_user_id}`
                 );
                 continue;

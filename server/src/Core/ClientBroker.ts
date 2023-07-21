@@ -272,17 +272,22 @@ export class ClientBroker {
     ) {
         // console.log(chalk.bgBlue.whiteBright(`Notifying clients: ${title}: ${body}, category ${category}`));
 
-        log(LOGLEVEL.INFO, "notify", `(${category}) ${title}: ${body}`, {
-            title: title,
-            body: body,
-            icon: icon,
-            category: category,
-            url: url,
-            tts: tts,
-        });
+        log(
+            LOGLEVEL.INFO,
+            "clientBroker.notify",
+            `(${category}) ${title}: ${body}`,
+            {
+                title: title,
+                body: body,
+                icon: icon,
+                category: category,
+                url: url,
+                tts: tts,
+            }
+        );
 
         if (!title) {
-            log(LOGLEVEL.WARNING, "notify", "No title specified", {
+            log(LOGLEVEL.WARNING, "clientBroker.notify", "No title specified", {
                 title: title,
                 body: body,
                 icon: icon,
@@ -293,7 +298,7 @@ export class ClientBroker {
         }
 
         if (!body) {
-            log(LOGLEVEL.WARNING, "notify", "No body specified", {
+            log(LOGLEVEL.WARNING, "clientBroker.notify", "No body specified", {
                 title: title,
                 body: body,
                 icon: icon,
@@ -348,7 +353,7 @@ export class ClientBroker {
                     .then((res) => {
                         log(
                             LOGLEVEL.DEBUG,
-                            "notify",
+                            "clientBroker.notify",
                             "Telegram response",
                             res.data
                         );
@@ -362,7 +367,7 @@ export class ClientBroker {
                             if (err.response) {
                                 log(
                                     LOGLEVEL.ERROR,
-                                    "notify",
+                                    "clientBroker.notify",
                                     `Telegram axios error response: ${err.message} (${err.response.data})`,
                                     { err: err, response: err.response.data }
                                 );
@@ -375,7 +380,7 @@ export class ClientBroker {
                             } else if (err.request) {
                                 log(
                                     LOGLEVEL.ERROR,
-                                    "notify",
+                                    "clientBroker.notify",
                                     `Telegram axios error request: ${err.message} (${err.request})`,
                                     { err: err, request: err.request }
                                 );
@@ -388,7 +393,7 @@ export class ClientBroker {
                             } else {
                                 log(
                                     LOGLEVEL.ERROR,
-                                    "notify",
+                                    "clientBroker.notify",
                                     `Telegram axios error: ${err.message}`,
                                     err
                                 );
@@ -402,7 +407,7 @@ export class ClientBroker {
                         } else {
                             log(
                                 LOGLEVEL.ERROR,
-                                "notify",
+                                "clientBroker.notify",
                                 `Telegram error: ${err.message}`,
                                 err
                             );
@@ -414,19 +419,27 @@ export class ClientBroker {
                         }
                     });
             } else if (!token && chat_id) {
-                log(LOGLEVEL.ERROR, "notify", "Telegram token not set");
+                log(
+                    LOGLEVEL.ERROR,
+                    "clientBroker.notify",
+                    "Telegram token not set"
+                );
                 console.error(
                     chalk.bgRed.whiteBright("Telegram token not set")
                 );
             } else if (!chat_id && token) {
-                log(LOGLEVEL.ERROR, "notify", "Telegram chat ID not set");
+                log(
+                    LOGLEVEL.ERROR,
+                    "clientBroker.notify",
+                    "Telegram chat ID not set"
+                );
                 console.error(
                     chalk.bgRed.whiteBright("Telegram chat ID not set")
                 );
             } else {
                 log(
                     LOGLEVEL.ERROR,
-                    "notify",
+                    "clientBroker.notify",
                     "Telegram token and chat ID not set"
                 );
                 console.error(
@@ -452,13 +465,18 @@ export class ClientBroker {
                     tts: tts,
                 } as DiscordSendMessagePayload)
                 .then((res) => {
-                    log(LOGLEVEL.DEBUG, "notify", "Discord response", res.data);
+                    log(
+                        LOGLEVEL.DEBUG,
+                        "clientBroker.notify",
+                        "Discord response",
+                        res.data
+                    );
                 })
                 .catch((err: AxiosError) => {
                     if (axios.isAxiosError(err)) {
                         log(
                             LOGLEVEL.ERROR,
-                            "notify",
+                            "clientBroker.notify",
                             `Discord axios error: ${
                                 err.message
                             } (${JSON.stringify(err.response?.data)})`,
@@ -467,7 +485,7 @@ export class ClientBroker {
                     } else {
                         log(
                             LOGLEVEL.ERROR,
-                            "notify",
+                            "clientBroker.notify",
                             `Discord error: ${(err as Error).message}`,
                             err
                         );
@@ -502,7 +520,7 @@ export class ClientBroker {
                 .then((res) => {
                     log(
                         LOGLEVEL.DEBUG,
-                        "notify",
+                        "clientBroker.notify",
                         "Pushover response",
                         res.data
                     );
@@ -516,7 +534,7 @@ export class ClientBroker {
                         if (err.response) {
                             log(
                                 LOGLEVEL.ERROR,
-                                "notify",
+                                "clientBroker.notify",
                                 `Pushover axios error response: ${err.message} (${err.response.data})`,
                                 { err: err, response: err.response.data }
                             );
@@ -529,7 +547,7 @@ export class ClientBroker {
                         } else if (err.request) {
                             log(
                                 LOGLEVEL.ERROR,
-                                "notify",
+                                "clientBroker.notify",
                                 `Pushover axios error request: ${err.message} (${err.request})`,
                                 { err: err, request: err.request }
                             );
@@ -542,7 +560,7 @@ export class ClientBroker {
                         } else {
                             log(
                                 LOGLEVEL.ERROR,
-                                "notify",
+                                "clientBroker.notify",
                                 `Pushover axios error: ${err.message}`,
                                 err
                             );
@@ -556,7 +574,7 @@ export class ClientBroker {
                     } else {
                         log(
                             LOGLEVEL.ERROR,
-                            "notify",
+                            "clientBroker.notify",
                             `Pushover error: ${err.message}`,
                             err
                         );

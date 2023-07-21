@@ -15,13 +15,13 @@ export function Authenticate(
         });
         log(
             LOGLEVEL.ERROR,
-            "YouTube",
+            "YouTube.Authenticate",
             "YouTube client not configured. Set it up in the settings page."
         );
         return;
     }
 
-    log(LOGLEVEL.INFO, "YouTube", "Begin auth process...");
+    log(LOGLEVEL.INFO, "YouTube.Authenticate", "Begin auth process...");
 
     const url = YouTubeHelper.oAuth2Client.generateAuthUrl({
         access_type: "offline",
@@ -36,21 +36,25 @@ export function Authenticate(
         });
         log(
             LOGLEVEL.ERROR,
-            "YouTube",
+            "YouTube.Authenticate",
             "No URL received from OAuth, user stuck."
         );
         return;
     }
 
     if (req.query.rawurl) {
-        log(LOGLEVEL.SUCCESS, "YouTube", `Send raw URL to user: ${url}`);
+        log(
+            LOGLEVEL.SUCCESS,
+            "YouTube.Authenticate",
+            `Send raw URL to user: ${url}`
+        );
         res.status(200).send({
             status: "OK",
             data: url,
         });
         return;
     } else {
-        log(LOGLEVEL.SUCCESS, "YouTube", `Send user to: ${url}`);
+        log(LOGLEVEL.SUCCESS, "YouTube.Authenticate", `Send user to: ${url}`);
         res.redirect(302, url);
     }
 }
@@ -88,7 +92,7 @@ export function Callback(
     req: express.Request,
     res: express.Response
 ): Promise<void> {
-    log(LOGLEVEL.INFO, "YouTube", "Got callback from YouTube...");
+    log(LOGLEVEL.INFO, "YouTube.Callback", "Got callback from YouTube...");
 
     return new Promise<void>((resolve, reject) => {
         if (!YouTubeHelper.oAuth2Client) {
@@ -106,7 +110,7 @@ export function Callback(
                 if (err) {
                     log(
                         LOGLEVEL.ERROR,
-                        "YouTube",
+                        "YouTube.Callback",
                         `Could not get token: ${err}`
                     );
                     res.status(400).send({
@@ -118,7 +122,7 @@ export function Callback(
                 } else if (token && YouTubeHelper.oAuth2Client) {
                     log(
                         LOGLEVEL.SUCCESS,
-                        "YouTube",
+                        "YouTube.Callback",
                         "Authenticated with YouTube"
                     );
                     YouTubeHelper.oAuth2Client.setCredentials(token);
@@ -135,7 +139,7 @@ export function Callback(
                         .catch((err) => {
                             log(
                                 LOGLEVEL.ERROR,
-                                "YouTube",
+                                "YouTube.Callback",
                                 `Could not get username: ${err.message}`
                             );
                             res.status(500).send(
@@ -152,7 +156,7 @@ export function Callback(
                 } else {
                     log(
                         LOGLEVEL.ERROR,
-                        "YouTube",
+                        "YouTube.Callback",
                         "Could not get token, unknown error"
                     );
                     res.status(400).send({
@@ -164,7 +168,7 @@ export function Callback(
                 }
             });
         } else {
-            log(LOGLEVEL.ERROR, "YouTube", "No code provided");
+            log(LOGLEVEL.ERROR, "YouTube.Callback", "No code provided");
             res.status(500).send({
                 status: "ERROR",
                 message: "No code provided",

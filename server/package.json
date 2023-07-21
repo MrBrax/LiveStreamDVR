@@ -48,7 +48,7 @@
         "ts-jest": "^29.1.1",
         "ts-node": "^10.9.1",
         "tsconfig-paths": "^4.2.0",
-        "typescript": "^5.0.4"
+        "typescript": "^5.1.6"
     },
     "dependencies": {
         "@googleapis/youtube": "^6.0.0",
@@ -76,8 +76,13 @@
         "true-case-path": "^2.2.1",
         "ws": "^8.13.0"
     },
-    "packageManager": "yarn@3.5.1",
+    "packageManager": "yarn@3.6.1",
     "engines": {
         "node": ">=18"
+    },
+    "dependenciesMeta": {
+        "prettier@3.0.0": {
+            "unplugged": true
+        }
     }
 }

@@ -161,7 +161,7 @@ export class LiveStreamDVR {
 
         log(
             LOGLEVEL.SUCCESS,
-            "config",
+            "dvr.init",
             t("base.bootmessage", new Date().toISOString())
         );
 
@@ -200,7 +200,7 @@ export class LiveStreamDVR {
         // process.on("SIGINT", goodbye);
         // process.on("SIGTERM", goodbye);
 
-        log(LOGLEVEL.SUCCESS, "config", "Loading config stuff done.");
+        log(LOGLEVEL.SUCCESS, "dvr.init", "Loading config stuff done.");
 
         Config.getInstance().initialised = true;
 
@@ -411,7 +411,7 @@ export class LiveStreamDVR {
      * @returns
      */
     public saveChannelsConfig(): boolean {
-        log(LOGLEVEL.INFO, "dvr", "Saving channel config");
+        log(LOGLEVEL.INFO, "dvr.saveChannelsConfig", "Saving channel config");
         fs.writeFileSync(
             BaseConfigPath.channel,
             JSON.stringify(this.channels_config, null, 4)
@@ -433,7 +433,7 @@ export class LiveStreamDVR {
             if (!channel) {
                 log(
                     LOGLEVEL.WARNING,
-                    "dvr",
+                    "dvr.cleanLingeringVODs",
                     `Channel ${vod.getChannel().internalName} removed but VOD ${
                         vod.basename
                     } still lingering`
@@ -442,7 +442,7 @@ export class LiveStreamDVR {
             if (!fs.existsSync(vod.filename)) {
                 log(
                     LOGLEVEL.WARNING,
-                    "dvr",
+                    "dvr.cleanLingeringVODs",
                     `VOD ${vod.basename} in memory but not on disk`
                 );
             }
@@ -931,7 +931,7 @@ export class LiveStreamDVR {
         this.freeStorageDiskSpace = ds.free;
         log(
             LOGLEVEL.DEBUG,
-            "dvr",
+            "dvr.updateFreeStorageDiskSpace",
             `Free storage disk space: ${formatBytes(this.freeStorageDiskSpace)}`
         );
         return true;

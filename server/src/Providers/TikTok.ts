@@ -26,7 +26,7 @@ export class TikTokHelper {
         if (!client_id || !client_secret) {
             log(
                 LOGLEVEL.WARNING,
-                "TikTokHelper",
+                "TikTokHelper.setupClient",
                 "No client_id or client_secret set up. TikTok uploads will not work."
             );
             return;

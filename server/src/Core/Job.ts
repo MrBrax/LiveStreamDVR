@@ -80,7 +80,11 @@ export class Job extends EventEmitter {
         for (const job_data of jobs) {
             Job.load(job_data.replace(".json", ""));
         }
-        log(LOGLEVEL.INFO, "job", `Loaded ${jobs.length} jobs from cache`);
+        log(
+            LOGLEVEL.INFO,
+            "job.loadJobsFromCache",
+            `Loaded ${jobs.length} jobs from cache`
+        );
 
         this.checkStaleJobs();
     }
@@ -99,7 +103,7 @@ export class Job extends EventEmitter {
             } catch (error) {
                 log(
                     LOGLEVEL.ERROR,
-                    "job",
+                    "job.checkStaleJobs",
                     `Job ${job.name} stale status error: ${
                         (error as Error).message
                     }`
@@ -111,14 +115,14 @@ export class Job extends EventEmitter {
             if (status == JobStatus.STOPPED || status == JobStatus.ERROR) {
                 log(
                     LOGLEVEL.WARNING,
-                    "job",
+                    "job.checkStaleJobs",
                     `Job ${job.name} is stale, no process found. Clearing.`
                 );
                 job.clear();
             } else {
                 log(
                     LOGLEVEL.INFO,
-                    "job",
+                    "job.checkStaleJobs",
                     `Job ${job.name} is still running from previous session.`
                 );
             }
@@ -138,7 +142,7 @@ export class Job extends EventEmitter {
         if (fs.existsSync(path.join(basepath, name + ".json"))) {
             log(
                 LOGLEVEL.WARNING,
-                "job",
+                "job.create",
                 `Creating job ${name} overwrites existing!`
             );
         }
@@ -153,11 +157,11 @@ export class Job extends EventEmitter {
     }
 
     public static load(name: string): Job | false {
-        log(LOGLEVEL.DEBUG, "job", `Loading job ${name}`);
+        log(LOGLEVEL.DEBUG, "job.load", `Loading job ${name}`);
 
         const memJob = this.jobs.find((job) => job.name === name);
         if (memJob) {
-            log(LOGLEVEL.DEBUG, "job", `Job ${name} found in memory`);
+            log(LOGLEVEL.DEBUG, "job.load", `Job ${name} found in memory`);
             return memJob;
         }
 
@@ -173,7 +177,7 @@ export class Job extends EventEmitter {
         if (!fs.existsSync(job.pidfile)) {
             log(
                 LOGLEVEL.ERROR,
-                "job",
+                "job.load",
                 `Loading job ${job.name} failed, no json file`,
                 job.metadata
             );
@@ -187,7 +191,7 @@ export class Job extends EventEmitter {
         if (!raw) {
             log(
                 LOGLEVEL.ERROR,
-                "job",
+                "job.load",
                 `Loading job ${job.name} failed, no data in json file`,
                 job.metadata
             );
@@ -211,7 +215,7 @@ export class Job extends EventEmitter {
             Job.jobs.push(job);
             log(
                 LOGLEVEL.DEBUG,
-                "job",
+                "job.load",
                 `Loaded job ${job.name} added to jobs list`,
                 job.metadata
             );
@@ -280,14 +284,14 @@ export class Job extends EventEmitter {
                 Job.jobs.push(this);
                 log(
                     LOGLEVEL.DEBUG,
-                    "job",
+                    "job.save",
                     `New job ${this.name} (dummy) added to jobs list`,
                     this.metadata
                 );
             } else {
                 log(
                     LOGLEVEL.DEBUG,
-                    "job",
+                    "job.save",
                     `Job ${this.name} (dummy) already in jobs list`,
                     this.metadata
                 );
@@ -297,7 +301,7 @@ export class Job extends EventEmitter {
 
         log(
             LOGLEVEL.INFO,
-            "job",
+            "job.save",
             `Save job ${this.name} with PID ${this.pid} to ${this.pidfile}`,
             this.metadata
         );
@@ -316,7 +320,7 @@ export class Job extends EventEmitter {
         } catch (e) {
             log(
                 LOGLEVEL.FATAL,
-                "job",
+                "job.save",
                 `Failed to stringify job ${this.name}`,
                 this.metadata
             );
@@ -329,7 +333,7 @@ export class Job extends EventEmitter {
 
         log(
             LOGLEVEL.DEBUG,
-            "job",
+            "job.save",
             `Job ${this.name} ${exists ? "saved" : "failed to save"}`,
             this.metadata
         );
@@ -338,7 +342,7 @@ export class Job extends EventEmitter {
             Job.jobs.push(this);
             log(
                 LOGLEVEL.DEBUG,
-                "job",
+                "job.save",
                 `New job ${this.name} added to jobs list`,
                 this.metadata
             );
@@ -363,7 +367,7 @@ export class Job extends EventEmitter {
             this.emit("pre_clear");
             log(
                 LOGLEVEL.DEBUG,
-                "job",
+                "job.clear",
                 `Clear job ${this.name} (dummy)`,
                 this.metadata
             );
@@ -382,7 +386,7 @@ export class Job extends EventEmitter {
         if (fs.existsSync(this.pidfile)) {
             log(
                 LOGLEVEL.INFO,
-                "job",
+                "job.clear",
                 `Clear job ${this.name} with PID ${this.pid}`,
                 this.metadata
             );
@@ -400,14 +404,14 @@ export class Job extends EventEmitter {
             Job.jobs = Job.jobs.filter((job) => job.name !== this.name);
             log(
                 LOGLEVEL.SUCCESS,
-                "job",
+                "job.clear",
                 `Job ${this.name} removed from jobs list`,
                 this.metadata
             );
         } else {
             log(
                 LOGLEVEL.WARNING,
-                "job",
+                "job.clear",
                 `Job ${this.name} not found in jobs list`,
                 this.metadata
             );
@@ -431,7 +435,7 @@ export class Job extends EventEmitter {
         this.pid = pid;
         log(
             LOGLEVEL.DEBUG,
-            "job",
+            "job.setPid",
             `Set PID ${pid} for job ${this.name}`,
             this.metadata
         );
@@ -464,7 +468,7 @@ export class Job extends EventEmitter {
         this.process = process;
         log(
             LOGLEVEL.DEBUG,
-            "job",
+            "job.setProcess",
             `Set process for job ${this.name}`,
             this.metadata
         );
@@ -474,7 +478,7 @@ export class Job extends EventEmitter {
         this.process.on("spawn", () => {
             log(
                 LOGLEVEL.DEBUG,
-                "job",
+                "job.setProcess",
                 `Spawned process for job ${this.name}`,
                 this.metadata
             );
@@ -570,7 +574,7 @@ export class Job extends EventEmitter {
     public async getStatus(use_command = false): Promise<JobStatus> {
         log(
             LOGLEVEL.DEBUG,
-            "job",
+            "job.getStatus",
             `Check status for job ${this.name}`,
             this.metadata
         );
@@ -579,7 +583,7 @@ export class Job extends EventEmitter {
             this.status = JobStatus.RUNNING;
             log(
                 LOGLEVEL.DEBUG,
-                "job",
+                "job.getStatus",
                 `Job ${this.name} is dummy, returning RUNNING`,
                 this.metadata
             );
@@ -618,7 +622,7 @@ export class Job extends EventEmitter {
             } catch (e) {
                 log(
                     LOGLEVEL.ERROR,
-                    "job",
+                    "job.getStatus",
                     `Error checking status for windows job ${this.name} (${this.process_running})`,
                     this.metadata
                 );
@@ -641,7 +645,7 @@ export class Job extends EventEmitter {
             } catch (e) {
                 log(
                     LOGLEVEL.ERROR,
-                    "job",
+                    "job.getStatus",
                     `Error checking status for linux job ${this.name} (${this.process_running})`,
                     this.metadata
                 );
@@ -658,7 +662,7 @@ export class Job extends EventEmitter {
         if (output.includes(this.pid.toString())) {
             log(
                 LOGLEVEL.DEBUG,
-                "job",
+                "job.getStatus",
                 `PID file check for '${this.name}', process is running (${this.process_running})`
             );
             this.status = JobStatus.RUNNING;
@@ -667,7 +671,7 @@ export class Job extends EventEmitter {
             if (this.bin && !output.includes(path.basename(this.bin))) {
                 log(
                     LOGLEVEL.WARNING,
-                    "job",
+                    "job.getStatus",
                     `PID file check for '${this.name}', process is running but binary does not match (${this.bin})`
                 );
             }
@@ -676,7 +680,7 @@ export class Job extends EventEmitter {
         } else {
             log(
                 LOGLEVEL.DEBUG,
-                "job",
+                "job.getStatus",
                 `PID file check for '${this.name}', process does not exist (${this.process_running})`
             );
             this.status = JobStatus.STOPPED;
@@ -699,7 +703,7 @@ export class Job extends EventEmitter {
             } catch (error) {
                 log(
                     LOGLEVEL.ERROR,
-                    "job",
+                    "job.kill",
                     `Exception killing process for job ${this.name} with internal process (${method})`,
                     this.metadata
                 );
@@ -711,7 +715,7 @@ export class Job extends EventEmitter {
                 this.broadcastUpdate();
                 log(
                     LOGLEVEL.INFO,
-                    "job",
+                    "job.kill",
                     `Killed job ${this.name} with internal process (${method})`,
                     this.metadata
                 );
@@ -719,7 +723,7 @@ export class Job extends EventEmitter {
             } else {
                 log(
                     LOGLEVEL.ERROR,
-                    "job",
+                    "job.kill",
                     `Error killing internal process for job ${this.name}, continuing to other methods.`,
                     this.metadata
                 );
@@ -730,7 +734,7 @@ export class Job extends EventEmitter {
 
         log(
             LOGLEVEL.INFO,
-            "job",
+            "job.kill",
             `Killing job ${this.name} (${pid})`,
             this.metadata
         );
@@ -740,7 +744,7 @@ export class Job extends EventEmitter {
         if (!pid) {
             log(
                 LOGLEVEL.WARNING,
-                "job",
+                "job.kill",
                 `Kill process for job ${this.name}, PID not found`,
                 this.metadata
             );
@@ -765,7 +769,7 @@ export class Job extends EventEmitter {
             } catch (error) {
                 log(
                     LOGLEVEL.ERROR,
-                    "job",
+                    "job.kill",
                     `Exception killing process for job ${this.name}: ${
                         (error as Error).message
                     }`,
@@ -780,7 +784,7 @@ export class Job extends EventEmitter {
             if (status === JobStatus.STOPPED) {
                 log(
                     LOGLEVEL.INFO,
-                    "job",
+                    "job.kill",
                     `Killed job ${this.name} (${pid}) (windows)`,
                     this.metadata
                 );
@@ -788,7 +792,7 @@ export class Job extends EventEmitter {
             } else {
                 log(
                     LOGLEVEL.ERROR,
-                    "job",
+                    "job.kill",
                     `Failed to kill job ${this.name} (${pid}) (windows) (${status})`,
                     this.metadata
                 );
@@ -808,7 +812,7 @@ export class Job extends EventEmitter {
             } catch (error) {
                 log(
                     LOGLEVEL.ERROR,
-                    "job",
+                    "job.kill",
                     `Exception killing process for job ${this.name}: ${
                         (error as Error).message
                     }`,
@@ -823,7 +827,7 @@ export class Job extends EventEmitter {
             if (status === JobStatus.STOPPED) {
                 log(
                     LOGLEVEL.INFO,
-                    "job",
+                    "job.kill",
                     `Killed job ${this.name} (${pid}) (linux)`,
                     this.metadata
                 );
@@ -831,7 +835,7 @@ export class Job extends EventEmitter {
             } else {
                 log(
                     LOGLEVEL.ERROR,
-                    "job",
+                    "job.kill",
                     `Failed to kill job ${this.name} (${pid}) (linux) (${status})`,
                     this.metadata
                 );
@@ -854,7 +858,7 @@ export class Job extends EventEmitter {
 
         log(
             LOGLEVEL.DEBUG,
-            "job",
+            "job.startLog",
             `Start log for job ${this.name} on path ${logfile}`,
             this.metadata
         );
@@ -865,7 +869,7 @@ export class Job extends EventEmitter {
         if (this.process) {
             log(
                 LOGLEVEL.DEBUG,
-                "job",
+                "job.startLog",
                 `Attach log for job ${this.name} to process`,
                 this.metadata
             );
@@ -887,7 +891,7 @@ export class Job extends EventEmitter {
         } else {
             log(
                 LOGLEVEL.DEBUG,
-                "job",
+                "job.startLog",
                 `No process attached for job ${this.name}`,
                 this.metadata
             );
@@ -921,7 +925,7 @@ export class Job extends EventEmitter {
             if (progress > this.progressAccumulator + 0.1) {
                 log(
                     LOGLEVEL.INFO,
-                    "job",
+                    "job.setProgress",
                     `Job ${this.name} progress: ${Math.round(progress * 100)}%`,
                     this.metadata
                 );
@@ -966,7 +970,7 @@ export class Job extends EventEmitter {
         if (this.process) {
             log(
                 LOGLEVEL.DEBUG,
-                "job",
+                "job.stopLog",
                 `Detach log for job ${this.name} from process`,
                 this.metadata
             );
@@ -1016,7 +1020,7 @@ export class Job extends EventEmitter {
                 } catch (error) {
                     log(
                         LOGLEVEL.ERROR,
-                        "job",
+                        "job.broadcastUpdate",
                         `Broadcast job ${this.name} status error: ${
                             (error as Error).message
                         }`

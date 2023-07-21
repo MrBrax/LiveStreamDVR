@@ -78,7 +78,11 @@ export class Config {
         }
 
         if (!Config.settingExists(key)) {
-            log(LOGLEVEL.WARNING, "config", `Setting '${key}' does not exist.`);
+            log(
+                LOGLEVEL.WARNING,
+                "config.cfg",
+                `Setting '${key}' does not exist.`
+            );
             console.warn(chalk.red(`Setting '${key}' does not exist.`));
         }
 
@@ -128,7 +132,11 @@ export class Config {
         }
 
         if (!Config.settingExists(key)) {
-            log(LOGLEVEL.WARNING, "config", `Setting '${key}' does not exist.`);
+            log(
+                LOGLEVEL.WARNING,
+                "config.hasValue",
+                `Setting '${key}' does not exist.`
+            );
             console.warn(chalk.red(`Setting '${key}' does not exist.`));
         }
 
@@ -198,7 +206,7 @@ export class Config {
                     // delete this.config[field.from];
                     log(
                         LOGLEVEL.INFO,
-                        "config",
+                        "config.loadConfig",
                         `Migrated setting '${field.from}' to '${field.from}'.`
                     );
                 }
@@ -383,11 +391,15 @@ export class Config {
             fs.statSync(BaseConfigPath.config).size > 0;
 
         if (success) {
-            log(LOGLEVEL.SUCCESS, "config", `Saved config from ${source}`);
+            log(
+                LOGLEVEL.SUCCESS,
+                "config.saveConfig",
+                `Saved config from ${source}`
+            );
         } else {
             log(
                 LOGLEVEL.ERROR,
-                "config",
+                "config.saveConfig",
                 `Failed to save config from ${source}`
             );
         }
@@ -486,7 +498,7 @@ export class Config {
         if (this.cfg<string>("app_url") === "debug") {
             log(
                 LOGLEVEL.WARNING,
-                "config",
+                "config.getWebsocketClientUrl",
                 "App url set to 'debug', can't get websocket client url"
             );
             return undefined;
@@ -520,7 +532,7 @@ export class Config {
                 console.log("writeconfig check", Date.now());
                 log(
                     LOGLEVEL.WARNING,
-                    "config",
+                    "config.startWatchingConfig",
                     "Config file changed externally"
                 );
                 // TwitchConfig.loadConfig();

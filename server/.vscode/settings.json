@@ -28,5 +28,12 @@
       "./src/Extend"
     ]
   },
-  "prettier.prettierPath": ".yarn/sdks/prettier/index.js"
+  "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }

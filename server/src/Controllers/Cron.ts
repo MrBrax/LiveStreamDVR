@@ -42,7 +42,7 @@ export async function fCheckDeletedVods(): Promise<string> {
                     // $this->addToNotifyCache("deleted_{$vod->basename}");
                     log(
                         LOGLEVEL.INFO,
-                        "cron",
+                        "cron.fCheckDeletedVods",
                         `Cronjob deleted check: ${vod.basename} deleted`
                     );
                 }
@@ -99,7 +99,7 @@ export async function fCheckDeletedVods(): Promise<string> {
                 // $this->addToNotifyCache("deleted_{$vod->basename}");
                 log(
                     LOGLEVEL.INFO,
-                    "cron",
+                    "cron.fCheckDeletedVods",
                     `Cronjob deleted check: ${vod.basename} deleted`
                 );
             }
@@ -154,7 +154,7 @@ export async function fCheckMutedVods(force = false): Promise<string> {
                 }<br>\n`;
                 log(
                     LOGLEVEL.ERROR,
-                    "cron",
+                    "cron.fCheckMutedVods",
                     `Cronjob mute check: ${vod.basename} error: ${
                         (th as Error).message
                     }`
@@ -177,7 +177,7 @@ export async function fCheckMutedVods(force = false): Promise<string> {
                 // $this->addToNotifyCache("mute_{$vod->basename}");
                 log(
                     LOGLEVEL.INFO,
-                    "cron",
+                    "cron.fCheckMutedVods",
                     `Cronjob mute check: ${vod.basename} muted`
                 );
             } else if (check == MuteStatus.UNMUTED) {
@@ -231,7 +231,7 @@ export async function fMatchVods(force = false): Promise<string> {
                 }<br>\n`;
                 log(
                     LOGLEVEL.ERROR,
-                    "cron",
+                    "cron.fMatchVods",
                     `Cronjob match check: ${vod.basename} error: ${
                         (th as Error).message
                     }`
@@ -243,14 +243,14 @@ export async function fMatchVods(force = false): Promise<string> {
                 output += `${vod.basename} matched<br>\n`;
                 log(
                     LOGLEVEL.SUCCESS,
-                    "cron",
+                    "cron.fMatchVods",
                     `Cronjob match check: ${vod.basename} matched`
                 );
             } else {
                 output += `${vod.basename} not matched<br>\n`;
                 log(
                     LOGLEVEL.WARNING,
-                    "cron",
+                    "cron.fMatchVods",
                     `Cronjob match check: ${vod.basename} not matched`
                 );
             }

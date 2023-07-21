@@ -264,7 +264,7 @@ function nextLog(): void {
         lines = [];
         log(
             LOGLEVEL.INFO,
-            "log",
+            "log.nextLog",
             `Starting new log file for ${today}, git hash ${
                 Config.getInstance().gitHash
             }`

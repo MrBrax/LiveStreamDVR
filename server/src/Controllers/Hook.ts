@@ -26,7 +26,11 @@ const verifyTwitchSignature = (request: express.Request): boolean => {
         */
 
     if (!Config.getInstance().hasValue("eventsub_secret")) {
-        log(LOGLEVEL.ERROR, "hook", "No eventsub secret in config.");
+        log(
+            LOGLEVEL.ERROR,
+            "hook.verifyTwitchSignature",
+            "No eventsub secret in config."
+        );
         return false;
     }
 
@@ -59,7 +63,7 @@ const verifyTwitchSignature = (request: express.Request): boolean => {
     ) {
         log(
             LOGLEVEL.ERROR,
-            "hook",
+            "hook.verifyTwitchSignature",
             "Missing twitch headers for signature check."
         );
         return false;
@@ -116,7 +120,7 @@ export async function HookTwitch(
 
     log(
         LOGLEVEL.INFO,
-        "hook",
+        "hook.HookTwitch",
         `Hook called with message ID ${messageId}, s-version ${subscriptionVersion}, s-type ${subscriptionType}, b ${subscriptionBatching} (m-retry ${messageRetry}, m-type ${messageType}, m-date ${messageTimestamp})`,
         debugMeta
     );
@@ -128,7 +132,7 @@ export async function HookTwitch(
         ) {
             log(
                 LOGLEVEL.ERROR,
-                "hook",
+                "hook.HookTwitch",
                 `Hook called with the wrong instance (${
                     req.query.instance
                 } != ${Config.getInstance().cfg("instance_id")})`,
@@ -144,7 +148,7 @@ export async function HookTwitch(
         if (req.header("Twitch-Notification-Id")) {
             log(
                 LOGLEVEL.ERROR,
-                "hook",
+                "hook.HookTwitch",
                 "Hook got data with old webhook format."
             );
             res.status(400).send("Outdated format");
@@ -169,7 +173,7 @@ export async function HookTwitch(
 
             log(
                 LOGLEVEL.INFO,
-                "hook",
+                "hook.HookTwitch",
                 `Challenge received for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}), retry ${messageRetry}`,
                 debugMeta
             );
@@ -177,7 +181,7 @@ export async function HookTwitch(
             if (!verifyTwitchSignature(req)) {
                 log(
                     LOGLEVEL.FATAL,
-                    "hook",
+                    "hook.HookTwitch",
                     "Invalid signature check for challenge!"
                 );
                 KeyValue.getInstance().set(
@@ -189,7 +193,7 @@ export async function HookTwitch(
 
             log(
                 LOGLEVEL.SUCCESS,
-                "hook",
+                "hook.HookTwitch",
                 `Challenge completed, subscription active for ${channel_id}:${sub_type} (${channel_login}) (${subscription["id"]}), retry ${messageRetry}.`,
                 debugMeta
             );
@@ -221,7 +225,7 @@ export async function HookTwitch(
             );
             log(
                 LOGLEVEL.INFO,
-                "hook",
+                "hook.HookTwitch",
                 `Dumping debug hook payload to ${payload_filepath}`
             );
             try {
@@ -241,7 +245,7 @@ export async function HookTwitch(
             } catch (error) {
                 log(
                     LOGLEVEL.ERROR,
-                    "hook",
+                    "hook.HookTwitch",
                     `Failed to dump payload to ${payload_filepath}`,
                     error
                 );
@@ -252,7 +256,7 @@ export async function HookTwitch(
         if (!verifyTwitchSignature(req)) {
             log(
                 LOGLEVEL.FATAL,
-                "hook",
+                "hook.HookTwitch",
                 "Invalid signature check for message!",
                 debugMeta
             );
@@ -264,14 +268,14 @@ export async function HookTwitch(
         if ("event" in data_json) {
             log(
                 LOGLEVEL.DEBUG,
-                "hook",
+                "hook.HookTwitch",
                 `Signature checked, no challenge, retry ${messageRetry}. Run handle...`
             );
 
             if (messageType !== "notification") {
                 log(
                     LOGLEVEL.ERROR,
-                    "hook",
+                    "hook.HookTwitch",
                     `Invalid message type ${messageType}!`,
                     debugMeta
                 );
@@ -291,24 +295,33 @@ export async function HookTwitch(
             /* await */ TA.handle(data_json, metadata_proxy).catch((error) => {
                 log(
                     LOGLEVEL.FATAL,
-                    "hook",
+                    "hook.HookTwitch",
                     `Automator returned error: ${error.message}`
                 );
             });
             res.status(200).send("");
             return;
         } else {
-            log(LOGLEVEL.ERROR, "hook", "No event in message!");
+            log(LOGLEVEL.ERROR, "hook.HookTwitch", "No event in message!");
             res.status(400).send("No event in message");
             return;
         }
     } else {
-        log(LOGLEVEL.ERROR, "hook", "Hook called with invalid JSON.");
+        log(
+            LOGLEVEL.ERROR,
+            "hook.HookTwitch",
+            "Hook called with invalid JSON."
+        );
         res.status(400).send("No data supplied");
         return;
     }
 
-    log(LOGLEVEL.WARNING, "hook", "Hook called with no data...", debugMeta);
+    log(
+        LOGLEVEL.WARNING,
+        "hook.HookTwitch",
+        "Hook called with no data...",
+        debugMeta
+    );
 
     res.status(400).send("No data supplied");
     return;
@@ -329,7 +342,7 @@ export async function HookYouTube(
         DATA: req.body,
     };
 
-    log(LOGLEVEL.INFO, "hook", "YouTube hook called", debugMeta);
+    log(LOGLEVEL.INFO, "hook.YouTube", "YouTube hook called", debugMeta);
 
     if (Config.getInstance().hasValue("instance_id")) {
         if (
@@ -338,7 +351,7 @@ export async function HookYouTube(
         ) {
             log(
                 LOGLEVEL.ERROR,
-                "hook",
+                "hook.YouTube",
                 `Hook called with the wrong instance (${req.query.instance})`
             );
             res.send("Invalid instance");
@@ -386,7 +399,7 @@ export async function HookYouTube(
             );
             log(
                 LOGLEVEL.INFO,
-                "hook",
+                "hook.YouTube",
                 `Dumping debug hook payload to ${payload_filepath}`
             );
             try {
@@ -409,7 +422,7 @@ export async function HookYouTube(
             } catch (error) {
                 log(
                     LOGLEVEL.ERROR,
-                    "hook",
+                    "hook.YouTube",
                     `Failed to dump payload to ${payload_filepath}`,
                     error
                 );
@@ -420,7 +433,12 @@ export async function HookYouTube(
 
         // console.log(entry["yt:channelId"], entry["yt:videoId"], entry.title);
 
-        log(LOGLEVEL.INFO, "hook", "YouTube hook not finished.", debugMeta);
+        log(
+            LOGLEVEL.INFO,
+            "hook.YouTube",
+            "YouTube hook not finished.",
+            debugMeta
+        );
 
         /*
 
@@ -433,7 +451,7 @@ export async function HookYouTube(
 
         res.status(200).end("");
     } else {
-        log(LOGLEVEL.ERROR, "hook", "YouTube hook no body.", debugMeta);
+        log(LOGLEVEL.ERROR, "hook.YouTube", "YouTube hook no body.", debugMeta);
     }
 
     // logAdvanced(LOGLEVEL.WARNING, "hook", "Hook called with no data...", debugMeta);

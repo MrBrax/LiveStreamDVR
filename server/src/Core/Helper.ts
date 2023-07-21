@@ -77,7 +77,7 @@ export class Helper {
         } catch (error) {
             log(
                 LOGLEVEL.ERROR,
-                "helper",
+                "helper.path_venv",
                 `Failed to get pipenv path: ${(error as ExecReturn).stderr}`,
                 error
             );
@@ -87,7 +87,7 @@ export class Helper {
         if (out.code !== 0) {
             log(
                 LOGLEVEL.ERROR,
-                "helper",
+                "helper.path_venv",
                 `Failed to get pipenv path: ${out.stderr.join("\n")}`
             );
             return false;
@@ -98,7 +98,7 @@ export class Helper {
         if (!fs.existsSync(path)) {
             log(
                 LOGLEVEL.ERROR,
-                "helper",
+                "helper.path_venv",
                 `Returned pipenv path does not exist: ${path}`
             );
             return false;
@@ -124,7 +124,7 @@ export class Helper {
         if (!fs.existsSync(python_venv)) {
             log(
                 LOGLEVEL.ERROR,
-                "helper",
+                "helper.path_python_venv",
                 `Python venv not found at: ${python_venv}`
             );
             return false;
@@ -149,7 +149,7 @@ export class Helper {
         } catch (error) {
             log(
                 LOGLEVEL.ERROR,
-                "helper",
+                "helper.get_pip_package_distinfo",
                 `Failed to get pip package info for ${package_name}: ${
                     (error as ExecReturn).stderr
                 }`,
@@ -161,7 +161,7 @@ export class Helper {
         if (output.code !== 0) {
             log(
                 LOGLEVEL.ERROR,
-                "helper",
+                "helper.get_pip_package_distinfo",
                 `Failed to get pip package info for ${package_name}: ${output.stderr.join(
                     "\n"
                 )}`
@@ -185,7 +185,7 @@ export class Helper {
         if (!kv["Location"]) {
             log(
                 LOGLEVEL.ERROR,
-                "helper",
+                "helper.get_pip_package_distinfo",
                 `Failed to get pip package info for ${package_name}: Location not found`
             );
             return false;
@@ -199,7 +199,7 @@ export class Helper {
         if (!fs.existsSync(distinfo_path)) {
             log(
                 LOGLEVEL.ERROR,
-                "helper",
+                "helper.get_pip_package_distinfo",
                 `Failed to get pip package info for ${package_name}: dist-info not found at '${distinfo_path}'`
             );
             return false;
@@ -220,7 +220,7 @@ export class Helper {
         if (!fs.existsSync(license_path)) {
             log(
                 LOGLEVEL.ERROR,
-                "helper",
+                "helper.get_pip_package_license",
                 `Failed to get pip package license for ${package_name}: LICENSE not found at ${license_path}`
             );
             return false;
@@ -242,7 +242,7 @@ export class Helper {
         if (!fs.existsSync(doc_path)) {
             log(
                 LOGLEVEL.ERROR,
-                "helper",
+                "helper.get_bin_license",
                 `Failed to get bin license for ${bin_name}: doc path not found at ${doc_path}`
             );
             return false;
@@ -261,7 +261,7 @@ export class Helper {
 
         log(
             LOGLEVEL.ERROR,
-            "helper",
+            "helper.get_bin_license",
             `Failed to get bin license for ${bin_name}: LICENSE or COPYRIGHT not found at ${doc_path}`
         );
 
@@ -314,7 +314,7 @@ export class Helper {
         if (!exists) {
             log(
                 LOGLEVEL.ERROR,
-                "helper",
+                "helper.path_streamlink",
                 `Streamlink binary not found at: ${full_path}`
             );
             return false;
@@ -335,7 +335,7 @@ export class Helper {
         if (!exists) {
             log(
                 LOGLEVEL.ERROR,
-                "helper",
+                "helper.path_youtubedl",
                 `yt-dlp binary not found at: ${full_path}`
             );
             return false;
@@ -356,7 +356,7 @@ export class Helper {
         if (!exists) {
             log(
                 LOGLEVEL.ERROR,
-                "helper",
+                "helper.path_tcd",
                 `tcd binary not found at: ${full_path}`
             );
             return false;
@@ -380,7 +380,7 @@ export class Helper {
         if (!exists) {
             log(
                 LOGLEVEL.ERROR,
-                "helper",
+                "helper.path_pipenv",
                 `pipenv binary not found at: ${full_path}`
             );
             return false;
@@ -411,7 +411,7 @@ export class Helper {
         if (!exists) {
             log(
                 LOGLEVEL.ERROR,
-                "helper",
+                "helper.path_vcsi",
                 `vcsi binary not found at: ${full_path}`
             );
             return false;
