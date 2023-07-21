@@ -6,12 +6,14 @@ export function progressOutput(text: string) {
     if (Config.debug) {
         const mem = process.memoryUsage();
         console.log(
-            chalk.bgGreen.whiteBright(`${text} [${formatBytes(mem.heapUsed)}/${formatBytes(mem.heapTotal)}]`)
+            chalk.bgGreen.whiteBright(
+                `${text} [${formatBytes(mem.heapUsed)}/${formatBytes(
+                    mem.heapTotal
+                )}]`
+            )
         );
     } else {
-        console.log(
-            chalk.bgGreen.whiteBright(text)
-        );
+        console.log(chalk.bgGreen.whiteBright(text));
     }
 }
 

@@ -127,7 +127,7 @@ export class BaseExporter {
             ) {
                 log(
                     LOGLEVEL.WARNING,
-                    "BaseExporter",
+                    "BaseExporter.getFormattedTitle",
                     `No value for replacement literal '${literal}', using template '${this.template_filename}'`
                 );
             }

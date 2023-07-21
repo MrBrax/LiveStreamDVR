@@ -59,7 +59,7 @@ export class YouTubeExporter extends BaseExporter {
 
         log(
             LOGLEVEL.INFO,
-            "YouTubeExporter",
+            "YouTubeExporter.export",
             `Uploading ${this.filename} to YouTube...`
         );
 
@@ -77,7 +77,7 @@ export class YouTubeExporter extends BaseExporter {
             if (!uploadSupportCheck) {
                 log(
                     LOGLEVEL.WARNING,
-                    "YouTubeExporter",
+                    "YouTubeExporter.export",
                     "Upload support check timed out, progress will not be shown."
                 );
             }
@@ -116,7 +116,7 @@ export class YouTubeExporter extends BaseExporter {
         } catch (error) {
             log(
                 LOGLEVEL.ERROR,
-                "YouTube",
+                "YouTubeExporter.export",
                 `Could not upload video: ${(error as Error).message}`,
                 error
             );
@@ -127,7 +127,7 @@ export class YouTubeExporter extends BaseExporter {
         if (response) {
             log(
                 LOGLEVEL.SUCCESS,
-                "YouTube",
+                "YouTubeExporter.export",
                 `Video uploaded: ${response.data.id}`
             );
             this.video_id = response.data.id || "";
@@ -143,7 +143,7 @@ export class YouTubeExporter extends BaseExporter {
                 } catch (error) {
                     log(
                         LOGLEVEL.ERROR,
-                        "YouTube",
+                        "YouTubeExporter.export",
                         `Could not add video to playlist: ${
                             (error as Error).message
                         }`,
@@ -159,13 +159,13 @@ export class YouTubeExporter extends BaseExporter {
                 if (playlist_success) {
                     log(
                         LOGLEVEL.SUCCESS,
-                        "YouTube",
+                        "YouTubeExporter.export",
                         `Video '${this.video_id}' added to playlist '${this.playlist_id}'.`
                     );
                 } else {
                     log(
                         LOGLEVEL.WARNING,
-                        "YouTube",
+                        "YouTubeExporter.export",
                         `Video '${this.video_id}' not added to playlist.`
                     );
                 }
@@ -176,7 +176,7 @@ export class YouTubeExporter extends BaseExporter {
                 job.clear();
                 log(
                     LOGLEVEL.ERROR,
-                    "YouTube",
+                    "YouTubeExporter.export",
                     "Could not upload video, no ID gotten.",
                     response
                 );
@@ -186,7 +186,7 @@ export class YouTubeExporter extends BaseExporter {
 
         log(
             LOGLEVEL.ERROR,
-            "YouTube",
+            "YouTubeExporter.export",
             "Could not upload video, no response gotten."
         );
 
@@ -210,7 +210,7 @@ export class YouTubeExporter extends BaseExporter {
 
         log(
             LOGLEVEL.INFO,
-            "YouTubeExporter",
+            "YouTubeExporter.verify",
             `Verifying ${this.filename} on YouTube...`
         );
 
@@ -224,7 +224,7 @@ export class YouTubeExporter extends BaseExporter {
         } catch (error) {
             log(
                 LOGLEVEL.ERROR,
-                "YouTube",
+                "YouTubeExporter.verify",
                 `Could not verify video: ${(error as Error).message}`,
                 error
             );
@@ -244,28 +244,28 @@ export class YouTubeExporter extends BaseExporter {
             ) {
                 log(
                     LOGLEVEL.SUCCESS,
-                    "YouTube",
+                    "YouTubeExporter.verify",
                     `Video verified: ${this.video_id}`
                 );
                 return true;
             } else if (item.status?.uploadStatus === "rejected") {
                 log(
                     LOGLEVEL.ERROR,
-                    "YouTube",
+                    "YouTubeExporter.verify",
                     `Video rejected: ${this.video_id}`
                 );
                 return false;
             } else if (item.status?.uploadStatus === "failed") {
                 log(
                     LOGLEVEL.ERROR,
-                    "YouTube",
+                    "YouTubeExporter.verify",
                     `Video failed: ${this.video_id}`
                 );
                 return false;
             } else {
                 log(
                     LOGLEVEL.ERROR,
-                    "YouTube",
+                    "YouTubeExporter.verify",
                     `Video status unknown: ${this.video_id} - ${item.status?.uploadStatus}`
                 );
                 return false;
@@ -274,7 +274,7 @@ export class YouTubeExporter extends BaseExporter {
 
         log(
             LOGLEVEL.ERROR,
-            "YouTube",
+            "YouTubeExporter.verify",
             "Could not verify video, no response gotten.",
             response
         );
@@ -294,7 +294,7 @@ export class YouTubeExporter extends BaseExporter {
 
         log(
             LOGLEVEL.INFO,
-            "YouTubeExporter",
+            "YouTubeExporter.addToPlaylist",
             `Adding ${video_id} to playlist...`
         );
 
@@ -321,7 +321,7 @@ export class YouTubeExporter extends BaseExporter {
                     this.playlist_id = playlist_entry.playlist;
                     log(
                         LOGLEVEL.INFO,
-                        "YouTubeExporter",
+                        "YouTubeExporter.addToPlaylist",
                         `Found playlist ${
                             this.playlist_id
                         } for channel ${this.vod?.getChannel().internalName}`
@@ -329,7 +329,7 @@ export class YouTubeExporter extends BaseExporter {
                 } else {
                     log(
                         LOGLEVEL.ERROR,
-                        "YouTubeExporter",
+                        "YouTubeExporter.addToPlaylist",
                         `No playlist configured for channel ${this.vod?.getChannel()
                             .internalName}`
                     );
@@ -338,7 +338,7 @@ export class YouTubeExporter extends BaseExporter {
             } else {
                 log(
                     LOGLEVEL.ERROR,
-                    "YouTubeExporter",
+                    "YouTubeExporter.addToPlaylist",
                     "No playlists configured"
                 );
                 return false;
@@ -346,7 +346,11 @@ export class YouTubeExporter extends BaseExporter {
         }
 
         if (this.playlist_id == "") {
-            log(LOGLEVEL.WARNING, "YouTubeExporter", "No playlist configured");
+            log(
+                LOGLEVEL.WARNING,
+                "YouTubeExporter.addToPlaylist",
+                "No playlist configured"
+            );
             return false;
         }
 
@@ -368,7 +372,7 @@ export class YouTubeExporter extends BaseExporter {
         } catch (error) {
             log(
                 LOGLEVEL.ERROR,
-                "YouTube",
+                "YouTubeExporter.addToPlaylist",
                 `Could not add video to playlist: ${(error as Error).message}`,
                 error
             );
@@ -378,7 +382,7 @@ export class YouTubeExporter extends BaseExporter {
         if (response) {
             log(
                 LOGLEVEL.SUCCESS,
-                "YouTube",
+                "YouTubeExporter.addToPlaylist",
                 "Video added to playlist",
                 response.data
             );
@@ -386,7 +390,7 @@ export class YouTubeExporter extends BaseExporter {
         } else {
             log(
                 LOGLEVEL.ERROR,
-                "YouTube",
+                "YouTubeExporter.addToPlaylist",
                 "Could not add video to playlist, no response gotten."
             );
             return false;

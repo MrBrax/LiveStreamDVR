@@ -45,7 +45,7 @@ export class BaseVODChapter {
             } else {
                 log(
                     LOGLEVEL.WARNING,
-                    "chapter",
+                    "chapter.calculateDurationAndOffset",
                     `No next chapter or vod end time for chapter ${
                         this.title
                     } (${this.started_at.toISOString()}), duration will probably be 0.`
@@ -65,7 +65,7 @@ export class BaseVODChapter {
             } else {
                 log(
                     LOGLEVEL.WARNING,
-                    "chapter",
+                    "chapter.calculateDurationAndOffset",
                     `No next chapter or vod end time for chapter ${
                         this.title
                     } (${this.started_at.toISOString()}), duration will probably be 0.`

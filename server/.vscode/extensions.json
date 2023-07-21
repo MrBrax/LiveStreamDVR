@@ -3,6 +3,7 @@
     "arcanis.vscode-zipfs",
     "dbaeumer.vscode-eslint",
     "lokalise.i18n-ally",
-    "Gruntfuggly.todo-tree"
+    "Gruntfuggly.todo-tree",
+    "esbenp.prettier-vscode"
   ]
 }

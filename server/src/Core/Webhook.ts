@@ -22,7 +22,11 @@ export class Webhook {
 
         // if (Config.debug) console.log(chalk.bgGrey.whiteBright(`WebSocket payload ${action} dispatching...`));
 
-        log(LOGLEVEL.DEBUG, "webhook", `Dispatching all for ${action}...`);
+        log(
+            LOGLEVEL.DEBUG,
+            "webhook.dispatchAll",
+            `Dispatching all for ${action}...`
+        );
 
         Webhook.dispatchWebsocket(action, data);
         Webhook.dispatchWebhook(action, data);
@@ -40,7 +44,7 @@ export class Webhook {
         if (Config.getInstance().hasValue("webhook_url")) {
             log(
                 LOGLEVEL.DEBUG,
-                "webhook",
+                "webhook.dispatchWebhook",
                 `Dispatching webhook for ${action}...`
             );
             const url = Config.getInstance().cfg<string>("webhook_url");
@@ -49,7 +53,7 @@ export class Webhook {
                 .then((response) => {
                     log(
                         LOGLEVEL.DEBUG,
-                        "webhook",
+                        "webhook.dispatchWebhook",
                         `Webhook response from '${url}': ${response.status} ${response.statusText}`
                     );
                 })
@@ -57,14 +61,14 @@ export class Webhook {
                     if (axios.isAxiosError(error)) {
                         log(
                             LOGLEVEL.ERROR,
-                            "webhook",
+                            "webhook.dispatchWebhook",
                             `Webhook error to '${url}': ${error.response?.status} ${error.response?.statusText}`,
                             error
                         );
                     } else {
                         log(
                             LOGLEVEL.ERROR,
-                            "webhook",
+                            "webhook.dispatchWebhook",
                             `Webhook error to '${url}': ${error}`,
                             error
                         );
@@ -73,7 +77,7 @@ export class Webhook {
         } else {
             log(
                 LOGLEVEL.DEBUG,
-                "webhook",
+                "webhook.dispatchWebhook",
                 `Not dispatching webhook for ${action} because no webhook_url is set.`
             );
         }
@@ -89,7 +93,7 @@ export class Webhook {
 
         log(
             LOGLEVEL.DEBUG,
-            "webhook",
+            "webhook.dispatchWebsocket",
             `Dispatching websocket for ${action}...`
         );
 

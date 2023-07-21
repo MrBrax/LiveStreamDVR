@@ -30,7 +30,11 @@ export class TwitchGame {
 
     public static populateGameDatabase(): void {
         if (!fs.existsSync(BaseConfigPath.gameDb)) return;
-        log(LOGLEVEL.INFO, "game", "Populating game database...");
+        log(
+            LOGLEVEL.INFO,
+            "game.populateGameDatabase",
+            "Populating game database..."
+        );
         this.game_db = {};
         const raw_games: Record<string, TwitchGameJSON> = JSON.parse(
             fs.readFileSync(BaseConfigPath.gameDb, "utf8")
@@ -47,7 +51,7 @@ export class TwitchGame {
         }
         log(
             LOGLEVEL.INFO,
-            "game",
+            "game.populateGameDatabase",
             `Game database populated with ${
                 Object.keys(this.game_db).length
             } games.`
@@ -58,18 +62,22 @@ export class TwitchGame {
         if (!fs.existsSync(BaseConfigPath.favouriteGames)) {
             log(
                 LOGLEVEL.INFO,
-                "game",
+                "game.populateFavouriteGames",
                 "Favourite games file not found, creating..."
             );
             fs.writeFileSync(BaseConfigPath.favouriteGames, "[]");
         }
-        log(LOGLEVEL.INFO, "game", "Populating favourite games...");
+        log(
+            LOGLEVEL.INFO,
+            "game.populateFavouriteGames",
+            "Populating favourite games..."
+        );
         this.favourite_games = JSON.parse(
             fs.readFileSync(BaseConfigPath.favouriteGames, "utf8")
         );
         log(
             LOGLEVEL.INFO,
-            "game",
+            "game.populateFavouriteGames",
             `Favourite games populated with ${this.favourite_games.length} games.`
         );
     }
@@ -84,7 +92,11 @@ export class TwitchGame {
             throw new Error("Game database not initialized!");
         }
         if (!this.game_db[game_id]) {
-            log(LOGLEVEL.WARNING, "game", `Game id ${game_id} not in cache.`);
+            log(
+                LOGLEVEL.WARNING,
+                "game.getGameFromCache",
+                `Game id ${game_id} not in cache.`
+            );
             return null;
         }
 
@@ -96,7 +108,11 @@ export class TwitchGame {
         force = false
     ): Promise<TwitchGame | null> {
         if (!game_id) {
-            log(LOGLEVEL.ERROR, "game", "No game id supplied for game fetch!");
+            log(
+                LOGLEVEL.ERROR,
+                "game.getGameAsync",
+                "No game id supplied for game fetch!"
+            );
             return null;
         }
 
@@ -112,7 +128,7 @@ export class TwitchGame {
                 // two months?
                 log(
                     LOGLEVEL.INFO,
-                    "game",
+                    "game.getGameAsync",
                     `Game id ${game_id} (${
                         cachedGame.name
                     }) needs refreshing (${cachedGame.added.toISOString()}).`
@@ -123,14 +139,14 @@ export class TwitchGame {
             } else {
                 log(
                     LOGLEVEL.INFO,
-                    "game",
+                    "game.getGameAsync",
                     `Game id ${game_id} needs refreshing (no date set).`
                 );
             }
             if (cachedGame.deleted) {
                 log(
                     LOGLEVEL.INFO,
-                    "game",
+                    "game.getGameAsync",
                     `Game id ${game_id} is marked as deleted, return cached game.`
                 );
                 return this.game_db[game_id];
@@ -139,7 +155,7 @@ export class TwitchGame {
 
         log(
             LOGLEVEL.DEBUG,
-            "game",
+            "game.getGameAsync",
             `Game id ${game_id} not in cache, fetching...`
         );
 
@@ -155,7 +171,7 @@ export class TwitchGame {
         } catch (th) {
             log(
                 LOGLEVEL.FATAL,
-                "game",
+                "game.getGameAsync",
                 `Tried to get game data for ${game_id} but server returned: ${th}`
             );
             return null;
@@ -187,7 +203,7 @@ export class TwitchGame {
             } catch (error) {
                 log(
                     LOGLEVEL.ERROR,
-                    "game",
+                    "game.getGameAsync",
                     `Failed to fetch box art for game ${game_id}: ${error}`
                 );
             }
@@ -198,7 +214,7 @@ export class TwitchGame {
 
             log(
                 LOGLEVEL.SUCCESS,
-                "game",
+                "game.getGameAsync",
                 `New game saved to cache: ${game.name}`
             );
 
@@ -206,7 +222,7 @@ export class TwitchGame {
         } else {
             log(
                 LOGLEVEL.ERROR,
-                "game",
+                "game.getGameAsync",
                 `Invalid game returned in query for ${game_id}`,
                 json
             );
@@ -214,7 +230,7 @@ export class TwitchGame {
             if (cachedGame) {
                 log(
                     LOGLEVEL.INFO,
-                    "game",
+                    "game.getGameAsync",
                     `Cached game ${cachedGame.name} must have been deleted, marking as deleted.`
                 );
                 cachedGame.deleted = true;
@@ -279,7 +295,7 @@ export class TwitchGame {
                 writer.on("finish", () => {
                     log(
                         LOGLEVEL.SUCCESS,
-                        "game",
+                        "game.fetchBoxArt",
                         `Box art saved to cache: ${this.name}`
                     );
                     resolve(file);
@@ -287,7 +303,7 @@ export class TwitchGame {
                 writer.on("error", (err) => {
                     log(
                         LOGLEVEL.ERROR,
-                        "game",
+                        "game.fetchBoxArt",
                         `Failed to save box art to cache: ${err}`,
                         err
                     );
@@ -301,7 +317,7 @@ export class TwitchGame {
                     .catch((err) => {
                         log(
                             LOGLEVEL.ERROR,
-                            "game",
+                            "game.fetchBoxArt",
                             `Failed to fetch box art: ${err}`,
                             err
                         );
@@ -395,7 +411,11 @@ export class TwitchGame {
     }
 
     public static saveFavouriteGames(): void {
-        log(LOGLEVEL.INFO, "game", "Saving favourite games...");
+        log(
+            LOGLEVEL.INFO,
+            "game.saveFavouriteGames",
+            "Saving favourite games..."
+        );
         fs.writeFileSync(
             BaseConfigPath.favouriteGames,
             JSON.stringify(TwitchGame.favourite_games)

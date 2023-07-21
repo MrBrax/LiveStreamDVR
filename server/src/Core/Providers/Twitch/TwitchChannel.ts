@@ -348,7 +348,7 @@ export class TwitchChannel extends BaseChannel {
             this.applyConfig(config);
             log(
                 LOGLEVEL.INFO,
-                "channel",
+                "tw.channel.update",
                 `Replacing channel config for ${this.internalName}`
             );
             LiveStreamDVR.getInstance().channels_config[i] = config;
@@ -357,7 +357,7 @@ export class TwitchChannel extends BaseChannel {
         } else {
             log(
                 LOGLEVEL.ERROR,
-                "channel",
+                "tw.channel.update",
                 `Could not update channel ${this.internalName}`
             );
         }
@@ -398,7 +398,7 @@ export class TwitchChannel extends BaseChannel {
 
         log(
             LOGLEVEL.INFO,
-            "channel",
+            "tw.channel.createVOD",
             `Create VOD JSON for ${this.internalName}: ${path.basename(
                 filename
             )} @ ${path.dirname(filename)}`
@@ -407,7 +407,7 @@ export class TwitchChannel extends BaseChannel {
         if (fs.existsSync(filename)) {
             log(
                 LOGLEVEL.ERROR,
-                "channel",
+                "tw.channel.createVOD",
                 `VOD JSON already exists for ${
                     this.internalName
                 }: ${path.basename(filename)} @ ${path.dirname(filename)}`
@@ -460,7 +460,7 @@ export class TwitchChannel extends BaseChannel {
     public checkStaleVodsInMemory(): void {
         log(
             LOGLEVEL.DEBUG,
-            "channel",
+            "tw.channel.checkStaleVodsInMemory",
             `Check stale VODs in memory for ${this.internalName}`
         );
 
@@ -561,7 +561,7 @@ export class TwitchChannel extends BaseChannel {
         );
         log(
             LOGLEVEL.INFO,
-            "channel",
+            "tw.channel.updateChapterData",
             `Updated chapter data for ${this.internalName}`
         );
     }
@@ -591,7 +591,7 @@ export class TwitchChannel extends BaseChannel {
                 if (!vodclass.is_finalized) {
                     log(
                         LOGLEVEL.DEBUG,
-                        "channel",
+                        "tw.channel.roundupCleanupVodCandidates",
                         `Keeping ${vodclass.basename} due to not being finalized`
                     );
                     continue;
@@ -600,7 +600,7 @@ export class TwitchChannel extends BaseChannel {
                 if (!vodclass.uuid) {
                     log(
                         LOGLEVEL.ERROR,
-                        "channel",
+                        "tw.channel.roundupCleanupVodCandidates",
                         `VOD ${vodclass.basename} does not have an UUID, will not remove.`
                     );
                     continue;
@@ -609,7 +609,7 @@ export class TwitchChannel extends BaseChannel {
                 if (vodclass.uuid === ignore_uuid) {
                     log(
                         LOGLEVEL.DEBUG,
-                        "channel",
+                        "tw.channel.roundupCleanupVodCandidates",
                         `Keeping ${vodclass.basename} due to ignore_uuid '${ignore_uuid}'`
                     );
                     continue;
@@ -621,7 +621,7 @@ export class TwitchChannel extends BaseChannel {
                 ) {
                     log(
                         LOGLEVEL.DEBUG,
-                        "channel",
+                        "tw.channel.roundupCleanupVodCandidates",
                         `Keeping ${vodclass.basename} due to it being deleted on Twitch.`
                     );
                     continue;
@@ -633,7 +633,7 @@ export class TwitchChannel extends BaseChannel {
                 ) {
                     log(
                         LOGLEVEL.DEBUG,
-                        "channel",
+                        "tw.channel.roundupCleanupVodCandidates",
                         `Keeping ${vodclass.basename} due to it having a favourite game.`
                     );
                     continue;
@@ -645,7 +645,7 @@ export class TwitchChannel extends BaseChannel {
                 ) {
                     log(
                         LOGLEVEL.DEBUG,
-                        "channel",
+                        "tw.channel.roundupCleanupVodCandidates",
                         `Keeping ${vodclass.basename} due to it being muted on Twitch.`
                     );
                     continue;
@@ -658,7 +658,7 @@ export class TwitchChannel extends BaseChannel {
                 ) {
                     log(
                         LOGLEVEL.DEBUG,
-                        "channel",
+                        "tw.channel.roundupCleanupVodCandidates",
                         `Keeping ${vodclass.basename} due to it having a comment set.`
                     );
                     continue;
@@ -667,7 +667,7 @@ export class TwitchChannel extends BaseChannel {
                 if (vodclass.prevent_deletion) {
                     log(
                         LOGLEVEL.DEBUG,
-                        "channel",
+                        "tw.channel.roundupCleanupVodCandidates",
                         `Keeping ${vodclass.basename} due to prevent_deletion`
                     );
                     continue;
@@ -679,7 +679,7 @@ export class TwitchChannel extends BaseChannel {
                 if (total_size > max_gigabytes) {
                     log(
                         LOGLEVEL.DEBUG,
-                        "channel",
+                        "tw.channel.roundupCleanupVodCandidates",
                         `Adding ${
                             vodclass.basename
                         } to vod_candidates due to storage limit (${formatBytes(
@@ -694,7 +694,7 @@ export class TwitchChannel extends BaseChannel {
                 if (total_vods > max_vods) {
                     log(
                         LOGLEVEL.DEBUG,
-                        "channel",
+                        "tw.channel.roundupCleanupVodCandidates",
                         `Adding ${vodclass.basename} to vod_candidates due to vod limit (${total_vods} of limit ${max_vods})`
                     );
                     vod_candidates.push(vodclass);
@@ -703,7 +703,7 @@ export class TwitchChannel extends BaseChannel {
                 if (!vod_candidates.includes(vodclass)) {
                     log(
                         LOGLEVEL.DEBUG,
-                        "channel",
+                        "tw.channel.roundupCleanupVodCandidates",
                         `Keeping ${
                             vodclass.basename
                         } due to it not being over storage limit (${formatBytes(
@@ -723,7 +723,7 @@ export class TwitchChannel extends BaseChannel {
 
         log(
             LOGLEVEL.INFO,
-            "channel",
+            "tw.channel.roundupCleanupVodCandidates",
             `Chose ${vod_candidates.length} vods to delete`,
             { vod_candidates: vod_candidates.map((v) => v.basename) }
         );
@@ -735,7 +735,7 @@ export class TwitchChannel extends BaseChannel {
         if (this.no_cleanup) {
             log(
                 LOGLEVEL.INFO,
-                "channel",
+                "tw.channel.cleanupVods",
                 `Skipping cleanup for ${this.internalName} due to no_cleanup flag`
             );
             return false;
@@ -743,7 +743,7 @@ export class TwitchChannel extends BaseChannel {
 
         log(
             LOGLEVEL.INFO,
-            "channel",
+            "tw.channel.cleanupVods",
             `Cleanup VODs for ${this.internalName}, ignore ${ignore_uuid}`
         );
 
@@ -752,7 +752,7 @@ export class TwitchChannel extends BaseChannel {
         if (vod_candidates.length === 0) {
             log(
                 LOGLEVEL.INFO,
-                "channel",
+                "tw.channel.cleanupVods",
                 `Not enough vods to delete for ${this.internalName}`
             );
             return false;
@@ -761,7 +761,7 @@ export class TwitchChannel extends BaseChannel {
         if (Config.getInstance().cfg("delete_only_one_vod")) {
             log(
                 LOGLEVEL.INFO,
-                "channel",
+                "tw.channel.cleanupVods",
                 `Deleting only one vod for ${this.internalName}: ${vod_candidates[0].basename}`
             );
             try {
@@ -769,7 +769,7 @@ export class TwitchChannel extends BaseChannel {
             } catch (error) {
                 log(
                     LOGLEVEL.ERROR,
-                    "channel",
+                    "tw.channel.cleanupVods",
                     `Failed to delete ${vod_candidates[0].basename} for ${
                         this.internalName
                     }: ${(error as Error).message}`
@@ -781,7 +781,7 @@ export class TwitchChannel extends BaseChannel {
             for (const vodclass of vod_candidates) {
                 log(
                     LOGLEVEL.INFO,
-                    "channel",
+                    "tw.channel.cleanupVods",
                     `Cleanup delete: ${vodclass.basename}`
                 );
                 try {
@@ -789,7 +789,7 @@ export class TwitchChannel extends BaseChannel {
                 } catch (error) {
                     log(
                         LOGLEVEL.ERROR,
-                        "channel",
+                        "tw.channel.cleanupVods",
                         `Failed to delete ${vodclass.basename} for ${
                             this.internalName
                         }: ${(error as Error).message}`
@@ -803,7 +803,7 @@ export class TwitchChannel extends BaseChannel {
         } catch (error) {
             log(
                 LOGLEVEL.ERROR,
-                "channel",
+                "tw.channel.cleanupVods",
                 `Failed to delete empty folders for ${this.internalName}: ${
                     (error as Error).message
                 }`
@@ -817,7 +817,7 @@ export class TwitchChannel extends BaseChannel {
         if (!this.internalId) throw new Error("Userid not set");
         log(
             LOGLEVEL.INFO,
-            "channel.refreshData",
+            "tw.channel.refreshData",
             `Refreshing data for ${this.internalName}`
         );
 
@@ -853,7 +853,7 @@ export class TwitchChannel extends BaseChannel {
         if (!this.channel_data) {
             log(
                 LOGLEVEL.ERROR,
-                "channel.kodi",
+                "tw.channel.kodi",
                 `Cannot save Kodi nfo for ${this.internalName}, channel_data is not set`
             );
             return false;
@@ -862,7 +862,7 @@ export class TwitchChannel extends BaseChannel {
         if (!Config.getInstance().cfg("channel_folders")) {
             log(
                 LOGLEVEL.WARNING,
-                "channel.kodi",
+                "tw.channel.kodi",
                 `Not creating nfo for ${this.internalName}, channel_folders is disabled`
             );
             return false;
@@ -890,13 +890,13 @@ export class TwitchChannel extends BaseChannel {
                 )}`;
                 log(
                     LOGLEVEL.DEBUG,
-                    "channel.kodi",
+                    "tw.channel.kodi",
                     `Copied avatar ${this.channel_data.avatar_cache} to ${avatar}`
                 );
             } else {
                 log(
                     LOGLEVEL.WARNING,
-                    "channel.kodi",
+                    "tw.channel.kodi",
                     `Avatar ${
                         this.channel_data.avatar_cache
                     } not found in cache, not copying to ${this.getFolder()}`,
@@ -911,7 +911,7 @@ export class TwitchChannel extends BaseChannel {
         } else {
             log(
                 LOGLEVEL.WARNING,
-                "channel.kodi",
+                "tw.channel.kodi",
                 `Avatar not found for ${this.internalName}, it is recommended to refresh the channel data`
             );
         }
@@ -937,7 +937,7 @@ export class TwitchChannel extends BaseChannel {
 
         log(
             LOGLEVEL.INFO,
-            "channel.kodi",
+            "tw.channel.kodi",
             `Wrote nfo file for ${this.internalName} to ${nfo_file}`
         );
 
@@ -1096,7 +1096,7 @@ export class TwitchChannel extends BaseChannel {
         if (!this.internalId) return false;
         log(
             LOGLEVEL.DEBUG,
-            "channel",
+            "tw.channel.checkIfChannelSavesVods",
             `Checking if channel ${this.internalName} saves vods`
         );
         const videos = await TwitchVOD.getLatestVideos(this.internalId);
@@ -1108,13 +1108,13 @@ export class TwitchChannel extends BaseChannel {
         if (state) {
             log(
                 LOGLEVEL.SUCCESS,
-                "channel",
+                "tw.channel.checkIfChannelSavesVods",
                 `Channel ${this.internalName} saves vods`
             );
         } else {
             log(
                 LOGLEVEL.WARNING,
-                "channel",
+                "tw.channel.checkIfChannelSavesVods",
                 `Channel ${this.internalName} does not save vods`
             );
         }
@@ -1348,7 +1348,7 @@ export class TwitchChannel extends BaseChannel {
         if (!Config.getInstance().cfg("channel_folders")) {
             log(
                 LOGLEVEL.WARNING,
-                "channel",
+                "tw.channel.startWatching",
                 `Channel folders are disabled, not watching channel ${this.internalName}`
             );
             return; // don't watch if no channel folders are enabled
@@ -1407,7 +1407,7 @@ export class TwitchChannel extends BaseChannel {
         } catch (th) {
             log(
                 LOGLEVEL.ERROR,
-                "channel",
+                "tw.channel.addLocalVideo",
                 `Trying to get mediainfo of ${filename} returned: ${
                     (th as Error).message
                 }`
@@ -1418,7 +1418,7 @@ export class TwitchChannel extends BaseChannel {
         if (!video_metadata || video_metadata.type !== "video") {
             log(
                 LOGLEVEL.WARNING,
-                "channel",
+                "tw.channel.addLocalVideo",
                 `${filename} is not a local video, not adding`
             );
             return false;
@@ -1430,7 +1430,7 @@ export class TwitchChannel extends BaseChannel {
         } catch (error) {
             log(
                 LOGLEVEL.ERROR,
-                "channel",
+                "tw.channel.addLocalVideo",
                 `Failed to generate thumbnail for ${filename}: ${error}`
             );
         }
@@ -1477,7 +1477,7 @@ export class TwitchChannel extends BaseChannel {
         // console.log(`Added ${this.video_list.length} local videos to ${this.internalName}`);
         log(
             LOGLEVEL.INFO,
-            "channel",
+            "tw.channel.addAllLocalVideos",
             `Added ${this.video_list.length} local videos to ${this.internalName}`
         );
     }
@@ -1491,7 +1491,11 @@ export class TwitchChannel extends BaseChannel {
     public static async loadAbstract(
         channel_id: string
     ): Promise<TwitchChannel> {
-        log(LOGLEVEL.DEBUG, "channel", `Load channel ${channel_id}`);
+        log(
+            LOGLEVEL.DEBUG,
+            "tw.channel.loadAbstract",
+            `Load channel ${channel_id}`
+        );
 
         const channel_memory = LiveStreamDVR.getInstance()
             .getChannels()
@@ -1503,7 +1507,7 @@ export class TwitchChannel extends BaseChannel {
         if (channel_memory) {
             log(
                 LOGLEVEL.WARNING,
-                "channel",
+                "tw.channel.loadAbstract",
                 `Channel ${channel_id} already loaded`
             );
             return channel_memory;
@@ -1546,7 +1550,7 @@ export class TwitchChannel extends BaseChannel {
         if (KeyValue.getInstance().getBool(`${channel.internalName}.online`)) {
             log(
                 LOGLEVEL.WARNING,
-                "channel",
+                "tw.channel.loadAbstract",
                 `Channel ${channel.internalName} is online, stale?`
             );
         }
@@ -1554,7 +1558,7 @@ export class TwitchChannel extends BaseChannel {
         if (KeyValue.getInstance().get(`${channel.internalName}.channeldata`)) {
             log(
                 LOGLEVEL.WARNING,
-                "channel",
+                "tw.channel.loadAbstract",
                 `Channel ${channel.internalName} has stale chapter data.`
             );
         }
@@ -1562,7 +1566,7 @@ export class TwitchChannel extends BaseChannel {
         if ((channel.channel_data as any).cache_avatar) {
             log(
                 LOGLEVEL.WARNING,
-                "channel",
+                "tw.channel.loadAbstract",
                 `Channel ${channel.internalName} has stale avatar data.`
             );
             channel.channel_data.avatar_thumb = (
@@ -1576,7 +1580,7 @@ export class TwitchChannel extends BaseChannel {
         ) {
             log(
                 LOGLEVEL.INFO,
-                "channel",
+                "tw.channel.loadAbstract",
                 `Channel ${channel.internalName} has no logo during load, fetching`
             );
             await this.fetchChannelLogo(channel.channel_data);
@@ -1591,7 +1595,7 @@ export class TwitchChannel extends BaseChannel {
         } catch (error) {
             log(
                 LOGLEVEL.WARNING,
-                "channel",
+                "tw.channel.loadAbstract",
                 `Failed to delete empty vod folders for ${channel.internalName}: ${error}`
             );
         }
@@ -1617,7 +1621,7 @@ export class TwitchChannel extends BaseChannel {
         } catch (error) {
             log(
                 LOGLEVEL.ERROR,
-                "channel",
+                "tw.channel.loadAbstract",
                 `Failed to update chapter data for channel ${
                     channel.internalName
                 }: ${(error as Error).message}`
@@ -1680,7 +1684,7 @@ export class TwitchChannel extends BaseChannel {
             } catch (error) {
                 log(
                     LOGLEVEL.ERROR,
-                    "channel",
+                    "tw.channel.create",
                     `Failed to subscribe to channel ${channel.internalName}: ${
                         (error as Error).message
                     }`
@@ -1697,19 +1701,19 @@ export class TwitchChannel extends BaseChannel {
         } else if (Config.getInstance().cfg("app_url") == "debug") {
             log(
                 LOGLEVEL.WARNING,
-                "channel",
+                "tw.channel.create",
                 `Not subscribing to ${channel.internalName} due to debug app_url.`
             );
         } else if (Config.getInstance().cfg("isolated_mode")) {
             log(
                 LOGLEVEL.WARNING,
-                "channel",
+                "tw.channel.create",
                 `Not subscribing to ${channel.internalName} due to isolated mode.`
             );
         } else {
             log(
                 LOGLEVEL.ERROR,
-                "channel",
+                "tw.channel.create",
                 `Can't subscribe to ${channel.internalName} due to either no app_url or isolated mode disabled.`
             );
             LiveStreamDVR.getInstance().channels_config =
@@ -1801,7 +1805,7 @@ export class TwitchChannel extends BaseChannel {
         this.channels_cache = JSON.parse(data);
         log(
             LOGLEVEL.SUCCESS,
-            "channel",
+            "tw.channel.loadChannelsCache",
             `Loaded ${
                 Object.keys(this.channels_cache).length
             } channels from cache.`
@@ -1912,7 +1916,7 @@ export class TwitchChannel extends BaseChannel {
         } catch (error) {
             log(
                 LOGLEVEL.ERROR,
-                "channel",
+                "tw.channel.getStreams",
                 `Could not get streams for ${streamer_id}: ${error}`
             );
             return false;
@@ -1923,7 +1927,7 @@ export class TwitchChannel extends BaseChannel {
         if (!json.data) {
             log(
                 LOGLEVEL.ERROR,
-                "channel",
+                "tw.channel.getStreams",
                 `No streams found for user id ${streamer_id}`
             );
             return false;
@@ -1931,7 +1935,7 @@ export class TwitchChannel extends BaseChannel {
 
         log(
             LOGLEVEL.INFO,
-            "channel",
+            "tw.channel.getStreams",
             `Querying streams for streamer id ${streamer_id} returned ${json.data.length} streams`
         );
 
@@ -1951,7 +1955,7 @@ export class TwitchChannel extends BaseChannel {
             throw new TypeError("Streamer login is not a string");
         log(
             LOGLEVEL.DEBUG,
-            "channel.loadFromLogin",
+            "tw.channel.loadFromLogin",
             `Load from login ${login}`
         );
         const channel_id = await this.channelIdFromLogin(login);
@@ -2028,7 +2032,7 @@ export class TwitchChannel extends BaseChannel {
     ): Promise<UserData | false> {
         log(
             LOGLEVEL.DEBUG,
-            "channel",
+            "tw.channel.getUserDataProxy",
             `Fetching user data for ${method} ${identifier}, force: ${force}`
         );
 
@@ -2043,7 +2047,7 @@ export class TwitchChannel extends BaseChannel {
             if (channelData) {
                 log(
                     LOGLEVEL.DEBUG,
-                    "channel",
+                    "tw.channel.getUserDataProxy",
                     `User data found in memory cache for ${method} ${identifier}`
                 );
                 if (
@@ -2052,13 +2056,13 @@ export class TwitchChannel extends BaseChannel {
                 ) {
                     log(
                         LOGLEVEL.INFO,
-                        "channel",
+                        "tw.channel.getUserDataProxy",
                         `Memory cache for ${identifier} is outdated, fetching new data`
                     );
                 } else {
                     log(
                         LOGLEVEL.DEBUG,
-                        "channel",
+                        "tw.channel.getUserDataProxy",
                         `Returning memory cache for ${method} ${identifier}`
                     );
                     return channelData;
@@ -2066,7 +2070,7 @@ export class TwitchChannel extends BaseChannel {
             } else {
                 log(
                     LOGLEVEL.DEBUG,
-                    "channel",
+                    "tw.channel.getUserDataProxy",
                     `User data not found in memory cache for ${method} ${identifier}, continue fetching`
                 );
             }
@@ -2074,7 +2078,7 @@ export class TwitchChannel extends BaseChannel {
             if (KeyValue.getInstance().get(`${identifier}.deleted`)) {
                 log(
                     LOGLEVEL.WARNING,
-                    "channel",
+                    "tw.channel.getUserDataProxy",
                     `Channel ${identifier} is deleted, ignore. Delete kv file to force update.`
                 );
                 return false;
@@ -2108,7 +2112,7 @@ export class TwitchChannel extends BaseChannel {
                     // throw new Error(`Could not find channel data for ${method} ${identifier}, server responded with 404`);
                     log(
                         LOGLEVEL.ERROR,
-                        "channel",
+                        "tw.channel.getUserDataProxy",
                         `Could not find user data for ${method} ${identifier}, server responded with 404`
                     );
                     return false;
@@ -2122,7 +2126,7 @@ export class TwitchChannel extends BaseChannel {
 
             log(
                 LOGLEVEL.ERROR,
-                "channel",
+                "tw.channel.getUserDataProxy",
                 `User data request for ${identifier} exceptioned: ${err}`,
                 err
             );
@@ -2135,7 +2139,7 @@ export class TwitchChannel extends BaseChannel {
         if (response.status !== 200) {
             log(
                 LOGLEVEL.ERROR,
-                "channel",
+                "tw.channel.getUserDataProxy",
                 `Could not get user data for ${identifier}, code ${response.status}.`
             );
             throw new Error(
@@ -2148,7 +2152,7 @@ export class TwitchChannel extends BaseChannel {
         if ("error" in json) {
             log(
                 LOGLEVEL.ERROR,
-                "channel",
+                "tw.channel.getUserDataProxy",
                 `Could not get user data for ${identifier}: ${json.message}`
             );
             return false;
@@ -2157,7 +2161,7 @@ export class TwitchChannel extends BaseChannel {
         if (json.data.length === 0) {
             log(
                 LOGLEVEL.ERROR,
-                "channel",
+                "tw.channel.getUserDataProxy",
                 `Could not get user data for ${identifier}, no data.`,
                 { json }
             );
@@ -2179,7 +2183,7 @@ export class TwitchChannel extends BaseChannel {
         } else {
             log(
                 LOGLEVEL.WARNING,
-                "channel",
+                "tw.channel.getUserDataProxy",
                 `User ${userData.id} has no profile image url`
             );
         }
@@ -2205,7 +2209,7 @@ export class TwitchChannel extends BaseChannel {
             } catch (error) {
                 log(
                     LOGLEVEL.ERROR,
-                    "channel",
+                    "tw.channel.getUserDataProxy",
                     `Could not download user offline image for ${
                         userData.id
                     }: ${(error as Error).message}`,
@@ -2218,7 +2222,7 @@ export class TwitchChannel extends BaseChannel {
             } else {
                 log(
                     LOGLEVEL.ERROR,
-                    "channel",
+                    "tw.channel.getUserDataProxy",
                     `Could not download offline image for ${userData.id}, data is not readable`
                 );
             }
@@ -2238,7 +2242,7 @@ export class TwitchChannel extends BaseChannel {
     private static async fetchChannelLogo(userData: UserData) {
         log(
             LOGLEVEL.INFO,
-            "channel",
+            "tw.channel.fetchChannelLogo",
             `Fetching channel logo for ${userData.id} (${userData.login})`
         );
 
@@ -2255,7 +2259,7 @@ export class TwitchChannel extends BaseChannel {
             fs.unlinkSync(logo_path);
             log(
                 LOGLEVEL.DEBUG,
-                "channel",
+                "tw.channel.fetchChannelLogo",
                 `Deleted old avatar for ${userData.id}`
             );
         }
@@ -2271,7 +2275,7 @@ export class TwitchChannel extends BaseChannel {
         } catch (error) {
             log(
                 LOGLEVEL.ERROR,
-                "channel",
+                "tw.channel.fetchChannelLogo",
                 `Could not download user logo for ${userData.id}: ${
                     (error as Error).message
                 }`,
@@ -2280,14 +2284,22 @@ export class TwitchChannel extends BaseChannel {
         }
 
         if (avatar_response) {
-            log(LOGLEVEL.DEBUG, "channel", `Fetched avatar for ${userData.id}`);
+            log(
+                LOGLEVEL.DEBUG,
+                "tw.channel.fetchChannelLogo",
+                `Fetched avatar for ${userData.id}`
+            );
 
             await pipeline(
                 avatar_response.data,
                 fs.createWriteStream(logo_path)
             );
 
-            log(LOGLEVEL.DEBUG, "channel", `Saved avatar for ${userData.id}`);
+            log(
+                LOGLEVEL.DEBUG,
+                "tw.channel.fetchChannelLogo",
+                `Saved avatar for ${userData.id}`
+            );
 
             if (fs.existsSync(logo_path) && fs.statSync(logo_path).size > 0) {
                 userData.avatar_cache = logo_filename;
@@ -2296,7 +2308,7 @@ export class TwitchChannel extends BaseChannel {
 
                 log(
                     LOGLEVEL.DEBUG,
-                    "channel",
+                    "tw.channel.fetchChannelLogo",
                     `Create thumbnail for ${userData.id}`
                 );
 
@@ -2306,7 +2318,7 @@ export class TwitchChannel extends BaseChannel {
                 } catch (error) {
                     log(
                         LOGLEVEL.ERROR,
-                        "channel",
+                        "tw.channel.fetchChannelLogo",
                         `Could not create thumbnail for user logo for ${
                             userData.id
                         }: ${(error as Error).message}`,
@@ -2318,13 +2330,13 @@ export class TwitchChannel extends BaseChannel {
                     userData.avatar_thumb = avatar_thumbnail;
                     log(
                         LOGLEVEL.DEBUG,
-                        "channel",
+                        "tw.channel.fetchChannelLogo",
                         `Created thumbnail for user logo for ${userData.id}`
                     );
                 } else {
                     log(
                         LOGLEVEL.ERROR,
-                        "channel",
+                        "tw.channel.fetchChannelLogo",
                         `Could not create thumbnail for user logo for ${userData.id}`
                     );
                 }
@@ -2333,7 +2345,7 @@ export class TwitchChannel extends BaseChannel {
             } else {
                 log(
                     LOGLEVEL.ERROR,
-                    "channel",
+                    "tw.channel.fetchChannelLogo",
                     `Could not find downloaded avatar for ${userData.id}`
                 );
             }
@@ -2354,7 +2366,7 @@ export class TwitchChannel extends BaseChannel {
     ): Promise<Channel | false> {
         log(
             LOGLEVEL.DEBUG,
-            "channel",
+            "tw.channel.getChannelDataById",
             `Fetching channel data for ${broadcaster_id}`
         );
 
@@ -2376,7 +2388,7 @@ export class TwitchChannel extends BaseChannel {
                     // throw new Error(`Could not find channel data for ${method} ${identifier}, server responded with 404`);
                     log(
                         LOGLEVEL.ERROR,
-                        "channel",
+                        "tw.channel.getChannelDataById",
                         `Could not find user data for ${broadcaster_id}, server responded with 404`
                     );
                     return false;
@@ -2390,7 +2402,7 @@ export class TwitchChannel extends BaseChannel {
 
             log(
                 LOGLEVEL.ERROR,
-                "channel",
+                "tw.channel.getChannelDataById",
                 `User data request for ${broadcaster_id} exceptioned: ${err}`,
                 err
             );
@@ -2398,12 +2410,10 @@ export class TwitchChannel extends BaseChannel {
             return false;
         }
 
-        // TwitchlogAdvanced(LOGLEVEL.INFO, "channel", `URL: ${response.request.path} (default ${axios.defaults.baseURL})`);
-
         if (response.status !== 200) {
             log(
                 LOGLEVEL.ERROR,
-                "channel",
+                "tw.channel.getChannelDataById",
                 `Could not get user data for ${broadcaster_id}, code ${response.status}.`
             );
             throw new Error(
@@ -2416,7 +2426,7 @@ export class TwitchChannel extends BaseChannel {
         if ("error" in json) {
             log(
                 LOGLEVEL.ERROR,
-                "channel",
+                "tw.channel.getChannelDataById",
                 `Could not get user data for ${broadcaster_id}: ${json.message}`
             );
             return false;
@@ -2425,7 +2435,7 @@ export class TwitchChannel extends BaseChannel {
         if (json.data.length === 0) {
             log(
                 LOGLEVEL.ERROR,
-                "channel",
+                "tw.channel.getChannelDataById",
                 `Could not get user data for ${broadcaster_id}, no data.`,
                 { json }
             );
@@ -3108,7 +3118,7 @@ export class TwitchChannel extends BaseChannel {
 
         log(
             LOGLEVEL.INFO,
-            "channel",
+            "tw.channel.startChatDump",
             `Starting chat dump with filename ${path.basename(output)}`
         );
 

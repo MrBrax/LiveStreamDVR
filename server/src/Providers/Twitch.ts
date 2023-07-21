@@ -861,7 +861,7 @@ export class TwitchHelper {
         if (!TwitchHelper.axios) {
             log(
                 LOGLEVEL.ERROR,
-                "config",
+                "helper.updateAxiosToken",
                 "Axios not initialized, can't update token"
             );
             return false;
@@ -1711,7 +1711,7 @@ export class EventWebsocket {
             );
             log(
                 LOGLEVEL.INFO,
-                "hook",
+                "tw.helper.ew",
                 `Dumping debug hook payload to ${payload_filepath}`
             );
             try {
@@ -1728,7 +1728,7 @@ export class EventWebsocket {
             } catch (error) {
                 log(
                     LOGLEVEL.ERROR,
-                    "hook",
+                    "tw.helper.ew",
                     `Failed to dump payload to ${payload_filepath}`,
                     error
                 );
@@ -1751,7 +1751,7 @@ export class EventWebsocket {
             (error) => {
                 log(
                     LOGLEVEL.FATAL,
-                    "hook",
+                    "tw.helper.ew",
                     `Automator returned error: ${error.message}`
                 );
             }

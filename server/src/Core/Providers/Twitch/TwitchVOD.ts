@@ -242,7 +242,7 @@ export class TwitchVOD extends BaseVOD {
     public async getFFProbe(segment_num = 0): Promise<false | VideoMetadata> {
         log(
             LOGLEVEL.INFO,
-            "vod",
+            "vod.getFFProbe",
             `Fetching ffprobe of ${this.basename}, segment #${segment_num}`
         );
 
@@ -253,7 +253,7 @@ export class TwitchVOD extends BaseVOD {
         if (!this.segments_raw || this.segments_raw.length == 0) {
             log(
                 LOGLEVEL.ERROR,
-                "vod",
+                "vod.getFFProbe",
                 `No segments available for ffprobe of ${this.basename}`
             );
             return false;
@@ -267,7 +267,7 @@ export class TwitchVOD extends BaseVOD {
         if (!fs.existsSync(filename)) {
             log(
                 LOGLEVEL.ERROR,
-                "vod",
+                "vod.getFFProbe",
                 `File does not exist for ffprobe of ${this.basename} (${filename} @ ${this.directory})`
             );
             return false;
@@ -280,7 +280,7 @@ export class TwitchVOD extends BaseVOD {
         } catch (th) {
             log(
                 LOGLEVEL.ERROR,
-                "vod",
+                "vod.getFFProbe",
                 `Trying to get ffprobe of ${this.basename} returned: ${
                     (th as Error).message
                 }`
@@ -294,7 +294,7 @@ export class TwitchVOD extends BaseVOD {
             if (!data.streams || data.streams.length == 0) {
                 log(
                     LOGLEVEL.ERROR,
-                    "vod",
+                    "vod.getFFProbe",
                     `Invalid ffprobe for ${this.basename}`
                 );
                 return false;
@@ -310,7 +310,7 @@ export class TwitchVOD extends BaseVOD {
             if (!video_stream || !audio_stream) {
                 log(
                     LOGLEVEL.ERROR,
-                    "vod",
+                    "vod.getFFProbe",
                     `Invalid ffprobe for ${this.basename}`
                 );
                 return false;
@@ -355,7 +355,7 @@ export class TwitchVOD extends BaseVOD {
         } else {
             log(
                 LOGLEVEL.ERROR,
-                "vod",
+                "vod.getFFProbe",
                 `Could not get ffprobe of ${this.basename}`
             );
         }
@@ -2551,12 +2551,16 @@ export class TwitchVOD extends BaseVOD {
         filename: string,
         quality: VideoQuality = "best"
     ): Promise<string> {
-        log(LOGLEVEL.INFO, "vod", `Download clip ${clip_id}`);
+        log(LOGLEVEL.INFO, "vod.downloadClip", `Download clip ${clip_id}`);
 
         const clips = await TwitchVOD.getClips({ id: clip_id });
 
         if (!clips) {
-            log(LOGLEVEL.ERROR, "vod", `Failed to get clip ${clip_id}`);
+            log(
+                LOGLEVEL.ERROR,
+                "vod.downloadClip",
+                `Failed to get clip ${clip_id}`
+            );
             throw new Error(`Failed to get clip ${clip_id}`);
         }
 
@@ -2581,12 +2585,20 @@ export class TwitchVOD extends BaseVOD {
             const ffmpeg_bin = Helper.path_ffmpeg();
 
             if (!streamlink_bin) {
-                log(LOGLEVEL.ERROR, "vod", "Failed to find streamlink binary!");
+                log(
+                    LOGLEVEL.ERROR,
+                    "vod.downloadClip",
+                    "Failed to find streamlink binary!"
+                );
                 throw new Error("Failed to find streamlink binary!");
             }
 
             if (!ffmpeg_bin) {
-                log(LOGLEVEL.ERROR, "vod", "Failed to find ffmpeg binary!");
+                log(
+                    LOGLEVEL.ERROR,
+                    "vod.downloadClip",
+                    "Failed to find ffmpeg binary!"
+                );
                 throw new Error("Failed to find ffmpeg binary!");
             }
 
@@ -2611,7 +2623,11 @@ export class TwitchVOD extends BaseVOD {
                 cmd.push("--loglevel", "info");
             }
 
-            log(LOGLEVEL.INFO, "vod", `Downloading clip ${clip_id}...`);
+            log(
+                LOGLEVEL.INFO,
+                "vod.downloadClip",
+                `Downloading clip ${clip_id}...`
+            );
 
             let totalSegments = 0;
             let currentSegment = 0;
@@ -2649,7 +2665,11 @@ export class TwitchVOD extends BaseVOD {
                 }
             );
 
-            log(LOGLEVEL.INFO, "vod", `Downloaded clip ${clip_id}...}`);
+            log(
+                LOGLEVEL.INFO,
+                "vod.downloadClip",
+                `Downloaded clip ${clip_id}...}`
+            );
 
             if (
                 ret.stdout

@@ -9,7 +9,11 @@ export function generateStreamerList(): {
     const channels = LiveStreamDVR.getInstance().getChannels();
 
     if (channels.length == 0)
-        log(LOGLEVEL.WARNING, "api", "No channels in channel list");
+        log(
+            LOGLEVEL.WARNING,
+            "api.generateStreamerList",
+            "No channels in channel list"
+        );
 
     const total_size = channels.reduce(
         (acc, channel) => acc + (channel.vods_size || 0),

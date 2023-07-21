@@ -147,7 +147,7 @@ export class YouTubeChannel extends BaseChannel {
         LiveStreamDVR.getInstance().addChannel(channel);
 
         /*
-        if (Helper.axios) { // bad hack?
+        if (yt.channel.axios) { // bad hack?
             const streams = await TwitchChannel.getStreams(channel.userid);
             if (streams && streams.length > 0) {
                 KeyValue.getInstance().setBool(`${channel.login}.online`, true);
@@ -333,7 +333,7 @@ export class YouTubeChannel extends BaseChannel {
                 ) {
                     log(
                         LOGLEVEL.INFO,
-                        "helper",
+                        "yt.channel.getUserDataProxy",
                         `Memory cache for ${identifier} is outdated, fetching new data`
                     );
                 } else {
@@ -355,7 +355,7 @@ export class YouTubeChannel extends BaseChannel {
             if (KeyValue.getInstance().get(`${identifier}.deleted`)) {
                 log(
                     LOGLEVEL.WARNING,
-                    "helper",
+                    "yt.channel.getUserDataProxy",
                     `Channel ${identifier} is deleted, ignore. Delete kv file to force update.`
                 );
                 return false;
@@ -377,7 +377,7 @@ export class YouTubeChannel extends BaseChannel {
             } catch (error) {
                 log(
                     LOGLEVEL.WARNING,
-                    "helper",
+                    "yt.channel.getUserDataProxy",
                     `Channel data for ${identifier} error: ${
                         (error as Error).message
                     }`
@@ -393,7 +393,7 @@ export class YouTubeChannel extends BaseChannel {
             } catch (error) {
                 log(
                     LOGLEVEL.WARNING,
-                    "helper",
+                    "yt.channel.getUserDataProxy",
                     `Channel data for ${identifier} error: ${
                         (error as Error).message
                     }`
@@ -509,7 +509,7 @@ export class YouTubeChannel extends BaseChannel {
             if (axios.isAxiosError(error)) {
                 log(
                     LOGLEVEL.ERROR,
-                    "helper",
+                    "yt.channel.subscribe",
                     `Could not subscribe to ${channel_id}: ${error.message} / ${error.response?.data.message}`
                 );
             }
@@ -519,7 +519,7 @@ export class YouTubeChannel extends BaseChannel {
         if (request.status == 204) {
             log(
                 LOGLEVEL.SUCCESS,
-                "helper",
+                "yt.channel.subscribe",
                 `Subscribe for ${channel_id} sent.`
             );
             return true;
@@ -527,7 +527,7 @@ export class YouTubeChannel extends BaseChannel {
 
         log(
             LOGLEVEL.ERROR,
-            "helper",
+            "yt.channel.subscribe",
             `Could not subscribe to ${channel_id}: ${request.data}`
         );
 
@@ -535,7 +535,7 @@ export class YouTubeChannel extends BaseChannel {
     }
 
     // public getFolder(): string {
-    //     return Helper.vodFolder(this.internalName);
+    //     return yt.channel.vodFolder(this.internalName);
     // }
 
     public async postLoad(): Promise<void> {
@@ -677,7 +677,7 @@ export class YouTubeChannel extends BaseChannel {
 
         log(
             LOGLEVEL.INFO,
-            "channel",
+            "yt.channel.createVOD",
             `Create VOD JSON for ${this.channel_id}: ${path.basename(
                 filename
             )} @ ${path.dirname(filename)}`
@@ -700,7 +700,7 @@ export class YouTubeChannel extends BaseChannel {
             vod.channel_uuid = this.uuid;
             log(
                 LOGLEVEL.INFO,
-                "channel",
+                "yt.channel.createVOD",
                 `Set channel uuid to ${this.uuid} for ${vod.basename}`
             );
         } else {
@@ -733,7 +733,7 @@ export class YouTubeChannel extends BaseChannel {
         } catch (error) {
             log(
                 LOGLEVEL.ERROR,
-                "channel",
+                "yt.channel.createVOD",
                 `Error while checking stale vods in memory: ${error}`
             );
         }
@@ -755,7 +755,7 @@ export class YouTubeChannel extends BaseChannel {
             this.applyConfig(config);
             log(
                 LOGLEVEL.INFO,
-                "channel",
+                "yt.channel.update",
                 `Replacing channel config for ${this.internalName}`
             );
             LiveStreamDVR.getInstance().channels_config[i] = config;
@@ -764,7 +764,7 @@ export class YouTubeChannel extends BaseChannel {
         } else {
             log(
                 LOGLEVEL.ERROR,
-                "channel",
+                "yt.channel.update",
                 `Could not update channel ${this.internalName}`
             );
         }

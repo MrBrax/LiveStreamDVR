@@ -260,7 +260,7 @@ export function startJob(
     jobProcess.on("error", (err) => {
         log(
             LOGLEVEL.ERROR,
-            "helper",
+            "exec.startJob",
             `Process '${jobProcess.pid}' on job '${jobName}' error: ${err}`,
             {
                 bin,
@@ -272,14 +272,14 @@ export function startJob(
         );
     });
 
-    log(LOGLEVEL.INFO, "helper", `Executing ${bin} ${args.join(" ")}`);
+    log(LOGLEVEL.INFO, "exec.startJob", `Executing ${bin} ${args.join(" ")}`);
 
     let job: Job | false = false;
 
     if (jobProcess.pid) {
         log(
             LOGLEVEL.SUCCESS,
-            "helper",
+            "exec.startJob",
             `Spawned process ${jobProcess.pid} for ${jobName}`
         );
         job = Job.create(jobName);
@@ -293,10 +293,18 @@ export function startJob(
         });
         job.startLog(jobName, `$ ${bin} ${args.join(" ")}\n`);
         if (!job.save()) {
-            log(LOGLEVEL.ERROR, "helper", `Failed to save job ${jobName}`);
+            log(
+                LOGLEVEL.ERROR,
+                "exec.startJob",
+                `Failed to save job ${jobName}`
+            );
         }
     } else {
-        log(LOGLEVEL.ERROR, "helper", `Failed to spawn process for ${jobName}`);
+        log(
+            LOGLEVEL.ERROR,
+            "exec.startJob",
+            `Failed to spawn process for ${jobName}`
+        );
         // reject(new Error(`Failed to spawn process for ${jobName}`));
     }
 
@@ -315,13 +323,13 @@ export function startJob(
         if (code == 0) {
             log(
                 LOGLEVEL.SUCCESS,
-                "helper",
+                "exec.startJob",
                 `Process ${jobProcess.pid} for ${jobName} closed with code 0`
             );
         } else {
             log(
                 LOGLEVEL.ERROR,
-                "helper",
+                "exec.startJob",
                 `Process ${jobProcess.pid} for ${jobName} closed with code ${code}`
             );
         }
@@ -348,7 +356,7 @@ export function startJob(
 
     log(
         LOGLEVEL.INFO,
-        "helper",
+        "exec.startJob",
         `Attached to all streams for process ${jobProcess.pid} for ${jobName}`
     );
 

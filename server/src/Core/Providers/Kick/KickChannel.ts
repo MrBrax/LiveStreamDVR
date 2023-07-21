@@ -217,13 +217,17 @@ export class KickChannel extends BaseChannel {
     }
 
     public static async loadAbstract(channel_id: string): Promise<KickChannel> {
-        log(LOGLEVEL.DEBUG, "channel", `Load channel ${channel_id}`);
+        log(
+            LOGLEVEL.DEBUG,
+            "channel.loadAbstract",
+            `Load channel ${channel_id}`
+        );
 
         const channel_memory = KickChannel.getChannelById(channel_id);
         if (channel_memory) {
             log(
                 LOGLEVEL.WARNING,
-                "channel",
+                "channel.loadAbstract",
                 `Channel ${channel_id} already loaded`
             );
             return channel_memory;
@@ -262,7 +266,7 @@ export class KickChannel extends BaseChannel {
         ) {
             log(
                 LOGLEVEL.WARNING,
-                "channel",
+                "channel.loadAbstract",
                 `Channel ${channel.internalName} is online, stale?`
             );
         }
@@ -274,7 +278,7 @@ export class KickChannel extends BaseChannel {
         ) {
             log(
                 LOGLEVEL.WARNING,
-                "channel",
+                "channel.loadAbstract",
                 `Channel ${channel.internalName} has stale chapter data.`
             );
         }

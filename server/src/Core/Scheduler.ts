@@ -194,7 +194,7 @@ export class Scheduler {
         ) {
             log(
                 LOGLEVEL.INFO,
-                "Scheduler",
+                "Scheduler.scheduleClipDownload",
                 "Scheduler: scheduleClipDownload - disabled"
             );
             return;
@@ -202,7 +202,7 @@ export class Scheduler {
 
         log(
             LOGLEVEL.INFO,
-            "Scheduler",
+            "Scheduler.scheduleClipDownload",
             "Scheduler: scheduleClipDownload - start"
         );
 
@@ -241,7 +241,7 @@ export class Scheduler {
                     if (downloaded_clips.includes(clip.id)) {
                         log(
                             LOGLEVEL.INFO,
-                            "Scheduler",
+                            "Scheduler.scheduleClipDownload",
                             `Scheduler: scheduleClipDownload - clip ${clip.id} already downloaded`
                         );
                         skipped++;
@@ -286,7 +286,7 @@ export class Scheduler {
                     if (fs.existsSync(`${outPath}.mp4`)) {
                         log(
                             LOGLEVEL.WARNING,
-                            "scheduler",
+                            "scheduler.scheduleClipDownload",
                             `Clip ${clip.id} already exists`
                         );
                         downloaded_clips.push(clip.id); // already passed the first check
@@ -303,7 +303,7 @@ export class Scheduler {
                     } catch (error) {
                         log(
                             LOGLEVEL.ERROR,
-                            "scheduler",
+                            "scheduler.scheduleClipDownload",
                             `Failed to download clip ${clip.id}: ${
                                 (error as Error).message
                             }`
@@ -319,7 +319,7 @@ export class Scheduler {
                     } catch (error) {
                         log(
                             LOGLEVEL.ERROR,
-                            "scheduler",
+                            "scheduler.scheduleClipDownload",
                             `Failed to download chat for clip ${clip.id}: ${
                                 (error as Error).message
                             }`
@@ -334,7 +334,7 @@ export class Scheduler {
 
                     log(
                         LOGLEVEL.INFO,
-                        "scheduler",
+                        "scheduler.scheduleClipDownload",
                         `Downloaded clip ${clip.id}`
                     );
 
@@ -354,7 +354,7 @@ export class Scheduler {
 
         log(
             LOGLEVEL.INFO,
-            "Scheduler",
+            "Scheduler.scheduleClipDownload",
             "Scheduler: scheduleClipDownload - end"
         );
     }

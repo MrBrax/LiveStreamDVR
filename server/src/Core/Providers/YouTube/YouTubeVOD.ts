@@ -168,7 +168,7 @@ export class YouTubeVOD extends BaseVOD {
         ) {
             log(
                 LOGLEVEL.WARNING,
-                "vod",
+                "vod.saveJSON",
                 `Saving JSON of ${this.basename} with no chapters!!`
             );
         }
@@ -248,7 +248,7 @@ export class YouTubeVOD extends BaseVOD {
 
         log(
             LOGLEVEL.SUCCESS,
-            "vod",
+            "vod.saveJSON",
             `Saving JSON of ${this.basename} ${
                 reason ? " (" + reason + ")" : ""
             }`
@@ -266,7 +266,7 @@ export class YouTubeVOD extends BaseVOD {
         } catch (error) {
             log(
                 LOGLEVEL.FATAL,
-                "vod",
+                "vod.saveJSON",
                 `Failed to save JSON of ${this.basename}: ${
                     (error as Error).message
                 }`
@@ -308,7 +308,7 @@ export class YouTubeVOD extends BaseVOD {
         } else {
             log(
                 LOGLEVEL.ERROR,
-                "vod",
+                "vod.setupUserData",
                 `No channel UUID for VOD ${this.basename}`
             );
         }
@@ -375,7 +375,7 @@ export class YouTubeVOD extends BaseVOD {
         if (!vod.not_started && !vod.is_finalized) {
             log(
                 LOGLEVEL.WARNING,
-                "vod",
+                "vod.load",
                 `Loaded VOD ${vod.basename} is not finalized!`
             );
         }
@@ -430,7 +430,7 @@ export class YouTubeVOD extends BaseVOD {
         } catch (error) {
             log(
                 LOGLEVEL.WARNING,
-                "helper",
+                "vod.getVideosProxy",
                 `Channel video search for ${channel_id} error: ${
                     (error as Error).message
                 }`
@@ -460,7 +460,7 @@ export class YouTubeVOD extends BaseVOD {
         } catch (error) {
             log(
                 LOGLEVEL.WARNING,
-                "helper",
+                "vod.getVideosProxy",
                 `Channel video details for ${channel_id} error: ${
                     (error as Error).message
                 }`
@@ -515,7 +515,7 @@ export class YouTubeVOD extends BaseVOD {
         } catch (error) {
             log(
                 LOGLEVEL.WARNING,
-                "helper",
+                "vod.getVideo",
                 `Channel video details for ${video_id} error: ${
                     (error as Error).message
                 }`
@@ -557,12 +557,16 @@ export class YouTubeVOD extends BaseVOD {
         quality: VideoQuality,
         filename: string
     ): Promise<string> {
-        log(LOGLEVEL.INFO, "channel", `Download VOD ${video_id}`);
+        log(LOGLEVEL.INFO, "vod.downloadVideo", `Download VOD ${video_id}`);
 
         const video = await this.getVideoProxy(video_id);
 
         if (!video) {
-            log(LOGLEVEL.ERROR, "channel", `Failed to get video ${video_id}`);
+            log(
+                LOGLEVEL.ERROR,
+                "vod.downloadVideo",
+                `Failed to get video ${video_id}`
+            );
             throw new Error(`Failed to get video ${video_id}`);
         }
 
@@ -580,7 +584,11 @@ export class YouTubeVOD extends BaseVOD {
             const ytdl_bin = Helper.path_youtubedl();
 
             if (!ytdl_bin) {
-                log(LOGLEVEL.ERROR, "channel", "Failed to find ytdl binary!");
+                log(
+                    LOGLEVEL.ERROR,
+                    "channel.downloadVideo",
+                    "Failed to find ytdl binary!"
+                );
                 throw new Error("Failed to find ytdl binary!");
             }
 
@@ -592,7 +600,11 @@ export class YouTubeVOD extends BaseVOD {
 
             cmd.push("-o", converted_filename);
 
-            log(LOGLEVEL.INFO, "channel", `Downloading VOD ${video_id}...`);
+            log(
+                LOGLEVEL.INFO,
+                "channel.downloadVideo",
+                `Downloading VOD ${video_id}...`
+            );
 
             const ret = await execAdvanced(
                 ytdl_bin,
@@ -615,13 +627,17 @@ export class YouTubeVOD extends BaseVOD {
         if (!successful) {
             log(
                 LOGLEVEL.ERROR,
-                "channel",
+                "channel.downloadVideo",
                 `Failed to download VOD ${video_id}`
             );
             throw new Error(`Failed to download VOD ${video_id}`);
         }
 
-        log(LOGLEVEL.INFO, "channel", `Downloaded VOD ${video_id}`);
+        log(
+            LOGLEVEL.INFO,
+            "channel.downloadVideo",
+            `Downloaded VOD ${video_id}`
+        );
 
         return converted_filename;
     }

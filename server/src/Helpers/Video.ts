@@ -47,7 +47,7 @@ export function remuxFile(
         if (!overwrite && fs.existsSync(output) && !emptyFile) {
             log(
                 LOGLEVEL.ERROR,
-                "helper",
+                "video.remux",
                 `Output file ${output} already exists`
             );
             reject(new Error(`Output file ${output} already exists`));
@@ -72,7 +72,7 @@ export function remuxFile(
             } else {
                 log(
                     LOGLEVEL.ERROR,
-                    "helper",
+                    "video.remux",
                     `Metadata file ${metadata_file} does not exist for remuxing ${input}`
                 );
             }
@@ -125,7 +125,7 @@ export function remuxFile(
 
         opts.push(output);
 
-        log(LOGLEVEL.INFO, "helper", `Remuxing ${input} to ${output}`);
+        log(LOGLEVEL.INFO, "video.remux", `Remuxing ${input} to ${output}`);
 
         const job = startJob(
             `remux_${path.basename(input)}`,
@@ -187,7 +187,7 @@ export function remuxFile(
         job.process.on("error", (err) => {
             log(
                 LOGLEVEL.ERROR,
-                "helper",
+                "video.remux",
                 `Process ${process.pid} error: ${err}`
             );
             // reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
@@ -205,7 +205,7 @@ export function remuxFile(
             if (success) {
                 log(
                     LOGLEVEL.SUCCESS,
-                    "helper",
+                    "video.remux",
                     `Remuxed ${input} to ${output}`
                 );
                 resolve({
@@ -217,7 +217,7 @@ export function remuxFile(
             } else {
                 log(
                     LOGLEVEL.ERROR,
-                    "helper",
+                    "video.remux",
                     `Failed to remux '${input}' to '${output}'`
                 );
                 // reject({ code, success, stdout: job.stdout, stderr: job.stderr });
@@ -267,7 +267,7 @@ export function cutFile(
         if (!overwrite && fs.existsSync(output) && !emptyFile) {
             log(
                 LOGLEVEL.ERROR,
-                "helper",
+                "video.cut",
                 `Output file ${output} already exists`
             );
             reject(new Error(`Output file ${output} already exists`));
@@ -293,7 +293,7 @@ export function cutFile(
 
         opts.push(output);
 
-        log(LOGLEVEL.INFO, "helper", `Cutting ${input} to ${output}`);
+        log(LOGLEVEL.INFO, "video.cut", `Cutting ${input} to ${output}`);
 
         const job = startJob(`cut_${path.basename(input)}`, ffmpeg_path, opts);
 
@@ -309,7 +309,7 @@ export function cutFile(
         job.process.on("error", (err) => {
             log(
                 LOGLEVEL.ERROR,
-                "helper",
+                "video.cut",
                 `Process ${process.pid} error: ${err}`
             );
             // reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
@@ -326,7 +326,7 @@ export function cutFile(
             if (success) {
                 log(
                     LOGLEVEL.SUCCESS,
-                    "helper",
+                    "video.cut",
                     `Cut ${input} to ${output} success`
                 );
                 resolve({
@@ -338,7 +338,7 @@ export function cutFile(
             } else {
                 log(
                     LOGLEVEL.ERROR,
-                    "helper",
+                    "video.cut",
                     `Failed to cut ${path.basename(input)} to ${path.basename(
                         output
                     )}`

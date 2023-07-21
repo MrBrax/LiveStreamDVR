@@ -15,7 +15,7 @@
     {
       "templates": [
         "req.t(\"{key}\"{args})",
-        "t(\"{key}\"{args})",
+        "t(\"{key}\"{args})"
       ],
       "exclude": [
         "src/config/**"
@@ -24,6 +24,9 @@
   ],
   "editor.formatOnSave": true,
   "eslint.options": {
-    "rulePaths": ["./src/Extend"]
-  }
+    "rulePaths": [
+      "./src/Extend"
+    ]
+  },
+  "prettier.prettierPath": ".yarn/sdks/prettier/index.js"
 }
