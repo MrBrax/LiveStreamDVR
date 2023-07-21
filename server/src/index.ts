@@ -29,17 +29,6 @@ declare module "express-session" {
     }
 }
 
-declare module "express" {
-    interface Request {
-        /**
-         * Raw body buffer
-         * https://flaviocopes.com/express-get-raw-body/
-         * Super bad hack
-         */
-        rawBody: Buffer;
-    }
-}
-
 dotenv.config();
 
 LiveStreamDVR.argv = minimist(process.argv.slice(2));

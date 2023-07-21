@@ -70,7 +70,7 @@ const verifyTwitchSignature = (request: express.Request): boolean => {
     }
 
     // const body = JSON.stringify(request.body); // needs raw body
-    const body = request.rawBody.toString();
+    const body = (request as any).rawBody.toString();
 
     const hmac_message = twitch_message_id + twitch_message_timestamp + body;
 
