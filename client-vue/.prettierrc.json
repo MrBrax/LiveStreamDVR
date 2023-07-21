@@ -1,0 +1,6 @@
+{
+    "tabWidth": 4,
+    "jsxBracketSameLine": true,
+    "printWidth": 160,
+    "endOfLine": "lf"
+}

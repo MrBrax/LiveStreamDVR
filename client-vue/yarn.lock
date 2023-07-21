@@ -2529,6 +2529,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vue/eslint-config-prettier@npm:^8.0.0":
+  version: 8.0.0
+  resolution: "@vue/eslint-config-prettier@npm:8.0.0"
+  dependencies:
+    eslint-config-prettier: ^8.8.0
+    eslint-plugin-prettier: ^5.0.0
+  peerDependencies:
+    eslint: ">= 8.0.0"
+    prettier: ">= 3.0.0"
+  checksum: 26556b3dc742fc934cf9c273b7be8c79b753a14ea3541b6515b7351f6e4d7ee99538edcc91abb946798f21f180c738e9fff3dcf8c69f9132190f378450ae9d31
+  languageName: node
+  linkType: hard
+
 "@vue/eslint-config-typescript@npm:^11.0.3":
   version: 11.0.3
   resolution: "@vue/eslint-config-typescript@npm:11.0.3"
@@ -5423,6 +5436,7 @@ __metadata:
     "@typescript-eslint/eslint-plugin": ^6.1.0
     "@typescript-eslint/parser": ^6.1.0
     "@vitejs/plugin-vue": ^4.2.3
+    "@vue/eslint-config-prettier": ^8.0.0
     "@vue/eslint-config-typescript": ^11.0.3
     "@vue/test-utils": ^2.4.1
     "@vue/tsconfig": ^0.4.0
