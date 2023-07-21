@@ -406,7 +406,7 @@ export class BaseChannel {
 
         log(
             LOGLEVEL.INFO,
-            "channel",
+            "channel.removeVod",
             `Remove VOD JSON for ${this.internalName}: ${uuid}`
         );
 
@@ -469,7 +469,11 @@ export class BaseChannel {
 
         // const userid = this.userid;
 
-        log(LOGLEVEL.INFO, "channel", `Deleting channel ${this.internalName}`);
+        log(
+            LOGLEVEL.INFO,
+            "channel.delete",
+            `Deleting channel ${this.internalName}`
+        );
         const index_config =
             LiveStreamDVR.getInstance().channels_config.findIndex(
                 (ch) => ch.provider == "twitch" && ch.uuid === uuid
@@ -545,7 +549,7 @@ export class BaseChannel {
             } catch (error) {
                 log(
                     LOGLEVEL.ERROR,
-                    "channel",
+                    "channel.findClips",
                     `Failed to get video metadata for clip ${clip_path}: ${
                         (error as Error).message
                     }`
@@ -561,7 +565,7 @@ export class BaseChannel {
             } catch (error) {
                 log(
                     LOGLEVEL.ERROR,
-                    "channel",
+                    "channel.findClips",
                     `Failed to generate thumbnail for ${clip_path}: ${error}`
                 );
             }
@@ -578,7 +582,7 @@ export class BaseChannel {
                 } catch (error) {
                     log(
                         LOGLEVEL.ERROR,
-                        "channel",
+                        "channel.findClips",
                         `Failed to read clip metadata for ${clip_path}: ${
                             (error as Error).message
                         }`

@@ -61,7 +61,7 @@ export class YouTubeHelper {
         if (!client_id || !client_secret) {
             log(
                 LOGLEVEL.WARNING,
-                "YouTubeHelper",
+                "YouTubeHelper.setupClient",
                 "No client_id or client_secret set up. YouTube uploads will not work."
             );
             return;
@@ -80,7 +80,7 @@ export class YouTubeHelper {
 
         log(
             LOGLEVEL.INFO,
-            "YouTubeHelper",
+            "YouTubeHelper.setupClient",
             `Created OAuth2Client with redirect ${full_app_url}`
         );
 
@@ -105,7 +105,7 @@ export class YouTubeHelper {
         if (token) {
             log(
                 LOGLEVEL.INFO,
-                "YouTubeHelper",
+                "YouTubeHelper.setupClient",
                 "Found stored token, setting credentials..."
             );
             this.oAuth2Client.setCredentials(token);
@@ -115,12 +115,16 @@ export class YouTubeHelper {
             } catch (error) {
                 log(
                     LOGLEVEL.ERROR,
-                    "YouTubeHelper",
+                    "YouTubeHelper.setupClient",
                     `Failed to fetch username: ${(error as Error).message}`
                 );
             }
         } else {
-            log(LOGLEVEL.INFO, "YouTubeHelper", "No stored token found.");
+            log(
+                LOGLEVEL.INFO,
+                "YouTubeHelper.setupClient",
+                "No stored token found."
+            );
             return;
         }
 
@@ -128,7 +132,7 @@ export class YouTubeHelper {
         if (this.accessTokenRefresh) {
             log(
                 LOGLEVEL.INFO,
-                "YouTubeHelper",
+                "YouTubeHelper.setupClient",
                 "Found refresh token, setting credentials..."
             );
             this.oAuth2Client.setCredentials({
@@ -137,12 +141,16 @@ export class YouTubeHelper {
                 }),
             });
         } else {
-            log(LOGLEVEL.ERROR, "YouTubeHelper", "No refresh token found");
+            log(
+                LOGLEVEL.ERROR,
+                "YouTubeHelper.setupClient",
+                "No refresh token found"
+            );
         }
 
         log(
             LOGLEVEL.SUCCESS,
-            "YouTubeHelper",
+            "YouTubeHelper.setupClient",
             `YouTubeHelper setup complete, authenticated: ${this.authenticated}`
         );
 
@@ -157,7 +165,7 @@ export class YouTubeHelper {
         const json = JSON.stringify(token);
         log(
             LOGLEVEL.DEBUG,
-            "YouTubeHelper",
+            "YouTubeHelper.storeToken",
             `Storing token in ${this.accessTokenFile}`
         );
         fs.writeFileSync(this.accessTokenFile, json);
@@ -167,7 +175,7 @@ export class YouTubeHelper {
         if (!fs.existsSync(this.accessTokenFile)) {
             log(
                 LOGLEVEL.DEBUG,
-                "YouTubeHelper",
+                "YouTubeHelper.loadToken",
                 `No token found in ${this.accessTokenFile}`
             );
             return undefined;
@@ -180,7 +188,7 @@ export class YouTubeHelper {
         if (creds.expiry_date && new Date().getTime() > creds.expiry_date) {
             log(
                 LOGLEVEL.WARNING,
-                "YouTubeHelper",
+                "YouTubeHelper.loadToken",
                 `Token expired at ${creds.expiry_date}`
             );
             fs.unlinkSync(this.accessTokenFile);
@@ -193,7 +201,7 @@ export class YouTubeHelper {
 
         log(
             LOGLEVEL.DEBUG,
-            "YouTubeHelper",
+            "YouTubeHelper.loadToken",
             `Loaded token from ${this.accessTokenFile}`
         );
         return creds;
@@ -203,7 +211,7 @@ export class YouTubeHelper {
         if (!fs.existsSync(this.accessTokenRefreshFile)) {
             log(
                 LOGLEVEL.DEBUG,
-                "YouTubeHelper",
+                "YouTubeHelper.loadRefreshToken",
                 `No refresh token found in ${this.accessTokenRefreshFile}`
             );
             return false;
@@ -243,7 +251,7 @@ export class YouTubeHelper {
         } catch (error) {
             log(
                 LOGLEVEL.ERROR,
-                "YouTubeHelper",
+                "YouTubeHelper.fetchUsername",
                 `Failed to fetch username: ${(error as Error).message}`
             );
             throw error; // not pretty
@@ -269,7 +277,7 @@ export class YouTubeHelper {
         } else {
             log(
                 LOGLEVEL.ERROR,
-                "YouTubeHelper",
+                "YouTubeHelper.fetchUsername",
                 `Failed to fetch username: ${response.statusText}`
             );
             throw new Error(`Failed to fetch username: ${response.statusText}`);
@@ -331,7 +339,7 @@ export class YouTubeHelper {
                     if (!response || !response.data || !response.data.items) {
                         log(
                             LOGLEVEL.ERROR,
-                            "YouTubeHelper",
+                            "YouTubeHelper.getPlaylists",
                             "No response from API"
                         );
                         reject(new Error("No response from API"));
@@ -343,7 +351,7 @@ export class YouTubeHelper {
                 .catch((error) => {
                     log(
                         LOGLEVEL.ERROR,
-                        "YouTubeHelper",
+                        "YouTubeHelper.getPlaylists",
                         `Failed to fetch playlists: ${(error as Error).message}`
                     );
                     reject(error);
@@ -374,7 +382,7 @@ export class YouTubeHelper {
                     if (!response || !response.data) {
                         log(
                             LOGLEVEL.ERROR,
-                            "YouTubeHelper",
+                            "YouTubeHelper.createPlaylist",
                             "No response from API"
                         );
                         reject(new Error("No response from API"));
@@ -386,7 +394,7 @@ export class YouTubeHelper {
                 .catch((error) => {
                     log(
                         LOGLEVEL.ERROR,
-                        "YouTubeHelper",
+                        "YouTubeHelper.createPlaylist",
                         `Failed to create playlist: ${(error as Error).message}`
                     );
                     reject(error);

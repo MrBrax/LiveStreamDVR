@@ -22,5 +22,8 @@
       ]
     }
   ],
-  "editor.formatOnSave": true
+  "editor.formatOnSave": true,
+  "eslint.options": {
+    "rulePaths": ["./src/Extend"]
+  }
 }
