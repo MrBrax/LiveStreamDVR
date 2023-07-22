@@ -1027,14 +1027,6 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
         }]\
       ]],\
       ["@babel/runtime", [\
-        ["npm:7.22.3", {\
-          "packageLocation": "./.yarn/cache/@babel-runtime-npm-7.22.3-0fd780f66a-8fc50785ca.zip/node_modules/@babel/runtime/",\
-          "packageDependencies": [\
-            ["@babel/runtime", "npm:7.22.3"],\
-            ["regenerator-runtime", "npm:0.13.11"]\
-          ],\
-          "linkType": "HARD"\
-        }],\
         ["npm:7.22.6", {\
           "packageLocation": "./.yarn/cache/@babel-runtime-npm-7.22.6-493f6b7ad0-e585338287.zip/node_modules/@babel/runtime/",\
           "packageDependencies": [\
@@ -3738,7 +3730,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
           "packageLocation": "./.yarn/cache/date-fns-npm-2.30.0-895c790e0f-f7be015232.zip/node_modules/date-fns/",\
           "packageDependencies": [\
             ["date-fns", "npm:2.30.0"],\
-            ["@babel/runtime", "npm:7.22.3"]\
+            ["@babel/runtime", "npm:7.22.6"]\
           ],\
           "linkType": "HARD"\
         }]\

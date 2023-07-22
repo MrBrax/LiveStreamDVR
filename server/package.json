@@ -10,7 +10,7 @@
         "start:dev": "nodemon src/index.ts",
         "start": "node --enable-source-maps build/server.js",
         "build:ts": "tsc --project tsconfig.json",
-        "build": "tsc -noEmit && esbuild ./src/index.ts --bundle --platform=node --target=node15 --sourcemap --outfile=./build/server.js",
+        "build": "tsc -noEmit && node ./build.mjs",
         "generate-licenses": "yarn licenses generate-disclaimer > LICENSES.txt",
         "inspect": "node --inspect --enable-source-maps build/server.js",
         "format": "prettier --write \"src/**/*.ts\""
