@@ -6,6 +6,7 @@ await esbuild.build({
     outfile: "build/server.js",
     platform: "node",
     target: "node18",
+    // format: "esm",
     // output to console
     logLevel: "info",
     treeShaking: true,

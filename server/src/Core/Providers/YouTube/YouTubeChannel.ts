@@ -1,22 +1,22 @@
+import { BaseConfigDataFolder, BaseConfigPath } from "@/Core/BaseConfig";
+import { Config } from "@/Core/Config";
+import { KeyValue } from "@/Core/KeyValue";
+import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
+import { LOGLEVEL, log } from "@/Core/Log";
+import { BaseChannel } from "@/Core/Providers/Base/BaseChannel";
+import { isYouTubeChannel } from "@/Helpers/Types";
+import { YouTubeHelper } from "@/Providers/YouTube";
+import type { BaseVODChapterJSON } from "@/Storage/JSON";
+import type { ApiYouTubeChannel } from "@common/Api/Client";
+import type { YouTubeChannelConfig } from "@common/Config";
+import type { Providers } from "@common/Defs";
+import type { ProxyVideo } from "@common/Proxies/Video";
 import { youtube_v3 } from "@googleapis/youtube";
 import axios from "axios";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import type { BaseVODChapterJSON } from "../../../Storage/JSON";
-import type { ApiYouTubeChannel } from "@common/Api/Client";
-import type { YouTubeChannelConfig } from "@common/Config";
-import type { Providers } from "@common/Defs";
-import type { ProxyVideo } from "@common/Proxies/Video";
-import { YouTubeHelper } from "../../../Providers/YouTube";
-import { BaseConfigDataFolder, BaseConfigPath } from "../../BaseConfig";
-import { Config } from "../../Config";
-import { KeyValue } from "../../KeyValue";
-import { LiveStreamDVR } from "../../LiveStreamDVR";
-import { log, LOGLEVEL } from "../../Log";
-import { BaseChannel } from "../Base/BaseChannel";
 import { YouTubeVOD } from "./YouTubeVOD";
-import { isYouTubeChannel } from "../../../Helpers/Types";
 
 interface YouTubeChannelData extends youtube_v3.Schema$ChannelSnippet {
     _updated: number;
@@ -360,6 +360,15 @@ export class YouTubeChannel extends BaseChannel {
                 );
                 return false;
             }
+        }
+
+        if (!YouTubeHelper.oAuth2Client) {
+            log(
+                LOGLEVEL.WARNING,
+                "yt.channel.getUserDataProxy",
+                `No oAuth2Client, can't fetch channel data for ${identifier}`
+            );
+            return false;
         }
 
         const service = new youtube_v3.Youtube({
@@ -827,6 +836,15 @@ export class YouTubeChannel extends BaseChannel {
     }
 
     public async getStreams(): Promise<false | youtube_v3.Schema$SearchResult> {
+        if (!YouTubeHelper.oAuth2Client) {
+            log(
+                LOGLEVEL.WARNING,
+                "yt.channel.getStreams",
+                `No oAuth2Client, can't fetch channel data for ${this.internalName}`
+            );
+            return false;
+        }
+
         const service = new youtube_v3.Youtube({
             auth: YouTubeHelper.oAuth2Client,
         });
