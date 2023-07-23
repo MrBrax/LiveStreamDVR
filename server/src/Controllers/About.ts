@@ -1,14 +1,9 @@
-import type { BinaryStatus } from "@common/Api/About";
-import type { ApiAboutResponse } from "@common/Api/Api";
-import type express from "express";
-import readdirRecursive from "fs-readdir-recursive";
-import fs from "node:fs";
-import process from "node:process";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "@/Core/BaseConfig";
 import { Config } from "@/Core/Config";
 import { Helper } from "@/Core/Helper";
 import { KeyValue } from "@/Core/KeyValue";
 import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
+import { getLogLines } from "@/Core/Log";
 import { GetRunningProcesses } from "@/Helpers/Execute";
 import {
     DVRBinaries,
@@ -17,7 +12,12 @@ import {
     getBinaryVersion,
 } from "@/Helpers/Software";
 import { is_docker } from "@/Helpers/System";
-import { getLogLines } from "@/Core/Log";
+import type { BinaryStatus } from "@common/Api/About";
+import type { ApiAboutResponse } from "@common/Api/Api";
+import type express from "express";
+import readdirRecursive from "fs-readdir-recursive";
+import fs from "node:fs";
+import process from "node:process";
 
 export async function About(
     req: express.Request,
@@ -96,9 +96,9 @@ export async function About(
               log_lines: getLogLines().length,
               keyvalues: Object.keys(KeyValue.getInstance().getData()).length,
           }
-        : undefined;
+        : {};
 
-    res.send({
+    res.api<ApiAboutResponse>(200, {
         data: {
             bins: bins,
             pip: PipRequirements,
@@ -108,7 +108,7 @@ export async function About(
             // keyvalue: KeyValue.getInstance().data,
         },
         status: "OK",
-    } as ApiAboutResponse);
+    });
 }
 
 export async function License(

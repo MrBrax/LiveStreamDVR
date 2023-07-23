@@ -1,5 +1,5 @@
-import { settingsFields } from "../ServerConfig";
 import type { ChannelConfig } from "../Config";
+import { settingsFields } from "../ServerConfig";
 import type { AboutData } from "./About";
 import type { ApiChannels, ApiFile, ApiGame, ApiJob, ApiLogLine, ApiVods } from "./Client";
 
@@ -12,6 +12,11 @@ export interface ApiResponse {
 export interface ApiErrorResponse {
     status: "ERROR";
     message: string;
+}
+
+export interface ApiGenericResponse {
+    status: "OK" | "ERROR";
+    message?: string;
 }
 
 export interface ApiQuotas {

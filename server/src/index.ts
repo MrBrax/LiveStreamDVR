@@ -29,6 +29,15 @@ declare module "express-session" {
     }
 }
 
+declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
+    namespace Express {
+        interface Response {
+            api<T>(status: number, data: T): void;
+        }
+    }
+}
+
 dotenv.config();
 
 LiveStreamDVR.argv = minimist(process.argv.slice(2));
@@ -91,6 +100,22 @@ LiveStreamDVR.init().then(() => {
             },
         })
     );
+
+    // extend express req object with an api function that takes a status code and a generic object as arguments
+    // this is used to send json responses
+    // app.use((req, res, next) => {
+    //     res.api = <T>(status: number, data: T) => {
+    //         res.status(status).json(data);
+    //     };
+    //     next();
+    // });
+    (app.response as any).api = function <T>(
+        this: express.Response,
+        status: number,
+        data: T
+    ) {
+        this.status(status).json(data);
+    };
 
     app.use(express.text({ type: "application/xml" }));
     app.use(express.text({ type: "application/atom+xml" }));

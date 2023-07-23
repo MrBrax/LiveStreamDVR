@@ -1,32 +1,10 @@
-import { randomUUID } from "node:crypto";
-import { format, isValid, parseJSON } from "date-fns";
-import type express from "express";
-import fs from "node:fs";
-import path from "node:path";
-import sanitize from "sanitize-filename";
-import type {
-    ApiChannelResponse,
-    ApiChannelsResponse,
-    ApiErrorResponse,
-    ApiResponse,
-} from "@common/Api/Api";
-import type {
-    TwitchChannelConfig,
-    VideoQuality,
-    YouTubeChannelConfig,
-    KickChannelConfig,
-} from "@common/Config";
-import type { Providers } from "@common/Defs";
-import { VideoQualityArray } from "@common/Defs";
-import { formatString } from "@common/Format";
-import type { ProxyVideo } from "@common/Proxies/Video";
-import type { VodBasenameTemplate } from "@common/Replacements";
-import type { EventSubStreamOnline } from "@common/TwitchAPI/EventSub/StreamOnline";
 import { BaseConfigCacheFolder } from "@/Core/BaseConfig";
 import { Config } from "@/Core/Config";
+import { Job } from "@/Core/Job";
 import { KeyValue } from "@/Core/KeyValue";
 import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
-import { log, LOGLEVEL } from "@/Core/Log";
+import { LOGLEVEL, log } from "@/Core/Log";
+import { KickChannel } from "@/Core/Providers/Kick/KickChannel";
 import type { AutomatorMetadata } from "@/Core/Providers/Twitch/TwitchAutomator";
 import { TwitchAutomator } from "@/Core/Providers/Twitch/TwitchAutomator";
 import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
@@ -35,16 +13,39 @@ import { YouTubeAutomator } from "@/Core/Providers/YouTube/YouTubeAutomator";
 import { YouTubeChannel } from "@/Core/Providers/YouTube/YouTubeChannel";
 import { YouTubeVOD } from "@/Core/Providers/YouTube/YouTubeVOD";
 import { Webhook } from "@/Core/Webhook";
+import { debugLog } from "@/Helpers/Console";
 import { generateStreamerList } from "@/Helpers/StreamerList";
 import { isTwitchChannel, isYouTubeChannel } from "@/Helpers/Types";
+import type {
+    ApiChannelResponse,
+    ApiChannelsResponse,
+    ApiErrorResponse,
+    ApiGenericResponse,
+    ApiResponse,
+} from "@common/Api/Api";
+import type {
+    KickChannelConfig,
+    TwitchChannelConfig,
+    VideoQuality,
+    YouTubeChannelConfig,
+} from "@common/Config";
+import type { Providers } from "@common/Defs";
+import { VideoQualityArray } from "@common/Defs";
+import type { ExporterOptions } from "@common/Exporter";
+import { formatString } from "@common/Format";
+import type { ProxyVideo } from "@common/Proxies/Video";
+import type { VodBasenameTemplate } from "@common/Replacements";
+import type { EventSubStreamOnline } from "@common/TwitchAPI/EventSub/StreamOnline";
+import { format, isValid, parseJSON } from "date-fns";
+import type express from "express";
+import { randomUUID } from "node:crypto";
+import fs from "node:fs";
+import path from "node:path";
+import sanitize from "sanitize-filename";
 import { TwitchHelper } from "../Providers/Twitch";
 import type { TwitchVODChapterJSON } from "../Storage/JSON";
-import { Job } from "@/Core/Job";
 import type { Exporter } from "./Exporter";
 import { GetExporter } from "./Exporter";
-import type { ExporterOptions } from "@common/Exporter";
-import { KickChannel } from "@/Core/Providers/Kick/KickChannel";
-import { debugLog } from "@/Helpers/Console";
 
 export async function ListChannels(
     req: express.Request,
@@ -95,10 +96,10 @@ export async function GetChannel(
     const channel = getChannelFromRequest(req);
 
     if (!channel) {
-        res.status(400).send({
+        res.api<ApiErrorResponse>(400, {
             status: "ERROR",
             message: req.t("route.channels.channel-not-found"),
-        } as ApiErrorResponse);
+        });
         return;
     }
 
@@ -115,10 +116,10 @@ export function UpdateChannel(
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
-        res.status(400).send({
+        res.api<ApiErrorResponse>(400, {
             status: "ERROR",
             message: req.t("route.channels.channel-not-found"),
-        } as ApiErrorResponse);
+        });
         return;
     }
 
@@ -192,11 +193,13 @@ export function UpdateChannel(
 
     channel.broadcastUpdate();
 
-    res.send({
+    res.api<ApiGenericResponse>(200, {
         status: "OK",
-        message: req.t("route.channels.channel-internalname-updated", [
-            channel.internalName,
-        ]),
+        message: req
+            .t("route.channels.channel-internalname-updated", [
+                channel.internalName,
+            ])
+            .toString(),
     });
 }
 
@@ -219,11 +222,13 @@ export async function DeleteChannel(
                 );
             LiveStreamDVR.getInstance().saveChannelsConfig();
 
-            res.send({
+            res.api<ApiGenericResponse>(200, {
                 status: "OK",
-                message: req.t(
-                    "route.channels.channel-found-in-config-but-not-in-memory-removed-from-config"
-                ),
+                message: req
+                    .t(
+                        "route.channels.channel-found-in-config-but-not-in-memory-removed-from-config"
+                    )
+                    .toString(),
             });
             log(
                 LOGLEVEL.INFO,
@@ -233,10 +238,10 @@ export async function DeleteChannel(
             return;
         }
 
-        res.status(400).send({
+        res.api<ApiErrorResponse>(400, {
             status: "ERROR",
             message: req.t("route.channels.channel-not-found"),
-        } as ApiErrorResponse);
+        });
         return;
     }
 
@@ -251,10 +256,10 @@ export async function DeleteChannel(
                     (error as Error).message
                 }`
             );
-            res.status(400).send({
+            res.api<ApiErrorResponse>(400, {
                 status: "ERROR",
                 message: (error as Error).message,
-            } as ApiErrorResponse);
+            });
             return;
         }
     }
@@ -265,11 +270,13 @@ export async function DeleteChannel(
 
     log(LOGLEVEL.INFO, "route.channels.delete", `Channel ${name} deleted`);
 
-    res.send({
+    res.api<ApiGenericResponse>(200, {
         status: "OK",
-        message: req.t("route.channels.channel-internalname-deleted", [
-            channel.internalName,
-        ]),
+        message: req
+            .t("route.channels.channel-internalname-deleted", [
+                channel.internalName,
+            ])
+            .toString(),
     });
 }
 

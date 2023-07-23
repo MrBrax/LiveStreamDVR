@@ -596,77 +596,77 @@ export class TwitchChat extends EventEmitter {
         const commandParts = rawCommandComponent.split(" ");
 
         switch (commandParts[0]) {
-        case "JOIN":
-        case "PART":
-        case "NOTICE":
-        case "CLEARCHAT": // user gets banned lol
-        case "HOSTTARGET":
-        case "PRIVMSG":
-            parsedCommand = {
-                command: commandParts[0],
-                channel: commandParts[1],
-            };
-            break;
-        case "USERNOTICE":
-            parsedCommand = {
-                command: commandParts[0],
-            };
-            // console.log("USERNOTICE", commandParts, rawCommandComponent);
-            break;
-        case "PING":
-            parsedCommand = {
-                command: commandParts[0],
-            };
-            break;
-        case "CAP":
-            parsedCommand = {
-                command: commandParts[0],
-                isCapRequestEnabled: (commandParts[2] === "ACK") ? true : false,
-                // The parameters part of the messages contains the 
-                // enabled capabilities.
-            };
-            break;
-        case "GLOBALUSERSTATE":  // Included only if you request the /commands capability.
-            // But it has no meaning without also including the /tags capability.
-            parsedCommand = {
-                command: commandParts[0],
-            };
-            break;
-        case "USERSTATE":   // Included only if you request the /commands capability.
-        case "ROOMSTATE":   // But it has no meaning without also including the /tags capabilities.
-            parsedCommand = {
-                command: commandParts[0],
-                channel: commandParts[1],
-            };
-            break;
-        case "RECONNECT":  
-            console.log("The Twitch IRC server is about to terminate the connection for maintenance.");
-            parsedCommand = {
-                command: commandParts[0],
-            };
-            break;
-        case "421":
-            console.log(`Unsupported IRC command: ${commandParts[2]}`);
-            return undefined;
-        case "001":  // Logged in (successfully authenticated). 
-            parsedCommand = {
-                command: commandParts[0],
-                channel: commandParts[1],
-            };
-            break;
-        case "002":  // Ignoring all other numeric messages.
-        case "003":
-        case "004":
-        case "353":  // Tells you who else is in the chat room you're joining.
-        case "366":
-        case "372":
-        case "375":
-        case "376":
-            console.log(`numeric message: ${commandParts[0]}`);
-            return undefined;
-        default:
-            console.log(`\nUnexpected command: ${commandParts[0]} (${rawCommandComponent}) \n`);
-            return undefined;
+            case "JOIN":
+            case "PART":
+            case "NOTICE":
+            case "CLEARCHAT": // user gets banned lol
+            case "HOSTTARGET":
+            case "PRIVMSG":
+                parsedCommand = {
+                    command: commandParts[0],
+                    channel: commandParts[1],
+                };
+                break;
+            case "USERNOTICE":
+                parsedCommand = {
+                    command: commandParts[0],
+                };
+                // console.log("USERNOTICE", commandParts, rawCommandComponent);
+                break;
+            case "PING":
+                parsedCommand = {
+                    command: commandParts[0],
+                };
+                break;
+            case "CAP":
+                parsedCommand = {
+                    command: commandParts[0],
+                    isCapRequestEnabled: (commandParts[2] === "ACK") ? true : false,
+                    // The parameters part of the messages contains the 
+                    // enabled capabilities.
+                };
+                break;
+            case "GLOBALUSERSTATE":  // Included only if you request the /commands capability.
+                // But it has no meaning without also including the /tags capability.
+                parsedCommand = {
+                    command: commandParts[0],
+                };
+                break;
+            case "USERSTATE":   // Included only if you request the /commands capability.
+            case "ROOMSTATE":   // But it has no meaning without also including the /tags capabilities.
+                parsedCommand = {
+                    command: commandParts[0],
+                    channel: commandParts[1],
+                };
+                break;
+            case "RECONNECT":
+                console.log("The Twitch IRC server is about to terminate the connection for maintenance.");
+                parsedCommand = {
+                    command: commandParts[0],
+                };
+                break;
+            case "421":
+                console.log(`Unsupported IRC command: ${commandParts[2]}`);
+                return undefined;
+            case "001":  // Logged in (successfully authenticated). 
+                parsedCommand = {
+                    command: commandParts[0],
+                    channel: commandParts[1],
+                };
+                break;
+            case "002":  // Ignoring all other numeric messages.
+            case "003": // Ignoring all other numeric messages.
+            case "004": // Logged in (successfully authenticated).
+            case "353":  // Tells you who else is in the chat room you're joining.
+            case "366":  // End of /NAMES list.
+            case "372":  // MOTD (message of the day).
+            case "375": // Start of MOTD.
+            case "376": // End of MOTD.
+                console.log(`numeric message: ${commandParts[0]}`);
+                return undefined;
+            default:
+                console.log(`\nUnexpected command: ${commandParts[0]} (${rawCommandComponent}) \n`);
+                return undefined;
         }
 
         return parsedCommand;
@@ -686,14 +686,14 @@ export class TwitchChat extends EventEmitter {
 
     parseParameters(rawParametersComponent: string, command: Command): Command {
         const idx = 0;
-        const commandParts = rawParametersComponent.slice(idx + 1).trim(); 
+        const commandParts = rawParametersComponent.slice(idx + 1).trim();
         const paramsIdx = commandParts.indexOf(" ");
 
         if (-1 == paramsIdx) { // no parameters
-            command.botCommand = commandParts.slice(0); 
+            command.botCommand = commandParts.slice(0);
         }
         else {
-            command.botCommand = commandParts.slice(0, paramsIdx); 
+            command.botCommand = commandParts.slice(0, paramsIdx);
             command.botCommandParams = commandParts.slice(paramsIdx).trim();
             // TODO: remove extra spaces in parameters string
         }
@@ -1156,6 +1156,6 @@ export declare interface TwitchChat {
     on(event: "connected", listener: () => void): this;
 
     on(event: "pong", listener: () => void): this;
-    
+
     on(event: "comedy", listener: (totalScore: number, deltaScore: number, message: TwitchMessage) => void): this;
 }
