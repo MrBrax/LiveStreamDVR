@@ -63,7 +63,7 @@
                                 <strong>Stream pauses:</strong> {{ vod.stream_pauses.length }} ({{ humanDuration(vod.totalPausedTime / 1000) }})
                             </li>
                             <li v-if="vod.provider == 'twitch'">
-                                <strong>Watch live:</strong> <a :href="`https://twitch.tv/${vod.streamer_login}`" rel="noreferrer" target="_blank">Twitch</a>
+                                <strong>Watch live:</strong> <a :href="vod.getChannel().url" rel="noreferrer" target="_blank">Twitch</a>
                             </li>
                             <li>
                                 <strong>Rewind:</strong>

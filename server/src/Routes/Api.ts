@@ -1,9 +1,11 @@
+import { Config } from "@/Core/Config";
+import { AuthAdmin, AuthCore, AuthGuest } from "@/Helpers/Auth";
 import express from "express";
 import * as About from "../Controllers/About";
 import * as Auth from "../Controllers/Auth";
 import * as Channels from "../Controllers/Channels";
+import * as ClientSettings from "../Controllers/ClientSettings";
 import * as Cron from "../Controllers/Cron";
-import * as Debug from "../Controllers/Debug";
 import * as Exporter from "../Controllers/Exporter";
 import * as Favourites from "../Controllers/Favourites";
 import * as Files from "../Controllers/Files";
@@ -11,21 +13,18 @@ import * as Games from "../Controllers/Games";
 import * as Hook from "../Controllers/Hook";
 import * as Jobs from "../Controllers/Jobs";
 import * as KeyValue from "../Controllers/KeyValue";
+import * as KickAPI from "../Controllers/KickAPI";
 import * as Log from "../Controllers/Log";
 import * as Notifications from "../Controllers/Notifications";
 import * as Settings from "../Controllers/Settings";
-import * as ClientSettings from "../Controllers/ClientSettings";
 import * as Subscriptions from "../Controllers/Subscriptions";
 import * as Telemetry from "../Controllers/Telemetry";
 import * as Tools from "../Controllers/Tools";
+import * as Twitch from "../Controllers/Twitch";
 import * as TwitchAPI from "../Controllers/TwitchAPI";
 import * as Vod from "../Controllers/Vod";
 import * as YouTube from "../Controllers/YouTube";
-import * as Twitch from "../Controllers/Twitch";
 import * as YouTubeAPI from "../Controllers/YouTubeAPI";
-import * as KickAPI from "../Controllers/KickAPI";
-import { Config } from "@/Core/Config";
-import { AuthAdmin, AuthCore, AuthGuest } from "@/Helpers/Auth";
 
 const router = express.Router();
 

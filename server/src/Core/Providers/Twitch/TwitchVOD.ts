@@ -21,11 +21,10 @@ import type {
 import axios from "axios";
 import chalk from "chalk";
 import chokidar from "chokidar";
-import { format, parse, parseJSON } from "date-fns";
+import { format, parseJSON } from "date-fns";
 import { encode as htmlentities } from "html-entities";
 import fs from "node:fs";
 import path from "node:path";
-import { trueCasePathSync } from "true-case-path";
 import { TwitchHelper } from "../../../Providers/Twitch";
 import type {
     TwitchVODChapterJSON,
@@ -58,14 +57,6 @@ export class TwitchVOD extends BaseVOD {
     public provider: Providers = "twitch";
 
     json?: TwitchVODJSON;
-    // meta?: EventSubResponse;
-
-    /** @deprecated */
-    streamer_name = "";
-    /** @deprecated */
-    streamer_id = "";
-    /** @deprecated */
-    streamer_login = "";
 
     chapters_raw: Array<TwitchVODChapterJSON> = [];
     chapters: Array<TwitchVODChapter> = [];
@@ -129,14 +120,6 @@ export class TwitchVOD extends BaseVOD {
             throw new Error("No JSON loaded for user data setup!");
         }
 
-        this.streamer_id = this.json.streamer_id;
-        this.streamer_login =
-            (await TwitchChannel.channelLoginFromId(this.streamer_id || "")) ||
-            "";
-        this.streamer_name =
-            (await TwitchChannel.channelDisplayNameFromId(
-                this.streamer_id || ""
-            )) || "";
         if (this.json.channel_uuid) {
             this.channel_uuid = this.json.channel_uuid;
         } else {
@@ -906,10 +889,6 @@ export class TwitchVOD extends BaseVOD {
             segments: this.segments.map((s) => s.toAPI()),
             segments_raw: this.segments_raw,
 
-            streamer_name: this.streamer_name || "",
-            streamer_id: this.streamer_id || "",
-            streamer_login: this.streamer_login || "",
-
             twitch_vod_duration: this.twitch_vod_duration,
             twitch_vod_muted: this.twitch_vod_muted,
             // twitch_vod_status: this.twitch_vod_status,
@@ -1052,11 +1031,11 @@ export class TwitchVOD extends BaseVOD {
             );
         }
 
-        if (!this.streamer_name && !this.created) {
+        if (!this.getChannel() && !this.created) {
             log(
                 LOGLEVEL.FATAL,
                 "vod.saveJSON",
-                `Found no streamer name in class of ${this.basename}, not saving!`
+                `Found no channel in class of ${this.basename}, not saving!`
             );
             return false;
         }
@@ -1075,9 +1054,6 @@ export class TwitchVOD extends BaseVOD {
         // if (this.meta) generated.meta = this.meta;
         generated.stream_resolution = this.stream_resolution ?? undefined;
 
-        generated.streamer_name = this.streamer_name ?? "";
-        generated.streamer_id = this.streamer_id ?? "";
-        generated.streamer_login = this.streamer_login ?? "";
         if (this.channel_uuid) generated.channel_uuid = this.channel_uuid;
 
         // generated.chapters = this.chapters_raw;
@@ -1885,7 +1861,7 @@ export class TwitchVOD extends BaseVOD {
         }
 
         // parse file
-        let json: TwitchVODJSON = JSON.parse(data);
+        const json: TwitchVODJSON = JSON.parse(data);
 
         if (json.capture_id) {
             const cached_vod = this.getVodByCaptureId(json.capture_id);
@@ -1896,35 +1872,9 @@ export class TwitchVOD extends BaseVOD {
         }
 
         if (!("version" in json) || json.version < 2) {
-            if (process.env.TCD_MIGRATE_OLD_VOD_JSON == "1") {
-                log(
-                    LOGLEVEL.WARNING,
-                    "vod.load",
-                    `Invalid VOD JSON version: ${filename}, trying to migrate...`
-                );
-                const { newJson, newBasename } = TwitchVOD.migrateOldJSON(
-                    json,
-                    path.dirname(filename),
-                    path.basename(filename)
-                );
-                json = newJson;
-                if (path.basename(filename) != newBasename) {
-                    log(
-                        LOGLEVEL.WARNING,
-                        "vod.load",
-                        `New basename for ${filename}: ${newBasename}`
-                    );
-                    fs.renameSync(
-                        filename,
-                        path.join(path.dirname(filename), newBasename)
-                    );
-                    filename = path.join(path.dirname(filename), newBasename);
-                }
-            } else {
-                throw new Error(
-                    `Invalid VOD JSON version for ${filename}, set TCD_MIGRATE_OLD_VOD_JSON to 1 to migrate on load.`
-                );
-            }
+            throw new Error(
+                `Invalid VOD JSON version for ${filename}, older versions are no longer supported!`
+            );
         }
 
         // create object
@@ -1978,267 +1928,6 @@ export class TwitchVOD extends BaseVOD {
         log(LOGLEVEL.DEBUG, "vod.load", `Loaded VOD ${filename}`);
 
         return vod;
-    }
-
-    // too much work
-    static migrateOldJSON(
-        json: any,
-        basepath: string,
-        basename: string
-    ): { newJson: TwitchVODJSON; newBasename: string } {
-        log(
-            LOGLEVEL.WARNING,
-            "vod.migrate",
-            `Migrating old VOD JSON ${basename}`
-        );
-
-        const chapters: TwitchVODChapterJSON[] = [];
-        const segments: string[] = (json.segments || json.segments_raw)
-            .map(
-                (
-                    s:
-                        | string
-                        | {
-                              filename: string;
-                              basename: string;
-                              filesize: number;
-                              strings: string[];
-                          }
-                ) => {
-                    let name = "";
-                    if (typeof s === "string") {
-                        name = path.basename(s);
-                    } else {
-                        name = s.basename;
-                    }
-
-                    let newName = "";
-                    try {
-                        newName = path.basename(
-                            trueCasePathSync(path.join(basepath, name))
-                        );
-                    } catch (error) {
-                        log(
-                            LOGLEVEL.WARNING,
-                            "vod.migrate",
-                            `Could not find segment ${name} in ${basepath}`
-                        );
-                        return undefined;
-                    }
-
-                    if (newName != name) {
-                        log(
-                            LOGLEVEL.WARNING,
-                            "vod.migrate",
-                            `Renaming segment ${name} to ${newName}`
-                        );
-                        fs.renameSync(
-                            path.join(basepath, name),
-                            path.join(basepath, newName)
-                        );
-                    } else {
-                        log(
-                            LOGLEVEL.WARNING,
-                            "vod.migrate",
-                            `Segment ${name} is already named correctly`
-                        );
-                    }
-
-                    return newName;
-
-                    /*
-            // check if case sensitive file exists
-            if (fileExistsWithCaseSync(path.join(basepath, name))) {
-                logAdvanced(LOGLEVEL.WARNING, "vod", `Found default file: ${name}`);
-                return name;
-            } else if (fileExistsWithCaseSync(path.join(basepath, name.toLocaleLowerCase()))) {
-                logAdvanced(LOGLEVEL.WARNING, "vod", `Found lowercase file: ${name.toLocaleLowerCase()}`);
-                fs.renameSync(path.join(basepath, name), path.join(basepath, name.toLocaleLowerCase())); // rename to lowercase
-                return name.toLocaleLowerCase(); // new format uses lowercase logins
-            } else {
-                logAdvanced(LOGLEVEL.WARNING, "vod", `Could not find file: ${name} at ${path.join(basepath, name)} or ${path.join(basepath, name.toLocaleLowerCase())}`);
-                return undefined;
-            }
-            */
-                }
-            )
-            .filter((s: string | undefined) => s !== undefined);
-
-        if (segments.length == 0) {
-            throw new Error(`No segments found in ${basename}`);
-        }
-
-        log(
-            LOGLEVEL.WARNING,
-            "vod.migrate",
-            `Migrated segments: ${segments.length}`
-        );
-        log(
-            LOGLEVEL.WARNING,
-            "vod.migrate",
-            `Migrated chapters: ${json.chapters.length}`
-        );
-
-        for (const chapter of json.chapters) {
-            let started_at = "";
-
-            if (chapter.dt_started_at) {
-                started_at = JSON.stringify(
-                    parse(
-                        chapter.dt_started_at.date,
-                        TwitchHelper.PHP_DATE_FORMAT,
-                        new Date()
-                    )
-                );
-            } else if (chapter.time) {
-                started_at = JSON.stringify(parseJSON(chapter.time));
-            }
-
-            const new_chapter: TwitchVODChapterJSON = {
-                started_at: started_at,
-                game_id: chapter.game_id,
-                game_name: chapter.game_name,
-                viewer_count: chapter.viewer_count,
-                title: chapter.title,
-                // offset: chapter.offset,
-                box_art_url: chapter.box_art_url,
-                is_mature: false,
-                online: true,
-            };
-            chapters.push(new_chapter);
-        }
-
-        let saved_at = "";
-        // json.saved_at ? JSON.stringify(parse(json.saved_at.date, Helper.PHP_DATE_FORMAT, new Date())) : JSON.stringify(new Date())
-        let started_at = "";
-        let ended_at = "";
-
-        if (json.saved_at) {
-            saved_at = JSON.stringify(
-                parse(
-                    json.saved_at.date,
-                    TwitchHelper.PHP_DATE_FORMAT,
-                    new Date()
-                )
-            );
-            log(LOGLEVEL.INFO, "vod.migrate", `Migrated saved_at: ${saved_at}`);
-        }
-
-        if (json.started_at) {
-            started_at = JSON.stringify(
-                parse(
-                    json.started_at.date,
-                    TwitchHelper.PHP_DATE_FORMAT,
-                    new Date()
-                )
-            );
-            log(
-                LOGLEVEL.INFO,
-                "vod.migrate",
-                `Migrated started_at with json.started_at: ${started_at}`
-            );
-        } else if (json.dt_started_at) {
-            started_at = JSON.stringify(
-                parse(
-                    json.dt_started_at.date,
-                    TwitchHelper.PHP_DATE_FORMAT,
-                    new Date()
-                )
-            );
-            log(
-                LOGLEVEL.INFO,
-                "vod.migrate",
-                `Migrated started_at with json.dt_started_at: ${started_at}`
-            );
-        }
-
-        if (json.ended_at) {
-            ended_at = JSON.stringify(
-                parse(
-                    json.ended_at.date,
-                    TwitchHelper.PHP_DATE_FORMAT,
-                    new Date()
-                )
-            );
-            log(
-                LOGLEVEL.INFO,
-                "vod.migrate",
-                `Migrated ended_at with json.ended_at: ${ended_at}`
-            );
-        } else if (json.dt_ended_at) {
-            ended_at = JSON.stringify(
-                parse(
-                    json.dt_ended_at.date,
-                    TwitchHelper.PHP_DATE_FORMAT,
-                    new Date()
-                )
-            );
-            log(
-                LOGLEVEL.INFO,
-                "vod.migrate",
-                `Migrated ended_at with json.dt_ended_at: ${ended_at}`
-            );
-        }
-
-        if (!saved_at || !started_at || !ended_at) {
-            throw new Error(`Could not migrate dates for ${basename}`);
-        }
-
-        log(
-            LOGLEVEL.INFO,
-            "vod.migrate",
-            `Migrated date saved_at: ${saved_at}`
-        );
-        log(
-            LOGLEVEL.INFO,
-            "vod.migrate",
-            `Migrated date started_at: ${started_at}`
-        );
-        log(
-            LOGLEVEL.INFO,
-            "vod.migrate",
-            `Migrated date ended_at: ${ended_at}`
-        );
-
-        const new_json: TwitchVODJSON = {
-            version: 2,
-            meta: undefined,
-            twitch_vod_id: json.twitch_vod_id,
-            twitch_vod_duration: json.twitch_vod_duration,
-            twitch_vod_title: json.twitch_vod_title,
-            twitch_vod_date: json.twitch_vod_date,
-            twitch_vod_exists: json.twitch_vod_exists,
-            twitch_vod_attempted: json.twitch_vod_attempted,
-            twitch_vod_neversaved: json.twitch_vod_neversaved,
-            twitch_vod_muted:
-                json.twitch_vod_muted === true
-                    ? MuteStatus.MUTED
-                    : MuteStatus.UNKNOWN,
-            stream_resolution: json.stream_resolution,
-            streamer_name: json.streamer_name,
-            streamer_id: json.streamer_id,
-            streamer_login: json.streamer_login,
-            channel_uuid: "",
-            chapters: chapters,
-            type: "twitch",
-            segments: segments,
-            is_capturing: json.is_capturing,
-            is_converting: json.is_converting,
-            is_finalized: json.is_finalized,
-            duration:
-                typeof json.duration === "number" ? json.duration : undefined,
-            saved_at: saved_at,
-            started_at: started_at,
-            ended_at: ended_at,
-            not_started: false,
-            prevent_deletion: false,
-            bookmarks: [],
-        };
-
-        return {
-            newJson: new_json,
-            newBasename: basename.toLocaleLowerCase(),
-        };
     }
 
     /**

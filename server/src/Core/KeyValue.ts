@@ -86,7 +86,7 @@ export class KeyValue extends EventEmitter {
     }
 
     hasAsync(key: string): Promise<boolean> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             resolve(this.has(key));
         });
     }
@@ -102,7 +102,7 @@ export class KeyValue extends EventEmitter {
     }
 
     getRawAsync(key: string): Promise<KeyValueData | false> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             resolve(this.getRaw(key));
         });
     }
@@ -159,7 +159,7 @@ export class KeyValue extends EventEmitter {
     }
 
     getObjectAsync<T>(key: string): Promise<T | false> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             resolve(this.getObject<T>(key));
         });
     }
@@ -169,7 +169,7 @@ export class KeyValue extends EventEmitter {
     }
 
     getBoolAsync(key: string): Promise<boolean> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             resolve(this.getBool(key));
         });
     }
@@ -189,7 +189,7 @@ export class KeyValue extends EventEmitter {
     }
 
     getIntAsync(key: string, def?: number): Promise<number> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             resolve(this.getInt(key, def));
         });
     }
@@ -214,7 +214,7 @@ export class KeyValue extends EventEmitter {
     }
 
     setAsync(key: string, value: string): Promise<void> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             this.set(key, value);
             resolve();
         });
@@ -258,7 +258,7 @@ export class KeyValue extends EventEmitter {
     }
 
     setObjectAsync<T>(key: string, value: T | null): Promise<void> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             this.setObject(key, value);
             resolve();
         });
@@ -269,7 +269,7 @@ export class KeyValue extends EventEmitter {
     }
 
     setBoolAsync(key: string, value: boolean): Promise<void> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             this.setBool(key, value);
             resolve();
         });
@@ -280,7 +280,7 @@ export class KeyValue extends EventEmitter {
     }
 
     setIntAsync(key: string, value: number): Promise<void> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             this.setInt(key, value);
             resolve();
         });
@@ -385,7 +385,7 @@ export class KeyValue extends EventEmitter {
     }
 
     deleteAsync(key: string): Promise<boolean> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             if (this.data[key]) {
                 this.delete(key);
                 resolve(true);
@@ -406,7 +406,7 @@ export class KeyValue extends EventEmitter {
     }
 
     deleteAllAsync(): Promise<void> {
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             this.deleteAll();
             resolve();
         });

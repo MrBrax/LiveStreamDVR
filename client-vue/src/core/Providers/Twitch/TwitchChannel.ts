@@ -10,13 +10,7 @@ import BaseChannel from "../Base/BaseChannel";
 export default class TwitchChannel extends BaseChannel {
     readonly provider = "twitch";
     uuid = "";
-    /** @deprecated */
-    userid = "";
-    /** @deprecated */
-    display_name = "";
 
-    /** @deprecated */
-    login = "";
     quality: VideoQuality[] = [];
     broadcaster_type: BroadcasterType = "";
 
@@ -37,11 +31,7 @@ export default class TwitchChannel extends BaseChannel {
 
     public static makeFromApiResponse(apiResponse: ApiTwitchChannel): TwitchChannel {
         const channel = new TwitchChannel();
-        // channel.provider = apiResponse.provider;
         channel.uuid = apiResponse.uuid;
-        channel.userid = apiResponse.userid;
-        channel.display_name = apiResponse.display_name;
-        channel.login = apiResponse.login;
         channel.description = apiResponse.description;
         channel.quality = apiResponse.quality || [];
         channel.vods_raw = apiResponse.vods_raw;

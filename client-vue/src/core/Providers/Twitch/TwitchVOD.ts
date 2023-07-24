@@ -28,12 +28,6 @@ export default class TwitchVOD extends BaseVOD {
     stream_resolution: string | undefined = "";
     stream_title = "";
 
-    /** @deprecated */
-    streamer_login = "";
-
-    /** @deprecated */
-    streamer_id = "";
-
     public static makeFromApiResponse(apiResponse: ApiTwitchVod): TwitchVOD {
         const vod = new TwitchVOD();
         vod.uuid = apiResponse.uuid;
@@ -69,8 +63,6 @@ export default class TwitchVOD extends BaseVOD {
         vod.is_capture_paused = apiResponse.is_capture_paused;
         vod.stream_resolution = apiResponse.stream_resolution;
         vod.stream_title = apiResponse.stream_title;
-        vod.streamer_login = apiResponse.streamer_login;
-        vod.streamer_id = apiResponse.streamer_id;
         vod.webpath = apiResponse.webpath;
         vod.convertingStatus = apiResponse.api_getConvertingStatus;
         vod.recordingSize = apiResponse.api_getRecordingSize;

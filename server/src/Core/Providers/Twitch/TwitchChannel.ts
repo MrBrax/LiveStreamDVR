@@ -428,9 +428,6 @@ export class TwitchChannel extends BaseChannel {
         vod.basename = path.basename(filename, ".json");
         vod.directory = path.dirname(filename);
 
-        vod.streamer_name = this.displayName;
-        vod.streamer_login = this.internalName;
-        vod.streamer_id = this.internalId;
         vod.channel_uuid = this.uuid;
 
         vod.created_at = new Date();

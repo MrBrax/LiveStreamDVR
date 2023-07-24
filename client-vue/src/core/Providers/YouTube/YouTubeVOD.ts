@@ -13,7 +13,6 @@ export default class YouTubeVOD extends BaseVOD {
     segments: BaseVODSegment[] = [];
     chapters: BaseVODChapter[] = [];
     // bookmarks: TwitchVODBookmark[] = [];
-    streamer_id = "";
 
     public static makeFromApiResponse(apiResponse: ApiYouTubeVod): YouTubeVOD {
         const vod = new YouTubeVOD();
@@ -49,8 +48,6 @@ export default class YouTubeVOD extends BaseVOD {
         vod.is_capture_paused = apiResponse.is_capture_paused;
         // vod.stream_resolution = apiResponse.stream_resolution;
         // vod.stream_title = apiResponse.stream_title;
-        // vod.streamer_login = apiResponse.streamer_login;
-        vod.streamer_id = apiResponse.streamer_id;
         vod.webpath = apiResponse.webpath;
         // vod.convertingStatus = apiResponse.api_getConvertingStatus;
         vod.recordingSize = apiResponse.api_getRecordingSize;
@@ -87,7 +84,7 @@ export default class YouTubeVOD extends BaseVOD {
     public getChannel(): YouTubeChannel {
         const store = useStore();
         const streamer = store.streamerList.find<YouTubeChannel>(
-            (streamer): streamer is YouTubeChannel => streamer instanceof YouTubeChannel && streamer.channel_id == this.streamer_id,
+            (streamer): streamer is YouTubeChannel => streamer instanceof YouTubeChannel && streamer.uuid == this.channel_uuid,
         );
         if (!streamer) {
             throw new Error("No streamer for vod");

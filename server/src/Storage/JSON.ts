@@ -1,10 +1,9 @@
-import type { VideoQuality } from "@common/Config";
-import type { EventSubResponse } from "@common/TwitchAPI/EventSub";
-import type { MuteStatus, Providers } from "@common/Defs";
-import type { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
 import type { VODBookmark } from "@common/Bookmark";
+import type { VideoQuality } from "@common/Config";
+import type { MuteStatus, Providers } from "@common/Defs";
 import type { ExportData } from "@common/Exporter";
-import type { VodViewerEntry, StreamPause } from "@common/Vod";
+import type { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
+import type { EventSubResponse } from "@common/TwitchAPI/EventSub";
 
 export interface VODJSON {
     version: number;

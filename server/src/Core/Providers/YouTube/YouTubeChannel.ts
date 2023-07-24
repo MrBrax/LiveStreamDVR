@@ -593,7 +593,7 @@ export class YouTubeChannel extends BaseChannel {
             provider: "youtube",
             channel_id: this.channel_id || "",
             // login: "",
-            display_name: this.display_name || "",
+            display_name: this.displayName || "",
             description: this.description || "",
             profile_image_url:
                 this.channel_data?.thumbnails?.default?.url || "",

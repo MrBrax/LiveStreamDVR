@@ -1,4 +1,7 @@
-import type { BaseVODChapterJSON, TwitchVODChapterJSON } from "../../server/src/Storage/JSON";
+import type {
+    BaseVODChapterJSON,
+    TwitchVODChapterJSON,
+} from "../../server/src/Storage/JSON";
 import type { VODBookmark } from "../Bookmark";
 import type { VideoQuality } from "../Config";
 import type { ExistStatus, JobStatus, MuteStatus, Providers } from "../Defs";
@@ -108,17 +111,12 @@ export interface ApiBaseVod {
     stream_pauses: { start: string; end: string }[];
 
     bookmarks: VODBookmark[];
-
 }
 
 export interface ApiTwitchVod extends ApiBaseVod {
     provider: "twitch";
     stream_title: string;
     stream_resolution?: VideoQuality;
-
-    streamer_name: string;
-    streamer_id: string;
-    streamer_login: string;
 
     twitch_vod_duration?: number;
     twitch_vod_muted?: MuteStatus;
@@ -146,14 +144,12 @@ export interface ApiTwitchVod extends ApiBaseVod {
     // video_metadata_public?: MediaInfoPublic;
 
     chapters: ApiVodTwitchChapter[];
-
 }
 
 export interface ApiYouTubeVod extends ApiBaseVod {
     streamer_name: string;
     streamer_id: string;
     provider: "youtube";
-
 }
 
 export interface ApiKickVod extends ApiBaseVod {
@@ -234,7 +230,6 @@ export interface ApiTwitchChannel extends ApiBaseChannel {
     api_getSubscriptionStatus: boolean;
 
     chapter_data?: TwitchVODChapterJSON;
-
 }
 
 export interface ApiYouTubeChannel extends ApiBaseChannel {
@@ -259,7 +254,6 @@ export interface ApiYouTubeChannel extends ApiBaseChannel {
     api_getSubscriptionStatus: boolean;
 
     chapter_data?: BaseVODChapterJSON;
-
 }
 
 export type ApiChannels = ApiTwitchChannel | ApiYouTubeChannel;

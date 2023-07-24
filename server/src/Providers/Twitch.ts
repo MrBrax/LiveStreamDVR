@@ -937,7 +937,7 @@ export class TwitchHelper {
 
     public static async postRequest<T>(
         url: string,
-        data: any,
+        data: unknown,
         config: AxiosRequestConfig = {},
         retried = false
     ): Promise<AxiosResponse<T>> {

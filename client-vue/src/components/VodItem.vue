@@ -296,7 +296,7 @@ const renameVodTemplatePreview = computed(() => {
     if (!props.vod) return "";
     const date = props.vod.started_at;
     const replacements: VodBasenameTemplate = {
-        login: props.vod.provider == "twitch" ? props.vod.streamer_login : "",
+        login: props.vod.provider == "twitch" ? props.vod.getChannel().internalName : "",
         internalName: props.vod.getChannel().internalName,
         displayName: props.vod.getChannel().displayName,
         date: date ? format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'").replaceAll(":", "_") : "",
