@@ -1,7 +1,7 @@
 export interface ExporterOptions {
-
     /** VOD UUID */
     vod?: string;
+    segment?: number;
     directory?: string;
     host?: string;
     username?: string;

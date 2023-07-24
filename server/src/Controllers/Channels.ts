@@ -983,7 +983,11 @@ export async function SubscribeToChannel(
 ): Promise<void> {
     const channel = getChannelFromRequest(req);
 
-    if (!channel || !(channel instanceof TwitchChannel) || !channel.userid) {
+    if (
+        !channel ||
+        !(channel instanceof TwitchChannel) ||
+        !channel.internalId
+    ) {
         res.status(400).send({
             status: "ERROR",
             message: req.t("route.channels.channel-uuid-not-found"),
@@ -995,7 +999,7 @@ export async function SubscribeToChannel(
 
     res.send({
         data: {
-            login: channel.login,
+            login: channel.internalName,
             status: sub
                 ? "Subscription request sent, check logs for details"
                 : "ERROR",
@@ -1010,7 +1014,11 @@ export async function UnsubscribeFromChannel(
 ): Promise<void> {
     const channel = getChannelFromRequest(req);
 
-    if (!channel || !(channel instanceof TwitchChannel) || !channel.userid) {
+    if (
+        !channel ||
+        !(channel instanceof TwitchChannel) ||
+        !channel.internalId
+    ) {
         res.status(400).send({
             status: "ERROR",
             message: req.t("route.channels.channel-uuid-not-found"),
@@ -1032,7 +1040,11 @@ export async function CheckSubscriptions(
 ): Promise<void> {
     const channel = getChannelFromRequest(req);
 
-    if (!channel || !(channel instanceof TwitchChannel) || !channel.userid) {
+    if (
+        !channel ||
+        !(channel instanceof TwitchChannel) ||
+        !channel.internalId
+    ) {
         res.status(400).send({
             status: "ERROR",
             message: req.t("route.channels.channel-uuid-not-found"),

@@ -1,15 +1,15 @@
-import type express from "express";
-import path from "node:path";
-import sanitize from "sanitize-filename";
-import type { ApiErrorResponse, ApiResponse } from "@common/Api/Api";
-import type { ExporterOptions } from "@common/Exporter";
 import { BaseConfigDataFolder, DataRoot } from "@/Core/BaseConfig";
 import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
-import { FileExporter } from "@/Exporters/File";
 import { FTPExporter } from "@/Exporters/FTP";
+import { FileExporter } from "@/Exporters/File";
 import { RCloneExporter } from "@/Exporters/RClone";
 import { SFTPExporter } from "@/Exporters/SFTP";
 import { YouTubeExporter } from "@/Exporters/YouTube";
+import type { ApiErrorResponse, ApiResponse } from "@common/Api/Api";
+import type { ExporterOptions } from "@common/Exporter";
+import type express from "express";
+import path from "node:path";
+import sanitize from "sanitize-filename";
 import { validatePath } from "./Files";
 
 export type Exporter =
@@ -116,7 +116,13 @@ export function GetExporter(
             throw new Error("Vod has no segments");
         }
 
-        exporter.loadVOD(vod);
+        const segment_num = options.segment || 0;
+
+        if (segment_num >= vod.segments.length || segment_num < 0) {
+            throw new Error("Segment does not exist");
+        }
+
+        exporter.loadVOD(vod, segment_num);
     } else if (mode == "file") {
         const input_folder = options.file_folder;
         const input_name = options.file_name;

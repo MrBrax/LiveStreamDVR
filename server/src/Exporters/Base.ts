@@ -1,12 +1,12 @@
-import { format } from "date-fns";
-import fs from "node:fs";
-import path from "node:path";
-import { formatString } from "@common/Format";
-import type { ExporterFilenameTemplate } from "@common/Replacements";
+import { Config } from "@/Core/Config";
 import type { VODTypes } from "@/Core/LiveStreamDVR";
 import { log, LOGLEVEL } from "@/Core/Log";
 import { isTwitchVOD } from "@/Helpers/Types";
-import { Config } from "@/Core/Config";
+import { formatString } from "@common/Format";
+import type { ExporterFilenameTemplate } from "@common/Replacements";
+import { format } from "date-fns";
+import fs from "node:fs";
+import path from "node:path";
 
 export class BaseExporter {
     public type = "Base";
@@ -25,14 +25,15 @@ export class BaseExporter {
         this.directoryMode = state;
     }
 
-    loadVOD(vod: VODTypes): boolean {
+    loadVOD(vod: VODTypes, segment = 0): boolean {
         if (!vod.filename) throw new Error("No filename");
         if (!vod.segments || vod.segments.length == 0)
             throw new Error("No segments");
-        if (vod.segments[0].filename) {
-            if (!fs.existsSync(vod.segments[0].filename))
+        const seg = vod.segments[segment];
+        if (seg.filename) {
+            if (!fs.existsSync(seg.filename))
                 throw new Error("Segment file does not exist");
-            this.filename = vod.segments[0].filename;
+            this.filename = seg.filename;
             this.extension = path.extname(this.filename).substring(1);
             this.vod = vod;
             return true;
@@ -141,10 +142,10 @@ export class BaseExporter {
     }
 
     async export(): Promise<boolean | string> {
-        throw new Error("Export not implemented");
+        return await Promise.reject(new Error("Export not implemented"));
     }
 
     async verify(): Promise<boolean> {
-        throw new Error("Verification not implemented");
+        return await Promise.reject(new Error("Verification not implemented"));
     }
 }
