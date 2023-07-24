@@ -1,16 +1,16 @@
-import type express from "express";
+import { Config } from "@/Core/Config";
+import { KeyValue } from "@/Core/KeyValue";
+import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
+import { log, LOGLEVEL } from "@/Core/Log";
+import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
 import type { ApiErrorResponse } from "@common/Api/Api";
 import { SubStatus } from "@common/Defs";
-import { KeyValue } from "@/Core/KeyValue";
-import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
-import { Config } from "@/Core/Config";
-import { TwitchHelper } from "../Providers/Twitch";
-import { log, LOGLEVEL } from "@/Core/Log";
 import type {
     EventSubTypes,
     TransportWebsocket,
 } from "@common/TwitchAPI/Shared";
-import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
+import type express from "express";
+import { TwitchHelper } from "../Providers/Twitch";
 
 interface ChannelSub {
     type: EventSubTypes;
@@ -112,18 +112,18 @@ export async function ListSubscriptions(
             }
 
             if (
-                !KeyValue.getInstance().has(
+                !(await KeyValue.getInstance().hasAsync(
                     `${entry.user_id}.sub.${entry.type}`
-                ) ||
-                !KeyValue.getInstance().has(
+                )) ||
+                !(await KeyValue.getInstance().hasAsync(
                     `${entry.user_id}.substatus.${entry.type}`
-                )
+                ))
             ) {
-                KeyValue.getInstance().set(
+                await KeyValue.getInstance().setAsync(
                     `${entry.user_id}.sub.${entry.type}`,
                     entry.id
                 );
-                KeyValue.getInstance().set(
+                await KeyValue.getInstance().setAsync(
                     `${entry.user_id}.substatus.${entry.type}`,
                     entry.status == "enabled"
                         ? SubStatus.SUBSCRIBED
@@ -216,7 +216,7 @@ export async function UnsubscribeFromId(
         if (sub.condition && sub.condition.broadcaster_user_id) {
             const userid = sub.condition.broadcaster_user_id;
             const type = sub.type;
-            KeyValue.getInstance().delete(`${userid}.sub.${type}`);
+            await KeyValue.getInstance().deleteAsync(`${userid}.sub.${type}`);
             // KeyValue.getInstance().delete(`${userid}.substatus.${sub.type}`);
         }
     } else {

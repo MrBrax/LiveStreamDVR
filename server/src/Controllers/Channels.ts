@@ -1144,9 +1144,15 @@ export async function RefreshChannel(
     }
 
     if (!isLive) {
-        KeyValue.getInstance().delete(`${channel.internalName}.online`);
-        KeyValue.getInstance().delete(`${channel.internalName}.vod.id`);
-        KeyValue.getInstance().delete(`${channel.internalName}.vod.started_at`);
+        await KeyValue.getInstance().deleteAsync(
+            `${channel.internalName}.online`
+        );
+        await KeyValue.getInstance().deleteAsync(
+            `${channel.internalName}.vod.id`
+        );
+        await KeyValue.getInstance().deleteAsync(
+            `${channel.internalName}.vod.started_at`
+        );
     }
 
     if (success) {
@@ -1303,11 +1309,11 @@ export async function ForceRecord(
             YA.channel = channel;
             // YA.handle(mock_data, req);
 
-            KeyValue.getInstance().set(
+            await KeyValue.getInstance().setAsync(
                 `yt.${YA.getUserID()}.vod.started_at`,
                 streams.snippet?.publishedAt || new Date().toISOString()
             );
-            KeyValue.getInstance().set(
+            await KeyValue.getInstance().setAsync(
                 `yt.${YA.getUserID()}.vod.id`,
                 streams.id?.videoId || "fake"
             );

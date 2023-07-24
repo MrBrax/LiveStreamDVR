@@ -86,7 +86,7 @@ export class TwitchAutomator extends BaseAutomator {
         }
 
         try {
-            KeyValue.getInstance().setBool(
+            await KeyValue.getInstance().setBoolAsync(
                 `tw.eventsub.${messageId}.ack`,
                 true
             );
@@ -150,10 +150,11 @@ export class TwitchAutomator extends BaseAutomator {
             }
 
             // KeyValue.getInstance().set("${this.broadcaster_user_login}.last.update", (new DateTime())->format(DateTime::ATOM));
-            KeyValue.getInstance().set(
+            await KeyValue.getInstance().setAsync(
                 `${this.broadcaster_user_login}.last.update`,
                 new Date().toISOString()
             );
+
             log(
                 LOGLEVEL.INFO,
                 "automator.handle",
@@ -172,14 +173,15 @@ export class TwitchAutomator extends BaseAutomator {
                 return false;
             }
 
-            KeyValue.getInstance().delete(
+            await KeyValue.getInstance().deleteAsync(
                 `${this.broadcaster_user_login}.offline`
             );
 
-            KeyValue.getInstance().set(
+            await KeyValue.getInstance().setAsync(
                 `${this.broadcaster_user_login}.last.online`,
                 new Date().toISOString()
             );
+
             log(
                 LOGLEVEL.INFO,
                 "automator.handle",
@@ -210,15 +212,15 @@ export class TwitchAutomator extends BaseAutomator {
                 );
             }
 
-            KeyValue.getInstance().setBool(
+            await KeyValue.getInstance().setBoolAsync(
                 `${this.broadcaster_user_login}.online`,
                 true
             );
-            KeyValue.getInstance().set(
+            await KeyValue.getInstance().setAsync(
                 `${this.broadcaster_user_login}.vod.id`,
                 event.id
             );
-            KeyValue.getInstance().set(
+            await KeyValue.getInstance().setAsync(
                 `${this.broadcaster_user_login}.vod.started_at`,
                 event.started_at
             );
@@ -340,7 +342,7 @@ export class TwitchAutomator extends BaseAutomator {
 
             return true;
         } else if (subscription_type == "stream.offline") {
-            KeyValue.getInstance().setBool(
+            await KeyValue.getInstance().setBoolAsync(
                 `${this.broadcaster_user_login}.offline`,
                 true
             );
@@ -361,7 +363,7 @@ export class TwitchAutomator extends BaseAutomator {
 
     public async updateGame(from_cache = false, no_run_check = false) {
         // const basename = this.vodBasenameTemplate();
-        const is_live = KeyValue.getInstance().getBool(
+        const is_live = await KeyValue.getInstance().getBoolAsync(
             `${this.getLogin()}.online`
         );
 
@@ -369,7 +371,7 @@ export class TwitchAutomator extends BaseAutomator {
         if (this.channel?.is_capturing) {
             // const folder_base = TwitchHelper.vodFolder(this.getLogin());
 
-            const capture_id = KeyValue.getInstance().get(
+            const capture_id = await KeyValue.getInstance().getAsync(
                 `${this.getLogin()}.vod.id`
             );
 
@@ -395,7 +397,9 @@ export class TwitchAutomator extends BaseAutomator {
                     "automator.updateGame",
                     `Resetting online status on ${this.getLogin()}.`
                 );
-                KeyValue.getInstance().delete(`${this.getLogin()}.online`);
+                await KeyValue.getInstance().deleteAsync(
+                    `${this.getLogin()}.online`
+                );
                 return false;
             }
 
@@ -405,7 +409,9 @@ export class TwitchAutomator extends BaseAutomator {
                     "automator.updateGame",
                     `VOD ${vod.basename} is not capturing, skipping chapter update. Removing online status.`
                 );
-                KeyValue.getInstance().delete(`${this.getLogin()}.online`);
+                await KeyValue.getInstance().deleteAsync(
+                    `${this.getLogin()}.online`
+                );
                 return false;
             }
 
@@ -417,12 +423,14 @@ export class TwitchAutomator extends BaseAutomator {
                 if (this.channel) {
                     chapter_data = this.channel.getChapterData();
                 } else if (
-                    KeyValue.getInstance().has(`${this.getLogin()}.chapterdata`)
+                    await KeyValue.getInstance().hasAsync(
+                        `${this.getLogin()}.chapterdata`
+                    )
                 ) {
                     chapter_data =
-                        KeyValue.getInstance().getObject<TwitchVODChapterJSON>(
+                        (await KeyValue.getInstance().getObjectAsync<TwitchVODChapterJSON>(
                             `${this.getLogin()}.chapterdata`
-                        ) as TwitchVODChapterJSON; // type guard not working
+                        )) as TwitchVODChapterJSON; // type guard not working
                 } else {
                     log(
                         LOGLEVEL.ERROR,

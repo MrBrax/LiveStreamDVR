@@ -221,7 +221,11 @@ export class YouTubeChannel extends BaseChannel {
         // channel.broadcaster_type = channel_data.broadcaster_type;
         channel.applyConfig(channel_config);
 
-        if (KeyValue.getInstance().getBool(`yt.${channel.channel_id}.online`)) {
+        if (
+            await KeyValue.getInstance().getBoolAsync(
+                `yt.${channel.channel_id}.online`
+            )
+        ) {
             log(
                 LOGLEVEL.WARNING,
                 "yt.channel",
@@ -230,7 +234,9 @@ export class YouTubeChannel extends BaseChannel {
         }
 
         if (
-            KeyValue.getInstance().get(`yt.${channel.channel_id}.channeldata`)
+            await KeyValue.getInstance().hasAsync(
+                `yt.${channel.channel_id}.channeldata`
+            )
         ) {
             log(
                 LOGLEVEL.WARNING,
@@ -352,7 +358,9 @@ export class YouTubeChannel extends BaseChannel {
                 );
             }
 
-            if (KeyValue.getInstance().get(`${identifier}.deleted`)) {
+            if (
+                await KeyValue.getInstance().hasAsync(`${identifier}.deleted`)
+            ) {
                 log(
                     LOGLEVEL.WARNING,
                     "yt.channel.getUserDataProxy",

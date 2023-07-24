@@ -548,14 +548,16 @@ export class TwitchChannel extends BaseChannel {
     public async updateChapterData(force = false): Promise<void> {
         if (!this.internalId) return;
         if (
-            KeyValue.getInstance().has(`${this.internalName}.chapterdata`) &&
+            (await KeyValue.getInstance().hasAsync(
+                `${this.internalName}.chapterdata`
+            )) &&
             !force
         )
             return;
         const data = await TwitchChannel.getChannelDataById(this.internalId);
         if (!data) return;
         const chapter = TwitchChannel.channelDataToChapterData(data);
-        KeyValue.getInstance().set(
+        await KeyValue.getInstance().setAsync(
             `${this.internalName}.chapterdata`,
             JSON.stringify(chapter)
         );
@@ -1014,7 +1016,11 @@ export class TwitchChannel extends BaseChannel {
     public async postLoad(): Promise<void> {
         await this.parseVODs();
         this.setupStreamNumber();
-        if (!KeyValue.getInstance().has(`${this.internalName}.saves_vods`)) {
+        if (
+            !(await KeyValue.getInstance().hasAsync(
+                `${this.internalName}.saves_vods`
+            ))
+        ) {
             await this.checkIfChannelSavesVods();
         }
         this.addAllLocalVideos();
@@ -1101,7 +1107,7 @@ export class TwitchChannel extends BaseChannel {
         );
         const videos = await TwitchVOD.getLatestVideos(this.internalId);
         const state = videos && videos.length > 0;
-        KeyValue.getInstance().setBool(
+        await KeyValue.getInstance().setBoolAsync(
             `${this.internalName}.saves_vods`,
             state
         );
@@ -1547,7 +1553,11 @@ export class TwitchChannel extends BaseChannel {
         channel.broadcaster_type = channel_data.broadcaster_type;
         channel.applyConfig(channel_config);
 
-        if (KeyValue.getInstance().getBool(`${channel.internalName}.online`)) {
+        if (
+            await KeyValue.getInstance().getBoolAsync(
+                `${channel.internalName}.online`
+            )
+        ) {
             log(
                 LOGLEVEL.WARNING,
                 "tw.channel.loadAbstract",
@@ -1555,7 +1565,11 @@ export class TwitchChannel extends BaseChannel {
             );
         }
 
-        if (KeyValue.getInstance().get(`${channel.internalName}.channeldata`)) {
+        if (
+            await KeyValue.getInstance().hasAsync(
+                `${channel.internalName}.channeldata`
+            )
+        ) {
             log(
                 LOGLEVEL.WARNING,
                 "tw.channel.loadAbstract",
@@ -1732,7 +1746,7 @@ export class TwitchChannel extends BaseChannel {
             // bad hack?
             const streams = await TwitchChannel.getStreams(channel.internalId);
             if (streams && streams.length > 0) {
-                KeyValue.getInstance().setBool(
+                await KeyValue.getInstance().setBoolAsync(
                     `${channel.internalName}.online`,
                     true
                 );
@@ -2075,7 +2089,9 @@ export class TwitchChannel extends BaseChannel {
                 );
             }
 
-            if (KeyValue.getInstance().get(`${identifier}.deleted`)) {
+            if (
+                await KeyValue.getInstance().hasAsync(`${identifier}.deleted`)
+            ) {
                 log(
                     LOGLEVEL.WARNING,
                     "tw.channel.getUserDataProxy",
@@ -2520,7 +2536,9 @@ export class TwitchChannel extends BaseChannel {
 
         for (const sub_type of TwitchHelper.CHANNEL_SUB_TYPES) {
             if (
-                KeyValue.getInstance().get(`${channel_id}.sub.${sub_type}`) &&
+                (await KeyValue.getInstance().hasAsync(
+                    `${channel_id}.sub.${sub_type}`
+                )) &&
                 !force
             ) {
                 log(
@@ -2576,11 +2594,11 @@ export class TwitchChannel extends BaseChannel {
                             sub_type
                         );
                         if (sub_id) {
-                            KeyValue.getInstance().set(
+                            await KeyValue.getInstance().setAsync(
                                 `${channel_id}.sub.${sub_type}`,
                                 sub_id
                             );
-                            KeyValue.getInstance().set(
+                            await KeyValue.getInstance().setAsync(
                                 `${channel_id}.substatus.${sub_type}`,
                                 SubStatus.SUBSCRIBED
                             );
@@ -2603,12 +2621,18 @@ export class TwitchChannel extends BaseChannel {
             const json = response.data;
             const http_code = response.status;
 
-            KeyValue.getInstance().setInt(
+            await KeyValue.getInstance().setIntAsync(
                 "twitch.max_total_cost",
                 json.max_total_cost
             );
-            KeyValue.getInstance().setInt("twitch.total_cost", json.total_cost);
-            KeyValue.getInstance().setInt("twitch.total", json.total);
+            await KeyValue.getInstance().setIntAsync(
+                "twitch.total_cost",
+                json.total_cost
+            );
+            await KeyValue.getInstance().setIntAsync(
+                "twitch.total",
+                json.total
+            );
 
             if (http_code == 202) {
                 if (
@@ -2624,11 +2648,11 @@ export class TwitchChannel extends BaseChannel {
                     // continue;
                 }
 
-                KeyValue.getInstance().set(
+                await KeyValue.getInstance().setAsync(
                     `${channel_id}.sub.${sub_type}`,
                     json.data[0].id
                 );
-                KeyValue.getInstance().set(
+                await KeyValue.getInstance().setAsync(
                     `${channel_id}.substatus.${sub_type}`,
                     SubStatus.WAITING
                 );
@@ -2770,8 +2794,10 @@ export class TwitchChannel extends BaseChannel {
                     `Unsubscribed from ${channel_id}:${sub.type} (${streamer_login})`
                 );
                 unsubbed++;
-                KeyValue.getInstance().delete(`${channel_id}.sub.${sub.type}`);
-                KeyValue.getInstance().delete(
+                await KeyValue.getInstance().deleteAsync(
+                    `${channel_id}.sub.${sub.type}`
+                );
+                await KeyValue.getInstance().deleteAsync(
                     `${channel_id}.substatus.${sub.type}`
                 );
             } else {
@@ -2782,12 +2808,14 @@ export class TwitchChannel extends BaseChannel {
                 );
 
                 if (
-                    KeyValue.getInstance().has(`${channel_id}.sub.${sub.type}`)
+                    await KeyValue.getInstance().hasAsync(
+                        `${channel_id}.sub.${sub.type}`
+                    )
                 ) {
-                    KeyValue.getInstance().delete(
+                    await KeyValue.getInstance().deleteAsync(
                         `${channel_id}.sub.${sub.type}`
                     );
-                    KeyValue.getInstance().delete(
+                    await KeyValue.getInstance().deleteAsync(
                         `${channel_id}.substatus.${sub.type}`
                     );
                     log(
@@ -2941,15 +2969,18 @@ export class TwitchChannel extends BaseChannel {
             const json = response.data;
             const http_code = response.status;
 
-            KeyValue.getInstance().setInt(
+            await KeyValue.getInstance().setIntAsync(
                 "twitch.ws.max_total_cost",
                 json.max_total_cost
             );
-            KeyValue.getInstance().setInt(
+            await KeyValue.getInstance().setIntAsync(
                 "twitch.ws.total_cost",
                 json.total_cost
             );
-            KeyValue.getInstance().setInt("twitch.ws.total", json.total);
+            await KeyValue.getInstance().setIntAsync(
+                "twitch.ws.total",
+                json.total
+            );
 
             selectedWebsocket.quotas = {
                 max_total_cost: json.max_total_cost,

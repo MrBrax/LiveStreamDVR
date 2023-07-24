@@ -7,7 +7,7 @@ import type {
 import { randomUUID } from "crypto";
 import { KeyValue } from "../../../Core/KeyValue";
 import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
-import { log, LOGLEVEL } from "../../../Core/Log";
+import { LOGLEVEL, log } from "../../../Core/Log";
 import { isKickChannel } from "../../../Helpers/Types";
 import { GetChannel, GetStream, GetUser } from "../../../Providers/Kick";
 import { BaseChannel } from "../Base/BaseChannel";
@@ -154,7 +154,7 @@ export class KickChannel extends BaseChannel {
         // if (hasAxiosInstance()) { // bad hack?
         const streams = await GetStream(channel.internalName);
         if (streams) {
-            KeyValue.getInstance().setBool(
+            await KeyValue.getInstance().setBoolAsync(
                 `kick.${channel.internalName}.online`,
                 true
             );
@@ -262,7 +262,9 @@ export class KickChannel extends BaseChannel {
         channel.applyConfig(channel_config);
 
         if (
-            KeyValue.getInstance().getBool(`kick.${channel.internalId}.online`)
+            await KeyValue.getInstance().getBoolAsync(
+                `kick.${channel.internalId}.online`
+            )
         ) {
             log(
                 LOGLEVEL.WARNING,
@@ -272,7 +274,7 @@ export class KickChannel extends BaseChannel {
         }
 
         if (
-            KeyValue.getInstance().get(
+            await KeyValue.getInstance().hasAsync(
                 `kick.${channel.internalName}.channeldata`
             )
         ) {

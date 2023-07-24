@@ -184,7 +184,7 @@ export async function HookTwitch(
                     "hook.HookTwitch",
                     "Invalid signature check for challenge!"
                 );
-                KeyValue.getInstance().set(
+                await KeyValue.getInstance().setAsync(
                     `${channel_id}.substatus.${sub_type}`,
                     SubStatus.FAILED
                 );
@@ -198,7 +198,7 @@ export async function HookTwitch(
                 debugMeta
             );
 
-            KeyValue.getInstance().set(
+            await KeyValue.getInstance().setAsync(
                 `${channel_id}.substatus.${sub_type}`,
                 SubStatus.SUBSCRIBED
             );

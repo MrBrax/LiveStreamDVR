@@ -85,6 +85,12 @@ export class KeyValue extends EventEmitter {
         }
     }
 
+    hasAsync(key: string): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            resolve(this.has(key));
+        });
+    }
+
     getRaw(key: string): KeyValueData | false {
         key = key.replaceAll("/", "");
 
@@ -93,6 +99,12 @@ export class KeyValue extends EventEmitter {
         }
 
         return this.data[key];
+    }
+
+    getRawAsync(key: string): Promise<KeyValueData | false> {
+        return new Promise((resolve, reject) => {
+            resolve(this.getRaw(key));
+        });
     }
 
     /**
@@ -146,8 +158,20 @@ export class KeyValue extends EventEmitter {
         }
     }
 
+    getObjectAsync<T>(key: string): Promise<T | false> {
+        return new Promise((resolve, reject) => {
+            resolve(this.getObject<T>(key));
+        });
+    }
+
     getBool(key: string): boolean {
         return this.get(key) === "true";
+    }
+
+    getBoolAsync(key: string): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            resolve(this.getBool(key));
+        });
     }
 
     getInt(key: string, def?: number): number {
@@ -162,6 +186,12 @@ export class KeyValue extends EventEmitter {
             return parseInt(value);
         }
         // return parseInt(this.get(key) || "0");
+    }
+
+    getIntAsync(key: string, def?: number): Promise<number> {
+        return new Promise((resolve, reject) => {
+            resolve(this.getInt(key, def));
+        });
     }
 
     /**
@@ -181,6 +211,13 @@ export class KeyValue extends EventEmitter {
         this.emit("set", key, value);
 
         this.save();
+    }
+
+    setAsync(key: string, value: string): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.set(key, value);
+            resolve();
+        });
     }
 
     setExpiring(key: string, value: string, seconds: number): void {
@@ -220,12 +257,33 @@ export class KeyValue extends EventEmitter {
         // this.save();
     }
 
+    setObjectAsync<T>(key: string, value: T | null): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.setObject(key, value);
+            resolve();
+        });
+    }
+
     setBool(key: string, value: boolean) {
         this.set(key, value ? "true" : "false");
     }
 
+    setBoolAsync(key: string, value: boolean): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.setBool(key, value);
+            resolve();
+        });
+    }
+
     setInt(key: string, value: number) {
         this.set(key, value.toString());
+    }
+
+    setIntAsync(key: string, value: number): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.setInt(key, value);
+            resolve();
+        });
     }
 
     setDate(key: string, date: Date) {
@@ -326,6 +384,17 @@ export class KeyValue extends EventEmitter {
         }
     }
 
+    deleteAsync(key: string): Promise<boolean> {
+        return new Promise((resolve, reject) => {
+            if (this.data[key]) {
+                this.delete(key);
+                resolve(true);
+            } else {
+                resolve(false);
+            }
+        });
+    }
+
     /**
      * Delete all values from the key-value store.
      */
@@ -334,6 +403,13 @@ export class KeyValue extends EventEmitter {
         this.data = {};
         this.emit("delete_all");
         this.save();
+    }
+
+    deleteAllAsync(): Promise<void> {
+        return new Promise((resolve, reject) => {
+            this.deleteAll();
+            resolve();
+        });
     }
 
     /**
