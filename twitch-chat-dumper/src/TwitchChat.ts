@@ -1157,5 +1157,12 @@ export declare interface TwitchChat {
 
     on(event: "pong", listener: () => void): this;
 
+    /**
+     * Comedy score. In some chats such as jerma985 and Vinesauce, chat members have started to use +2 and -2 etc to grade jokes.
+     * This event will be emitted when a message contains a score, and the total score and delta score will be emitted.
+     * @param event 
+     * @param listener 
+     */
+
     on(event: "comedy", listener: (totalScore: number, deltaScore: number, message: TwitchMessage) => void): this;
 }

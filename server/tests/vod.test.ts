@@ -12,11 +12,20 @@ import "./environment";
 // jest.mock("../src/Core/Providers/Twitch/TwitchVOD");
 
 beforeAll(async () => {
+    jest.spyOn(TwitchChannel, "channelLoginFromId").mockImplementation(
+        (channel_id: string) => {
+            return Promise.resolve("testuser");
+        }
+    );
+    jest.spyOn(TwitchChannel, "channelDisplayNameFromId").mockImplementation(
+        (channel_id: string) => {
+            return Promise.resolve("TestUser");
+        }
+    );
 
-    jest.spyOn(TwitchChannel, "channelLoginFromId").mockImplementation((channel_id: string) => { return Promise.resolve("testuser"); });
-    jest.spyOn(TwitchChannel, "channelDisplayNameFromId").mockImplementation((channel_id: string) => { return Promise.resolve("TestUser"); });
-
-    const channels_config = JSON.parse(fs.readFileSync("./tests/mockdata/channels.json", "utf8"));
+    const channels_config = JSON.parse(
+        fs.readFileSync("./tests/mockdata/channels.json", "utf8")
+    );
     LiveStreamDVR.getInstance().channels_config = channels_config;
     LiveStreamDVR.getInstance().clearChannels();
 
@@ -45,28 +54,42 @@ beforeAll(async () => {
 
     // mock twitchvod delete function
     // mockTwitchVOD.delete.mockImplementation(async (vod_id) => {
-
 });
 
 describe("VOD", () => {
-
     it("episode number", async () => {
+        const channel =
+            LiveStreamDVR.getInstance().getChannels()[0] as TwitchChannel;
+        await channel.setupStreamNumber();
 
-        const channel = LiveStreamDVR.getInstance().getChannels()[0] as TwitchChannel;
-        channel.setupStreamNumber();
-        
-        expect(channel.current_season).toBe(format(new Date(), Config.SeasonFormat));
+        expect(channel.current_season).toBe(
+            format(new Date(), Config.SeasonFormat)
+        );
 
         expect(channel.current_stream_number).toBe(1);
-        expect(channel.incrementStreamNumber()).toMatchObject({ stream_number: 2 });
-        expect(channel.incrementStreamNumber()).toMatchObject({ stream_number: 3 });
-        expect(channel.incrementStreamNumber()).toMatchObject({ stream_number: 4 });
-        
+        expect(channel.incrementStreamNumber()).toMatchObject({
+            stream_number: 2,
+        });
+        expect(channel.incrementStreamNumber()).toMatchObject({
+            stream_number: 3,
+        });
+        expect(channel.incrementStreamNumber()).toMatchObject({
+            stream_number: 4,
+        });
+
         KeyValue.getInstance().set("testuser.season_identifier", "ayylmao");
-        expect(channel.incrementStreamNumber()).toMatchObject({ stream_number: 1 });
-        expect(channel.incrementStreamNumber()).toMatchObject({ stream_number: 2 });
-        expect(channel.incrementStreamNumber()).toMatchObject({ stream_number: 3 });
-        expect(channel.incrementStreamNumber()).toMatchObject({ stream_number: 4 });
+        expect(channel.incrementStreamNumber()).toMatchObject({
+            stream_number: 1,
+        });
+        expect(channel.incrementStreamNumber()).toMatchObject({
+            stream_number: 2,
+        });
+        expect(channel.incrementStreamNumber()).toMatchObject({
+            stream_number: 3,
+        });
+        expect(channel.incrementStreamNumber()).toMatchObject({
+            stream_number: 4,
+        });
 
         /*
         const vod = await channel.createVOD("test");
@@ -80,7 +103,5 @@ describe("VOD", () => {
         expect(vod.stream_number).toBe(5);
         expect(vod.stream_season).toBe(format(new Date(), Config.SeasonFormat));
         */
-
     });
-
 });

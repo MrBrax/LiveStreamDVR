@@ -481,7 +481,7 @@ export class TwitchAutomator extends BaseAutomator {
 
             const chapter = await TwitchVODChapter.fromJSON(chapter_data);
 
-            KeyValue.getInstance().setObject(
+            await KeyValue.getInstance().setObjectAsync(
                 `${this.getLogin()}.chapterdata`,
                 chapter_data
             );
@@ -575,7 +575,7 @@ export class TwitchAutomator extends BaseAutomator {
                     event.category_name
                 } (${event.title})`
             );
-            KeyValue.getInstance().setObject(
+            await KeyValue.getInstance().setObjectAsync(
                 `${this.getLogin()}.chapterdata`,
                 chapter_data
             );

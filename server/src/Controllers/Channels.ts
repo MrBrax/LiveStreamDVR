@@ -1255,7 +1255,8 @@ export async function ForceRecord(
                     is_mature: stream.is_mature,
                     online: true,
                 } as TwitchVODChapterJSON;
-                KeyValue.getInstance().setObject(
+
+                await KeyValue.getInstance().setObjectAsync(
                     `${stream.user_login}.chapterdata`,
                     chapter_data
                 );

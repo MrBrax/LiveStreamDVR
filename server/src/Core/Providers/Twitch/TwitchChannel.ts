@@ -943,14 +943,14 @@ export class TwitchChannel extends BaseChannel {
         return fs.existsSync(nfo_file);
     }
 
-    public setupStreamNumber(): void {
+    public async setupStreamNumber(): Promise<void> {
         // set season
         if (
-            !KeyValue.getInstance().has(
+            !(await KeyValue.getInstance().hasAsync(
                 `${this.internalName}.season_identifier`
-            )
+            ))
         ) {
-            KeyValue.getInstance().set(
+            await KeyValue.getInstance().setAsync(
                 `${this.internalName}.season_identifier`,
                 format(new Date(), Config.SeasonFormat)
             );
@@ -961,22 +961,22 @@ export class TwitchChannel extends BaseChannel {
                 `Setting season for ${this.internalName} to ${this.current_season} as it is not set`
             );
         } else {
-            this.current_season = KeyValue.getInstance().get(
+            this.current_season = (await KeyValue.getInstance().getAsync(
                 `${this.internalName}.season_identifier`
-            ) as string;
+            )) as string;
         }
 
         // absolute season numbering, one each month that goes on forever
         if (
-            !KeyValue.getInstance().has(
+            !(await KeyValue.getInstance().hasAsync(
                 `${this.internalName}.absolute_season_identifier`
-            )
+            ))
         ) {
-            KeyValue.getInstance().setInt(
+            await KeyValue.getInstance().setIntAsync(
                 `${this.internalName}.absolute_season_identifier`,
                 1
             );
-            KeyValue.getInstance().setInt(
+            await KeyValue.getInstance().setIntAsync(
                 `${this.internalName}.absolute_season_month`,
                 parseInt(format(new Date(), "M"))
             );
@@ -987,15 +987,21 @@ export class TwitchChannel extends BaseChannel {
                 `Setting season for ${this.internalName} to ${this.current_season} as it is not set`
             );
         } else {
-            this.current_absolute_season = KeyValue.getInstance().getInt(
-                `${this.internalName}.absolute_season_identifier`
-            );
+            this.current_absolute_season =
+                await KeyValue.getInstance().getIntAsync(
+                    `${this.internalName}.absolute_season_identifier`
+                );
         }
 
-        if (KeyValue.getInstance().has(`${this.internalName}.stream_number`)) {
-            this.current_stream_number = KeyValue.getInstance().getInt(
+        if (
+            await KeyValue.getInstance().hasAsync(
                 `${this.internalName}.stream_number`
-            );
+            )
+        ) {
+            this.current_stream_number =
+                await KeyValue.getInstance().getIntAsync(
+                    `${this.internalName}.stream_number`
+                );
         } else {
             this.current_stream_number = 1;
             log(
@@ -1003,7 +1009,7 @@ export class TwitchChannel extends BaseChannel {
                 "channel.setupStreamNumber",
                 `Channel ${this.internalName} has no stream number, setting to 1`
             );
-            KeyValue.getInstance().setInt(
+            await KeyValue.getInstance().setIntAsync(
                 `${this.internalName}.stream_number`,
                 1
             );
@@ -1012,7 +1018,7 @@ export class TwitchChannel extends BaseChannel {
 
     public async postLoad(): Promise<void> {
         await this.parseVODs();
-        this.setupStreamNumber();
+        await this.setupStreamNumber();
         if (
             !(await KeyValue.getInstance().hasAsync(
                 `${this.internalName}.saves_vods`

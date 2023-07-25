@@ -129,6 +129,7 @@ export class TwitchVOD extends BaseVOD {
                 `No stored channel UUID for VOD ${this.basename}`
             );
         }
+        return await Promise.resolve();
     }
 
     /**

@@ -1,14 +1,17 @@
-import type express from "express";
-import type { ApiSettingsResponse } from "@common/Api/Api";
-import { version } from "../../package.json";
 import { AppName } from "@/Core/BaseConfig";
 import { Config } from "@/Core/Config";
-import { TwitchHelper } from "../Providers/Twitch";
 import { KeyValue } from "@/Core/KeyValue";
 import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
 import { TwitchGame } from "@/Core/Providers/Twitch/TwitchGame";
+import type { ApiSettingsResponse } from "@common/Api/Api";
+import type express from "express";
+import { version } from "../../package.json";
+import { TwitchHelper } from "../Providers/Twitch";
 
-export function GetSettings(req: express.Request, res: express.Response): void {
+export async function GetSettings(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     const is_guest =
         Config.getInstance().cfg<boolean>("guest_mode", false) &&
         !req.session.authenticated;
@@ -45,12 +48,15 @@ export function GetSettings(req: express.Request, res: express.Response): void {
             guest: is_guest,
             quotas: {
                 twitch: {
-                    max_total_cost: KeyValue.getInstance().getInt(
+                    max_total_cost: await KeyValue.getInstance().getIntAsync(
                         "twitch.max_total_cost"
                     ),
-                    total_cost:
-                        KeyValue.getInstance().getInt("twitch.total_cost"),
-                    total: KeyValue.getInstance().getInt("twitch.total"),
+                    total_cost: await KeyValue.getInstance().getIntAsync(
+                        "twitch.total_cost"
+                    ),
+                    total: await KeyValue.getInstance().getIntAsync(
+                        "twitch.total"
+                    ),
                 },
             },
             websocket_quotas: websocketQuotas,

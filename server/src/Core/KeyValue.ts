@@ -67,6 +67,7 @@ export class KeyValue extends EventEmitter {
     /**
      * Check if a key exists in the key-value store.
      * @param key
+     * @deprecated Use hasAsync instead
      * @returns
      */
     has(key: string): boolean {
@@ -111,6 +112,7 @@ export class KeyValue extends EventEmitter {
      * Get a value from the key-value store.
      * @param key
      * @returns {string|false} The value or false if the key does not exist.
+     * @deprecated Use getAsync instead
      */
     get(key: string): string | false {
         const raw = this.getRaw(key);
@@ -143,6 +145,7 @@ export class KeyValue extends EventEmitter {
      * Get a value from the key-value store as an object.
      * @param key
      * @returns
+     * @deprecated Use getObjectAsync instead
      */
     getObject<T>(key: string): T | false {
         const value = this.get(key);
@@ -158,12 +161,23 @@ export class KeyValue extends EventEmitter {
         }
     }
 
+    /**
+     * Get a value from the key-value store as an object as a promise. Rejects if the key does not exist.
+     * @param key
+     * @returns
+     */
     getObjectAsync<T>(key: string): Promise<T | false> {
         return new Promise((resolve) => {
             resolve(this.getObject<T>(key));
         });
     }
 
+    /**
+     *
+     * @param key
+     * @returns
+     * @deprecated Use getBoolAsync instead
+     */
     getBool(key: string): boolean {
         return this.get(key) === "true";
     }
@@ -174,6 +188,13 @@ export class KeyValue extends EventEmitter {
         });
     }
 
+    /**
+     *
+     * @param key
+     * @param def
+     * @returns
+     * @deprecated Use getIntAsync instead
+     */
     getInt(key: string, def?: number): number {
         const value = this.get(key);
         if (value === false) {
@@ -198,6 +219,7 @@ export class KeyValue extends EventEmitter {
      * Set a value in the key-value store.
      * @param key
      * @param value
+     * @deprecated Use setAsync instead
      */
     set(key: string, value: string): void {
         key = key.replaceAll("/", "");
@@ -241,6 +263,7 @@ export class KeyValue extends EventEmitter {
      * Set a value in the key-value store as an object (JSON).
      * @param key
      * @param value
+     * @deprecated Use setObjectAsync instead
      */
     setObject<T>(key: string, value: T | null): void {
         key = key.replaceAll("/", "");
@@ -264,6 +287,12 @@ export class KeyValue extends EventEmitter {
         });
     }
 
+    /**
+     *
+     * @param key
+     * @param value
+     * @deprecated Use setBoolAsync instead
+     */
     setBool(key: string, value: boolean) {
         this.set(key, value ? "true" : "false");
     }
@@ -275,6 +304,12 @@ export class KeyValue extends EventEmitter {
         });
     }
 
+    /**
+     *
+     * @param key
+     * @param value
+     * @deprecated Use setIntAsync instead
+     */
     setInt(key: string, value: number) {
         this.set(key, value.toString());
     }

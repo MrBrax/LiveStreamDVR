@@ -1,3 +1,4 @@
+import type { ExecReturn } from "@/Providers/Twitch";
 import type { ApiBaseVod } from "@common/Api/Client";
 import type { VODBookmark } from "@common/Bookmark";
 import type { VideoQuality } from "@common/Config";
@@ -18,6 +19,12 @@ import { startJob } from "../../../Helpers/Execute";
 import { formatBytes } from "../../../Helpers/Format";
 import { xClearTimeout, xTimeout } from "../../../Helpers/Timeout";
 import { isTwitchVOD, isTwitchVODChapter } from "../../../Helpers/Types";
+import {
+    ffmpeg_time,
+    remuxFile,
+    videoContactSheet,
+    videometadata,
+} from "../../../Helpers/Video";
 import type { BaseVODChapterJSON, VODJSON } from "../../../Storage/JSON";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
@@ -32,13 +39,6 @@ import { Webhook } from "../../Webhook";
 import type { BaseChannel } from "./BaseChannel";
 import type { BaseVODChapter } from "./BaseVODChapter";
 import { BaseVODSegment } from "./BaseVODSegment";
-import {
-    ffmpeg_time,
-    remuxFile,
-    videoContactSheet,
-    videometadata,
-} from "../../../Helpers/Video";
-import type { ExecReturn } from "@/Providers/Twitch";
 
 export class BaseVOD {
     public provider: Providers = "base";
@@ -1762,7 +1762,7 @@ export class BaseVOD {
     public async parseChapters(
         raw_chapters: BaseVODChapterJSON[]
     ): Promise<boolean> {
-        return false;
+        return await Promise.resolve(false);
     }
 
     public setupUserData(): void {
