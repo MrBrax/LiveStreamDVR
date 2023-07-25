@@ -1,16 +1,16 @@
 import { ClientBroker } from "@/Core/ClientBroker";
-import type express from "express";
 import type { ApiResponse } from "@common/Api/Api";
 import type { NotificationCategory } from "@common/Defs";
+import type express from "express";
 
 export function GetNotificationSettings(
     req: express.Request,
     res: express.Response
 ) {
-    res.send({
+    res.api<ApiResponse>(200, {
         data: ClientBroker.notificationSettings,
         status: "OK",
-    } as ApiResponse);
+    });
 }
 
 export function SaveNotificationSettings(
@@ -29,10 +29,10 @@ export function SaveNotificationSettings(
     }
     ClientBroker.saveNotificationSettings();
 
-    res.send({
+    res.api(200, {
         status: "OK",
         message: "Notification settings saved",
-    } as ApiResponse);
+    });
 }
 
 export function TestNotificationSettings(
@@ -49,8 +49,8 @@ export function TestNotificationSettings(
         category as NotificationCategory
     );
 
-    res.send({
+    res.api(200, {
         status: "OK",
         message: "Test notification sent",
-    } as ApiResponse);
+    });
 }

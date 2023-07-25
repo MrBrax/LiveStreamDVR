@@ -1,10 +1,10 @@
+import { BaseConfigDataFolder } from "@/Core/BaseConfig";
+import { fetchLog } from "@/Core/Log";
+import type { ApiErrorResponse, ApiLogResponse } from "@common/Api/Api";
+import type { ApiLogLine } from "@common/Api/Client";
 import { format } from "date-fns";
 import type express from "express";
 import fs from "node:fs";
-import type { ApiErrorResponse, ApiLogResponse } from "@common/Api/Api";
-import type { ApiLogLine } from "@common/Api/Client";
-import { BaseConfigDataFolder } from "@/Core/BaseConfig";
-import { fetchLog } from "@/Core/Log";
 
 export function GetLog(req: express.Request, res: express.Response) {
     const filename = req.params.filename;
@@ -14,7 +14,7 @@ export function GetLog(req: express.Request, res: express.Response) {
         : 0;
 
     if (!filename) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Missing filename",
         });
@@ -26,7 +26,7 @@ export function GetLog(req: express.Request, res: express.Response) {
     try {
         log_lines = fetchLog(filename, start_from) as ApiLogLine[];
     } catch (error) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: (error as Error).message,
         } as ApiErrorResponse);
@@ -50,12 +50,12 @@ export function GetLog(req: express.Request, res: express.Response) {
         .filter((f) => f.endsWith(".jsonline"))
         .map((f) => f.replace(".log.jsonline", ""));
 
-    res.send({
+    res.api<ApiLogResponse>(200, {
         data: {
             lines: log_lines,
             last_line: line_num,
             logs: logfiles,
         },
         status: "OK",
-    } as ApiLogResponse);
+    });
 }

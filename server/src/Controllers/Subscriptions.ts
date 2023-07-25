@@ -175,7 +175,7 @@ export async function SubscribeToAllChannels(
     }
 
     if (payload_data.channels.length == 0) {
-        res.status(500).send({
+        res.api(500, {
             status: "ERROR",
             message: "No channels to subscribe to.",
         } as ApiErrorResponse);
@@ -197,7 +197,7 @@ export async function UnsubscribeFromId(
     const sub = await TwitchHelper.getSubscription(sub_id);
 
     if (!sub) {
-        res.status(404).send({
+        res.api(404, {
             status: "ERROR",
             message: "Subscription not found",
         } as ApiErrorResponse);
@@ -220,7 +220,7 @@ export async function UnsubscribeFromId(
             // KeyValue.getInstance().delete(`${userid}.substatus.${sub.type}`);
         }
     } else {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: `Could not unsubscribe from ${sub_id}.`,
         } as ApiErrorResponse);

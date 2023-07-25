@@ -16,7 +16,7 @@ export function GetClientSettings(
         );
     }
 
-    res.send({
+    res.api(200, {
         data: clientSettings,
         status: "OK",
     });
@@ -30,7 +30,7 @@ export function SaveClientSettings(
 
     for (const setting in defaultConfigFields) {
         if (!(setting in defaultConfigFields)) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: `Unknown setting: ${setting}`,
             });
@@ -44,7 +44,7 @@ export function SaveClientSettings(
             case "string":
             case "choice":
                 if (valueType !== "string") {
-                    res.status(400).send({
+                    res.api(400, {
                         status: "ERROR",
                         message: `Setting ${setting} is not of type ${correctType}`,
                     });
@@ -53,7 +53,7 @@ export function SaveClientSettings(
                 break;
             case "number":
                 if (valueType !== "number") {
-                    res.status(400).send({
+                    res.api(400, {
                         status: "ERROR",
                         message: `Setting ${setting} is not of type ${correctType}`,
                     });
@@ -62,7 +62,7 @@ export function SaveClientSettings(
                 break;
             case "boolean":
                 if (valueType !== "boolean") {
-                    res.status(400).send({
+                    res.api(400, {
                         status: "ERROR",
                         message: `Setting ${setting} is not of type ${correctType}`,
                     });
@@ -70,7 +70,7 @@ export function SaveClientSettings(
                 }
                 break;
             default:
-                res.status(400).send({
+                res.api(400, {
                     status: "ERROR",
                     message: `Unknown type ${correctType} for setting ${setting}`,
                 });
@@ -91,7 +91,7 @@ export function SaveClientSettings(
         "utf8"
     );
 
-    res.send({
+    res.api(200, {
         status: "OK",
         message: "Client settings saved",
     });

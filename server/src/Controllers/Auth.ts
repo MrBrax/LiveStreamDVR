@@ -6,7 +6,7 @@ export function Login(req: express.Request, res: express.Response): void {
     const client_password = req.body.password;
 
     if (req.session.authenticated) {
-        res.status(400).send({
+        res.api(400, {
             authenticated: true,
             message: req.t("auth.already-authenticated"),
             status: "ERROR",
@@ -15,7 +15,7 @@ export function Login(req: express.Request, res: express.Response): void {
     }
 
     if (!password) {
-        res.status(400).send({
+        res.api(400, {
             authenticated: false,
             message: req.t("auth.no-password-set"),
             status: "ERROR",
@@ -27,7 +27,7 @@ export function Login(req: express.Request, res: express.Response): void {
         req.session.regenerate((err) => {
             if (err) {
                 console.error(err);
-                res.status(500).send("Internal server error");
+                res.api(500, "Internal server error");
                 return;
             }
 
@@ -40,23 +40,23 @@ export function Login(req: express.Request, res: express.Response): void {
             req.session.save((err) => {
                 if (err) {
                     console.error(err);
-                    res.status(500).send("Internal server error");
+                    res.api(500, "Internal server error");
                     return;
                 }
 
-                res.send({
+                res.api<ApiLoginResponse>(200, {
                     authenticated: true,
-                    message: req.t("auth.login-successful"),
+                    message: req.t("auth.login-successful").toString(),
                     status: "OK",
-                } as ApiLoginResponse);
+                });
             });
         });
     } else {
-        res.send({
+        res.api<ApiLoginResponse>(401, {
             authenticated: false,
-            message: req.t("auth.login-failed"),
+            message: req.t("auth.login-failed").toString(),
             status: "ERROR",
-        } as ApiLoginResponse);
+        });
     }
 }
 
@@ -64,14 +64,14 @@ export function Logout(req: express.Request, res: express.Response): void {
     req.session.destroy((err) => {
         if (err) {
             console.error(err);
-            res.status(500).send("Internal server error");
+            res.api(500, "Internal server error");
             return;
         }
-        res.send({
+        res.api<ApiLoginResponse>(200, {
             authenticated: false,
-            message: req.t("auth.logout-successful"),
+            message: req.t("auth.logout-successful").toString(),
             status: "OK",
-        } as ApiLoginResponse);
+        });
     });
 }
 

@@ -15,7 +15,7 @@ import { YouTubeVOD } from "@/Core/Providers/YouTube/YouTubeVOD";
 import { Webhook } from "@/Core/Webhook";
 import { debugLog } from "@/Helpers/Console";
 import { generateStreamerList } from "@/Helpers/StreamerList";
-import { isTwitchChannel, isYouTubeChannel } from "@/Helpers/Types";
+import { isError, isTwitchChannel, isYouTubeChannel } from "@/Helpers/Types";
 import type {
     ApiChannelResponse,
     ApiChannelsResponse,
@@ -57,7 +57,7 @@ export async function ListChannels(
         channels.map(async (c) => await c.toAPI())
     );
 
-    res.send({
+    res.api<ApiChannelsResponse>(200, {
         data: {
             streamer_list: streamer_list,
             total_size: total_size,
@@ -65,7 +65,7 @@ export async function ListChannels(
             free_size: LiveStreamDVR.getInstance().freeStorageDiskSpace, // broken until further notice
         },
         status: "OK",
-    } as ApiChannelsResponse);
+    });
 }
 
 const getChannelFromRequest = (
@@ -103,10 +103,10 @@ export async function GetChannel(
         return;
     }
 
-    res.send({
+    res.api<ApiChannelResponse>(200, {
         data: await channel.toAPI(),
         status: "OK",
-    } as ApiChannelResponse);
+    });
 }
 
 export function UpdateChannel(
@@ -287,7 +287,7 @@ export async function AddChannel(
     const provider = req.body.provider as Providers;
 
     if (!provider) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: req.t("route.channels.provider-not-found"),
         } as ApiErrorResponse);
@@ -336,7 +336,7 @@ export async function AddChannel(
         };
 
         if (!channel_config.login) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: req.t("route.channels.channel-login-not-specified"),
             } as ApiErrorResponse);
@@ -344,7 +344,7 @@ export async function AddChannel(
         }
 
         if (channel_config.quality.length === 0) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: req.t("route.channels.no-quality-selected"),
             } as ApiErrorResponse);
@@ -354,7 +354,7 @@ export async function AddChannel(
         if (
             channel_config.quality.some((q) => !VideoQualityArray.includes(q))
         ) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: req.t("route.channels.invalid-quality-selected"),
             } as ApiErrorResponse);
@@ -368,7 +368,7 @@ export async function AddChannel(
                 "route.channels.add",
                 `Failed to create channel, channel already exists: ${channel_config.login}`
             );
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: req.t("route.channels.channel-already-exists"),
             } as ApiErrorResponse);
@@ -389,7 +389,7 @@ export async function AddChannel(
                     (error as Error).message
                 }`
             );
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: `API error: ${(error as Error).message}`,
             } as ApiErrorResponse);
@@ -400,7 +400,7 @@ export async function AddChannel(
             api_channel_data &&
             api_channel_data.login !== channel_config.login
         ) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: req.t(
                     "route.channels.channel-login-does-not-match-data-fetched-from-api"
@@ -417,7 +417,7 @@ export async function AddChannel(
                 "route.channels.add",
                 `Failed to create channel: ${error}`
             );
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: (error as Error).message,
             } as ApiErrorResponse);
@@ -452,7 +452,7 @@ export async function AddChannel(
         };
 
         if (!channel_config.channel_id) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: req.t("route.channels.channel-id-not-specified"),
             } as ApiErrorResponse);
@@ -468,7 +468,7 @@ export async function AddChannel(
                 "route.channels.add",
                 `Failed to create channel, channel already exists: ${channel_config.channel_id}`
             );
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: req.t("route.channels.channel-already-exists"),
             } as ApiErrorResponse);
@@ -489,7 +489,7 @@ export async function AddChannel(
                     (error as Error).message
                 }`
             );
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: `API error: ${(error as Error).message}`,
             } as ApiErrorResponse);
@@ -498,7 +498,7 @@ export async function AddChannel(
 
         /*
         if (api_channel_data && api_channel_data.login !== channel_config.login) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: "Channel login does not match data fetched from API",
             } as ApiErrorResponse);
@@ -514,7 +514,7 @@ export async function AddChannel(
                 "route.channels.add",
                 `Failed to create channel: ${error}`
             );
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: (error as Error).message,
             } as ApiErrorResponse);
@@ -549,7 +549,7 @@ export async function AddChannel(
         };
 
         if (!channel_config.slug) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: req.t("route.channels.channel-slug-not-specified"),
             } as ApiErrorResponse);
@@ -563,7 +563,7 @@ export async function AddChannel(
                 "route.channels.add",
                 `Failed to create channel, channel already exists: ${channel_config.slug}`
             );
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: req.t("route.channels.channel-already-exists"),
             } as ApiErrorResponse);
@@ -584,7 +584,7 @@ export async function AddChannel(
                     (error as Error).message
                 }`
             );
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: `API error: ${(error as Error).message}`,
             } as ApiErrorResponse);
@@ -599,7 +599,7 @@ export async function AddChannel(
                 "route.channels.add",
                 `Failed to create channel: ${error}`
             );
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: (error as Error).message,
             } as ApiErrorResponse);
@@ -614,14 +614,14 @@ export async function AddChannel(
     }
 
     if (!new_channel) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: req.t("route.channels.no-channel-created"),
         } as ApiErrorResponse);
         return;
     }
 
-    res.send({
+    res.api(200, {
         data: await new_channel.toAPI(),
         status: "OK",
         message: req.t("route.channels.channel-displayname-created", [
@@ -639,7 +639,7 @@ export async function DownloadVideo(
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
@@ -697,7 +697,7 @@ export async function DownloadVideo(
 
     if (isTwitchChannel(channel)) {
         if (TwitchVOD.getVodByProviderId(video_id)) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: req.t("route.channels.video-already-downloaded"),
             } as ApiErrorResponse);
@@ -708,7 +708,7 @@ export async function DownloadVideo(
         try {
             video = await TwitchVOD.getVideoProxy(video_id);
         } catch (error) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: req.t(
                     "route.channels.error-while-fetching-video-data-error",
@@ -719,7 +719,7 @@ export async function DownloadVideo(
         }
 
         if (!video) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: req.t("route.channels.video-not-found"),
             } as ApiErrorResponse);
@@ -763,7 +763,7 @@ export async function DownloadVideo(
         );
 
         if (TwitchVOD.hasVod(basename)) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: req.t("route.channels.vod-already-exists-basename", [
                     basename,
@@ -772,8 +772,23 @@ export async function DownloadVideo(
             return;
         }
 
-        if (!fs.existsSync(path.dirname(filepath))) {
+        try {
             fs.mkdirSync(path.dirname(filepath), { recursive: true });
+        } catch (error) {
+            if (isError(error)) {
+                if (!error.message.includes("EEXIST")) {
+                    log(
+                        LOGLEVEL.ERROR,
+                        "route.channels.download",
+                        `Failed to create folder: ${error.message}`
+                    );
+                    res.api(400, {
+                        status: "ERROR",
+                        message: error.message,
+                    } as ApiErrorResponse);
+                    return;
+                }
+            }
         }
 
         let status = false;
@@ -788,7 +803,7 @@ export async function DownloadVideo(
                 "route.channels.download",
                 `Failed to download video: ${(error as Error).message}`
             );
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: (error as Error).message,
             } as ApiErrorResponse);
@@ -803,7 +818,7 @@ export async function DownloadVideo(
                     path.join(basefolder, `${basename}.json`)
                 );
             } catch (error) {
-                res.status(400).send({
+                res.api(400, {
                     status: "ERROR",
                     message: (error as Error).message,
                 } as ApiErrorResponse);
@@ -832,7 +847,7 @@ export async function DownloadVideo(
                 vod: await vod.toAPI(),
             });
         } else {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: req.t("route.channels.video-download-failed"),
             } as ApiErrorResponse);
@@ -840,7 +855,7 @@ export async function DownloadVideo(
         }
     } else if (isYouTubeChannel(channel)) {
         if (YouTubeVOD.getVodByProviderId(video_id)) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: req.t("route.channels.video-already-downloaded"),
             } as ApiErrorResponse);
@@ -851,7 +866,7 @@ export async function DownloadVideo(
         try {
             video = await YouTubeVOD.getVideoProxy(video_id);
         } catch (error) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: `Error while fetching video data: ${
                     (error as Error).message
@@ -861,7 +876,7 @@ export async function DownloadVideo(
         }
 
         if (!video) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: req.t("route.channels.video-not-found"),
             } as ApiErrorResponse);
@@ -882,17 +897,32 @@ export async function DownloadVideo(
         );
 
         if (YouTubeVOD.hasVod(basename)) {
-            res.status(400).send({
+            res.api<ApiErrorResponse>(400, {
                 status: "ERROR",
                 message: req.t("route.channels.vod-already-exists-basename", [
                     basename,
                 ]),
-            } as ApiErrorResponse);
+            });
             return;
         }
 
-        if (!fs.existsSync(path.dirname(filepath))) {
+        try {
             fs.mkdirSync(path.dirname(filepath), { recursive: true });
+        } catch (error) {
+            if (isError(error)) {
+                if (!error.message.includes("EEXIST")) {
+                    log(
+                        LOGLEVEL.ERROR,
+                        "route.channels.download",
+                        `Failed to create folder: ${error.message}`
+                    );
+                    res.api<ApiErrorResponse>(400, {
+                        status: "ERROR",
+                        message: error.message,
+                    });
+                    return;
+                }
+            }
         }
 
         let status = false;
@@ -907,7 +937,7 @@ export async function DownloadVideo(
                 "route.channels.download",
                 `Failed to download video: ${(error as Error).message}`
             );
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: (error as Error).message,
             } as ApiErrorResponse);
@@ -922,7 +952,7 @@ export async function DownloadVideo(
                     path.join(basefolder, `${basename}.json`)
                 );
             } catch (error) {
-                res.status(400).send({
+                res.api(400, {
                     status: "ERROR",
                     message: (error as Error).message,
                 } as ApiErrorResponse);
@@ -951,7 +981,7 @@ export async function DownloadVideo(
                     "route.channels.download",
                     `Channel UUID is empty for VOD ${vod.uuid}`
                 );
-                res.status(500).send({
+                res.api(500, {
                     status: "ERROR",
                     message: req.t("route.channels.channel-uuid-is-empty"),
                 } as ApiErrorResponse);
@@ -962,14 +992,14 @@ export async function DownloadVideo(
                 vod: await vod.toAPI(),
             });
         } else {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: req.t("route.channels.video-download-failed"),
             } as ApiErrorResponse);
             return;
         }
     } else {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: req.t("route.channels.channel-is-not-supported"),
         } as ApiErrorResponse);
@@ -988,7 +1018,7 @@ export async function SubscribeToChannel(
         !(channel instanceof TwitchChannel) ||
         !channel.internalId
     ) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: req.t("route.channels.channel-uuid-not-found"),
         } as ApiErrorResponse);
@@ -997,7 +1027,7 @@ export async function SubscribeToChannel(
 
     const sub = await channel.subscribe(true);
 
-    res.send({
+    res.api(200, {
         data: {
             login: channel.internalName,
             status: sub
@@ -1019,7 +1049,7 @@ export async function UnsubscribeFromChannel(
         !(channel instanceof TwitchChannel) ||
         !channel.internalId
     ) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: req.t("route.channels.channel-uuid-not-found"),
         } as ApiErrorResponse);
@@ -1028,7 +1058,7 @@ export async function UnsubscribeFromChannel(
 
     const sub = await channel.unsubscribe();
 
-    res.send({
+    res.api(200, {
         status: "OK",
         message: sub ? "Unsubscribed" : "ERROR",
     });
@@ -1045,7 +1075,7 @@ export async function CheckSubscriptions(
         !(channel instanceof TwitchChannel) ||
         !channel.internalId
     ) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: req.t("route.channels.channel-uuid-not-found"),
         } as ApiErrorResponse);
@@ -1055,7 +1085,7 @@ export async function CheckSubscriptions(
     const all_subs = await TwitchHelper.getSubsList();
 
     if (!all_subs) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: req.t(
                 "route.channels.no-subscriptions-for-channel-internalname"
@@ -1068,7 +1098,7 @@ export async function CheckSubscriptions(
         (sub) => sub.condition.broadcaster_user_id == channel.internalId
     );
 
-    res.send({
+    res.api(200, {
         data: {
             raw: channel_subs,
         },
@@ -1086,7 +1116,7 @@ export async function CleanupChannelVods(
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
-        res.status(400).send({
+        res.api<ApiErrorResponse>(400, {
             status: "ERROR",
             message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
@@ -1095,7 +1125,7 @@ export async function CleanupChannelVods(
 
     const deleted = await channel.cleanupVods();
 
-    res.send({
+    res.api(200, {
         status: "OK",
         // message: `Deleted ${deleted ? deleted : "no"} ${deleted === 1 ? "VOD" : "VODs"}`,
         message: req.t("route.channels.deleted-vods", { count: deleted || 0 }),
@@ -1109,10 +1139,10 @@ export async function RefreshChannel(
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
-        res.status(400).send({
+        res.api<ApiErrorResponse>(400, {
             status: "ERROR",
             message: req.t("route.channels.channel-not-found"),
-        } as ApiErrorResponse);
+        });
         return;
     }
 
@@ -1125,10 +1155,10 @@ export async function RefreshChannel(
             "route.channels.refresh",
             `Failed to refresh channel: ${(error as Error).message}`
         );
-        res.status(400).send({
+        res.api<ApiErrorResponse>(400, {
             status: "ERROR",
             message: (error as Error).message,
-        } as ApiErrorResponse);
+        });
         return;
     }
 
@@ -1161,12 +1191,13 @@ export async function RefreshChannel(
             "route.channels.refresh",
             `Refreshed channel: ${channel.internalName}`
         );
-        res.send({
+        res.api<ApiGenericResponse>(200, {
             status: "OK",
-            message: req.t(
-                "route.channels.refreshed-channel-channel-internalname",
-                [channel.internalName]
-            ),
+            message: req
+                .t("route.channels.refreshed-channel-channel-internalname", [
+                    channel.internalName,
+                ])
+                .toString(),
         });
         channel.broadcastUpdate();
     } else {
@@ -1175,10 +1206,10 @@ export async function RefreshChannel(
             "route.channels.refresh",
             `Failed to refresh channel: ${channel.internalName}`
         );
-        res.status(400).send({
+        res.api<ApiErrorResponse>(400, {
             status: "ERROR",
             message: req.t("route.channels.failed-to-refresh-channel"),
-        } as ApiErrorResponse);
+        });
     }
 }
 
@@ -1189,7 +1220,7 @@ export async function ForceRecord(
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalId) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
@@ -1270,7 +1301,7 @@ export async function ForceRecord(
                 const TA = new TwitchAutomator();
                 TA.handle(mock_data, metadata_proxy);
 
-                res.send({
+                res.api(200, {
                     status: "OK",
                     message: req.t(
                         "route.channels.forced-recording-of-channel-channel-internalname",
@@ -1280,14 +1311,14 @@ export async function ForceRecord(
 
                 return;
             } else {
-                res.status(400).send({
+                res.api(400, {
                     status: "ERROR",
                     message: "No live stream found",
                 } as ApiErrorResponse);
                 return;
             }
         } else {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: "No streams found",
             } as ApiErrorResponse);
@@ -1321,7 +1352,7 @@ export async function ForceRecord(
 
             YA.download();
 
-            res.send({
+            res.api(200, {
                 status: "OK",
                 message: req.t(
                     "route.channels.forced-recording-of-channel-channel-internalname",
@@ -1329,7 +1360,7 @@ export async function ForceRecord(
                 ),
             });
         } else {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: req.t("route.channels.no-streams-found"),
             } as ApiErrorResponse);
@@ -1346,7 +1377,7 @@ export async function RenameChannel(
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
@@ -1361,7 +1392,7 @@ export async function RenameChannel(
             "route.channels.rename",
             `Renamed channel: ${channel.internalName} to ${req.body.new_login}`
         );
-        res.send({
+        res.api(200, {
             status: "OK",
             message: req.t(
                 "route.channels.renamed-channel-channel-internalname-to-req-body-new_login",
@@ -1375,7 +1406,7 @@ export async function RenameChannel(
             "route.channels.rename",
             `Failed to rename channel: ${channel.internalName} to ${req.body.new_login}`
         );
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: req.t("route.channels.failed-to-rename-channel"),
         } as ApiErrorResponse);
@@ -1389,7 +1420,7 @@ export async function DeleteAllChannelVods(
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
@@ -1406,7 +1437,7 @@ export async function DeleteAllChannelVods(
             "route.channels.deleteAllVods",
             `Failed to delete all VODs of channel: ${(error as Error).message}`
         );
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: (error as Error).message,
         } as ApiErrorResponse);
@@ -1419,7 +1450,7 @@ export async function DeleteAllChannelVods(
             "route.channels.deleteallvods",
             `Deleted all VODs of channel: ${channel.internalName}`
         );
-        res.send({
+        res.api(200, {
             status: "OK",
             message: req.t(
                 "route.channels.deleted-all-vods-of-channel-channel-internalname",
@@ -1433,7 +1464,7 @@ export async function DeleteAllChannelVods(
             "route.channels.deleteallvods",
             `Failed to delete all VODs of channel: ${channel.internalName}`
         );
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: req.t("route.channels.failed-to-delete-all-vods"),
         } as ApiErrorResponse);
@@ -1451,10 +1482,10 @@ export function GetHistory(req: express.Request, res: express.Response): void {
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
-        res.status(400).send({
+        res.api<ApiErrorResponse>(400, {
             status: "ERROR",
             message: req.t("route.channels.channel-not-found"),
-        } as ApiErrorResponse);
+        });
         return;
     }
 
@@ -1465,10 +1496,10 @@ export function GetHistory(req: express.Request, res: express.Response): void {
         `${channel.internalName}.jsonline`
     );
     if (!fs.existsSync(file)) {
-        res.status(400).send({
+        res.api<ApiErrorResponse>(400, {
             status: "ERROR",
             message: req.t("route.channels.no-history-found"),
-        } as ApiErrorResponse);
+        });
         return;
     }
 
@@ -1480,11 +1511,11 @@ export function GetHistory(req: express.Request, res: express.Response): void {
         }
     }
 
-    res.send({
+    res.api<ApiResponse>(200, {
         status: "OK",
         // message: "History found",
         data: history,
-    } as ApiResponse);
+    });
 
     return;
 }
@@ -1496,7 +1527,7 @@ export async function ScanVods(
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
@@ -1504,7 +1535,7 @@ export async function ScanVods(
     }
 
     if (channel.is_capturing || channel.is_converting) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: req.t(
                 "route.channels.channel-is-currently-capturing-please-stop-the-capture-first-or-wait-until-it-is-finished"
@@ -1530,7 +1561,7 @@ export async function ScanVods(
 
     channel.broadcastUpdate();
 
-    res.send({
+    res.api(200, {
         status: "OK",
         message: `Channel '${channel.internalName}' scanned, found ${channel.vods_raw.length} VODs.`,
     });
@@ -1543,7 +1574,7 @@ export function ScanLocalVideos(
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
@@ -1557,7 +1588,7 @@ export function ScanLocalVideos(
 
     channel.broadcastUpdate();
 
-    res.send({
+    res.api(200, {
         status: "OK",
         message: `Channel '${channel.internalName}' scanned, found ${channel.video_list.length} local videos.`,
     });
@@ -1570,7 +1601,7 @@ export async function GetClips(
     const channel = getChannelFromRequest(req);
 
     if (!channel || !channel.internalName) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
@@ -1578,7 +1609,7 @@ export async function GetClips(
     }
 
     if (!isTwitchChannel(channel)) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: req.t("route.channels.channel-is-not-a-twitch-channel"),
         } as ApiErrorResponse);
@@ -1587,7 +1618,7 @@ export async function GetClips(
 
     const clips = await channel.getClips(undefined, 40);
 
-    res.send({
+    res.api(200, {
         status: "OK",
         data: clips,
     });
@@ -1601,7 +1632,7 @@ export async function ExportAllVods(
     const force = req.query.force === "true";
 
     if (!channel || !channel.internalName) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: req.t("route.channels.channel-not-found"),
         } as ApiErrorResponse);
@@ -1770,7 +1801,7 @@ export async function ExportAllVods(
 
     job.clear();
 
-    res.send({
+    res.api(failedVods > 0 ? 500 : 200, {
         status: "OK",
         message: `Exported ${completedVods} VODs, ${failedVods} failed`,
     });

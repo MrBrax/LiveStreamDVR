@@ -3,7 +3,7 @@ import type { ApiErrorResponse } from "@common/Api/Api";
 import type express from "express";
 
 export function GetAllKeyValues(req: express.Request, res: express.Response) {
-    res.send({
+    res.api(200, {
         status: "OK",
         data: KeyValue.getInstance().getAllRaw(),
     });
@@ -14,14 +14,14 @@ export async function GetKeyValue(
     res: express.Response
 ): Promise<void> {
     if (!(await KeyValue.getInstance().hasAsync(req.params.key))) {
-        res.status(404).send({
+        res.api(404, {
             status: "ERROR",
             message: "Key not found.",
         } as ApiErrorResponse);
         return;
     }
 
-    res.send({
+    res.api(200, {
         status: "OK",
         data: await KeyValue.getInstance().getRawAsync(req.params.key),
     });
@@ -32,7 +32,7 @@ export async function SetKeyValue(
     res: express.Response
 ): Promise<void> {
     if (!req.body.value) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No value provided.",
         } as ApiErrorResponse);
@@ -41,7 +41,7 @@ export async function SetKeyValue(
 
     await KeyValue.getInstance().setAsync(req.params.key, req.body.value);
 
-    res.send({
+    res.api(200, {
         status: "OK",
     });
 }
@@ -51,7 +51,7 @@ export async function DeleteKeyValue(
     res: express.Response
 ): Promise<void> {
     if (!(await KeyValue.getInstance().hasAsync(req.params.key))) {
-        res.status(404).send({
+        res.api(404, {
             status: "ERROR",
             message: "Key not found.",
         } as ApiErrorResponse);
@@ -60,7 +60,7 @@ export async function DeleteKeyValue(
 
     await KeyValue.getInstance().deleteAsync(req.params.key);
 
-    res.send({
+    res.api(200, {
         status: "OK",
     });
 }
@@ -71,7 +71,7 @@ export async function DeleteAllKeyValues(
 ): Promise<void> {
     await KeyValue.getInstance().deleteAllAsync();
 
-    res.send({
+    res.api(200, {
         status: "OK",
     });
 }

@@ -1,9 +1,9 @@
 import { BaseConfigDataFolder, DataRoot } from "@/Core/BaseConfig";
-import type express from "express";
-import path from "node:path";
-import fs from "node:fs";
-import sanitize from "sanitize-filename";
 import chalk from "chalk";
+import type express from "express";
+import fs from "node:fs";
+import path from "node:path";
+import sanitize from "sanitize-filename";
 
 const allowedDataPaths = ["storage", "logs"];
 
@@ -53,7 +53,7 @@ function isPublic(file_path: string): boolean {
 
 export function ListFiles(req: express.Request, res: express.Response): void {
     if (process.env.TCD_ENABLE_FILES_API !== "1") {
-        res.status(404).send({
+        res.api(404, {
             status: "ERROR",
             message:
                 "Files API is disabled on this server. Enable with the TCD_ENABLE_FILES_API environment variable.",
@@ -64,7 +64,7 @@ export function ListFiles(req: express.Request, res: express.Response): void {
     const user_path = req.query.path as string;
 
     if (user_path == undefined) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Path is not defined",
         });
@@ -75,7 +75,7 @@ export function ListFiles(req: express.Request, res: express.Response): void {
 
     const validation = validatePath(full_path);
     if (validation !== true) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: validation,
         });
@@ -99,7 +99,7 @@ export function ListFiles(req: express.Request, res: express.Response): void {
             };
         });
 
-    res.send({
+    res.api(200, {
         status: "OK",
         data: {
             files: files,
@@ -109,7 +109,7 @@ export function ListFiles(req: express.Request, res: express.Response): void {
 
 export function DeleteFile(req: express.Request, res: express.Response): void {
     if (process.env.TCD_ENABLE_FILES_API !== "1") {
-        res.status(404).send({
+        res.api(403, {
             status: "ERROR",
             message:
                 "Files API is disabled on this server. Enable with the TCD_ENABLE_FILES_API environment variable.",
@@ -121,7 +121,7 @@ export function DeleteFile(req: express.Request, res: express.Response): void {
     const file_name = req.query.name as string;
 
     if (user_path == undefined) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Path is not defined",
         });
@@ -132,7 +132,7 @@ export function DeleteFile(req: express.Request, res: express.Response): void {
 
     const validation = validatePath(full_path);
     if (validation !== true) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: validation,
         });
@@ -144,7 +144,7 @@ export function DeleteFile(req: express.Request, res: express.Response): void {
     const full_file_path = path.join(full_path, sanitized_file_name);
 
     if (!fs.existsSync(full_file_path)) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "File does not exist",
         });
@@ -156,7 +156,7 @@ export function DeleteFile(req: express.Request, res: express.Response): void {
         chalk.bgRedBright.whiteBright(`Deleting file: ${full_file_path}`)
     );
 
-    res.send({
+    res.api(200, {
         status: "OK",
         message: "File deleted",
     });

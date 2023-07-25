@@ -49,7 +49,7 @@ export async function VodDownloadAtEnd(
     try {
         status = await channel?.downloadLatestVod(quality);
     } catch (error) {
-        res.status(500).send((error as Error).message);
+        res.api(500, (error as Error).message);
         return;
     }
 
@@ -67,7 +67,8 @@ export async function ReencodeVod(
         .find((v) => v.basename === basename);
 
     if (!vod) {
-        res.status(500).send(
+        res.api(
+            500,
             LiveStreamDVR.getInstance()
                 .getVods()
                 .map((v) => v.basename)
@@ -79,7 +80,7 @@ export async function ReencodeVod(
     try {
         status = await vod.reencodeSegments();
     } catch (error) {
-        res.status(500).send((error as Error).message);
+        res.api(500, (error as Error).message);
         return;
     }
 
@@ -97,7 +98,7 @@ export async function GetYouTubeChannel(
     try {
         d = await YouTubeChannel.getUserDataById(id);
     } catch (error) {
-        res.status(500).send((error as Error).message);
+        res.api(500, (error as Error).message);
         return;
     }
 
@@ -133,7 +134,7 @@ export async function rebuildSegmentList(
     const vod = LiveStreamDVR.getInstance().getVodByUUID(uuid);
 
     if (!vod) {
-        res.status(500).send("VOD not found");
+        res.api(500, "VOD not found");
         return;
     }
 
@@ -141,7 +142,7 @@ export async function rebuildSegmentList(
     try {
         status = await vod.rebuildSegmentList();
     } catch (error) {
-        res.status(500).send((error as Error).message);
+        res.api(500, (error as Error).message);
         return;
     }
 

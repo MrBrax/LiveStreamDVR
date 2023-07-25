@@ -1,9 +1,9 @@
-import type { YouTubeVOD } from "@/Core/Providers/YouTube/YouTubeVOD";
+import type { KickChannel } from "@/Core/Providers/Kick/KickChannel";
+import type { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
 import type { TwitchVOD } from "@/Core/Providers/Twitch/TwitchVOD";
 import type { TwitchVODChapter } from "@/Core/Providers/Twitch/TwitchVODChapter";
-import type { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
 import type { YouTubeChannel } from "@/Core/Providers/YouTube/YouTubeChannel";
-import type { KickChannel } from "@/Core/Providers/Kick/KickChannel";
+import type { YouTubeVOD } from "@/Core/Providers/YouTube/YouTubeVOD";
 
 export function isTwitchChannel(data: unknown): data is TwitchChannel {
     return (data as TwitchChannel).provider === "twitch";
@@ -27,4 +27,8 @@ export function isYouTubeVOD(data: unknown): data is YouTubeVOD {
 
 export function isKickChannel(data: unknown): data is KickChannel {
     return (data as KickChannel).provider === "kick";
+}
+
+export function isError(data: unknown): data is Error {
+    return data instanceof Error;
 }

@@ -9,7 +9,7 @@ export async function KickAPIUser(
     const slug = req.params.slug;
 
     if (!slug) {
-        res.status(400).send({ status: "ERROR", message: "Invalid slug" });
+        res.api(400, { status: "ERROR", message: "Invalid slug" });
         return;
     }
 
@@ -18,7 +18,7 @@ export async function KickAPIUser(
     try {
         user = await GetUser(slug);
     } catch (error) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: `Error while fetching user data: ${
                 (error as Error).message
@@ -28,14 +28,14 @@ export async function KickAPIUser(
     }
 
     if (!user) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "User not found",
         } as ApiErrorResponse);
         return;
     }
 
-    res.send({
+    res.api(200, {
         data: user,
         status: "OK",
     });

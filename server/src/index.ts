@@ -18,6 +18,7 @@ import {
 import { ClientBroker } from "./Core/ClientBroker";
 import { Config } from "./Core/Config";
 import { LiveStreamDVR } from "./Core/LiveStreamDVR";
+import { LOGLEVEL, log } from "./Core/Log";
 import { Webhook } from "./Core/Webhook";
 import { debugLog } from "./Helpers/Console";
 import i18n from "./Helpers/i18n";
@@ -115,6 +116,13 @@ LiveStreamDVR.init().then(() => {
         data: T
     ) {
         this.status(status).json(data);
+        if (status >= 400) {
+            log(
+                LOGLEVEL.ERROR,
+                "http.api",
+                `API error ${status} returned: ${JSON.stringify(data)}`
+            );
+        }
     };
 
     app.use(express.text({ type: "application/xml" }));
@@ -378,32 +386,4 @@ LiveStreamDVR.init().then(() => {
     });
 
     LiveStreamDVR.postInit();
-
-    // fs.writeFileSync(path.join(BaseConfigDataFolder.cache, "lock"), "1");
-
-    /*
-    process.on("beforeExit", (code) => {
-        if (code == 0) {
-            if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "lock"))) fs.unlinkSync(path.join(BaseConfigDataFolder.cache, "lock"));
-        } else {
-            console.log(`Not removing lock, beforeExit code ${code}`);
-        }
-    });
-
-    process.on("exit", (code) => {
-        if (code == 0) {
-            if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "lock"))) fs.unlinkSync(path.join(BaseConfigDataFolder.cache, "lock"));
-        } else {
-            console.log(`Not removing lock, exit code ${code}`);
-        }
-    });
-
-    process.on("SIGINT", (signal) => {
-        if (signal) {
-            if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "lock"))) fs.unlinkSync(path.join(BaseConfigDataFolder.cache, "lock"));
-        } else {
-            console.log(`Not removing lock, sigint signal ${signal}`);
-        }
-    });
-    */
 });

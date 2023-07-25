@@ -1,7 +1,7 @@
 import { TwitchGame } from "@/Core/Providers/Twitch/TwitchGame";
-import type express from "express";
 import type { ApiGamesResponse } from "@common/Api/Api";
 import type { ApiGame } from "@common/Api/Client";
+import type express from "express";
 
 export function ListGames(req: express.Request, res: express.Response): void {
     const games: Record<string, ApiGame> = {};
@@ -11,11 +11,11 @@ export function ListGames(req: express.Request, res: express.Response): void {
 
     const fmt = req.query.format == "array" ? "array" : "hash";
 
-    res.send({
+    res.api<ApiGamesResponse>(200, {
         // data: fmt == "array" ? Object.values(games) : games,
         data: games,
         status: "OK",
-    } as ApiGamesResponse);
+    });
 }
 
 export async function RefreshGame(
@@ -25,7 +25,7 @@ export async function RefreshGame(
     const game_id = req.params.id;
 
     if (!game_id) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             error: "Missing game ID",
         });
@@ -34,7 +34,7 @@ export async function RefreshGame(
 
     const game = await TwitchGame.getGameAsync(game_id, true);
 
-    res.send({
+    res.api(200, {
         data: game ? game.toAPI() : null,
         status: "OK",
     });

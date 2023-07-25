@@ -1,5 +1,6 @@
 import { debugLog } from "@/Helpers/Console";
 import { GetRunningProcesses, execSimple } from "@/Helpers/Execute";
+import { is_docker } from "@/Helpers/System";
 import type { SettingField } from "@common/Config";
 import { settingsFields } from "@common/ServerConfig";
 import type { AxiosResponse } from "axios";
@@ -26,7 +27,6 @@ import { LOGLEVEL, log } from "./Log";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 import { Scheduler } from "./Scheduler";
-import { is_docker } from "@/Helpers/System";
 
 const argv = minimist(process.argv.slice(2));
 
@@ -707,7 +707,7 @@ export class Config {
                 response_status = error.response?.status ?? 0;
             } else {
                 console.error("app url check error", error);
-                // res.status(400).send({
+                // res.api(400, {
                 //     status: "ERROR",
                 //     message: `External app url could not be contacted on '${full_url}' due to an error: ${error}`,
                 // });
@@ -726,7 +726,7 @@ export class Config {
         }
 
         if (response_body !== "No data supplied") {
-            // res.status(400).send({
+            // res.api(400, {
             //     status: "ERROR",
             //     message: `External app url responded with an unexpected response: ${response_body}`,
             // });

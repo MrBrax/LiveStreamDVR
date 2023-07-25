@@ -118,7 +118,7 @@ export async function License(
     const package_name = req.query.package_name as string;
 
     if (!package_name) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             error: "Missing package_name",
         });
@@ -130,7 +130,7 @@ export async function License(
     if (!license_path) {
         license_path = Helper.get_bin_license(package_name);
         if (!license_path) {
-            res.status(404).send({
+            res.api(404, {
                 status: "ERROR",
                 error: "License not found for either pip or bin package",
             });

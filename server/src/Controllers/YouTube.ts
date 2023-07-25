@@ -8,7 +8,7 @@ export function Authenticate(
     res: express.Response
 ): void {
     if (!YouTubeHelper.oAuth2Client) {
-        res.status(500).send({
+        res.api(500, {
             status: "ERROR",
             message:
                 "YouTube client not configured. Set it up in the settings page.",
@@ -30,7 +30,7 @@ export function Authenticate(
     });
 
     if (!url) {
-        res.status(500).send({
+        res.api(500, {
             status: "ERROR",
             message: "No URL received from OAuth. Check your settings.",
         });
@@ -48,7 +48,7 @@ export function Authenticate(
             "YouTube.Authenticate",
             `Send raw URL to user: ${url}`
         );
-        res.status(200).send({
+        res.api(200, {
             status: "OK",
             data: url,
         });
@@ -64,7 +64,7 @@ export async function DestroySession(
     res: express.Response
 ): Promise<void> {
     if (!YouTubeHelper.oAuth2Client) {
-        res.status(500).send({
+        res.api(500, {
             status: "ERROR",
             message:
                 "YouTube client not configured. Set it up in the settings page.",
@@ -75,7 +75,7 @@ export async function DestroySession(
     try {
         await YouTubeHelper.destroyCredentials();
     } catch (error) {
-        res.status(500).send({
+        res.api(500, {
             status: "ERROR",
             message: (error as Error).message,
         });
@@ -96,7 +96,7 @@ export function Callback(
 
     return new Promise<void>((resolve) => {
         if (!YouTubeHelper.oAuth2Client) {
-            res.status(500).send({
+            res.api(500, {
                 status: "ERROR",
                 message: "YouTube client not configured",
             });
@@ -113,7 +113,7 @@ export function Callback(
                         "YouTube.Callback",
                         `Could not get token: ${err}`
                     );
-                    res.status(400).send({
+                    res.api(400, {
                         status: "ERROR",
                         message: err.message,
                     });
@@ -142,10 +142,11 @@ export function Callback(
                                 "YouTube.Callback",
                                 `Could not get username: ${err.message}`
                             );
-                            res.status(500).send(
+                            res.api(
+                                500,
                                 "Could not get username, please check the logs and settings."
                             );
-                            // res.status(400).send({
+                            // res.api(400, {
                             //     status: "ERROR",
                             //     message: `Could not get username: ${err.message}`,
                             // });
@@ -159,7 +160,7 @@ export function Callback(
                         "YouTube.Callback",
                         "Could not get token, unknown error"
                     );
-                    res.status(400).send({
+                    res.api(400, {
                         status: "ERROR",
                         message: "Could not get token, unknown error",
                     });
@@ -169,7 +170,7 @@ export function Callback(
             });
         } else {
             log(LOGLEVEL.ERROR, "YouTube.Callback", "No code provided");
-            res.status(500).send({
+            res.api(500, {
                 status: "ERROR",
                 message: "No code provided",
             });
@@ -182,7 +183,7 @@ export async function Status(
     res: express.Response
 ): Promise<void> {
     if (!YouTubeHelper.oAuth2Client) {
-        res.status(500).send({
+        res.api(500, {
             status: "ERROR",
             message: "YouTube client not configured",
         });
@@ -201,7 +202,7 @@ export async function Status(
     try {
         username = await YouTubeHelper.fetchUsername(true);
     } catch (error) {
-        res.status(500).send({
+        res.api(500, {
             status: "ERROR",
             message: `YouTube not authenticated: ${(error as Error).message}`,
         });
@@ -227,7 +228,7 @@ export async function Status(
             });
         }
     } else {
-        res.status(500).send({
+        res.api(500, {
             status: "ERROR",
             message: "YouTube not authenticated, username is blank",
         });
@@ -242,7 +243,7 @@ export async function GetPlaylists(
     try {
         playlists = await YouTubeHelper.getPlaylists();
     } catch (error) {
-        res.status(500).send({
+        res.api(500, {
             status: "ERROR",
             message: `Could not fetch playlists: ${(error as Error).message}`,
         });
@@ -263,7 +264,7 @@ export async function CreatePlaylist(
     const description = (req.body.description as string) || "";
 
     if (!title) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No title provided",
         });
@@ -274,7 +275,7 @@ export async function CreatePlaylist(
     try {
         playlist = await YouTubeHelper.createPlaylist(title, description);
     } catch (error) {
-        res.status(500).send({
+        res.api(500, {
             status: "ERROR",
             message: `Could not create playlist: ${(error as Error).message}`,
         });

@@ -73,7 +73,7 @@ export function SaveSettings(
     const postConfig = req.body.config;
 
     if (!postConfig) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No config provided",
         });
@@ -91,7 +91,7 @@ export function SaveSettings(
     for (const key in Config.settingsFields) {
         const setting = Config.settingsFields[key];
         if (setting.required && postConfig[key] === undefined) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: `Missing required setting: ${key}`,
             });
@@ -103,7 +103,7 @@ export function SaveSettings(
     }
 
     if (fields == 0) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No settings to save",
         });
@@ -187,7 +187,7 @@ export async function ValidateExternalURL(
 
 export function SetDebug(req: express.Request, res: express.Response): void {
     if (req.query.enable === undefined) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Missing enable parameter",
         });

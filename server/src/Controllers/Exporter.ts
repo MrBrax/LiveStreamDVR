@@ -179,7 +179,7 @@ export async function ExportFile(
     const input_exporter = req.query.exporter as string;
 
     if (!input_exporter) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No exporter specified",
         } as ApiErrorResponse);
@@ -187,7 +187,7 @@ export async function ExportFile(
     }
 
     if (mode == "file" && process.env.TCD_ENABLE_FILES_API !== "1") {
-        res.status(500).send({
+        res.api(500, {
             status: "ERROR",
             message:
                 "Files API is disabled on this server. Enable with the TCD_ENABLE_FILES_API environment variable.",
@@ -200,7 +200,7 @@ export async function ExportFile(
     try {
         exporter = GetExporter(input_exporter, mode, req.body);
     } catch (error) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Invalid exporter returned: " + (error as Error).message,
         } as ApiErrorResponse);
@@ -213,7 +213,7 @@ export async function ExportFile(
     try {
         success = await exporter.export();
     } catch (error) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: (error as Error).message
                 ? `Export error: ${(error as Error).message}`
@@ -223,7 +223,7 @@ export async function ExportFile(
     }
 
     if (!success) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Export failed",
         } as ApiErrorResponse);
@@ -234,7 +234,7 @@ export async function ExportFile(
     try {
         verify = await exporter.verify();
     } catch (error) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: (error as Error).message
                 ? `Verify error: ${(error as Error).message}`
@@ -249,7 +249,7 @@ export async function ExportFile(
         await exporter.vod.saveJSON("export successful");
     }
 
-    res.send({
+    res.api(200, {
         status: "OK",
         message: `Export successful: ${verify}`,
     } as ApiResponse);
@@ -265,7 +265,7 @@ export async function GetRcloneRemotes(
     try {
         remotes = await RCloneExporter.getRemotes();
     } catch (error) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: (error as Error).message
                 ? `Rclone error: ${(error as Error).message}`
@@ -274,7 +274,7 @@ export async function GetRcloneRemotes(
         return;
     }
 
-    res.send({
+    res.api(200, {
         status: "OK",
         data: remotes,
     } as ApiResponse);

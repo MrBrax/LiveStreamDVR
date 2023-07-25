@@ -1,7 +1,7 @@
 import { Job } from "@/Core/Job";
-import type express from "express";
+import { LOGLEVEL, log } from "@/Core/Log";
 import type { ApiErrorResponse, ApiJobsResponse } from "@common/Api/Api";
-import { log, LOGLEVEL } from "@/Core/Log";
+import type express from "express";
 
 export async function ListJobs(
     req: express.Request,
@@ -13,10 +13,10 @@ export async function ListJobs(
         await job.getStatus();
     }
 
-    res.send({
+    res.api<ApiJobsResponse>(200, {
         data: jobs.map((job) => job.toAPI()),
         status: "OK",
-    } as ApiJobsResponse);
+    });
 }
 
 export async function KillJob(
@@ -39,7 +39,7 @@ export async function KillJob(
             : "SIGTERM";
 
     if (!job) {
-        res.status(404).send({
+        res.api(404, {
             status: "ERROR",
             message: `Job '${req.params.name}' not found`,
         } as ApiErrorResponse);
@@ -56,12 +56,12 @@ export async function KillJob(
         const success = job.clear();
 
         if (success) {
-            res.send({
+            res.api(200, {
                 status: "OK",
                 message: "Job cleared",
             });
         } else {
-            res.status(500).send({
+            res.api(500, {
                 status: "ERROR",
                 message: "Job could not be cleared.",
             } as ApiErrorResponse);
@@ -73,12 +73,12 @@ export async function KillJob(
     const success = await job.kill(method);
 
     if (success) {
-        res.send({
+        res.api(200, {
             status: "OK",
             message: "Job killed",
         });
     } else {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Job could not be killed.",
         } as ApiErrorResponse);
@@ -92,7 +92,7 @@ export function DetachJobProcess(
     const job = Job.getJob(req.params.name);
 
     if (!job) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: `Job '${req.params.name}' not found`,
         } as ApiErrorResponse);
@@ -101,7 +101,7 @@ export function DetachJobProcess(
 
     job.detachProcess();
 
-    res.send({
+    res.api(200, {
         status: "OK",
         message: `Job ${req.params.name} detached`,
     });

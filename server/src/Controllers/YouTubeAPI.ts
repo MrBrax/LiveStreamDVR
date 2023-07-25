@@ -1,7 +1,7 @@
-import type express from "express";
-import type { ApiErrorResponse } from "@common/Api/Api";
 import { YouTubeChannel } from "@/Core/Providers/YouTube/YouTubeChannel";
 import { YouTubeVOD } from "@/Core/Providers/YouTube/YouTubeVOD";
+import type { ApiErrorResponse } from "@common/Api/Api";
+import type express from "express";
 export async function YouTubeAPIVideos(
     req: express.Request,
     res: express.Response
@@ -9,7 +9,7 @@ export async function YouTubeAPIVideos(
     const channel_id = req.params.channel_id;
 
     if (!channel_id) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Invalid channel login",
         });
@@ -19,7 +19,7 @@ export async function YouTubeAPIVideos(
     const videos = await YouTubeVOD.getVideosProxy(channel_id);
 
     if (videos === false) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No response from API",
         } as ApiErrorResponse);
@@ -39,14 +39,14 @@ export async function YouTubeAPIVideo(
     const video_id = req.params.video_id;
 
     if (!video_id) {
-        res.status(400).send({ status: "ERROR", message: "Invalid video id" });
+        res.api(400, { status: "ERROR", message: "Invalid video id" });
         return;
     }
 
     const video = await YouTubeVOD.getVideo(video_id);
 
     if (video === false) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No response from API",
         } as ApiErrorResponse);
@@ -66,14 +66,14 @@ export async function YouTubeAPIChannelID(
     const url = req.body.url;
 
     if (!url) {
-        res.status(400).send({ status: "ERROR", message: "No URL" });
+        res.api(400, { status: "ERROR", message: "No URL" });
         return;
     }
 
     const channel_id = await YouTubeChannel.getChannelIdFromUrl(url);
 
     if (channel_id === false) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No response from API",
         } as ApiErrorResponse);

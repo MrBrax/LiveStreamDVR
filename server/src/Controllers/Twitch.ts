@@ -1,12 +1,12 @@
-import type express from "express";
-import { TwitchHelper } from "../Providers/Twitch";
-import { log, LOGLEVEL } from "@/Core/Log";
-import fs from "node:fs";
-import { formatDistanceToNow, formatISO9075 } from "date-fns";
 import { Config } from "@/Core/Config";
+import { log, LOGLEVEL } from "@/Core/Log";
 import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
 import type { TwitchAuthUserTokenResponse } from "@common/TwitchAPI/Auth";
 import axios from "axios";
+import { formatDistanceToNow, formatISO9075 } from "date-fns";
+import type express from "express";
+import fs from "node:fs";
+import { TwitchHelper } from "../Providers/Twitch";
 
 function redirectUri(): string {
     let app_url = Config.getInstance().cfg("app_url");
@@ -31,7 +31,7 @@ export function Authenticate(
 
     if (req.query.rawurl) {
         log(LOGLEVEL.SUCCESS, "route.twitch", `Send raw URL to user: ${url}`);
-        res.status(200).send({
+        res.api(200, {
             status: "OK",
             data: url,
         });
@@ -51,7 +51,7 @@ export async function Callback(
     const code = req.query.code as string;
 
     if (!code) {
-        res.status(500).send({
+        res.api(500, {
             status: "ERROR",
             message: "No code received from Twitch. Check your settings.",
         });
@@ -97,13 +97,13 @@ export async function Callback(
             );
             console.log(body);
             console.error(e.response?.data);
-            res.status(500).send({
+            res.api(500, {
                 status: "ERROR",
                 message: `Error while getting access token: ${e.response?.data.message} (${e.status})`,
             });
         } else {
             console.error(e);
-            res.status(500).send({
+            res.api(500, {
                 status: "ERROR",
                 message:
                     "Error while getting access token. Check the log for more information.",
@@ -138,7 +138,7 @@ export async function Status(
     res: express.Response
 ): Promise<void> {
     if (TwitchHelper.accessTokenType !== "user") {
-        res.status(500).send({
+        res.api(500, {
             status: "ERROR",
             message: "Access token is not a user token.",
         });
@@ -154,7 +154,7 @@ export async function Status(
     // }
 
     if (!TwitchHelper.userTokenUserId) {
-        res.status(500).send({
+        res.api(500, {
             status: "ERROR",
             message: "No user ID found.",
         });
@@ -167,7 +167,7 @@ export async function Status(
             TwitchHelper.userTokenUserId
         );
     } catch (error) {
-        res.status(500).send({
+        res.api(500, {
             status: "ERROR",
             message: `Twitch not authenticated: ${(error as Error).message}`,
         });
@@ -195,7 +195,7 @@ export async function Status(
             });
         }
     } else {
-        res.status(500).send({
+        res.api(500, {
             status: "ERROR",
             message: "Twitch not authenticated, login is blank",
         });

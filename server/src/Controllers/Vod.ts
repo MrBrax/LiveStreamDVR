@@ -31,7 +31,7 @@ export async function GetVod(
     const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod not found",
         } as ApiErrorResponse);
@@ -51,7 +51,7 @@ export async function EditVod(
     const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod not found",
         } as ApiErrorResponse);
@@ -203,7 +203,7 @@ export function ArchiveVod(req: express.Request, res: express.Response): void {
     const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod not found",
         } as ApiErrorResponse);
@@ -224,7 +224,7 @@ export async function DeleteVod(
     const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod not found",
         } as ApiErrorResponse);
@@ -234,7 +234,7 @@ export async function DeleteVod(
     try {
         await vod.delete();
     } catch (error) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: `Vod could not be deleted: ${(error as Error).message}`,
         } as ApiErrorResponse);
@@ -253,7 +253,7 @@ export async function DeleteVodSegment(
     const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod not found",
         } as ApiErrorResponse);
@@ -266,7 +266,7 @@ export async function DeleteVodSegment(
             req.query.keep_entry === "true"
         );
     } catch (error) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: `Vod segment could not be deleted: ${
                 (error as Error).message
@@ -293,7 +293,7 @@ export async function DownloadVod(
             : "best";
 
     if (!vod) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod not found",
         } as ApiErrorResponse);
@@ -314,7 +314,7 @@ export async function DownloadChat(
     const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod not found",
         } as ApiErrorResponse);
@@ -326,7 +326,7 @@ export async function DownloadChat(
     try {
         success = await vod.downloadChat();
     } catch (error) {
-        res.status(500).send({
+        res.api(500, {
             status: "ERROR",
             message: `Chat download error: ${(error as Error).message}`,
         });
@@ -345,7 +345,7 @@ export async function RenderWizard(
     const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod not found",
         } as ApiErrorResponse);
@@ -394,7 +394,7 @@ export async function RenderWizard(
                 true
             );
         } catch (error) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: `Chat render error: ${(error as Error).message}`,
             } as ApiErrorResponse);
@@ -415,7 +415,7 @@ export async function RenderWizard(
                 test_duration
             );
         } catch (error) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: `Chat burn error: ${(error as Error).message}`,
             } as ApiErrorResponse);
@@ -424,14 +424,14 @@ export async function RenderWizard(
     }
 
     if (!render_chat && !burn_chat) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Neither chat render nor chat burn was selected",
         } as ApiErrorResponse);
         return;
     }
 
-    res.status(200).send({
+    res.api(200, {
         status: "OK",
         data: {
             status_renderchat: status_renderchat,
@@ -447,7 +447,7 @@ export async function CheckMute(
     const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod not found",
         } as ApiErrorResponse);
@@ -458,7 +458,7 @@ export async function CheckMute(
     try {
         is_muted = await vod.checkMutedVod(true);
     } catch (error) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message:
                 (error as Error).message ||
@@ -483,7 +483,7 @@ export async function FixIssues(
     const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod not found",
         } as ApiErrorResponse);
@@ -517,7 +517,7 @@ export async function MatchVod(
     const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod not found",
         } as ApiErrorResponse);
@@ -525,7 +525,7 @@ export async function MatchVod(
     }
 
     if (!(vod instanceof TwitchVOD)) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod not compatible",
         } as ApiErrorResponse);
@@ -540,7 +540,7 @@ export async function MatchVod(
         try {
             video = await TwitchVOD.getVideo(overrideVideoID);
         } catch (error) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: `Twitch API error: ${(error as Error).message}`,
             } as ApiErrorResponse);
@@ -548,7 +548,7 @@ export async function MatchVod(
         }
 
         if (!video) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: "Video not found",
             } as ApiErrorResponse);
@@ -561,7 +561,7 @@ export async function MatchVod(
         try {
             success = await vod.matchProviderVod(true);
         } catch (error) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message:
                     (error as Error).message ||
@@ -571,7 +571,7 @@ export async function MatchVod(
         }
 
         if (!success) {
-            res.status(400).send({
+            res.api(400, {
                 status: "ERROR",
                 message: "Vod not matched",
             } as ApiErrorResponse);
@@ -596,7 +596,7 @@ export async function CutVod(
     const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod not found",
         } as ApiErrorResponse);
@@ -608,7 +608,7 @@ export async function CutVod(
     const segment_name = req.body.name || "clip";
 
     if (time_in === undefined || time_out === undefined) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Missing time_in or time_out",
         } as ApiErrorResponse);
@@ -616,7 +616,7 @@ export async function CutVod(
     }
 
     if (time_in >= time_out) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "time_in must be less than time_out",
         } as ApiErrorResponse);
@@ -624,7 +624,7 @@ export async function CutVod(
     }
 
     if (!vod.segments || vod.segments.length == 0) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod has no segments",
         } as ApiErrorResponse);
@@ -632,7 +632,7 @@ export async function CutVod(
     }
 
     if (!vod.is_finalized) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod is not finalized",
         } as ApiErrorResponse);
@@ -640,7 +640,7 @@ export async function CutVod(
     }
 
     if (!vod.segments[0].basename) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod has no valid first segment",
         } as ApiErrorResponse);
@@ -648,7 +648,7 @@ export async function CutVod(
     }
 
     if (!vod.video_metadata) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod has no video metadata",
         } as ApiErrorResponse);
@@ -681,7 +681,7 @@ export async function CutVod(
     try {
         ret = await cutFile(file_in, file_out, seconds_in, seconds_out);
     } catch (error) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message:
                 (error as Error).message ||
@@ -691,7 +691,7 @@ export async function CutVod(
     }
 
     if (!ret) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Cut failed",
         } as ApiErrorResponse);
@@ -749,7 +749,7 @@ export async function AddBookmark(
     const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod not found",
         } as ApiErrorResponse);
@@ -757,7 +757,7 @@ export async function AddBookmark(
     }
 
     if (!("bookmarks" in vod)) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod not compatible",
         } as ApiErrorResponse);
@@ -768,7 +768,7 @@ export async function AddBookmark(
     const offset = req.body.offset ? parseInt(req.body.offset) : undefined;
 
     if (!date && !offset) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Date or offset is required",
         } as ApiErrorResponse);
@@ -776,7 +776,7 @@ export async function AddBookmark(
     }
 
     if (!vod.started_at) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod has not started yet",
         } as ApiErrorResponse);
@@ -784,7 +784,7 @@ export async function AddBookmark(
     }
 
     if (offset && !vod.is_finalized) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod is not finalized, cannot add bookmark with offset",
         } as ApiErrorResponse);
@@ -801,7 +801,7 @@ export async function AddBookmark(
     }
 
     if (!absolute_date) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Invalid date returned from date or offset",
         } as ApiErrorResponse);
@@ -832,7 +832,7 @@ export async function RemoveBookmark(
     const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod not found",
         } as ApiErrorResponse);
@@ -840,7 +840,7 @@ export async function RemoveBookmark(
     }
 
     if (!("bookmarks" in vod)) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod not compatible",
         } as ApiErrorResponse);
@@ -853,7 +853,7 @@ export async function RemoveBookmark(
             : -1;
 
     if (index < 0 || index >= vod.bookmarks.length) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Invalid bookmark index",
         } as ApiErrorResponse);
@@ -879,7 +879,7 @@ export async function GetSync(
     const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod not found",
         } as ApiErrorResponse);
@@ -902,7 +902,7 @@ export async function RenameVod(
     const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod not found",
         } as ApiErrorResponse);
@@ -965,7 +965,7 @@ export async function RefreshVodMetadata(
     const vod = LiveStreamDVR.getInstance().getVodByUUID(req.params.uuid);
 
     if (!vod) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Vod not found",
         } as ApiErrorResponse);
@@ -979,7 +979,7 @@ export async function RefreshVodMetadata(
     try {
         md = await vod.getMediainfo(0, true);
     } catch (error) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: (error as Error).message,
         } as ApiErrorResponse);
@@ -987,7 +987,7 @@ export async function RefreshVodMetadata(
     }
 
     if (!md) {
-        res.status(500).send({
+        res.api(500, {
             status: "ERROR",
             message: "Mediainfo error",
         } as ApiErrorResponse);

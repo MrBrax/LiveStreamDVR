@@ -1,13 +1,13 @@
-import type express from "express";
-import type { ApiFavouriteGamesResponse } from "@common/Api/Api";
-import { TwitchGame } from "@/Core/Providers/Twitch/TwitchGame";
 import { log, LOGLEVEL } from "@/Core/Log";
+import { TwitchGame } from "@/Core/Providers/Twitch/TwitchGame";
+import type { ApiFavouriteGamesResponse } from "@common/Api/Api";
+import type express from "express";
 
 export function ListFavourites(
     req: express.Request,
     res: express.Response
 ): void {
-    res.send({
+    res.api(200, {
         status: "OK",
         data: TwitchGame.favourite_games,
     } as ApiFavouriteGamesResponse);
@@ -31,7 +31,7 @@ export function SaveFavourites(
         `Saved ${TwitchGame.favourite_games.length} favourite games.`
     );
 
-    res.send({
+    res.api(200, {
         status: "OK",
         message: `Saved ${TwitchGame.favourite_games.length} favourite games.`,
     });
@@ -55,7 +55,7 @@ export function AddFavourite(
         `Added ${formdata.game} to favourites.`
     );
 
-    res.send({
+    res.api(200, {
         status: "OK",
         message: `Added ${formdata.game} to favourites.`,
     });

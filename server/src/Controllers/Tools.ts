@@ -1,19 +1,19 @@
+import { BaseConfigDataFolder } from "@/Core/BaseConfig";
+import { Config } from "@/Core/Config";
+import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
+import { LOGLEVEL, log } from "@/Core/Log";
+import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
+import { TwitchVOD } from "@/Core/Providers/Twitch/TwitchVOD";
+import { Scheduler } from "@/Core/Scheduler";
+import type { ApiErrorResponse } from "@common/Api/Api";
+import type { VideoQuality } from "@common/Config";
+import { formatString } from "@common/Format";
+import type { ClipBasenameTemplate } from "@common/Replacements";
 import { format, parseJSON } from "date-fns";
 import type express from "express";
 import fs from "node:fs";
 import path from "node:path";
 import sanitize from "sanitize-filename";
-import type { ApiErrorResponse } from "@common/Api/Api";
-import type { VideoQuality } from "@common/Config";
-import { formatString } from "@common/Format";
-import type { ClipBasenameTemplate } from "@common/Replacements";
-import { BaseConfigDataFolder } from "@/Core/BaseConfig";
-import { Config } from "@/Core/Config";
-import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
-import { log, LOGLEVEL } from "@/Core/Log";
-import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
-import { TwitchVOD } from "@/Core/Providers/Twitch/TwitchVOD";
-import { Scheduler } from "@/Core/Scheduler";
 
 export async function ResetChannels(
     req: express.Request,
@@ -35,7 +35,7 @@ export async function DownloadVod(
     const quality = (req.body.quality as VideoQuality | undefined) || "best";
 
     if (!url) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No url provided",
         });
@@ -45,7 +45,7 @@ export async function DownloadVod(
     const id_match = url.match(/\/videos\/([0-9]+)/);
 
     if (!id_match) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No id found in url",
         });
@@ -57,7 +57,7 @@ export async function DownloadVod(
     const metadata = await TwitchVOD.getVideo(id);
 
     if (!metadata) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No metadata found",
         });
@@ -72,7 +72,7 @@ export async function DownloadVod(
     try {
         success = await TwitchVOD.downloadVideo(id, quality, file_path);
     } catch (e) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: `Error downloading video: ${(e as Error).message}`,
         });
@@ -85,7 +85,7 @@ export async function DownloadVod(
             message: `Downloaded to ${file_path}`,
         });
     } else {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Failed to download",
         });
@@ -101,7 +101,7 @@ export async function DownloadChat(
     const method = (req.body.method as string | undefined) || "td";
 
     if (!url) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No url provided",
         });
@@ -109,7 +109,7 @@ export async function DownloadChat(
     }
 
     if (method !== "td" && method !== "tcd") {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Invalid method. Must be 'td' or 'tcd'",
         });
@@ -119,7 +119,7 @@ export async function DownloadChat(
     const id_match = url.match(/\/videos\/([0-9]+)/);
 
     if (!id_match) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No id found in url",
         });
@@ -133,7 +133,7 @@ export async function DownloadChat(
     try {
         metadata = await TwitchVOD.getVideo(id);
     } catch (error) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: `Error while fetching video data: ${
                 (error as Error).message
@@ -143,7 +143,7 @@ export async function DownloadChat(
     }
 
     if (!metadata) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No metadata found",
         });
@@ -158,7 +158,7 @@ export async function DownloadChat(
     try {
         success = await TwitchVOD.downloadChat(method, id, file_path);
     } catch (e) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: `Error downloading chat: ${(e as Error).message}`,
         });
@@ -171,7 +171,7 @@ export async function DownloadChat(
             message: `Downloaded to ${file_path}`,
         });
     } else {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Failed to download",
         });
@@ -184,7 +184,7 @@ export async function ChatDump(
 ): Promise<void> {
     const login = req.body.login as string | undefined;
     if (!login) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No login provided",
         });
@@ -193,7 +193,7 @@ export async function ChatDump(
 
     const channel_data = await TwitchChannel.getUserDataByLogin(login);
     if (!channel_data) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No channel data found",
         });
@@ -215,7 +215,7 @@ export async function ChatDump(
     );
 
     if (!job) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Failed to start chat dump",
         });
@@ -236,7 +236,7 @@ export async function DownloadClip(
     const quality = (req.body.quality as VideoQuality | undefined) || "best";
 
     if (!url) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No url provided",
         });
@@ -246,7 +246,7 @@ export async function DownloadClip(
     const id = TwitchVOD.getClipId(url);
 
     if (!id) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No id found in url",
         });
@@ -256,7 +256,7 @@ export async function DownloadClip(
     const clips = await TwitchVOD.getClips({ id: id });
 
     if (!clips) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No metadata found",
         });
@@ -289,7 +289,7 @@ export async function DownloadClip(
 
     const user = await TwitchChannel.getUserDataById(metadata.broadcaster_id);
     if (!user) {
-        res.status(500).send({
+        res.api(500, {
             status: "ERROR",
             message: "Failed to get broadcaster user data",
         });
@@ -312,7 +312,7 @@ export async function DownloadClip(
     try {
         success = await TwitchVOD.downloadClip(id, `${file_path}.mp4`, quality);
     } catch (e) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: `Error downloading video: ${(e as Error).message}`,
         });
@@ -346,7 +346,7 @@ export async function DownloadClip(
             );
         }
     } else {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Failed to download",
         });
@@ -362,7 +362,7 @@ export function Shutdown(req: express.Request, res: express.Response): void {
             .getChannels()
             .some((c) => c.is_capturing || c.is_converting)
     ) {
-        res.status(500).send({
+        res.api(500, {
             status: "ERROR",
             message: "There are still active streams",
         });
@@ -384,7 +384,7 @@ export function RunScheduler(
     const name = req.params.name as string | undefined;
 
     if (!name) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No name provided",
         });
@@ -392,7 +392,7 @@ export function RunScheduler(
     }
 
     if (!Scheduler.hasJob(name)) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No job found",
         });

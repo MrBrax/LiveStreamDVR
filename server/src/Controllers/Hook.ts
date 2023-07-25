@@ -151,7 +151,7 @@ export async function HookTwitch(
                 "hook.HookTwitch",
                 "Hook got data with old webhook format."
             );
-            res.status(400).send("Outdated format");
+            res.api(400, "Outdated format");
             return;
         }
 
@@ -188,7 +188,7 @@ export async function HookTwitch(
                     `${channel_id}.substatus.${sub_type}`,
                     SubStatus.FAILED
                 );
-                res.status(400).send("Invalid signature check for challenge");
+                res.api(400, "Invalid signature check for challenge");
             }
 
             log(
@@ -260,7 +260,7 @@ export async function HookTwitch(
                 "Invalid signature check for message!",
                 debugMeta
             );
-            res.status(400).send("Invalid signature check");
+            res.api(400, "Invalid signature check");
             return;
         }
 
@@ -303,7 +303,7 @@ export async function HookTwitch(
             return;
         } else {
             log(LOGLEVEL.ERROR, "hook.HookTwitch", "No event in message!");
-            res.status(400).send("No event in message");
+            res.api(400, "No event in message");
             return;
         }
     } else {
@@ -312,7 +312,7 @@ export async function HookTwitch(
             "hook.HookTwitch",
             "Hook called with invalid JSON."
         );
-        res.status(400).send("No data supplied");
+        res.api(400, "No data supplied");
         return;
     }
 
@@ -323,7 +323,7 @@ export async function HookTwitch(
         debugMeta
     );
 
-    res.status(400).send("No data supplied");
+    res.api(400, "No data supplied");
     return;
 }
 
@@ -462,6 +462,6 @@ export async function HookYouTube(
 
     // logAdvanced(LOGLEVEL.WARNING, "hook", "Hook called with no data...", debugMeta);
 
-    // res.status(400).send("No data supplied");
+    // res.api(400, "No data supplied");
     // return;
 }

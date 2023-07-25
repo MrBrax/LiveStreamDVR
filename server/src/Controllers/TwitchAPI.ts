@@ -1,8 +1,8 @@
+import { log, LOGLEVEL } from "@/Core/Log";
 import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "@/Core/Providers/Twitch/TwitchVOD";
-import type express from "express";
 import type { ApiErrorResponse } from "@common/Api/Api";
-import { log, LOGLEVEL } from "@/Core/Log";
+import type express from "express";
 
 export async function TwitchAPIVideos(
     req: express.Request,
@@ -11,7 +11,7 @@ export async function TwitchAPIVideos(
     const channel_id = await TwitchChannel.channelIdFromLogin(req.params.login);
 
     if (!channel_id) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Invalid channel login",
         });
@@ -21,7 +21,7 @@ export async function TwitchAPIVideos(
     const videos = await TwitchVOD.getVideosProxy(channel_id);
 
     if (!videos) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Videos not found",
         } as ApiErrorResponse);
@@ -41,7 +41,7 @@ export async function TwitchAPIVideo(
     const video_id = req.params.video_id;
 
     if (!video_id) {
-        res.status(400).send({ status: "ERROR", message: "Invalid video id" });
+        res.api(400, { status: "ERROR", message: "Invalid video id" });
         return;
     }
 
@@ -49,7 +49,7 @@ export async function TwitchAPIVideo(
     try {
         video = await TwitchVOD.getVideo(video_id);
     } catch (error) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: `Error while fetching video data: ${
                 (error as Error).message
@@ -59,7 +59,7 @@ export async function TwitchAPIVideo(
     }
 
     if (!video) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Video not found",
         } as ApiErrorResponse);
@@ -79,7 +79,7 @@ export async function TwitchAPIUser(
     const login = req.params.login;
 
     if (!login) {
-        res.status(400).send({ status: "ERROR", message: "Invalid login" });
+        res.api(400, { status: "ERROR", message: "Invalid login" });
         return;
     }
 
@@ -93,7 +93,7 @@ export async function TwitchAPIUser(
             `Error getting channel data: ${(error as Error).message}`,
             error
         );
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: `User not found: ${(error as Error).message}`,
         } as ApiErrorResponse);
@@ -101,7 +101,7 @@ export async function TwitchAPIUser(
     }
 
     if (!user) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "User not found",
         } as ApiErrorResponse);
@@ -123,7 +123,7 @@ export async function TwitchAPIClips(
     const id = req.query.id as string | undefined;
 
     if (!broadcaster_id && !game_id && !id) {
-        res.status(400).send({ status: "ERROR", message: "Invalid clip id" });
+        res.api(400, { status: "ERROR", message: "Invalid clip id" });
         return;
     }
 
@@ -131,7 +131,7 @@ export async function TwitchAPIClips(
     try {
         data = await TwitchVOD.getClips({ broadcaster_id, game_id, id });
     } catch (error) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: `Error while fetching clip data: ${
                 (error as Error).message
@@ -141,7 +141,7 @@ export async function TwitchAPIClips(
     }
 
     if (!data) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Clips not found",
         } as ApiErrorResponse);
@@ -161,14 +161,14 @@ export async function TwitchAPIStreams(
     const login = req.params.login;
 
     if (!login) {
-        res.status(400).send({ status: "ERROR", message: "Invalid login" });
+        res.api(400, { status: "ERROR", message: "Invalid login" });
         return;
     }
 
     const channel_id = await TwitchChannel.channelIdFromLogin(login);
 
     if (!channel_id) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Invalid channel login",
         } as ApiErrorResponse);
@@ -178,7 +178,7 @@ export async function TwitchAPIStreams(
     const streams = await TwitchChannel.getStreams(channel_id);
 
     if (!streams) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Streams not found",
         } as ApiErrorResponse);
@@ -198,14 +198,14 @@ export async function TwitchAPIChannel(
     const login = req.params.login;
 
     if (!login) {
-        res.status(400).send({ status: "ERROR", message: "Invalid login" });
+        res.api(400, { status: "ERROR", message: "Invalid login" });
         return;
     }
 
     const channel_id = await TwitchChannel.channelIdFromLogin(login);
 
     if (!channel_id) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Invalid channel login",
         } as ApiErrorResponse);
@@ -215,7 +215,7 @@ export async function TwitchAPIChannel(
     const channel = await TwitchChannel.getChannelDataById(channel_id);
 
     if (!channel) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "Channel not found",
         } as ApiErrorResponse);
