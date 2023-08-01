@@ -72,10 +72,19 @@ export function readTodaysLog(): void {
     }
 
     const newLines = fs.readFileSync(jsonlinename, "utf8").split("\n");
-    // console.log(`Read ${lines.length} lines from ${jsonlinename}`);
-    lines = newLines
-        .map((line) => (line.length > 0 ? JSON.parse(line) : null))
-        .filter((line) => line !== null);
+    try {
+        lines = newLines
+            .map((line) => (line.length > 0 ? JSON.parse(line) : null))
+            .filter((line) => line !== null);
+    } catch (error) {
+        console.error(
+            chalk.bgRed.whiteBright(
+                "Error parsing log data, skipping log read."
+            ),
+            error
+        );
+        return;
+    }
     console.log(
         chalk.green(`✔ Parsed ${lines.length} lines from ${jsonlinename}`)
     );
