@@ -23,7 +23,7 @@ import {
     DataRoot,
 } from "./BaseConfig";
 import { LiveStreamDVR } from "./LiveStreamDVR";
-import { LOGLEVEL, log } from "./Log";
+import { LOGLEVEL, log, setLogDebug } from "./Log";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 import { Scheduler } from "./Scheduler";
@@ -36,7 +36,7 @@ export class Config {
     private _writeConfig = false;
     watcher: fs.FSWatcher | undefined;
 
-    forceDebug = false;
+    // forceDebug = false;
 
     gitHash?: string;
     gitBranch?: string;
@@ -411,6 +411,8 @@ export class Config {
             this.postSaveConfig();
         }
 
+        Config.updateDebug();
+
         return success;
     }
 
@@ -768,11 +770,29 @@ export class Config {
         return true;
     }
 
+    private static _debug = false;
+
     static get debug(): boolean {
-        if (argv.debug) return true;
-        if (!Config.getInstance().initialised) return false;
-        if (Config.getInstance().forceDebug) return true;
-        return Config.getInstance().cfg("debug");
+        // if (argv.debug) return true;
+        // if (!Config.getInstance().initialised) return false;
+        // if (Config.getInstance().forceDebug) return true;
+        // return Config.getInstance().cfg("debug");
+        return this._debug;
+    }
+
+    static set debug(value: boolean) {
+        this._debug = value;
+        setLogDebug(value);
+    }
+
+    static updateDebug() {
+        if (argv.debug) {
+            Config.debug = true;
+        } else if (!Config.getInstance().initialised) {
+            Config.debug = false;
+        } else {
+            Config.debug = Config.getInstance().cfg("debug");
+        }
     }
 
     static get can_shutdown(): boolean {

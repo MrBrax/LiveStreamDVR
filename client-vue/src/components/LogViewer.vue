@@ -1,13 +1,13 @@
 <template>
     <div class="field is-horizontal">
         <div class="control has-addon">
-            <div class="select is-small">
+            <!--<div class="select is-small">
                 <select v-model="logFilename">
                     <option v-for="fn in logFilenames" :key="fn">
                         {{ fn }}
                     </option>
                 </select>
-            </div>
+            </div>-->
             <d-button class="is-small is-confirm" icon="sync" @click="fetchLog(true)"> Fetch </d-button>
         </div>
     </div>
@@ -15,24 +15,18 @@
     <div ref="logViewer" class="log_viewer">
         <table>
             <tr v-for="(line, lineIndex) in logFiltered" :key="lineIndex" :class="logLineClass(line)">
-                <td v-if="line.date">
-                    {{ formatDate(line.date) }}
-                </td>
-                <td v-else-if="line.time">
-                    {{ formatTimestamp(line.time / 1000, "yyyy-MM-dd HH:ii:ss.SSS") }}
-                </td>
-                <td v-else-if="line.date_string">
-                    {{ line.date_string }}
+                <td v-if="line.metadata.timestamp">
+                    {{ formatDate(line.metadata.timestamp) }}
                 </td>
                 <td v-else>(no date)</td>
                 <td>
-                    <a @click="logSetFilter(line.module)">{{ line.module }}</a>
+                    <a @click="logSetFilter(line.metadata.module)">{{ line.metadata.module }}</a>
                 </td>
-                <td :title="`PID: ${line.pid}`">
+                <td>
                     {{ line.level || "UNKNOWN" }}
                 </td>
                 <td @click="expandLog(lineIndex)">
-                    {{ line.text }}
+                    {{ line.message }}
                 </td>
             </tr>
         </table>
@@ -42,9 +36,9 @@
 <script lang="ts" setup>
 import { useStore } from "@/store";
 import type { ApiLogResponse } from "@common/Api/Api";
-import type { ApiLogLine } from "@common/Api/Client";
+import type { WinstonLogLine } from "@common/Log";
 import axios from "axios";
-import { format } from "date-fns";
+import { format, startOfDay } from "date-fns";
 import { computed, onMounted, onUnmounted, ref } from "vue";
 import { formatDate, formatTimestamp } from "@/mixins/newhelpers";
 
@@ -52,9 +46,10 @@ import { formatDate, formatTimestamp } from "@/mixins/newhelpers";
 const store = useStore();
 
 // data
-const logFilename = ref<string>("");
-const logFilenames = ref<string[]>([]);
-const logFromLine = ref<number>(0);
+// const logFilename = ref<string>("");
+// const logFilenames = ref<string[]>([]);
+const logFromDate = ref<Date>();
+// const logFromLine = ref<number>(0);
 const logVisible = ref<boolean>(false);
 const logModule = ref<string>("");
 const watcher = ref<() => void>(() => {
@@ -63,16 +58,16 @@ const watcher = ref<() => void>(() => {
 const logViewer = ref<HTMLElement | null>(null);
 
 // computed
-const logFiltered = computed((): ApiLogLine[] => {
+const logFiltered = computed((): WinstonLogLine[] => {
     return logLines.value.filter((line) => {
         if (logModule.value) {
-            return line.module === logModule.value;
+            return line.metadata.module === logModule.value;
         }
         return true;
     });
 });
 
-const logLines = computed((): ApiLogLine[] => {
+const logLines = computed((): WinstonLogLine[] => {
     return store.log;
 });
 
@@ -93,21 +88,23 @@ onUnmounted(() => {
 });
 
 async function fetchLog(clear = false) {
-    // today's log file
-    if (logFilename.value == "") {
-        logFilename.value = format(new Date(), "yyyy-MM-dd");
+    if (!logFromDate.value) {
+        // use today's date at midnight in UTC
+        logFromDate.value = startOfDay(new Date());
     }
 
     if (clear) {
-        logFromLine.value = 0;
+        // logFromLine.value = 0;
+        logFromDate.value = startOfDay(new Date());
         store.clearLog();
     }
 
     let response;
     try {
-        response = await axios.get<ApiLogResponse>(`/api/v0/log/${logFilename.value}/${logFromLine.value}`);
+        response = await axios.get<ApiLogResponse>(`/api/v0/log/?dateFrom=${logFromDate.value.toISOString()}`);
     } catch (error) {
         console.error(error);
+        alert(`Error fetching log: ${(error as Error).message}`);
         return;
     }
 
@@ -122,9 +119,10 @@ async function fetchLog(clear = false) {
 
     if (!data.data.lines) return;
 
-    logFromLine.value = data.data.last_line;
+    // logFromLine.value = data.data.last_line;
+    logFromDate.value = new Date(data.data.to);
 
-    logFilenames.value = data.data.logs;
+    // logFilenames.value = data.data.logs;
 
     // this.logLines = this.logLines.concat(data.data.lines);
     store.addLog(data.data.lines);
@@ -146,7 +144,7 @@ function logSetFilter(val: string) {
     console.log(`Log filter set to ${logModule.value}`);
 }
 
-function logLineClass(line: ApiLogLine): Record<string, boolean> {
+function logLineClass(line: WinstonLogLine): Record<string, boolean> {
     return {
         "log-line": true,
         [`log-line-${line.level.toLowerCase()}`]: true,

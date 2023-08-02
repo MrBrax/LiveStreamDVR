@@ -328,7 +328,7 @@ export async function HookTwitch(
 }
 
 /**
- * TODO: implement, currently youtube does not broadcast events related to live streams
+ * @TODO implement, currently youtube does not broadcast events related to live streams
  * @param req
  * @param res
  * @returns
@@ -370,7 +370,7 @@ export async function HookYouTube(
     const hub_mode = req.query["hub.mode"];
     const hub_lease_seconds = req.query["hub.lease_seconds"];
 
-    // TODO: verify
+    // TODO verify
     if (hub_challenge) {
         log(
             LOGLEVEL.INFO,

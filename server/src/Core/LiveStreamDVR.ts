@@ -50,13 +50,7 @@ import { Config } from "./Config";
 import { Helper } from "./Helper";
 import { Job } from "./Job";
 import { KeyValue } from "./KeyValue";
-import {
-    LOGLEVEL,
-    getLogLines,
-    log,
-    measureLogMemoryUsage,
-    readTodaysLog,
-} from "./Log";
+import { LOGLEVEL, log } from "./Log";
 import { Scheduler } from "./Scheduler";
 import { Webhook } from "./Webhook";
 
@@ -114,6 +108,8 @@ export class LiveStreamDVR {
             fs.mkdirSync(DataRoot, { recursive: true });
         }
 
+        Config.updateDebug();
+
         Config.checkAppRoot();
 
         Config.checkBuiltDependencies();
@@ -157,7 +153,7 @@ export class LiveStreamDVR {
 
         await TwitchHelper.setupAxios();
 
-        readTodaysLog();
+        // readTodaysLog();
 
         log(
             LOGLEVEL.SUCCESS,
@@ -1066,7 +1062,7 @@ export class LiveStreamDVR {
         ret["heapUsed"] = process.memoryUsage().heapUsed;
         ret["external"] = process.memoryUsage().external;
 
-        ret["log"] = Buffer.byteLength(JSON.stringify(getLogLines()), "utf8");
+        // ret["log"] = Buffer.byteLength(JSON.stringify(getLogLines()), "utf8");
         ret["keyvalue"] = Buffer.byteLength(
             JSON.stringify(KeyValue.getInstance().getData()),
             "utf8"

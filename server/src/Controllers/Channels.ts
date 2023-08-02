@@ -679,10 +679,10 @@ export async function DownloadVideo(
             minute: isValid(date) ? format(date, "mm") : "",
             second: isValid(date) ? format(date, "ss") : "",
             id: video.stream_id?.toString() || randomUUID(), // bad solution
-            season: channel.current_season, // TODO: make from date
+            season: channel.current_season, // TODO make from date
             absolute_season: channel.current_absolute_season
                 ? channel.current_absolute_season.toString().padStart(2, "0")
-                : "", // TODO: make from date
+                : "", // TODO make from date
             absolute_episode: "0", // episode won't work with random downloads
             // episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
             episode: "0", // episode won't work with random downloads

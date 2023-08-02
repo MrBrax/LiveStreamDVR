@@ -3,7 +3,6 @@ import { Config } from "@/Core/Config";
 import { Helper } from "@/Core/Helper";
 import { KeyValue } from "@/Core/KeyValue";
 import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
-import { getLogLines } from "@/Core/Log";
 import { GetRunningProcesses } from "@/Helpers/Execute";
 import {
     DVRBinaries,
@@ -93,7 +92,7 @@ export async function About(
               date: new Date(),
               uptime: process.uptime(),
               child_processes: GetRunningProcesses().length,
-              log_lines: getLogLines().length,
+              // log_lines: getLogLines().length,
               keyvalues: Object.keys(KeyValue.getInstance().getData()).length,
           }
         : {};

@@ -132,6 +132,7 @@ LiveStreamDVR.init().then(() => {
     app.use(i18n);
 
     // logging
+    /** @TODO not sure if to continue using morgan since we now use winston for main logging **/
     if (process.env.NODE_ENV == "development") {
         app.use(morgan("dev"));
     } else {
@@ -139,7 +140,7 @@ LiveStreamDVR.init().then(() => {
     }
 
     const sessionParser = session({
-        secret: Config.getInstance().cfg<string>("eventsub_secret", ""), // TODO: make this unique from eventsub_secret
+        secret: Config.getInstance().cfg<string>("eventsub_secret", ""), // TODO make this unique from eventsub_secret
         resave: false,
         saveUninitialized: true,
         // cookie: {
@@ -263,6 +264,8 @@ LiveStreamDVR.init().then(() => {
                 `Version: ${process.env.npm_package_version} running on node ${process.version} ${process.platform} 🦄`
             )
         );
+
+        console.log(chalk.greenBright(`Debug: ${Config.debug}`));
 
         if (process.env.BUILD_DATE) {
             console.log(chalk.greenBright("~ Detected CI build ~"));

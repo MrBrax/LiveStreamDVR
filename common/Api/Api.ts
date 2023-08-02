@@ -1,3 +1,4 @@
+import type { WinstonLogLine } from "@common/Log";
 import type { ChannelConfig } from "../Config";
 import { settingsFields } from "../ServerConfig";
 import type { AboutData } from "./About";
@@ -82,9 +83,13 @@ export interface ApiVodResponse extends ApiResponse {
 
 export interface ApiLogResponse extends ApiResponse {
     data: {
-        lines: ApiLogLine[];
-        last_line: number;
-        logs: string[];
+        lines: WinstonLogLine[];
+        amount: number;
+        from: string;
+        to: string;
+        limit?: number;
+        // last_line: number;
+        // logs: string[];
     };
 }
 

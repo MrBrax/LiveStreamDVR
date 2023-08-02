@@ -82,6 +82,8 @@ import WebsocketStatus from "./components/WebsocketStatus.vue";
 import { prefersReducedMotion } from "./mixins/newhelpers";
 import { useStore } from "./store";
 import type { WebsocketJSON } from "./websocket";
+import type { WinstonLogLine } from "@common/Log";
+
 /**
  * LiveStreamDVR Client
  * Written in Vue 3 & TypeScript
@@ -391,12 +393,13 @@ function handleWebsocketMessage(action: WebhookAction, data: any) {
             onNotify(_data.title, _data.body, _data.icon, _data.url, _data.tts);
         } else if (action == "log") {
             // merge log lines
-            const newLines: ApiLogLine[] = data;
+            const newLines: WinstonLogLine[] = data;
 
-            if (newLines.some((line) => line.date_string && parseISO(line.date_string).getDay() != new Date().getDay())) {
+            if (newLines.some((line) => line.metadata.timestamp && parseISO(line.metadata.timestamp).getDay() != new Date().getDay())) {
                 // new day, clear log
                 store.clearLog();
                 store.addLog(newLines);
+                console.log("New day, clearing log");
             } else {
                 store.addLog(newLines);
             }

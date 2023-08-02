@@ -194,10 +194,12 @@ export function SetDebug(req: express.Request, res: express.Response): void {
         return;
     }
 
-    Config.getInstance().forceDebug = req.query.enable === "1";
+    // Config.getInstance().forceDebug = req.query.enable === "1";
+
+    Config.debug = req.query.enable === "1";
 
     res.send({
         status: "OK",
-        message: `Debug mode set to ${Config.getInstance().forceDebug}`,
+        message: `Debug mode set to ${Config.debug}`,
     });
 }

@@ -22,6 +22,7 @@ import type { settingsFields } from "@common/ServerConfig";
 import axios from "axios";
 import { parseJSON } from "date-fns";
 import { defineStore } from "pinia";
+import type { WinstonLogLine } from "@common/Log";
 
 interface StoreType {
     app_name: string;
@@ -37,7 +38,7 @@ interface StoreType {
     serverType: string;
     websocketUrl: string;
     errors: string[];
-    log: ApiLogLine[];
+    log: WinstonLogLine[];
     // diskTotalSize: number;
     diskFreeSize: number;
     loading: boolean;
@@ -524,7 +525,7 @@ export const useStore = defineStore("twitchAutomator", {
         getStreamers(): ChannelTypes[] {
             return this.streamerList;
         },
-        addLog(lines: ApiLogLine[]) {
+        addLog(lines: WinstonLogLine[]) {
             this.log.push(...lines);
         },
         clearLog() {

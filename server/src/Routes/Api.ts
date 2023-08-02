@@ -119,8 +119,9 @@ router.patch("/favourites", AuthAdmin, Favourites.AddFavourite);
 router.get("/about", AuthAdmin, About.About);
 router.get("/about/license", AuthAdmin, About.License);
 
-router.get("/log/:filename/:startFrom(\\d+)", AuthAdmin, Log.GetLog);
-router.get("/log/:filename", AuthAdmin, Log.GetLog);
+// router.get("/log/:filename/:startFrom(\\d+)", AuthAdmin, Log.GetLog);
+// router.get("/log/:filename", AuthAdmin, Log.GetLog);
+router.get("/log", AuthAdmin, Log.GetLog);
 
 router.get("/jobs", AuthAdmin, Jobs.ListJobs);
 router.delete("/jobs/:name", AuthAdmin, Jobs.KillJob);

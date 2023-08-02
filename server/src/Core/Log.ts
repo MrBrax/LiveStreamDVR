@@ -1,23 +1,45 @@
-import { formatBytes } from "@/Helpers/Format";
 import { xClearTimeout, xTimeout } from "@/Helpers/Timeout";
-import chalk from "chalk";
-import { format } from "date-fns";
-import fs from "node:fs";
-import path from "node:path";
-import { BaseConfigDataFolder } from "./BaseConfig";
+import type { WinstonLogLine } from "@common/Log";
+import { addColors, createLogger, format, transports } from "winston";
+import "winston-daily-rotate-file";
+import { AppName, BaseConfigDataFolder } from "./BaseConfig";
 import { ClientBroker } from "./ClientBroker";
 import { Config } from "./Config";
 
+const { combine, timestamp, label, printf } = format;
+
 export enum LOGLEVEL {
-    ERROR = "ERROR",
-    WARNING = "WARNING",
-    INFO = "INFO",
-    DEBUG = "DEBUG",
-    FATAL = "FATAL",
-    SUCCESS = "SUCCESS",
-    EXEC = "EXEC",
+    ERROR = "error",
+    WARNING = "warn",
+    INFO = "info",
+    DEBUG = "debug",
+    FATAL = "fatal",
+    SUCCESS = "success",
+    EXEC = "exec",
 }
 
+const winstonCustomlevels = {
+    levels: {
+        fatal: 0,
+        error: 1,
+        warn: 2,
+        success: 3,
+        info: 4,
+        debug: 5,
+        exec: 6,
+    },
+    colors: {
+        fatal: "red",
+        error: "red",
+        warn: "yellow",
+        success: "green",
+        info: "blue",
+        debug: "gray",
+        exec: "redBright",
+    },
+};
+
+/*
 export interface LogLine {
     module: string;
     time: number;
@@ -27,13 +49,15 @@ export interface LogLine {
     metadata?: unknown;
     g?: string; // git hash
 }
+*/
 
-let currentDate = "";
-let lines: LogLine[] = [];
+// let currentDate = "";
+// let lines: LogLine[] = [];
 
-const websocket_buffer: LogLine[] = [];
+const websocket_buffer: WinstonLogLine[] = [];
 let websocket_timer: NodeJS.Timeout | undefined;
 
+/*
 export const LogColor = {
     [LOGLEVEL.ERROR]: chalk.red,
     [LOGLEVEL.WARNING]: chalk.yellow,
@@ -53,14 +77,106 @@ export const LogLevel = {
     [LOGLEVEL.FATAL]: "ERROR",
     [LOGLEVEL.EXEC]: "EXEC",
 };
+*/
+
+const winstonLogFormat = printf(
+    ({ level, message, module, metadata, timestamp }) => {
+        return `${timestamp} | ${module} <${level}> ${message}`;
+        // do not print metadata to console
+    }
+);
+
+const jsonLogTransport = new transports.DailyRotateFile({
+    filename: `${AppName}-%DATE%.jsonl`,
+    dirname: BaseConfigDataFolder.logs,
+    datePattern: "YYYY-MM-DD",
+    // zippedArchive: true,
+    maxSize: "20m",
+    maxFiles: "14d",
+    json: true,
+    format: format.combine(
+        format.timestamp(),
+        format.metadata(),
+        format.json()
+    ),
+});
+
+const textLogTransport = new transports.DailyRotateFile({
+    filename: `${AppName}-%DATE%.log`,
+    dirname: BaseConfigDataFolder.logs,
+    datePattern: "YYYY-MM-DD",
+    // zippedArchive: true,
+    maxSize: "20m",
+    maxFiles: "14d",
+    format: format.combine(format.timestamp(), winstonLogFormat),
+});
+
+const logger = createLogger({
+    level: "info",
+    levels: winstonCustomlevels.levels,
+    format: format.json(),
+    transports: [
+        new transports.Console({
+            format: format.combine(
+                format.colorize(),
+                // format.simple()
+                format.timestamp(),
+                winstonLogFormat
+            ),
+        }),
+        jsonLogTransport,
+        textLogTransport,
+    ],
+});
+
+export function getLogger() {
+    return logger;
+}
+
+addColors(winstonCustomlevels.colors);
+
+jsonLogTransport.on("rotate", function (oldFilename, newFilename) {
+    console.log(`Rotated log file from ${oldFilename} to ${newFilename}`);
+});
 
 export const censoredLogWords: Set<string> = new Set();
 
-export function getLogLines(): LogLine[] {
-    return lines;
+export async function getLogLines({
+    from,
+    to,
+    limit,
+    start,
+    order = "asc",
+}: {
+    from: Date;
+    to: Date;
+    limit?: number;
+    start?: number;
+    order?: "desc" | "asc";
+}): Promise<Record<string, WinstonLogLine[]>> {
+    return await new Promise((resolve, reject) => {
+        logger.query(
+            {
+                from: from,
+                until: to,
+                limit: limit,
+                start: start,
+                order: order,
+                fields: ["message", "level", "module", "metadata", "timestamp"],
+            },
+            function (err, results) {
+                if (err) {
+                    reject(err);
+                }
+                resolve(results);
+            }
+        );
+    });
 }
 
 export function readTodaysLog(): void {
+    return;
+    /*
     console.log(chalk.blue("Read today's log..."));
     const today = format(new Date(), "yyyy-MM-dd");
     const filename = `${today}.log`;
@@ -89,6 +205,7 @@ export function readTodaysLog(): void {
         chalk.green(`✔ Parsed ${lines.length} lines from ${jsonlinename}`)
     );
     currentDate = today;
+    */
 }
 
 /**
@@ -105,8 +222,19 @@ export function log(
     level: LOGLEVEL,
     module: string,
     text: string,
-    metadata?: unknown
+    metadata?: any
 ): void {
+    const logData: WinstonLogLine = {
+        level: level,
+        message: text,
+        module: module,
+        timestamp: new Date().toISOString(),
+        metadata: metadata,
+    };
+
+    logger.log(logData);
+
+    /*
     if (!Config.debug && level == LOGLEVEL.DEBUG) return;
 
     // if testing, don't log
@@ -223,17 +351,19 @@ export function log(
     // fs.appendFileSync(jsonlinename_separate, stringy_log_data + "\n");
     // fs.appendFileSync(jsonlinename_level, stringy_log_data + "\n");
     lines.push(log_data);
-
+    */
     // send over websocket, probably extremely slow
     if (
         Config.getInstance().initialised &&
         Config.getInstance().cfg<boolean>("websocket_log")
     ) {
-        websocket_buffer.push(log_data);
+        websocket_buffer.push(logData);
 
         if (websocket_timer) xClearTimeout(websocket_timer);
         websocket_timer = xTimeout(() => {
-            // console.debug(`Sending ${this.websocket_buffer.length} lines over websocket`);
+            // console.debug(
+            //     `Sending ${websocket_buffer.length} lines over websocket`
+            // );
             ClientBroker.broadcast({
                 server: true,
                 action: "log",
@@ -260,9 +390,12 @@ export function log(
                 TwitchLog.websocket_timer = undefined;
             }, 100);
         } else {
+    *
+
     */
 }
 
+/*
 function nextLog(): void {
     const today = format(new Date(), "yyyy-MM-dd");
     if (today != currentDate) {
@@ -280,6 +413,7 @@ function nextLog(): void {
         );
     }
 }
+*/
 
 /**
  * Fetch n lines from a log file.
@@ -288,6 +422,7 @@ function nextLog(): void {
  * @throws
  * @returns
  */
+/*
 export function fetchLog(date: string, fromLine = 0): LogLine[] {
     // return lines from n to end
     if (date == currentDate) {
@@ -321,4 +456,10 @@ export function measureLogMemoryUsage(): void {
     );
     const linesUsage = Buffer.byteLength(JSON.stringify(lines), "utf8");
     console.log(`Log memory usage: ${formatBytes(linesUsage)}`);
+}
+*/
+
+export function setLogDebug(state: boolean): void {
+    console.log(`Setting debug to ${state}`);
+    logger.level = state ? "debug" : "info";
 }
