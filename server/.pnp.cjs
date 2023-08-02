@@ -64,6 +64,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["express-session", "npm:1.17.3"],\
             ["fast-xml-parser", "npm:4.2.6"],\
             ["fs-readdir-recursive", "npm:1.1.0"],\
+            ["gaxios", "npm:6.0.3"],\
             ["google-auth-library", "npm:8.9.0"],\
             ["html-entities", "npm:2.4.0"],\
             ["i18next", "npm:22.5.1"],\
@@ -5297,6 +5298,17 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["node-fetch", "virtual:50c4e924672e97e0681982af1e6a37af513261adc35417869cb8e5cb6c9436d9652fa39aa9807d59a964bfbcc0ccd05b16d243bef2c0e36dd8d8e06b4af10a6e#npm:2.6.12"]\
           ],\
           "linkType": "HARD"\
+        }],\
+        ["npm:6.0.3", {\
+          "packageLocation": "./.yarn/cache/gaxios-npm-6.0.3-a9344385c2-5fa9b9a6d3.zip/node_modules/gaxios/",\
+          "packageDependencies": [\
+            ["gaxios", "npm:6.0.3"],\
+            ["extend", "npm:3.0.2"],\
+            ["https-proxy-agent", "npm:5.0.0"],\
+            ["is-stream", "npm:2.0.1"],\
+            ["node-fetch", "virtual:50c4e924672e97e0681982af1e6a37af513261adc35417869cb8e5cb6c9436d9652fa39aa9807d59a964bfbcc0ccd05b16d243bef2c0e36dd8d8e06b4af10a6e#npm:2.6.12"]\
+          ],\
+          "linkType": "HARD"\
         }]\
       ]],\
       ["gcp-metadata", [\
@@ -7076,6 +7088,7 @@ function $$SETUP_STATE(hydrateRuntimeState, basePath) {
             ["express-session", "npm:1.17.3"],\
             ["fast-xml-parser", "npm:4.2.6"],\
             ["fs-readdir-recursive", "npm:1.1.0"],\
+            ["gaxios", "npm:6.0.3"],\
             ["google-auth-library", "npm:8.9.0"],\
             ["html-entities", "npm:2.4.0"],\
             ["i18next", "npm:22.5.1"],\

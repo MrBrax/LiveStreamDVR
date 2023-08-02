@@ -1,19 +1,20 @@
+import { debugLog } from "@/Helpers/Console";
+import { Sleep } from "@/Helpers/Sleep";
 import { formatString } from "@common/Format";
 import type { ClipBasenameTemplate } from "@common/Replacements";
 import cron from "cron";
 import { format, parseJSON } from "date-fns";
 import fs from "node:fs";
 import path from "node:path";
-import { TwitchHelper } from "../Providers/Twitch";
 import sanitize from "sanitize-filename";
 import * as CronController from "../Controllers/Cron";
-import { Sleep } from "@/Helpers/Sleep";
+import { TwitchHelper } from "../Providers/Twitch";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "./BaseConfig";
 import { Config } from "./Config";
+import { LiveStreamDVR } from "./LiveStreamDVR";
 import { LOGLEVEL, log } from "./Log";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
-import { debugLog } from "@/Helpers/Console";
 
 export class Scheduler {
     public static jobs: Record<string, cron.CronJob> = {};
@@ -113,6 +114,19 @@ export class Scheduler {
         //     }
         //     TwitchHelper.refreshUserAccessToken();
         // });
+
+        // export vods after midnight pacific time
+        this.schedule("export_vods", "0 0 * * *", () => {
+            if (!Config.getInstance().cfg<boolean>("schedule.export_vods")) {
+                log(
+                    LOGLEVEL.INFO,
+                    "scheduler.defaultJobs",
+                    "Scheduler: export_vods - disabled"
+                );
+                return;
+            }
+            Scheduler.scheduleAllChannelVodExport();
+        });
 
         log(
             LOGLEVEL.INFO,
@@ -356,6 +370,29 @@ export class Scheduler {
             LOGLEVEL.INFO,
             "Scheduler.scheduleClipDownload",
             "Scheduler: scheduleClipDownload - end"
+        );
+    }
+
+    public static async scheduleAllChannelVodExport() {
+        log(
+            LOGLEVEL.INFO,
+            "Scheduler.scheduleAllChannelVodExport",
+            "Scheduler: scheduleAllChannelVodExport - start"
+        );
+
+        for (const channel of LiveStreamDVR.getInstance().getChannels()) {
+            const [completedVods, failedVods] = await channel.exportAllVods();
+            log(
+                LOGLEVEL.INFO,
+                "Scheduler.scheduleAllChannelVodExport",
+                `Scheduler: scheduleAllChannelVodExport - ${channel.displayName} - completed: ${completedVods} - failed: ${failedVods}`
+            );
+        }
+
+        log(
+            LOGLEVEL.INFO,
+            "Scheduler.scheduleAllChannelVodExport",
+            "Scheduler: scheduleAllChannelVodExport - end"
         );
     }
 }

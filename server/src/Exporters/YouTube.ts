@@ -1,13 +1,17 @@
 import { BaseExporter } from "./Base";
 // import { google } from "googleapis"; // FIXME: don't import the whole module
-import { youtube_v3 } from "@googleapis/youtube";
-import { YouTubeHelper } from "../Providers/YouTube";
-import fs from "node:fs";
-import { LOGLEVEL, log } from "@/Core/Log";
-import { Job } from "@/Core/Job";
 import { Config } from "@/Core/Config";
-import path from "node:path";
+import { Job } from "@/Core/Job";
+import { LOGLEVEL, log } from "@/Core/Log";
 import { xTimeout } from "@/Helpers/Timeout";
+import { youtube_v3 } from "@googleapis/youtube";
+// import type { GaxiosError } from "gaxios";
+import { KeyValue } from "@/Core/KeyValue";
+import { GaxiosError } from "gaxios";
+import fs from "node:fs";
+import path from "node:path";
+import type { YouTubeAPIErrorResponse } from "../Providers/YouTube";
+import { YouTubeHelper } from "../Providers/YouTube";
 
 export class YouTubeExporter extends BaseExporter {
     public type = "YouTube";
@@ -49,6 +53,10 @@ export class YouTubeExporter extends BaseExporter {
         // if (!this.vod.started_at) throw new Error("No started_at");
         // if (!this.vod.video_metadata) throw new Error("No video_metadata");
         if (!YouTubeHelper.oAuth2Client) throw new Error("No YouTube client");
+        if (!(await YouTubeHelper.getQuotaStatus()))
+            throw new Error(
+                "Quota exceeded. Enable override in config to force upload."
+            );
 
         const final_title = this.getFormattedTitle();
 
@@ -120,6 +128,35 @@ export class YouTubeExporter extends BaseExporter {
                 `Could not upload video: ${(error as Error).message}`,
                 error
             );
+
+            // quota error
+            if (error instanceof GaxiosError) {
+                const dataResponse = error.response as YouTubeAPIErrorResponse;
+                if (dataResponse.data.error.code == 403) {
+                    if (
+                        dataResponse.data.error.errors &&
+                        dataResponse.data.error.errors.length > 0
+                    ) {
+                        const quotaError = dataResponse.data.error.errors.find(
+                            (error) => error.reason == "quotaExceeded"
+                        );
+                        if (quotaError) {
+                            log(
+                                LOGLEVEL.ERROR,
+                                "YouTubeExporter.export",
+                                `Quota exceeded: ${quotaError.reason}`
+                            );
+                            job.clear();
+                            await KeyValue.getInstance().setAsync(
+                                "exporter.youtube.quota_exceeded_date",
+                                new Date().toISOString()
+                            );
+                            throw new Error(quotaError.reason);
+                        }
+                    }
+                }
+            }
+
             job.clear();
             throw error;
         }

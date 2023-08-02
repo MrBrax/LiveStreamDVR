@@ -127,6 +127,9 @@ const logger = createLogger({
         jsonLogTransport,
         textLogTransport,
     ],
+    handleExceptions: true,
+    handleRejections: true,
+    // exitOnError: false,
 });
 
 export function getLogger() {

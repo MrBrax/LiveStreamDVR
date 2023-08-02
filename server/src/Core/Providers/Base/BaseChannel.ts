@@ -1,7 +1,11 @@
+import type { Exporter } from "@/Controllers/Exporter";
+import { GetExporter } from "@/Controllers/Exporter";
+import { Job } from "@/Core/Job";
 import { debugLog } from "@/Helpers/Console";
 import { directorySize } from "@/Helpers/Filesystem";
 import type { ApiChannels } from "@common/Api/Client";
 import type { ChannelConfig, VideoQuality } from "@common/Config";
+import type { ExporterOptions } from "@common/Exporter";
 import type { LocalClip } from "@common/LocalClip";
 import type { LocalVideo } from "@common/LocalVideo";
 import type { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
@@ -745,5 +749,183 @@ export class BaseChannel {
         const total_disk_size = directorySize(this.getFolder());
 
         return total_channel_size - total_disk_size;
+    }
+
+    /**
+     * Export all vods with the default exporter and default options.
+     * @param force
+     */
+    public async exportAllVods(force = false): Promise<[number, number]> {
+        const job = Job.create(`MassExporter_${this.internalName}`);
+        job.dummy = true;
+        job.save();
+        job.broadcastUpdate(); // manual send
+
+        const totalVods = this.vods_list.length;
+        let completedVods = 0;
+        let failedVods = 0;
+
+        for (const vod of this.vods_list) {
+            if (vod.exportData.exported_at && !force) {
+                completedVods++;
+                log(
+                    LOGLEVEL.INFO,
+                    "route.channels.exportallvods",
+                    `Skipping VOD ${vod.basename} because it was already exported`
+                );
+                continue;
+            }
+
+            const exporter_name = Config.getInstance().cfg<string>(
+                "exporter.default.exporter",
+                ""
+            );
+
+            const options: ExporterOptions = {
+                vod: vod.uuid,
+                directory: Config.getInstance().cfg(
+                    "exporter.default.directory"
+                ),
+                host: Config.getInstance().cfg("exporter.default.host"),
+                username: Config.getInstance().cfg("exporter.default.username"),
+                password: Config.getInstance().cfg("exporter.default.password"),
+                description: Config.getInstance().cfg(
+                    "exporter.default.description"
+                ),
+                tags: Config.getInstance().cfg("exporter.default.tags"),
+                category: Config.getInstance().cfg("exporter.default.category"),
+                remote: Config.getInstance().cfg("exporter.default.remote"),
+                title_template: Config.getInstance().cfg(
+                    "exporter.default.title_template"
+                ),
+                privacy: Config.getInstance().cfg("exporter.default.privacy"),
+            };
+
+            let exporter: Exporter | undefined;
+            try {
+                exporter = GetExporter(exporter_name, "vod", options);
+            } catch (error) {
+                log(
+                    LOGLEVEL.ERROR,
+                    "route.channel.ExportAllVods",
+                    `Auto exporter error for '${vod.basename}': ${
+                        (error as Error).message
+                    }`
+                );
+                failedVods++;
+                job.setProgress((completedVods + failedVods) / totalVods);
+                continue;
+            }
+
+            if (exporter) {
+                log(
+                    LOGLEVEL.INFO,
+                    "route.channel.ExportAllVods",
+                    `Exporting VOD '${
+                        vod.basename
+                    }' as '${exporter.getFormattedTitle()}' with exporter '${exporter_name}'`
+                );
+
+                let out_path;
+                try {
+                    out_path = await exporter.export();
+                } catch (error) {
+                    log(
+                        LOGLEVEL.ERROR,
+                        "route.channel.ExportAllVods",
+                        (error as Error).message
+                            ? `Export error for '${vod.basename}': ${
+                                  (error as Error).message
+                              }`
+                            : "Unknown error occurred while exporting export"
+                    );
+                    failedVods++;
+                    job.setProgress((completedVods + failedVods) / totalVods);
+                    if (
+                        (error as Error).message &&
+                        (error as Error).message.includes("exceeded your")
+                    ) {
+                        log(
+                            LOGLEVEL.FATAL,
+                            "route.channel.ExportAllVods",
+                            "Stopping mass export because of quota exceeded"
+                        );
+                        break; // stop exporting if we hit the quota
+                    }
+                    continue;
+                }
+
+                if (out_path) {
+                    let status;
+                    try {
+                        status = await exporter.verify();
+                    } catch (error) {
+                        log(
+                            LOGLEVEL.ERROR,
+                            "route.channel.ExportAllVods",
+                            (error as Error).message
+                                ? `Verify error for '${vod.basename}': ${
+                                      (error as Error).message
+                                  }`
+                                : "Unknown error occurred while verifying export"
+                        );
+                        failedVods++;
+                        job.setProgress(
+                            (completedVods + failedVods) / totalVods
+                        );
+                        continue;
+                    }
+
+                    log(
+                        LOGLEVEL.SUCCESS,
+                        "route.channel.ExportAllVods",
+                        `Exporter finished for '${vod.basename}', status: ${status}`
+                    );
+
+                    if (status) {
+                        if (exporter.vod && status) {
+                            exporter.vod.exportData.exported_at =
+                                new Date().toISOString();
+                            exporter.vod.exportData.exporter = exporter_name;
+                            await exporter.vod.saveJSON("export successful");
+                        }
+                        completedVods++;
+                        job.setProgress(
+                            (completedVods + failedVods) / totalVods
+                        );
+                    } else {
+                        failedVods++;
+                        job.setProgress(
+                            (completedVods + failedVods) / totalVods
+                        );
+                        log(
+                            LOGLEVEL.ERROR,
+                            "route.channel.ExportAllVods",
+                            `Exporter failed for '${vod.basename}'`
+                        );
+                    }
+                } else {
+                    log(
+                        LOGLEVEL.ERROR,
+                        "route.channel.ExportAllVods",
+                        `Exporter finished but no path output for '${vod.basename}'`
+                    );
+                }
+            }
+
+            if (!Job.hasJob(job.name)) {
+                break; // job was deleted
+            }
+        }
+
+        log(
+            LOGLEVEL.INFO,
+            "route.channel.ExportAllVods",
+            `Exported ${completedVods} VODs, ${failedVods} failed`
+        );
+
+        job.clear();
+
+        return [completedVods, failedVods];
     }
 }

@@ -402,6 +402,13 @@ export const settingsFields: Record<
         type: "string",
         secret: true,
     },
+    "youtube.quota_override": {
+        group: "YouTube",
+        text: "YouTube quota override",
+        type: "boolean",
+        default: false,
+        help: "Disable quota checks, not recommended unless you have tons of quota",
+    },
 
     // { 'key': 'hook_callback', 		'text': 'Hook callback', 									'type': 'string', 'required': true },
     // {'key': 'timezone', 				'group': 'Interface',	'text': 'Timezone', 										'type': 'array',		'default': 'UTC', 'help': 'This only affects the GUI, not the values stored', 'deprecated': true},
@@ -592,7 +599,12 @@ export const settingsFields: Record<
         type: "boolean",
         default: false,
     },
-
+    "schedule.export_vods": {
+        group: "Schedules",
+        text: "Export vods",
+        type: "boolean",
+        default: false,
+    },
     create_video_chapters: {
         group: "Video",
         text: "Create video chapters",
