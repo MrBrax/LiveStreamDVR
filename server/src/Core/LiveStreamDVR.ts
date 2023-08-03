@@ -158,7 +158,7 @@ export class LiveStreamDVR {
         log(
             LOGLEVEL.SUCCESS,
             "dvr.init",
-            t("base.bootmessage", new Date().toISOString())
+            t("base.bootmessage", [new Date().toISOString()])
         );
 
         await Config.getInstance().getGitHash();
@@ -966,7 +966,11 @@ export class LiveStreamDVR {
                 const ret = await getBinaryVersion("bin", key);
                 if (ret) {
                     LiveStreamDVR.binaryVersions[key] = ret;
-                    console.log(`Binary ${key} version: ${ret.version}`);
+                    log(
+                        LOGLEVEL.INFO,
+                        "dvr.checkBinaryVersions",
+                        `Binary ${key} version: ${ret.version}`
+                    );
                 }
             }
         }
@@ -976,7 +980,11 @@ export class LiveStreamDVR {
                 const ret = await getBinaryVersion("pip", key);
                 if (ret) {
                     LiveStreamDVR.binaryVersions[key] = ret;
-                    console.log(`Pip package ${key} version: ${ret.version}`);
+                    log(
+                        LOGLEVEL.INFO,
+                        "dvr.checkBinaryVersions",
+                        `Pip package ${key} version: ${ret.version}`
+                    );
                 }
             }
         }

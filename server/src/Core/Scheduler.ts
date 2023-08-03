@@ -21,13 +21,18 @@ export class Scheduler {
 
     public static schedule(
         name: string,
-        cronTime: string,
+        cronTime: string | (() => string),
         callback: () => void
     ): cron.CronJob {
         if (this.hasJob(name)) {
             this.removeJob(name);
         }
-        const job = new cron.CronJob(cronTime, callback, undefined, false);
+        const job = new cron.CronJob(
+            typeof cronTime === "string" ? cronTime : cronTime(),
+            callback,
+            undefined,
+            false
+        );
         this.jobs[name] = job;
         job.start();
         log(
@@ -115,8 +120,9 @@ export class Scheduler {
         //     TwitchHelper.refreshUserAccessToken();
         // });
 
-        // export vods after midnight pacific time
-        this.schedule("export_vods", "0 0 * * *", () => {
+        // export vods at 01:00 pacific time relative to the server
+        // TODO actually use the timezone, most people will probably not be in pacific time
+        this.schedule("export_vods", "0 1 * * *", () => {
             if (!Config.getInstance().cfg<boolean>("schedule.export_vods")) {
                 log(
                     LOGLEVEL.INFO,
@@ -162,6 +168,15 @@ export class Scheduler {
                 Config.getInstance().cfg<boolean>(
                     "scheduler.clipdownload.enabled"
                 )
+                    ? "enabled"
+                    : "disabled"
+            }`
+        );
+        log(
+            LOGLEVEL.INFO,
+            "scheduler.defaultJobs",
+            `Default job 'export_vods' ${
+                Config.getInstance().cfg<boolean>("schedule.export_vods")
                     ? "enabled"
                     : "disabled"
             }`

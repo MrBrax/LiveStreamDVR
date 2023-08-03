@@ -245,12 +245,17 @@ LiveStreamDVR.init().then(() => {
         console.log(
             chalk.yellow(`Public: ${Config.getInstance().cfg("app_url")}`)
         );
-        if (process.env.HTTP_PROXY)
+        if (process.env.HTTP_PROXY) {
             console.log(chalk.yellow(`HTTP Proxy: ${process.env.HTTP_PROXY}`));
-        if (process.env.npm_lifecycle_script?.includes("index.ts")) {
-            console.log(chalk.greenBright("~ Running with TypeScript ~"));
+        }
+
+        if (
+            process.env.npm_lifecycle_event == "start:dev" ||
+            process.env.NODE_ENV == "development" // probably not legit
+        ) {
+            console.log(chalk.greenBright("Type: Live TypeScript"));
         } else {
-            console.log(chalk.greenBright("~ Running with plain JS ~"));
+            console.log(chalk.greenBright("Type: Compiled JavaScript"));
             console.log(
                 chalk.greenBright(
                     `Build date: ${fs
@@ -259,6 +264,7 @@ LiveStreamDVR.init().then(() => {
                 )
             );
         }
+
         console.log(
             chalk.greenBright(
                 `Version: ${process.env.npm_package_version} running on node ${process.version} ${process.platform} 🦄`
@@ -268,7 +274,7 @@ LiveStreamDVR.init().then(() => {
         console.log(chalk.greenBright(`Debug: ${Config.debug}`));
 
         if (process.env.BUILD_DATE) {
-            console.log(chalk.greenBright("~ Detected CI build ~"));
+            console.log(chalk.greenBright("Build: CI"));
             console.log(
                 chalk.greenBright(`Development: ${process.env.IS_DEV}`)
             );
@@ -278,7 +284,7 @@ LiveStreamDVR.init().then(() => {
             console.log(chalk.greenBright(`Version: ${process.env.VERSION}`));
             console.log(chalk.greenBright(`VCS ref: ${process.env.VCS_REF}`));
         } else {
-            console.log(chalk.greenBright("~ Detected local build ~"));
+            console.log(chalk.greenBright("Build: Local"));
         }
     });
 

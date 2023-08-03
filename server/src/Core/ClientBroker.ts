@@ -139,20 +139,31 @@ export class ClientBroker {
         {} as Record<NotificationCategory, number>;
 
     static attach(server: WebSocket.Server<WebSocket.WebSocket>): void {
-        console.log(chalk.green("Attaching WebSocket server to broker..."));
+        log(
+            LOGLEVEL.INFO,
+            "clientBroker.attach",
+            "Attaching WebSocket server to broker..."
+        );
 
         this.clients = [];
 
         this.wss = server;
 
         this.wss.on("listening", () => {
-            console.log(
-                chalk.green("Client broker now attached to websocket.")
+            log(
+                LOGLEVEL.INFO,
+                "clientBroker.attach",
+                "Client broker now attached to websocket."
             );
         });
 
         this.wss.on("error", (error) => {
-            console.log("Websocket server error", error);
+            log(
+                LOGLEVEL.ERROR,
+                "clientBroker.attach",
+                "Websocket server error",
+                error
+            );
         });
 
         this.wss.on("connection", (ws: WebSocket, req: express.Request) => {

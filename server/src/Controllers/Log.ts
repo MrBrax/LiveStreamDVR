@@ -46,11 +46,29 @@ export async function GetLog(req: express.Request, res: express.Response) {
      * @TODO The lack of a start from field in winston makes this a lot more complicated. Maybe not even worth doing at all.
      */
 
-    const allData = await getLogLines({
-        from,
-        to,
-        limit /* start: startFrom */,
-    });
+    let allData;
+
+    try {
+        allData = await getLogLines({
+            from,
+            to,
+            limit /* start: startFrom */,
+        });
+    } catch (error) {
+        res.api(400, {
+            status: "ERROR",
+            message: (error as Error).message,
+        });
+        return;
+    }
+
+    if (!allData) {
+        res.api(400, {
+            status: "ERROR",
+            message: "No data",
+        });
+        return;
+    }
 
     if (!(transport in allData)) {
         res.api(400, {

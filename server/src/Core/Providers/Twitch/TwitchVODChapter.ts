@@ -1,10 +1,10 @@
-import chalk from "chalk";
-import { parseJSON } from "date-fns";
+import { LOGLEVEL, log } from "@/Core/Log";
 import type { ApiVodTwitchChapter } from "@common/Api/Client";
-import type { TwitchVODChapterJSON } from "../../../Storage/JSON";
-import { TwitchGame } from "./TwitchGame";
-import { BaseVODChapter } from "../Base/BaseVODChapter";
 import type { Providers } from "@common/Defs";
+import { parseJSON } from "date-fns";
+import type { TwitchVODChapterJSON } from "../../../Storage/JSON";
+import { BaseVODChapter } from "../Base/BaseVODChapter";
+import { TwitchGame } from "./TwitchGame";
 
 /*
 export interface TwitchVODChapterJSON {
@@ -127,13 +127,17 @@ export class TwitchVODChapter extends BaseVODChapter {
                 // chapter.game_name = game.name;
                 // chapter.box_art_url = game.box_art_url;
             } else {
-                console.error(
+                log(
+                    LOGLEVEL.ERROR,
+                    "TwitchVODChapter.fromJSON",
                     `Could not find game data for game_id: ${data.game_id}`
                 );
             }
         } else {
-            console.warn(
-                chalk.red(`No game_id for chapter: ${data.title}`),
+            log(
+                LOGLEVEL.WARNING,
+                "TwitchVODChapter.fromJSON",
+                `No game_id for chapter: ${data.title}`,
                 data
             );
         }

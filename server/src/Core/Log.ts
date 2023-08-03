@@ -109,6 +109,7 @@ const textLogTransport = new transports.DailyRotateFile({
     maxSize: "20m",
     maxFiles: "14d",
     format: format.combine(format.timestamp(), winstonLogFormat),
+    json: false,
 });
 
 const logger = createLogger({
