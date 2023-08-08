@@ -207,6 +207,14 @@ export async function ExportFile(
         return;
     }
 
+    if (!exporter) {
+        res.api(400, {
+            status: "ERROR",
+            message: "Invalid exporter returned",
+        } as ApiErrorResponse);
+        return;
+    }
+
     // FIXME: DRY this up, more sanitization of the input
 
     let success;

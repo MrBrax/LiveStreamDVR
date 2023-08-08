@@ -127,14 +127,15 @@ export class KeyValue extends EventEmitter {
     /**
      * Get a value from the key-value store as a promise. Rejects if the key does not exist.
      * Could be used for an external cache store like Redis in the future.
-     * @param key
-     * @returns
+     * @param key The key to get
+     * @returns {Promise<string|false>} The value or false if the key does not exist.
+     * @throws Error if the key does not exist
      */
     getAsync(key: string): Promise<string | false> {
         return new Promise((resolve, reject) => {
             const value = this.getRaw(key);
             if (value === false) {
-                reject();
+                reject(new Error(`Key ${key} does not exist`));
             } else {
                 resolve(value.value);
             }

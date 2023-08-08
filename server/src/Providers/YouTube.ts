@@ -436,10 +436,18 @@ export class YouTubeHelper {
         );
         if (override) return false;
 
-        const value = await KeyValue.getInstance().getAsync(
-            "exporter.youtube.quota_exceeded_date"
-        );
-        if (!value) return false;
+        let value;
+
+        try {
+            value = await KeyValue.getInstance().getAsync(
+                "exporter.youtube.quota_exceeded_date"
+            );
+        } catch (error) {
+            // if there's no value, it's not exceeded
+            return false;
+        }
+
+        if (!value) return false; // just in case
 
         const exceededDate = new Date(value);
         const currentDate = new Date();

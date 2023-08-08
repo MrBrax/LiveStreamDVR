@@ -41,6 +41,7 @@ module.exports = {
         "prefer-const": "error",
         "@typescript-eslint/consistent-type-imports": "error",
         "log-module": "warn",
+        "no-throw-literal": "error",
         // "import/no-relative-parent-imports": "error",
     },
     ignorePatterns: [".eslintrc.js"],

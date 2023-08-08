@@ -53,7 +53,7 @@ export class YouTubeExporter extends BaseExporter {
         // if (!this.vod.started_at) throw new Error("No started_at");
         // if (!this.vod.video_metadata) throw new Error("No video_metadata");
         if (!YouTubeHelper.oAuth2Client) throw new Error("No YouTube client");
-        if (!(await YouTubeHelper.getQuotaStatus()))
+        if (await YouTubeHelper.getQuotaStatus())
             throw new Error(
                 "Quota exceeded. Enable override in config to force upload."
             );
