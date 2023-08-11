@@ -1,5 +1,5 @@
 import { log, LOGLEVEL } from "@/Core/Log";
-import { formatDistanceToNow, formatISO9075 } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 import type express from "express";
 import { YouTubeHelper } from "../Providers/YouTube";
 
@@ -129,6 +129,15 @@ export function Callback(
                     // res.redirect(302, "/");
                     YouTubeHelper.authenticated = true;
                     YouTubeHelper.storeToken(token);
+                    if (token.refresh_token) {
+                        YouTubeHelper.storeRefreshToken(token.refresh_token);
+                    } else {
+                        log(
+                            LOGLEVEL.WARNING,
+                            "YouTube.Callback",
+                            "No refresh token received"
+                        );
+                    }
                     YouTubeHelper.fetchUsername()
                         .then((username) => {
                             resolve();
@@ -209,17 +218,17 @@ export async function Status(
         return;
     }
 
-    const end_date = new Date(YouTubeHelper.accessTokenTime);
+    const end_date = YouTubeHelper.accessTokenExpiryDate;
 
-    const expires_in = formatDistanceToNow(end_date);
+    const expires_in = end_date ? formatDistanceToNow(end_date) : "unknown";
 
     if (username !== "") {
-        if (YouTubeHelper.accessTokenTime > 0) {
+        if (YouTubeHelper.accessTokenExpiryDate) {
             res.send({
                 status: "OK",
-                message: `YouTube authenticated with user: ${username}, expires in ${expires_in} (${formatISO9075(
-                    end_date
-                )})`,
+                message: `YouTube authenticated with user: ${username}, expires in ${expires_in} (${
+                    end_date ? end_date.toISOString() : "unknown"
+                })`,
             });
         } else {
             res.send({

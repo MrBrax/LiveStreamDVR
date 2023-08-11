@@ -4,12 +4,21 @@ import { Config } from "@/Core/Config";
 import { KeyValue } from "@/Core/KeyValue";
 import { LOGLEVEL, log } from "@/Core/Log";
 import { youtube_v3 } from "@googleapis/youtube";
-import { addDays, isBefore, set } from "date-fns";
+import { addDays, isAfter, isBefore, isValid, set } from "date-fns";
 import type { Credentials } from "google-auth-library";
 import { OAuth2Client } from "google-auth-library";
 import fs from "node:fs";
 import path from "node:path";
 
+/**
+ * So as far as i can understand this whole token and refresh token thing:
+ * - The token is valid for 1 hour
+ * - The refresh token is valid for a few days at least, maybe a week
+ * - The token can be refreshed with the refresh token, and this is done automatically by oauth2client
+ * - Previously, the token was never refreshed, and the refresh token was never used
+ * - The token was previously deleted if it was thought to be expired, but this is not necessary
+ * So now, it seems the refresh token is the most important thing, and the token is just a temporary thing
+ */
 export class YouTubeHelper {
     public static readonly SCOPES = [
         "https://www.googleapis.com/auth/youtube.upload",
@@ -22,14 +31,21 @@ export class YouTubeHelper {
         "https://www.googleapis.com/auth/youtubepartner",
     ];
 
-    static readonly accessTokenFile = path.join(
+    private static readonly accessTokenFile = path.join(
         BaseConfigCacheFolder.cache,
         "youtube_oauth.json"
     );
-    static readonly accessTokenRefreshFile = path.join(
+
+    private static readonly accessTokenExpiryFile = path.join(
+        BaseConfigCacheFolder.cache,
+        "youtube_oauth_expiry.txt"
+    );
+
+    private static readonly accessTokenRefreshFile = path.join(
         BaseConfigCacheFolder.cache,
         "youtube_oauth_refresh.bin"
     );
+
     static readonly accessTokenExpire = 60 * 60 * 24 * 60 * 1000; // 60 days
     // static readonly accessTokenRefresh = 60 * 60 * 24 * 30 * 1000; // 30 days
 
@@ -40,9 +56,18 @@ export class YouTubeHelper {
         BaseConfigCacheFolder.cache,
         "youtube_username.txt"
     );
-    static accessTokenTime = 0;
+    // static accessTokenTime = 0;
+    public static accessTokenExpiryDate?: Date;
     private static accessToken?: Credentials;
     private static accessTokenRefresh?: string;
+
+    static isTokenExpired(): boolean {
+        if (!this.accessTokenExpiryDate) {
+            return true;
+        }
+
+        return isBefore(new Date(), this.accessTokenExpiryDate);
+    }
 
     static async setupClient() {
         const client_id = Config.getInstance().cfg<string>("youtube.client_id");
@@ -88,22 +113,38 @@ export class YouTubeHelper {
 
         this.oAuth2Client.on("tokens", (tokens) => {
             if (tokens.refresh_token) {
-                console.log("youtube refresh token", tokens.refresh_token);
-                fs.writeFileSync(
-                    this.accessTokenRefreshFile,
-                    tokens.refresh_token
+                log(
+                    LOGLEVEL.INFO,
+                    "YouTubeHelper.setupClient",
+                    `Got refresh token for YouTube`
                 );
+                // fs.writeFileSync(
+                //     this.accessTokenRefreshFile,
+                //     tokens.refresh_token
+                // );
+                this.storeRefreshToken(tokens.refresh_token);
+                /*
                 if (this.oAuth2Client && !this.accessTokenRefresh) {
                     this.accessTokenRefresh = tokens.refresh_token;
                     this.oAuth2Client.setCredentials({
                         refresh_token: this.accessTokenRefresh,
                     });
                 }
+                */
+                this.applyRefreshToken(tokens.refresh_token);
+            } else {
+                log(
+                    LOGLEVEL.WARNING,
+                    "YouTubeHelper.setupClient",
+                    `Got new tokens, but no refresh.`
+                );
+                this.storeToken(tokens);
             }
-            console.log("youtube access token", tokens.access_token);
+
+            // console.log("youtube access token", tokens.access_token);
         });
 
-        const token = this.loadToken();
+        const token = this.loadTokenFromDisk();
         if (token) {
             log(
                 LOGLEVEL.INFO,
@@ -111,7 +152,6 @@ export class YouTubeHelper {
                 "Found stored token, setting credentials..."
             );
             this.oAuth2Client.setCredentials(token);
-            this.authenticated = true;
             try {
                 await this.fetchUsername();
             } catch (error) {
@@ -121,6 +161,7 @@ export class YouTubeHelper {
                     `Failed to fetch username: ${(error as Error).message}`
                 );
             }
+            this.authenticated = true;
         } else {
             log(
                 LOGLEVEL.INFO,
@@ -130,23 +171,14 @@ export class YouTubeHelper {
             return;
         }
 
-        this.loadRefreshToken();
-        if (this.accessTokenRefresh) {
-            log(
-                LOGLEVEL.INFO,
-                "YouTubeHelper.setupClient",
-                "Found refresh token, setting credentials..."
-            );
-            this.oAuth2Client.setCredentials({
-                refresh_token: fs.readFileSync(this.accessTokenRefreshFile, {
-                    encoding: "utf-8",
-                }),
-            });
+        const refreshToken = this.loadRefreshTokenFromDisk();
+        if (refreshToken) {
+            this.applyRefreshToken(refreshToken);
         } else {
             log(
-                LOGLEVEL.ERROR,
+                LOGLEVEL.WARNING,
                 "YouTubeHelper.setupClient",
-                "No refresh token found"
+                "No refresh token found."
             );
         }
 
@@ -171,9 +203,28 @@ export class YouTubeHelper {
             `Storing token in ${this.accessTokenFile}`
         );
         fs.writeFileSync(this.accessTokenFile, json);
+
+        if (token.expiry_date) {
+            const expiry_date = new Date(token.expiry_date);
+            fs.writeFileSync(
+                this.accessTokenExpiryFile,
+                expiry_date.toISOString()
+            );
+            log(
+                LOGLEVEL.DEBUG,
+                "YouTubeHelper.storeToken",
+                `Updated expiry date to ${expiry_date.toISOString()}`
+            );
+            this.accessTokenExpiryDate = expiry_date;
+        }
     }
 
-    static loadToken(): Credentials | undefined {
+    static applyToken(token: Credentials) {
+        this.accessToken = token;
+        // this.oAuth2Client?.setCredentials(token);
+    }
+
+    static loadTokenFromDisk(): Credentials | undefined {
         if (!fs.existsSync(this.accessTokenFile)) {
             log(
                 LOGLEVEL.DEBUG,
@@ -187,18 +238,35 @@ export class YouTubeHelper {
 
         const creds: Credentials = JSON.parse(json);
 
-        if (creds.expiry_date && new Date().getTime() > creds.expiry_date) {
+        let expiry_date: Date | undefined = undefined;
+
+        if (fs.existsSync(this.accessTokenExpiryFile)) {
+            const expiry_date_str = fs.readFileSync(
+                this.accessTokenExpiryFile,
+                "utf8"
+            );
+            expiry_date = new Date(expiry_date_str);
+
+            if (isValid(expiry_date) && isAfter(expiry_date, new Date())) {
+                log(
+                    LOGLEVEL.WARNING,
+                    "YouTubeHelper.loadToken",
+                    `Token expired at ${creds.expiry_date}`
+                );
+                // fs.unlinkSync(this.accessTokenFile);
+                // this.accessToken = undefined;
+                // return undefined;
+            }
+
+            this.accessTokenExpiryDate = expiry_date;
+        } else {
             log(
                 LOGLEVEL.WARNING,
                 "YouTubeHelper.loadToken",
-                `Token expired at ${creds.expiry_date}`
+                `No expiry date found in ${this.accessTokenExpiryFile}`
             );
-            fs.unlinkSync(this.accessTokenFile);
-            this.accessToken = undefined;
-            return undefined;
         }
 
-        this.accessTokenTime = creds.expiry_date || 0;
         this.accessToken = creds;
 
         log(
@@ -209,7 +277,16 @@ export class YouTubeHelper {
         return creds;
     }
 
-    static loadRefreshToken(): boolean {
+    static storeRefreshToken(refreshToken: string) {
+        log(
+            LOGLEVEL.DEBUG,
+            "YouTubeHelper.storeRefreshToken",
+            `Storing refresh token in ${this.accessTokenRefreshFile}`
+        );
+        fs.writeFileSync(this.accessTokenRefreshFile, refreshToken);
+    }
+
+    static loadRefreshTokenFromDisk(): string | false {
         if (!fs.existsSync(this.accessTokenRefreshFile)) {
             log(
                 LOGLEVEL.DEBUG,
@@ -218,10 +295,29 @@ export class YouTubeHelper {
             );
             return false;
         }
-        this.accessTokenRefresh = fs.readFileSync(this.accessTokenRefreshFile, {
+        return fs.readFileSync(this.accessTokenRefreshFile, {
             encoding: "utf-8",
         });
-        return true;
+    }
+
+    static applyRefreshToken(refreshToken: string) {
+        if (!this.oAuth2Client) {
+            log(
+                LOGLEVEL.ERROR,
+                "YouTubeHelper.applyRefreshToken",
+                "No oAuth2Client found"
+            );
+            return;
+        }
+        log(
+            LOGLEVEL.INFO,
+            "YouTubeHelper.applyRefreshToken",
+            "Found refresh token, setting credentials..."
+        );
+        this.oAuth2Client.setCredentials({
+            refresh_token: refreshToken,
+        });
+        this.accessTokenRefresh = refreshToken;
     }
 
     static async fetchUsername(force = false): Promise<string> {
@@ -297,7 +393,7 @@ export class YouTubeHelper {
             fs.unlinkSync(this.username_file);
         this.username = "";
         this.accessToken = undefined;
-        this.accessTokenTime = 0;
+        this.accessTokenExpiryDate = undefined;
         this.accessTokenRefresh = undefined;
         return;
     }
