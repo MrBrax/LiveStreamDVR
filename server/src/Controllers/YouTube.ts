@@ -223,19 +223,28 @@ export async function Status(
     const expires_in = end_date ? formatDistanceToNow(end_date) : "unknown";
 
     if (username !== "") {
+        let message = "";
         if (YouTubeHelper.accessTokenExpiryDate) {
-            res.send({
-                status: "OK",
-                message: `YouTube authenticated with user: ${username}, expires in ${expires_in} (${
-                    end_date ? end_date.toISOString() : "unknown"
-                })`,
-            });
+            message += `YouTube authenticated with user: ${username}, expires in ${expires_in} (${
+                end_date ? end_date.toISOString() : "unknown"
+            }).`;
         } else {
-            res.send({
-                status: "OK",
-                message: `YouTube authenticated with user: ${username}, unknown expiration.`,
-            });
+            message += `YouTube authenticated with user: ${username}, unknown expiration.`;
         }
+        message += ` Refresh token: ${
+            YouTubeHelper.hasRefreshToken() ? "yes" : "no"
+        }. Access token: ${
+            YouTubeHelper.hasToken() ? "yes" : "no"
+        }. OAuth2 cred token: ${
+            YouTubeHelper.hasSetOAuth2ClientToken() ? "yes" : "no"
+        }. OAuth2 cred refresh token: ${
+            YouTubeHelper.hasSetOAuth2ClientRefreshToken() ? "yes" : "no"
+        }.`;
+
+        res.api(200, {
+            status: "OK",
+            message,
+        });
     } else {
         res.api(500, {
             status: "ERROR",

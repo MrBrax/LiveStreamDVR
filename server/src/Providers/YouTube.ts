@@ -69,6 +69,22 @@ export class YouTubeHelper {
         return isBefore(new Date(), this.accessTokenExpiryDate);
     }
 
+    static hasToken(): boolean {
+        return !!this.accessToken;
+    }
+
+    static hasRefreshToken(): boolean {
+        return !!this.accessTokenRefresh;
+    }
+
+    static hasSetOAuth2ClientToken(): boolean {
+        return !!this.oAuth2Client?.credentials.access_token;
+    }
+
+    static hasSetOAuth2ClientRefreshToken(): boolean {
+        return !!this.oAuth2Client?.credentials.refresh_token;
+    }
+
     static async setupClient() {
         const client_id = Config.getInstance().cfg<string>("youtube.client_id");
         const client_secret = Config.getInstance().cfg<string>(
@@ -118,19 +134,7 @@ export class YouTubeHelper {
                     "YouTubeHelper.setupClient",
                     `Got refresh token for YouTube`
                 );
-                // fs.writeFileSync(
-                //     this.accessTokenRefreshFile,
-                //     tokens.refresh_token
-                // );
                 this.storeRefreshToken(tokens.refresh_token);
-                /*
-                if (this.oAuth2Client && !this.accessTokenRefresh) {
-                    this.accessTokenRefresh = tokens.refresh_token;
-                    this.oAuth2Client.setCredentials({
-                        refresh_token: this.accessTokenRefresh,
-                    });
-                }
-                */
                 this.applyRefreshToken(tokens.refresh_token);
             } else {
                 log(
@@ -139,6 +143,7 @@ export class YouTubeHelper {
                     `Got new tokens, but no refresh.`
                 );
                 this.storeToken(tokens);
+                this.applyToken(tokens);
             }
 
             // console.log("youtube access token", tokens.access_token);
@@ -151,7 +156,8 @@ export class YouTubeHelper {
                 "YouTubeHelper.setupClient",
                 "Found stored token, setting credentials..."
             );
-            this.oAuth2Client.setCredentials(token);
+            this.applyToken(token);
+            // this.oAuth2Client.setCredentials(token);
             try {
                 await this.fetchUsername();
             } catch (error) {
@@ -187,12 +193,6 @@ export class YouTubeHelper {
             "YouTubeHelper.setupClient",
             `YouTubeHelper setup complete, authenticated: ${this.authenticated}`
         );
-
-        /*
-        this.oAuth2Client.setCredentials({
-            refresh_token: fs.readFileSync(this.accessTokenRefreshFile, { encoding: "utf-8" }),
-        });
-        */
     }
 
     static storeToken(token: Credentials) {
@@ -220,7 +220,13 @@ export class YouTubeHelper {
     }
 
     static applyToken(token: Credentials) {
+        log(
+            LOGLEVEL.INFO,
+            "YouTubeHelper.applyToken",
+            `Applying regular token to OAuth2Client`
+        );
         this.accessToken = token;
+        this.oAuth2Client?.setCredentials(token);
         // this.oAuth2Client?.setCredentials(token);
     }
 
@@ -315,6 +321,7 @@ export class YouTubeHelper {
             "Found refresh token, setting credentials..."
         );
         this.oAuth2Client.setCredentials({
+            ...this.accessToken,
             refresh_token: refreshToken,
         });
         this.accessTokenRefresh = refreshToken;
@@ -343,7 +350,14 @@ export class YouTubeHelper {
         let response;
 
         try {
-            response = await this.oAuth2Client.request({
+            response = await this.oAuth2Client.request<{
+                sub: string;
+                name: string;
+                given_name: string;
+                family_name: string;
+                picture: string;
+                locale: string;
+            }>({
                 url: "https://www.googleapis.com/oauth2/v3/userinfo",
             });
         } catch (error) {
@@ -361,14 +375,7 @@ export class YouTubeHelper {
             typeof response.data === "object" &&
             "name" in response.data
         ) {
-            const data: {
-                sub: string;
-                name: string;
-                given_name: string;
-                family_name: string;
-                picture: string;
-                locale: string;
-            } = response.data as never;
+            const data = response.data;
             this.username = data.name;
             fs.writeFileSync(this.username_file, this.username);
             return this.username;
@@ -384,6 +391,11 @@ export class YouTubeHelper {
 
     static async destroyCredentials(): Promise<void> {
         if (!this.oAuth2Client) throw new Error("No client");
+        log(
+            LOGLEVEL.INFO,
+            "YouTubeHelper.destroyCredentials",
+            "Revoking credentials and deleting files"
+        );
         await this.oAuth2Client.revokeCredentials();
         if (fs.existsSync(this.accessTokenFile))
             fs.unlinkSync(this.accessTokenFile);
