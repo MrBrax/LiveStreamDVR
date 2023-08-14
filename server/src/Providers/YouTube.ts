@@ -220,13 +220,26 @@ export class YouTubeHelper {
     }
 
     static applyToken(token: Credentials) {
+        if (!this.oAuth2Client) {
+            log(
+                LOGLEVEL.ERROR,
+                "YouTubeHelper.applyToken",
+                `No OAuth2Client set up.`
+            );
+            return;
+        }
         log(
             LOGLEVEL.INFO,
             "YouTubeHelper.applyToken",
-            `Applying regular token to OAuth2Client`
+            `Applying regular token to OAuth2Client, keeping old refresh token.`
         );
         this.accessToken = token;
-        this.oAuth2Client?.setCredentials(token);
+        this.oAuth2Client.setCredentials({
+            ...token,
+            refresh_token: this.hasRefreshToken()
+                ? this.accessTokenRefresh
+                : "",
+        });
         // this.oAuth2Client?.setCredentials(token);
     }
 
