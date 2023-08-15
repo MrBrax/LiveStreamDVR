@@ -56,6 +56,11 @@
                     <strong>Redirect URI:</strong> <CodeBox>{{ store.appUrl }}/api/v0/youtube/callback</CodeBox>
                 </li>
             </ul>
+            <hr />
+            <small>
+                <strong>Note:</strong> I am not responsible for any suspensions or bans that may occur on your YouTube account. Use at your own risk.<br />
+                If you're having trouble with the authentication flow and have already used it in the past, try revoking access to the app.
+            </small>
         </div>
     </div>
 </template>
