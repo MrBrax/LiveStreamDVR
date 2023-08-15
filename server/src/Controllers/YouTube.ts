@@ -26,7 +26,7 @@ export function Authenticate(
     const url = YouTubeHelper.oAuth2Client.generateAuthUrl({
         access_type: "offline",
         scope: YouTubeHelper.SCOPES,
-        // prompt: "consent", // necessary?
+        prompt: "consent", // necessary?
     });
 
     if (!url) {
