@@ -18,38 +18,25 @@
         }"
     -->
         <router-link
-            :to="store.clientCfg('singlePage') ? { name: 'Dashboard', query: { channel: streamer.uuid } } : { name: 'Dashboard', hash: '#streamer_' + streamer.uuid }"
+            :to="
+                store.clientCfg('singlePage')
+                    ? { name: 'Dashboard', query: { channel: streamer.uuid } }
+                    : { name: 'Dashboard', hash: '#streamer_' + streamer.uuid }
+            "
             class="streamer-link"
         >
-            <span
-                class="avatar is-desktop"
-                aria-label="Streamer Avatar"
-                @click.prevent="streamer && store.fetchAndUpdateStreamer(streamer.uuid)"
-            >
-                <img
-                    :src="avatarUrl"
-                    :alt="streamer.internalName"
-                >
+            <span class="avatar is-desktop" aria-label="Streamer Avatar" @click.prevent="streamer && store.fetchAndUpdateStreamer(streamer.uuid)">
+                <img :src="avatarUrl" :alt="streamer.internalName" />
             </span>
             <!-- TODO: find another way to disable click on mobile -->
-            <span
-                class="avatar is-mobile"
-                aria-label="Streamer Avatar"
-            >
-                <img
-                    :src="avatarUrl"
-                    :alt="streamer.internalName"
-                >
+            <span class="avatar is-mobile" aria-label="Streamer Avatar">
+                <img :src="avatarUrl" :alt="streamer.internalName" />
             </span>
             <span class="username">
                 {{ streamer.displayName }}
                 <template v-if="streamer.internalName.toLowerCase() != streamer.displayName.toLowerCase()"> ({{ streamer.internalName }})</template>
             </span>
-            <span
-                class="vodcount"
-                :data-count="streamer.vods_list.length"
-                title="VOD count"
-            >{{ streamer.vods_list.length }}</span>
+            <span class="vodcount" :data-count="streamer.vods_list.length" title="VOD count">{{ streamer.vods_list.length }}</span>
             <span class="subtitle">
                 <template v-if="streamer.is_live && streamer.is_capturing">
                     <template v-if="isTwitch(streamer) && streamer.current_game && streamer.current_game.name != ''">
@@ -71,14 +58,9 @@
                 </template>
                 <template v-else-if="streamer.is_converting"> Converting... </template>
                 <template v-else-if="streamer.chapter_data && store.clientCfg('showOfflineCategoryInSidebar')">
-                    <span
-                        :title="streamer.chapter_data.title"
-                        :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }"
-                    >
-                        <span class="icon is-small"><fa
-                            icon="bed"
-                            title="Offline category"
-                        /></span> {{ isTwitch(streamer) ? streamer.chapter_data.game_name : "" }} @ {{ formatLogicalDate(streamer.chapter_data.started_at) }}
+                    <span :title="streamer.chapter_data.title" :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }">
+                        <span class="icon is-small"><fa icon="bed" title="Offline category" /></span>
+                        {{ isTwitch(streamer) ? streamer.chapter_data.game_name : "" }} @ {{ formatLogicalDate(streamer.chapter_data.started_at) }}
                     </span>
                 </template>
                 <template v-else>
@@ -94,34 +76,18 @@
                 @click="toggleExpand"
             >
                 <transition>
-                    <span
-                        v-if="!expanded"
-                        class="amount"
-                    >{{ streamer.vods_list.length - store.clientCfg('vodsToShowInMenu', 4) }}</span>
+                    <span v-if="!expanded" class="amount">{{ streamer.vods_list.length - store.clientCfg("vodsToShowInMenu", 4) }}</span>
                 </transition>
                 <font-awesome-icon :icon="expanded ? 'chevron-up' : 'chevron-down'" />
             </button>
         </div>
     </div>
 
-    <div
-        v-if="streamer"
-        class="top-menu-item streamer-jumpto"
-    >
-        <transition-group
-            v-if="streamer.vods_list.length > 0"
-            name="list"
-            tag="ul"
-        >
+    <div v-if="streamer" class="top-menu-item streamer-jumpto">
+        <transition-group v-if="streamer.vods_list.length > 0" name="list" tag="ul">
             <!--<li v-if="!expanded && !store.clientCfg('expandVodList') && streamer.vods_list.length > store.clientCfg('vodsToShowInMenu', 4)" class="streamer-expand-hide"></li>-->
-            <li
-                v-for="vod in filteredVodsList"
-                :key="vod.basename"
-            >
-                <side-menu-streamer-vod
-                    :streamer="streamer"
-                    :vod="vod"
-                />
+            <li v-for="vod in filteredVodsList" :key="vod.basename">
+                <side-menu-streamer-vod :streamer="streamer" :vod="vod" />
             </li>
         </transition-group>
     </div>
@@ -135,7 +101,24 @@ import SideMenuStreamerVod from "./SideMenuStreamerVod.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
-import { faFilm, faHeadphones, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faTrashArrowUp, faChevronDown, faChevronUp, faLock, faGamepad, faBed, faComment } from "@fortawesome/free-solid-svg-icons";
+import {
+    faFilm,
+    faHeadphones,
+    faTachometerAlt,
+    faWrench,
+    faCog,
+    faUserCog,
+    faInfoCircle,
+    faStar,
+    faSync,
+    faTrashArrowUp,
+    faChevronDown,
+    faChevronUp,
+    faLock,
+    faGamepad,
+    faBed,
+    faComment,
+} from "@fortawesome/free-solid-svg-icons";
 import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import { useStore } from "@/store";
 import { nonGameCategories } from "../../../common/Defs";
@@ -143,8 +126,26 @@ import { isTwitch } from "@/mixins/newhelpers";
 import { useRoute } from "vue-router";
 import { formatLogicalDate } from "@/mixins/newhelpers";
 import type { ChannelTypes, VODTypes } from "@/twitchautomator";
-library.add(faGithub, faFilm, faHeadphones, faTachometerAlt, faWrench, faCog, faUserCog, faInfoCircle, faStar, faSync, faHourglass, faTrashArrowUp, faChevronDown, faChevronUp, faLock, faGamepad, faBed, faComment);
-
+library.add(
+    faGithub,
+    faFilm,
+    faHeadphones,
+    faTachometerAlt,
+    faWrench,
+    faCog,
+    faUserCog,
+    faInfoCircle,
+    faStar,
+    faSync,
+    faHourglass,
+    faTrashArrowUp,
+    faChevronDown,
+    faChevronUp,
+    faLock,
+    faGamepad,
+    faBed,
+    faComment,
+);
 
 const store = useStore();
 const route = useRoute();
@@ -153,11 +154,11 @@ const props = defineProps<{
 }>();
 
 const expanded = ref(false);
-    
+
 const filteredVodsList = computed((): VODTypes[] => {
     if (!props.streamer) return [];
-    if (expanded.value || store.clientCfg('expandVodList')) return props.streamer.vods_list;
-    const vodsToShow = store.clientCfg('vodsToShowInMenu', 4);
+    if (expanded.value || store.clientCfg("expandVodList")) return props.streamer.vods_list;
+    const vodsToShow = store.clientCfg("vodsToShowInMenu", 4);
     if (vodsToShow === 0) return [];
     // return last 4 vods
     return props.streamer.vods_list.slice(-vodsToShow);
@@ -172,7 +173,8 @@ const avatarUrl = computed((): string => {
 
 const bannerUrl = computed((): string => {
     if (!props.streamer || !isTwitch(props.streamer)) return "";
-    if (props.streamer.channel_data?.cache_offline_image) return `${store.cfg<string>("basepath", "")}/cache/banners/${props.streamer.channel_data.cache_offline_image}`;
+    if (props.streamer.channel_data?.cache_offline_image)
+        return `${store.cfg<string>("basepath", "")}/cache/banners/${props.streamer.channel_data.cache_offline_image}`;
     return props.streamer.offline_image_url;
 });
 
@@ -183,25 +185,22 @@ const gameVerb = computed((): string => {
     if (props.streamer.current_game.name === "Among Us") return "Sussing"; // lol
     return "Playing";
 });
-    
+
 function toggleExpand() {
     expanded.value = !expanded.value;
 }
-
 </script>
 
 <style lang="scss" scoped>
 @import "../assets/_variables";
 
 .top-menu-item {
-
     font-size: 1.2em;
 
     /**
     * Side menu channel with avatar, name, and status
     */
     &.streamer {
-
         display: flex;
 
         /*
@@ -504,7 +503,6 @@ function toggleExpand() {
             padding: 0;
         }
     }
-
 }
 
 @media screen and (orientation: portrait) {
@@ -600,9 +598,7 @@ function toggleExpand() {
             .streamer-expand-container {
                 display: none;
             }
-
         }
     }
 }
-
 </style>

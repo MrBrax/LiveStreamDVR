@@ -1,25 +1,17 @@
 <template>
     <div class="loading">
-        <span class="icon"><fa
-            icon="sync"
-            spin
-        /></span> {{ t("messages.loading") }}
-        <div
-            v-if="tookTooLong"
-            class="tooktoolong"
-        >
-            <span class="icon"><fa
-                icon="exclamation-triangle"
-            /></span> {{ t("messages.loading-takes-longer-than-expected") }} {{ timeTaken }}s
+        <span class="icon"><fa icon="sync" spin /></span> {{ t("messages.loading") }}
+        <div v-if="tookTooLong" class="tooktoolong">
+            <span class="icon"><fa icon="exclamation-triangle" /></span> {{ t("messages.loading-takes-longer-than-expected") }} {{ timeTaken }}s
         </div>
     </div>
 </template>
 
 <script lang="ts" setup>
-import { useI18n } from 'vue-i18n';
+import { useI18n } from "vue-i18n";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSync, faExclamationTriangle } from "@fortawesome/free-solid-svg-icons";
-import { onBeforeUnmount, onMounted, ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from "vue";
 
 library.add(faSync, faExclamationTriangle);
 
@@ -44,7 +36,7 @@ onMounted(() => {
         const now = new Date();
         const diff = now.getTime() - startLoad.value.getTime();
         // seconds with 1 decimal
-        timeTaken.value = (diff / 1000).toFixed(1);        
+        timeTaken.value = (diff / 1000).toFixed(1);
     }, 100);
 });
 
@@ -52,7 +44,6 @@ onBeforeUnmount(() => {
     window.clearTimeout(timeout.value);
     window.clearInterval(ticker.value);
 });
-
 </script>
 
 <style lang="scss" scoped>

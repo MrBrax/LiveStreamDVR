@@ -13,16 +13,19 @@ import { humanDuration, niceDuration, shortDuration } from "@/mixins/newhelpers"
  */
 
 const props = defineProps({
-    startDate: { type: [String, Number, Date], default: "0", },
-    outputStyle: { type: String, default: "human", }
+    startDate: { type: [String, Number, Date], default: "0" },
+    outputStyle: { type: String, default: "human" },
 });
 
 const interval = ref(0);
 const timeString = ref("??:??");
 
-watch(() => props.startDate, (a, b) => {
-    refreshTime();
-});
+watch(
+    () => props.startDate,
+    (a, b) => {
+        refreshTime();
+    },
+);
 
 onMounted(() => {
     refreshTime();
@@ -59,13 +62,12 @@ const refreshTime = () => {
         // if ((dur.minutes && dur.minutes > 0) || (dur.hours && dur.hours > 0)) str += `${dur.minutes}m `;
         // if ((dur.seconds && dur.seconds > 0) || (dur.minutes && dur.minutes > 0)) str += `${dur.seconds}s `;
         timeString.value = niceDuration(totalSeconds);
-    } else if(props.outputStyle == "humanLong") {
+    } else if (props.outputStyle == "humanLong") {
         timeString.value = shortDuration(totalSeconds);
-    } else if(props.outputStyle == "numbers") {
+    } else if (props.outputStyle == "numbers") {
         timeString.value = humanDuration(totalSeconds);
     } else {
         timeString.value = "Invalid output style";
     }
 };
-   
 </script>

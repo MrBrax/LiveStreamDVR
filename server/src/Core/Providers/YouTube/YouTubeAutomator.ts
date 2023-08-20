@@ -1,7 +1,7 @@
 import { KeyValue } from "../../../Core/KeyValue";
-import { PubsubVideo } from "@common/YouTubeAPI/Pubsub";
+import type { PubsubVideo } from "@common/YouTubeAPI/Pubsub";
 import { BaseAutomator } from "../Base/BaseAutomator";
-import express from "express";
+import type express from "express";
 
 export class YouTubeAutomator extends BaseAutomator {
     public getVodID(): string | false {
@@ -10,23 +10,32 @@ export class YouTubeAutomator extends BaseAutomator {
     }
 
     public getStartDate(): string {
-        return KeyValue.getInstance().get(`yt.${this.getUserID()}.vod.started_at`) || "";
+        return (
+            KeyValue.getInstance().get(
+                `yt.${this.getUserID()}.vod.started_at`
+            ) || ""
+        );
     }
 
-    public handle(entry: PubsubVideo, request: express.Request): Promise<boolean> {
-        console.log("ya", entry["yt:channelId"], entry["yt:videoId"], entry.title);
+    public handle(
+        entry: PubsubVideo,
+        request: express.Request
+    ): Promise<boolean> {
+        console.log(
+            "ya",
+            entry["yt:channelId"],
+            entry["yt:videoId"],
+            entry.title
+        );
         return Promise.resolve(false);
     }
 
     public providerArgs(): string[] {
-
         const cmd = [];
 
         // start recording from start of stream
         cmd.push("--hls-live-restart");
 
         return cmd;
-
     }
-
 }

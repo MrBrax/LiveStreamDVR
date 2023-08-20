@@ -1,24 +1,21 @@
+import type { KickVODJSON } from "@/Storage/JSON";
+import type { ApiKickVod } from "@common/Api/Client";
+import type { Providers } from "@common/Defs";
 import { parseJSON } from "date-fns";
 import { BaseVOD } from "../Base/BaseVOD";
-import { JobStatus, MuteStatus, Providers } from "@common/Defs";
-import { KickVODJSON } from "../../../Storage/JSON";
-import type { ApiKickVod } from "@common/Api/Client";
 
 export class KickVOD extends BaseVOD {
-
     public provider: Providers = "kick";
 
     json?: KickVODJSON;
 
     public kick_vod_id? = "";
 
-
     /**
      * Set up basic data
      * Requires JSON to be loaded
      */
     public setupBasic(): void {
-
         if (!this.json) {
             throw new Error("No JSON loaded for basic setup!");
         }
@@ -31,19 +28,21 @@ export class KickVOD extends BaseVOD {
         // const dur = this.getDurationLive();
         // this.duration_live = dur === false ? -1 : dur;
 
-        this.bookmarks = this.json.bookmarks ? this.json.bookmarks.map((b => {
-            return {
-                name: b.name,
-                date: parseJSON(b.date),
-            };
-        })) : [];
-
+        this.bookmarks = this.json.bookmarks
+            ? this.json.bookmarks.map((b) => {
+                  return {
+                      name: b.name,
+                      date: parseJSON(b.date),
+                  };
+              })
+            : [];
     }
 
     public async toAPI(): Promise<ApiKickVod> {
         if (!this.uuid) throw new Error(`No UUID set on VOD ${this.basename}`);
-        if (!this.channel_uuid) throw new Error(`No channel UUID set on VOD ${this.basename}`);
-        return {
+        if (!this.channel_uuid)
+            throw new Error(`No channel UUID set on VOD ${this.basename}`);
+        return await Promise.resolve({
             provider: "kick",
             uuid: this.uuid,
             channel_uuid: this.channel_uuid,
@@ -63,9 +62,15 @@ export class KickVOD extends BaseVOD {
             saved_at: this.saved_at ? this.saved_at.toISOString() : "",
             started_at: this.started_at ? this.started_at.toISOString() : "",
             ended_at: this.ended_at ? this.ended_at.toISOString() : undefined,
-            capture_started: this.capture_started ? this.capture_started.toISOString() : undefined,
-            capture_started2: this.capture_started2 ? this.capture_started2.toISOString() : undefined,
-            conversion_started: this.conversion_started ? this.conversion_started.toISOString() : undefined,
+            capture_started: this.capture_started
+                ? this.capture_started.toISOString()
+                : undefined,
+            capture_started2: this.capture_started2
+                ? this.capture_started2.toISOString()
+                : undefined,
+            conversion_started: this.conversion_started
+                ? this.conversion_started.toISOString()
+                : undefined,
 
             capture_id: this.capture_id,
 
@@ -132,10 +137,18 @@ export class KickVOD extends BaseVOD {
 
             export_data: this.exportData,
 
-            viewers: this.viewers.map((v) => { return { timestamp: v.timestamp.toISOString(), amount: v.amount }; }),
-            stream_pauses: this.stream_pauses.map((v) => { return { start: v.start.toISOString(), end: v.end.toISOString() }; }),
-
-        };
+            viewers: this.viewers.map((v) => {
+                return {
+                    timestamp: v.timestamp.toISOString(),
+                    amount: v.amount,
+                };
+            }),
+            stream_pauses: this.stream_pauses.map((v) => {
+                return {
+                    start: v.start.toISOString(),
+                    end: v.end.toISOString(),
+                };
+            }),
+        });
     }
-
 }

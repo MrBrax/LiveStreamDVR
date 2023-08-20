@@ -1,0 +1,21 @@
+name: Publish release
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v3
+        with:
+          submodules: "true"
+      # - name: Install dependencies
+      #   run: yarn install
+      - name: Run pack (also releases to GitHub)
+        run: chmod +x ./pack.sh && ./pack.sh
+        env: 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

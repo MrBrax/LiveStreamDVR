@@ -1,12 +1,6 @@
 <template>
     <div class="container">
-        <div
-            v-if="vodData && vodData.basename"
-            class="video-editor-wrapper"
-            @mousemove="onMouseMove"
-            @mouseout="onMouseOut"
-            @mouseup="onMouseUp"
-        >
+        <div v-if="vodData && vodData.basename" class="video-editor-wrapper" @mousemove="onMouseMove" @mouseout="onMouseOut" @mouseup="onMouseUp">
             <div class="video-editor">
                 <div class="video-editor-video">
                     <video
@@ -24,12 +18,7 @@
                         @waiting="videoWaiting"
                         @stalled="videoStalled"
                     >
-                        <track
-                            kind="chapters"
-                            :src="chapterSource"
-                            label="Chapters"
-                            default
-                        >
+                        <track kind="chapters" :src="chapterSource" label="Chapters" default />
                     </video>
                 </div>
                 <div class="video-editor-chapter-hover">
@@ -51,15 +40,8 @@
                     @mouseenter="timelineHover = true"
                     @mouseleave="timelineMouseLeave"
                 >
-                    <div
-                        class="timeline-playhead"
-                        :style="timelinePlayheadStyle"
-                    />
-                    <div
-                        v-if="cutSegmentlength > 0"
-                        class="timeline-cut"
-                        :style="timelineCutStyle"
-                    />
+                    <div class="timeline-playhead" :style="timelinePlayheadStyle" />
+                    <div v-if="cutSegmentlength > 0" class="timeline-cut" :style="timelineCutStyle" />
                     <div class="video-editor-chapters">
                         <div
                             v-for="(chapter, chapterIndex) in vodData.chapters"
@@ -68,19 +50,11 @@
                             :style="chapterStyle(chapterIndex, chapter)"
                         />
                     </div>
-                    <div
-                        v-if="timelineHover"
-                        class="timeline-hover"
-                        :style="timelineSeekHoverBarStyle"
-                    />
+                    <div v-if="timelineHover" class="timeline-hover" :style="timelineSeekHoverBarStyle" />
                 </div>
 
                 <div class="video-editor-cut">
-                    <div
-                        v-if="cutSegmentlength > 0"
-                        class="video-editor-cut-display"
-                        :style="cutDisplayStyle"
-                    >
+                    <div v-if="cutSegmentlength > 0" class="video-editor-cut-display" :style="cutDisplayStyle">
                         <div
                             class="drag-handle in"
                             :class="{ 'is-active': isDraggingInPoint }"
@@ -105,19 +79,13 @@
                 <div class="video-editor-time">
                     <span v-if="videoDuration">
                         <span class="icon">
-                            <font-awesome-icon
-                                :icon="videoStatusIcon"
-                                :spin="videoStatus == 'loading'"
-                            />
+                            <font-awesome-icon :icon="videoStatusIcon" :spin="videoStatus == 'loading'" />
                         </span>
-                        {{ humanDuration(currentVideoTime) }} / {{ videoDuration ? humanDuration(videoDuration) : '-' }}
+                        {{ humanDuration(currentVideoTime) }} / {{ videoDuration ? humanDuration(videoDuration) : "-" }}
                     </span>
                     <span v-else>
                         <span class="icon">
-                            <font-awesome-icon
-                                icon="spinner"
-                                spin
-                            />
+                            <font-awesome-icon icon="spinner" spin />
                         </span>
                         {{ t("messages.loading") }}
                     </span>
@@ -125,37 +93,17 @@
 
                 <div class="video-editor-controls">
                     <div class="buttons no-margin">
-                        <d-button
-                            type="button"
-                            color="success"
-                            icon="play"
-                            @click="play"
-                        >
-                            {{ t('views.editor.buttons.play') }}
+                        <d-button type="button" color="success" icon="play" @click="play">
+                            {{ t("views.editor.buttons.play") }}
                         </d-button>
-                        <d-button
-                            type="button"
-                            color="success"
-                            icon="pause"
-                            @click="pause"
-                        >
-                            {{ t('views.editor.buttons.pause') }}
+                        <d-button type="button" color="success" icon="pause" @click="pause">
+                            {{ t("views.editor.buttons.pause") }}
                         </d-button>
-                        <d-button
-                            type="button"
-                            color="success"
-                            icon="backward-step"
-                            @click="seekRelative(-1)"
-                        >
-                            {{ t('views.editor.buttons.step-back') }}
+                        <d-button type="button" color="success" icon="backward-step" @click="seekRelative(-1)">
+                            {{ t("views.editor.buttons.step-back") }}
                         </d-button>
-                        <d-button
-                            type="button"
-                            color="success"
-                            icon="forward-step"
-                            @click="seekRelative(1)"
-                        >
-                            {{ t('views.editor.buttons.step-forward') }}
+                        <d-button type="button" color="success" icon="forward-step" @click="seekRelative(1)">
+                            {{ t("views.editor.buttons.step-forward") }}
                         </d-button>
                         <d-button
                             type="button"
@@ -164,7 +112,7 @@
                             :disabled="secondsIn == Math.round(currentVideoTime)"
                             @click="setFrameIn(currentVideoTime)"
                         >
-                            {{ t('views.editor.buttons.mark-in') }}
+                            {{ t("views.editor.buttons.mark-in") }}
                         </d-button>
                         <d-button
                             type="button"
@@ -173,23 +121,13 @@
                             :disabled="secondsOut == Math.round(currentVideoTime)"
                             @click="setFrameOut(currentVideoTime)"
                         >
-                            {{ t('views.editor.buttons.mark-out') }}
+                            {{ t("views.editor.buttons.mark-out") }}
                         </d-button>
-                        <d-button
-                            type="button"
-                            color="success"
-                            icon="bookmark"
-                            @click="addBookmark"
-                        >
-                            {{ t('views.editor.buttons.add-bookmark') }}
+                        <d-button type="button" color="success" icon="bookmark" @click="addBookmark">
+                            {{ t("views.editor.buttons.add-bookmark") }}
                         </d-button>
-                        <d-button
-                            type="button"
-                            color="success"
-                            icon="expand"
-                            @click="fullscreen"
-                        >
-                            {{ t('views.editor.buttons.fullscreen') }}
+                        <d-button type="button" color="success" icon="expand" @click="fullscreen">
+                            {{ t("views.editor.buttons.fullscreen") }}
                         </d-button>
                         <d-button
                             type="button"
@@ -197,17 +135,12 @@
                             :class="{ 'is-confirm': previewClip, 'is-danger': !previewClip }"
                             @click="previewClip = !previewClip"
                         >
-                            {{ t('views.editor.buttons.preview') }}
+                            {{ t("views.editor.buttons.preview") }}
                         </d-button>
                     </div>
                 </div>
 
-                <div
-                    v-if="timelineHover"
-                    ref="hoverTimeTooltip"
-                    class="video-editor-hover-time"
-                    :style="timelineSeekTooltipStyle"
-                >
+                <div v-if="timelineHover" ref="hoverTimeTooltip" class="video-editor-hover-time" :style="timelineSeekTooltipStyle">
                     {{ humanDuration(hoverTime) }}
                 </div>
 
@@ -215,34 +148,28 @@
             </div>
 
             <div class="video-editor-help">
-                <p>
-                    Note that video cuts are not frame perfect. Make sure to verify the end result. 
-                </p>
+                <p>Note that video cuts are not frame perfect. Make sure to verify the end result.</p>
             </div>
 
             <div class="video-editor-chapter-list">
                 <h2>Chapters</h2>
                 <ul class="list">
-                    <li
-                        v-for="(chapter, i) in vodData.chapters"
-                        :key="i"
-                    >
+                    <li v-for="(chapter, i) in vodData.chapters" :key="i">
                         <a
                             v-if="chapter.offset !== undefined && chapter.duration !== undefined"
                             @click="setCutpoints(chapter.offset || 0, chapter.duration || 0)"
                         >
                             <div class="chapter-time">
-                                {{ humanDuration(chapter.offset) }} - {{ humanDuration(chapter.offset + chapter.duration) }} ({{ humanDuration(chapter.duration) }})
-                            </div> 
+                                {{ humanDuration(chapter.offset) }} - {{ humanDuration(chapter.offset + chapter.duration) }} ({{
+                                    humanDuration(chapter.duration)
+                                }})
+                            </div>
                             <div class="chapter-game">
-                                <img
-                                    :src="chapter.image_url"
-                                    height="20"
-                                >
+                                <img :src="chapter.image_url" height="20" />
                                 {{ chapter.game_name }}
                             </div>
                             <div class="chapter-title text-overflow">{{ chapter.title }}</div>
-                        </a> 
+                        </a>
                     </li>
                 </ul>
             </div>
@@ -250,24 +177,12 @@
             <!--{{ videoSource }}-->
 
             <div class="video-editor-form">
-                <h2>{{ t('views.editor.edit-segment') }}</h2>
-                <form
-                    method="POST"
-                    enctype="multipart/form-data"
-                    action="#"
-                    @submit="submitForm"
-                >
-                    <input
-                        type="hidden"
-                        name="vod"
-                        value="{{ vodData.basename }}"
-                    >
+                <h2>{{ t("views.editor.edit-segment") }}</h2>
+                <form method="POST" enctype="multipart/form-data" action="#" @submit="submitForm">
+                    <input type="hidden" name="vod" value="{{ vodData.basename }}" />
 
                     <div class="field">
-                        <label
-                            for="time_in"
-                            class="label"
-                        >{{ t('views.editor.time-in') }}</label>
+                        <label for="time_in" class="label">{{ t("views.editor.time-in") }}</label>
                         <div class="control">
                             <input
                                 id="time_in"
@@ -278,18 +193,13 @@
                                 step="1"
                                 min="0"
                                 :max="videoDuration"
-                            >
-                            <p class="input-help">
-                                Timestamp in seconds
-                            </p>
+                            />
+                            <p class="input-help">Timestamp in seconds</p>
                         </div>
                     </div>
 
                     <div class="field">
-                        <label
-                            for="time_out"
-                            class="label"
-                        >{{ t('views.editor.time-out') }}</label>
+                        <label for="time_out" class="label">{{ t("views.editor.time-out") }}</label>
                         <div class="control">
                             <input
                                 id="time_out"
@@ -300,49 +210,33 @@
                                 step="1"
                                 min="0"
                                 :max="videoDuration"
-                            >
-                            <p class="input-help">
-                                Timestamp in seconds
-                            </p>
+                            />
+                            <p class="input-help">Timestamp in seconds</p>
                         </div>
                     </div>
 
                     <div class="field">
                         <div class="control">
-                            <strong>{{ t('vod.video-info.duration') }}:</strong> {{ cutSegmentlength > 0 ? humanDuration(cutSegmentlength) : "None" }}
+                            <strong>{{ t("vod.video-info.duration") }}:</strong> {{ cutSegmentlength > 0 ? humanDuration(cutSegmentlength) : "None" }}
                         </div>
                     </div>
 
                     <div class="field">
                         <div class="control">
-                            <strong>{{ t('views.editor.filesize') }}:</strong> {{ exportSize ? "~" + formatBytes(exportSize) : "None" }}
+                            <strong>{{ t("views.editor.filesize") }}:</strong> {{ exportSize ? "~" + formatBytes(exportSize) : "None" }}
                         </div>
                     </div>
 
                     <div class="field">
                         <div class="control">
-                            <input
-                                v-model="cutName"
-                                class="input"
-                                type="text"
-                                name="name"
-                                placeholder="Name (optional)"
-                            >
+                            <input v-model="cutName" class="input" type="text" name="name" placeholder="Name (optional)" />
                         </div>
                     </div>
 
-                    <FormSubmit
-                        :form-status="formStatus"
-                        :form-status-text="formStatusText"
-                    >
+                    <FormSubmit :form-status="formStatus" :form-status-text="formStatusText">
                         <div class="control">
-                            <d-button
-                                type="submit"
-                                color="success"
-                                icon="scissors"
-                                :disabled="!cutSegmentlength"
-                            >
-                                {{ t('views.editor.buttons.submit-cut') }}
+                            <d-button type="submit" color="success" icon="scissors" :disabled="!cutSegmentlength">
+                                {{ t("views.editor.buttons.submit-cut") }}
                             </d-button>
                         </div>
                     </FormSubmit>
@@ -363,12 +257,40 @@ import { useStore } from "@/store";
 import type { FormStatus, VODTypes } from "@/twitchautomator";
 import type { ApiResponse, ApiVodResponse } from "@common/Api/Api";
 import { library } from "@fortawesome/fontawesome-svg-core";
-import { faBookmark, faFastBackward, faFastForward, faPause, faPlay, faScissors, faSpinner, faStop, faExpand, faBackwardStep, faForwardStep, faEye, faEyeSlash } from "@fortawesome/free-solid-svg-icons";
+import {
+    faBookmark,
+    faFastBackward,
+    faFastForward,
+    faPause,
+    faPlay,
+    faScissors,
+    faSpinner,
+    faStop,
+    faExpand,
+    faBackwardStep,
+    faForwardStep,
+    faEye,
+    faEyeSlash,
+} from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
 import { computed, onMounted, ref, watch, type HTMLAttributes } from "vue";
 import { useI18n } from "vue-i18n";
 import { useRoute } from "vue-router";
-library.add(faPlay, faPause, faBookmark, faFastBackward, faFastForward, faSpinner, faScissors, faStop, faExpand, faBackwardStep, faForwardStep, faEye, faEyeSlash);
+library.add(
+    faPlay,
+    faPause,
+    faBookmark,
+    faFastBackward,
+    faFastForward,
+    faSpinner,
+    faScissors,
+    faStop,
+    faExpand,
+    faBackwardStep,
+    faForwardStep,
+    faEye,
+    faEyeSlash,
+);
 
 const props = defineProps<{
     uuid: string;
@@ -412,7 +334,7 @@ const timelineCutStyle = computed((): HTMLAttributes["style"] => {
 
 const timelinePlayheadStyle = computed((): HTMLAttributes["style"] => {
     if (!currentVideoTime.value || !videoDuration.value) return { left: "0%" };
-    const percent = (currentVideoTime.value / (videoDuration.value)) * 100;
+    const percent = (currentVideoTime.value / videoDuration.value) * 100;
     return {
         width: `${percent}%`,
     };
@@ -420,7 +342,7 @@ const timelinePlayheadStyle = computed((): HTMLAttributes["style"] => {
 
 const cutSegmentlength = computed((): number => {
     if (secondsIn.value === undefined || secondsOut.value === undefined) return 0;
-    return (secondsOut.value - secondsIn.value);
+    return secondsOut.value - secondsIn.value;
 });
 
 const exportSize = computed((): number => {
@@ -434,7 +356,7 @@ const exportSize = computed((): number => {
 
 const videoSource = computed((): string => {
     if (!vodData.value) return "";
-    return `${vodData.value.webpath}/${vodData.value.basename}.mp4`
+    return `${vodData.value.webpath}/${vodData.value.basename}.mp4`;
 });
 
 const chapterSource = computed((): string => {
@@ -532,13 +454,12 @@ function seekMouseHandler(event: MouseEvent): void {
     const rect = timeline.value.getBoundingClientRect();
     const percent = (event.clientX - rect.left) / timeline.value.clientWidth;
     const seconds = Math.round(videoDuration.value * percent);
-    
+
     if (previewClip.value && (seconds > secondsOut.value || seconds < secondsIn.value)) {
         previewClip.value = false; // stop preview
     }
-    
+
     seekAbsolute(seconds);
-    
 }
 
 function seekAbsolute(seconds: number): void {
@@ -560,7 +481,7 @@ function timelineMouseMove(event: MouseEvent): void {
 
     if (vodData.value) {
         const idx = vodData.value.chapters.findIndex((chapter, i) => {
-            const o = i == 0 ? 0 : (chapter.offset || 0);
+            const o = i == 0 ? 0 : chapter.offset || 0;
             return chapter.offset && chapter.duration && seconds >= o && seconds < o + chapter.duration;
         });
         if (idx !== -1) {
@@ -653,7 +574,7 @@ function videoError(event: Event): void {
 
 function videoPlay(event: Event): void {
     console.debug("play", event);
-    videoStatus.value = "playing"
+    videoStatus.value = "playing";
 }
 
 function videoPause(event: Event): void {
@@ -667,7 +588,6 @@ function videoStalled(event: Event): void {
 }
 
 function submitForm(event: Event): void {
-
     if (!vodData.value) return;
 
     formStatus.value = "LOADING";
@@ -722,16 +642,19 @@ function addBookmark(): void {
     const offset = currentVideoTime.value;
     const name = prompt(`Bookmark name for offset ${offset}:`);
     if (!name) return;
-    axios.post<ApiResponse>(`/api/v0/vod/${vodData.value.uuid}/bookmark`, { name: name, offset: offset }).then((response) => {
-        const json = response.data;
-        if (json.message) alert(json.message);
-        console.log(json);
-        if (props.uuid) store.fetchAndUpdateVod(props.uuid);
-        // if (this.editVodMenu) this.editVodMenu.show = false;
-    }).catch((err) => {
-        console.error("form error", err.response);
-        if (err.response.data && err.response.data.message) alert(err.response.data.message);
-    });
+    axios
+        .post<ApiResponse>(`/api/v0/vod/${vodData.value.uuid}/bookmark`, { name: name, offset: offset })
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            if (props.uuid) store.fetchAndUpdateVod(props.uuid);
+            // if (this.editVodMenu) this.editVodMenu.show = false;
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data && err.response.data.message) alert(err.response.data.message);
+        });
 }
 
 function fullscreen(): void {
@@ -767,13 +690,16 @@ function onMouseOut(event: MouseEvent): void {
     // isDraggingOutPoint.value = false;
 }
 
-watch(() => previewClip.value, (clip) => {
-    if (!clip) return;
-    seekAbsolute(secondsIn.value);
-});
+watch(
+    () => previewClip.value,
+    (clip) => {
+        if (!clip) return;
+        seekAbsolute(secondsIn.value);
+    },
+);
 
 function chapterStyle(index: number, chapter: BaseVODChapter): HTMLAttributes["style"] {
-    const chapterOffset = index == 0 ? 0 : (chapter.offset || 0);
+    const chapterOffset = index == 0 ? 0 : chapter.offset || 0;
     const chapterDuration = chapter.duration || 0;
     const left = (chapterOffset / videoDuration.value) * 100;
     // cap width at duration
@@ -783,7 +709,6 @@ function chapterStyle(index: number, chapter: BaseVODChapter): HTMLAttributes["s
         width: `${width}%`,
     };
 }
-
 </script>
 
 <style lang="scss" scoped>
@@ -813,7 +738,16 @@ function chapterStyle(index: number, chapter: BaseVODChapter): HTMLAttributes["s
         // bottom: 0;
 
         // scrolling stripes background
-        background-image: linear-gradient(45deg, rgba(220, 50, 20, 0.7) 25%, transparent 25%, transparent 50%, rgba(220, 50, 20, 0.7) 50%, rgba(220, 50, 20, 0.7) 75%, transparent 75%, transparent);
+        background-image: linear-gradient(
+            45deg,
+            rgba(220, 50, 20, 0.7) 25%,
+            transparent 25%,
+            transparent 50%,
+            rgba(220, 50, 20, 0.7) 50%,
+            rgba(220, 50, 20, 0.7) 75%,
+            transparent 75%,
+            transparent
+        );
         background-size: 2em 2em;
         animation: stripes 6s linear infinite;
     }
@@ -1033,7 +967,4 @@ function chapterStyle(index: number, chapter: BaseVODChapter): HTMLAttributes["s
     display: inline-block;
     margin-right: 0.3em;
 }
-
-
-
 </style>

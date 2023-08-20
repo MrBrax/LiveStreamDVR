@@ -10,6 +10,7 @@
     "baseUrl": ".",
     "outDir": "./build",
     "isolatedModules": true,
+    "skipLibCheck": true,
     "paths": {
       "@/*": [
         "./src/*"
@@ -24,10 +25,12 @@
     "src/**/*.tsx",
     "src/**/*.vue",
     "tests/**/*.ts",
-    "tests/**/*.tsx"
+    "tests/**/*.tsx",
+    "../common/**/*.ts",
   ],
   "exclude": [
-    "node_modules"
+    "node_modules",
+    ".yarn",
   ],
   "ts-node": {
     "require": [

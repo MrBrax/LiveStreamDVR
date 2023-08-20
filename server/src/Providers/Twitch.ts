@@ -3,17 +3,30 @@ import { Config } from "@/Core/Config";
 import { KeyValue } from "@/Core/KeyValue";
 import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
 import { LOGLEVEL, censoredLogWords, log } from "@/Core/Log";
-import { AutomatorMetadata, TwitchAutomator } from "@/Core/Providers/Twitch/TwitchAutomator";
+import type { AutomatorMetadata } from "@/Core/Providers/Twitch/TwitchAutomator";
+import { TwitchAutomator } from "@/Core/Providers/Twitch/TwitchAutomator";
 import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
 import { getNiceDuration } from "@/Helpers/Format";
 import { xClearTimeout, xTimeout } from "@/Helpers/Timeout";
-import { TwitchCommentDumpTD } from "@common/Comments";
+import type { TwitchCommentDumpTD } from "@common/Comments";
 import { SubStatus } from "@common/Defs";
-import type { TwitchAuthAppTokenResponse, TwitchAuthTokenValidationResponse, TwitchAuthUserTokenResponse } from "@common/TwitchAPI/Auth";
-import { EventSubWebsocketMessage, EventSubWebsocketNotificationMessage } from "@common/TwitchAPI/EventSub/Websocket";
-import { ErrorResponse, EventSubTypes, Subscription } from "@common/TwitchAPI/Shared";
-import { Subscriptions } from "@common/TwitchAPI/Subscriptions";
-import axios, { Axios, AxiosRequestConfig, AxiosResponse } from "axios";
+import type {
+    TwitchAuthAppTokenResponse,
+    TwitchAuthTokenValidationResponse,
+    TwitchAuthUserTokenResponse,
+} from "@common/TwitchAPI/Auth";
+import type {
+    EventSubWebsocketMessage,
+    EventSubWebsocketNotificationMessage,
+} from "@common/TwitchAPI/EventSub/Websocket";
+import type {
+    ErrorResponse,
+    EventSubTypes,
+    Subscription,
+} from "@common/TwitchAPI/Shared";
+import type { Subscriptions } from "@common/TwitchAPI/Subscriptions";
+import type { Axios, AxiosRequestConfig, AxiosResponse } from "axios";
+import axios from "axios";
 import chalk from "chalk";
 import { format, parseJSON } from "date-fns";
 import { randomUUID } from "node:crypto";
@@ -37,6 +50,22 @@ export interface RemuxReturn {
     success: boolean;
 }
 
+interface TwitchAuthAppTokenFile {
+    access_token: string;
+    expires_at: number;
+    expires_in: number;
+    token_type: string;
+}
+
+interface TwitchAuthUserTokenFile {
+    access_token: string;
+    expires_at: number;
+    expires_in: number;
+    refresh_token: string;
+    scope: string[];
+    token_type: string;
+}
+
 export class TwitchHelper {
     private static axios: Axios | undefined;
 
@@ -47,14 +76,14 @@ export class TwitchHelper {
     static userTokenUserId = "";
     // static eventSubSessionId = "";
 
-    static readonly accessTokenAppFileLegacy = path.join(
-        BaseConfigCacheFolder.cache,
-        "oauth.bin"
-    );
+    // static readonly accessTokenAppFileLegacy = path.join(
+    //     BaseConfigCacheFolder.cache,
+    //     "oauth.bin"
+    // );
 
     static readonly accessTokenAppFile = path.join(
         BaseConfigCacheFolder.cache,
-        "oauth.json"
+        "oauth_app.json"
     );
 
     static readonly accessTokenUserFile = path.join(
@@ -67,11 +96,6 @@ export class TwitchHelper {
         "oauth_user_refresh.json"
     );
 
-    static readonly accessTokenExpireFile = path.join(
-        BaseConfigCacheFolder.cache,
-        "oauth_expire.json"
-    );
-
     /** @deprecated */
     static readonly accessTokenExpire = 60 * 60 * 24 * 60 * 1000; // 60 days
     /** @deprecated */
@@ -82,8 +106,8 @@ export class TwitchHelper {
     static readonly TWITCH_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     static readonly TWITCH_DATE_FORMAT_MS = "yyyy-MM-dd'T'HH:mm:ss'.'SSS'Z'";
 
-
-    public static readonly eventWebsocketUrl = "wss://eventsub.wss.twitch.tv/ws";
+    public static readonly eventWebsocketUrl =
+        "wss://eventsub.wss.twitch.tv/ws";
     /** @deprecated */
     public static eventWebsocket: WebSocket | undefined;
     public static eventWebsockets: EventWebsocket[] = [];
@@ -94,7 +118,7 @@ export class TwitchHelper {
     // public static eventWebsocketTimeoutCheck?: NodeJS.Timeout;
     // public static eventWebsocketConnectedAt?: Date;
     public static eventWebsocketMaxWebsockets = 3;
-    public static eventWebsocketMaxSubscriptions = 100;
+    public static eventWebsocketMaxSubscriptions = 300;
 
     /*
     static readonly SUBSTATUS = {
@@ -128,66 +152,44 @@ export class TwitchHelper {
     }
 
     static async getAccessTokenApp(force = false): Promise<string> {
-
-        const expire = fs.existsSync(this.accessTokenExpireFile) ? parseJSON(fs.readFileSync(this.accessTokenExpireFile, "utf8")).getTime() : 0;
+        // const expire = fs.existsSync(this.accessTokenExpireFile) ? parseJSON(fs.readFileSync(this.accessTokenExpireFile, "utf8")).getTime() : 0;
 
         if (fs.existsSync(this.accessTokenAppFile)) {
+            const data: TwitchAuthAppTokenFile = JSON.parse(
+                fs.readFileSync(this.accessTokenAppFile, "utf8")
+            );
+
+            const expire = data.expires_at || 0;
+
             if (Date.now() > expire) {
                 log(
                     LOGLEVEL.INFO,
                     "tw.helper.getAccessTokenApp",
-                    `Deleting old access token, too old: ${new Date(expire).toLocaleString()}`
+                    `Deleting old app access token, too old: ${new Date(
+                        expire
+                    ).toLocaleString()}`
                 );
                 fs.unlinkSync(this.accessTokenAppFile);
             } else if (!force) {
                 log(
                     LOGLEVEL.DEBUG,
                     "tw.helper.getAccessTokenApp",
-                    "Fetched access token from cache"
+                    "Fetched app access token from cache"
                 );
                 this.accessTokenType = "app";
-                const data: TwitchAuthAppTokenResponse = JSON.parse(
-                    fs.readFileSync(this.accessTokenAppFile, "utf8")
-                );
+
                 this.accessToken = data.access_token;
                 this.accessTokenTime = expire;
-                // fs.writeFileSync(
-                //     this.accessTokenExpireFile,
-                //     JSON.stringify(new Date(this.accessTokenTime))
-                // );
                 log(
                     LOGLEVEL.INFO,
                     "tw.helper.getAccessTokenApp",
-                    `Access token expires at ${new Date(this.accessTokenTime).toLocaleString()}`
+                    `Stored app access token expires at ${new Date(
+                        this.accessTokenTime
+                    ).toLocaleString()}`
                 );
                 return this.accessToken;
             }
-        } else if (fs.existsSync(this.accessTokenAppFileLegacy)) {
-            if (
-                Date.now() >
-                fs.statSync(this.accessTokenAppFileLegacy).mtimeMs +
-                    this.accessTokenRefresh
-            ) {
-                log(
-                    LOGLEVEL.INFO,
-                    "tw.helper.getAccessTokenApp",
-                    `Deleting old access token, too old: ${format(
-                        fs.statSync(this.accessTokenAppFileLegacy).mtimeMs,
-                        this.PHP_DATE_FORMAT
-                    )}`
-                );
-                fs.unlinkSync(this.accessTokenAppFileLegacy);
-            } else if (!force) {
-                log(
-                    LOGLEVEL.DEBUG,
-                    "tw.helper.getAccessTokenApp",
-                    "Fetched access token from cache"
-                );
-                this.accessTokenType = "app";
-                return fs.readFileSync(this.accessTokenAppFileLegacy, "utf8");
-            }
         }
-
 
         if (
             !Config.getInstance().hasValue("api_secret") ||
@@ -205,25 +207,6 @@ export class TwitchHelper {
 
         // oauth2
         const oauth_url = "https://id.twitch.tv/oauth2/token";
-
-        /*
-        try {
-            $response = $client->post($oauth_url, [
-                'query' => [
-                    'client_id' => TwitchConfig::cfg('api_client_id'),
-                    'client_secret' => TwitchConfig::cfg('api_secret'),
-                    'grant_type' => 'client_credentials'
-                ],
-                'headers' => [
-                    'Client-ID: ' . TwitchConfig::cfg('api_client_id')
-                ]
-            ]);
-        } catch (\Throwable $th) {
-            TwitchlogAdvanced(LOGLEVEL.FATAL, "tw.helper.getAccessTokenApp", "Tried to get oauth token but server returned: " . $th->getMessage());
-            sleep(5);
-            return false;
-        }
-        */
 
         const response = await axios.post<TwitchAuthAppTokenResponse>(
             oauth_url,
@@ -243,12 +226,10 @@ export class TwitchHelper {
             log(
                 LOGLEVEL.FATAL,
                 "tw.helper.getAccessTokenApp",
-                "Tried to get oauth token but server returned: " +
-                    response.statusText
+                `Tried to get oauth token but server returned: ${response.statusText}`
             );
             throw new Error(
-                "Tried to get oauth token but server returned: " +
-                    response.statusText
+                `Tried to get oauth token but server returned: ${response.statusText}`
             );
         }
 
@@ -258,28 +239,35 @@ export class TwitchHelper {
             log(
                 LOGLEVEL.ERROR,
                 "tw.helper.getAccessTokenApp",
-                `Failed to fetch access token: ${json}`
+                `Failed to fetch app access token: ${json}`
             );
             throw new Error(`Failed to fetch access token: ${json}`);
         }
 
         const access_token = json.access_token;
 
-        this.accessToken = access_token;
-        this.accessTokenTime = Date.now() + (json.expires_in * 1000);
+        const expires_at = Date.now() + json.expires_in * 1000;
 
-        // fs.writeFileSync(this.accessTokenAppFileLegacy, access_token);
-        fs.writeFileSync(this.accessTokenAppFile, JSON.stringify(json));
+        this.accessToken = access_token;
+        this.accessTokenTime = expires_at;
+
+        fs.writeFileSync(
+            this.accessTokenAppFile,
+            JSON.stringify({
+                access_token: access_token,
+                expires_at: expires_at,
+                expires_in: json.expires_in,
+                token_type: json.token_type,
+            } as TwitchAuthAppTokenFile)
+        );
 
         log(
             LOGLEVEL.INFO,
             "tw.helper.getAccessTokenApp",
-            `Fetched new access token, expires at ${format(this.accessTokenTime, Config.getInstance().dateFormat)}`
-        );
-
-        fs.writeFileSync(
-            this.accessTokenExpireFile,
-            JSON.stringify(this.accessTokenTime)
+            `Fetched new app access token, expires at ${format(
+                expires_at,
+                Config.getInstance().dateFormat
+            )}`
         );
 
         this.accessTokenType = "app";
@@ -290,62 +278,80 @@ export class TwitchHelper {
     }
 
     static async getAccessTokenUser(force = false): Promise<string> {
-
-        const expire = fs.existsSync(this.accessTokenExpireFile) ? parseJSON(fs.readFileSync(this.accessTokenExpireFile, "utf8")).getTime() : 0;
+        // const expire = fs.existsSync(this.accessTokenExpireFile) ? parseJSON(fs.readFileSync(this.accessTokenExpireFile, "utf8")).getTime() : 0;
 
         this.accessTokenType = "user";
 
-        if (Date.now() < expire && !force && this.accessToken && this.accessTokenType == "user") {
-            console.debug("Fetched user access token from memory");
-            return this.accessToken;
-        }
+        // if (Date.now() < expire && !force && this.accessToken && this.accessTokenType == "user") {
+        //     console.debug("Fetched user access token from memory");
+        //     return this.accessToken;
+        // }
 
         if (fs.existsSync(this.accessTokenUserFile)) {
-
-            const data: TwitchAuthUserTokenResponse = JSON.parse(
+            const data: TwitchAuthUserTokenFile = JSON.parse(
                 fs.readFileSync(this.accessTokenUserFile, "utf8")
             );
 
-            this.userRefreshToken = data.refresh_token;
+            const expire = data.expires_at || 0;
 
             if (
-                Date.now() > expire
+                Date.now() < expire &&
+                !force &&
+                this.accessToken &&
+                this.accessTokenType == "user"
             ) {
+                log(
+                    LOGLEVEL.DEBUG,
+                    "tw.helper.getAccessTokenUser",
+                    "Fetched user access token from cache"
+                );
+                this.accessToken = data.access_token;
+                this.accessTokenTime = expire;
+                this.userRefreshToken = data.refresh_token;
+                log(
+                    LOGLEVEL.INFO,
+                    "tw.helper.getAccessTokenUser",
+                    `User access token expires at ${new Date(
+                        this.accessTokenTime
+                    ).toLocaleString()}`
+                );
+                return this.accessToken;
+            }
+
+            this.userRefreshToken = data.refresh_token;
+
+            if (Date.now() > expire) {
                 log(
                     LOGLEVEL.INFO,
                     "tw.helper",
-                    `Deleting old access token, too old: ${new Date(expire).toLocaleString()}`
+                    `Deleting old user access token, too old: ${new Date(
+                        expire
+                    ).toLocaleString()}`
                 );
                 // fs.unlinkSync(this.accessTokenUserFile);
             } else if (!force) {
                 log(
                     LOGLEVEL.DEBUG,
                     "tw.helper",
-                    "Fetched access token from cache"
+                    "Fetched user access token from cache"
                 );
                 // const data = fs.readFileSync(this.accessTokenUserFile, "utf8");
                 // this.accessToken = data.
                 this.accessToken = data.access_token;
                 this.accessTokenTime = expire;
                 this.userRefreshToken = data.refresh_token;
-                // fs.writeFileSync(
-                //     this.accessTokenExpireFile,
-                //     JSON.stringify(new Date(this.accessTokenTime))
-                // );
-                // logAdvanced(
-                //     LOGLEVEL.INFO,
-                //     "tw.helper",
-                //     `Access token expires at ${format(this.accessTokenTime, Config.getInstance().dateFormat)}`
-                // );
+                log(
+                    LOGLEVEL.INFO,
+                    "tw.helper",
+                    `User access token expires at ${new Date(
+                        this.accessTokenTime
+                    ).toLocaleString()}`
+                );
                 return this.accessToken;
             }
         }
 
-        log(
-            LOGLEVEL.INFO,
-            "tw.helper",
-            "Refreshing access token, expired"
-        );
+        log(LOGLEVEL.INFO, "tw.helper", "Refreshing access token, expired");
 
         const refresh = await this.refreshUserAccessToken();
         if (refresh) {
@@ -353,12 +359,13 @@ export class TwitchHelper {
             return this.accessToken;
         }
 
-        throw new Error("Can't automate user access token, and no user access token found in cache!");
-
+        throw new Error(
+            "Can't automate user access token, and no user access token found in cache!"
+        );
     }
 
     // static async getAccessTokenUserRefresh(): Promise<string> {
-    // 
+    //
     //     if (fs.existsSync(this.accessTokenUserRefreshFile)) {
     //         const data: TwitchAuthUserTokenRefreshResponse = JSON.parse(
 
@@ -369,16 +376,23 @@ export class TwitchHelper {
                 "tw.helper.refreshUserAccessToken",
                 "Can't refresh access token, not a user access token!"
             );
-            throw new Error("Can't refresh access token, not using a user access token!");
+            throw new Error(
+                "Can't refresh access token, not using a user access token!"
+            );
         }
 
-        if (!Config.getInstance().hasValue("api_secret") || !Config.getInstance().hasValue("api_client_id")) {
+        if (
+            !Config.getInstance().hasValue("api_secret") ||
+            !Config.getInstance().hasValue("api_client_id")
+        ) {
             log(
                 LOGLEVEL.ERROR,
                 "tw.helper.refreshUserAccessToken",
                 "Missing either api secret or client id, aborting fetching of access token!"
             );
-            throw new Error("Missing either api secret or client id, aborting fetching of access token!");
+            throw new Error(
+                "Missing either api secret or client id, aborting fetching of access token!"
+            );
         }
 
         if (!this.userRefreshToken) {
@@ -387,7 +401,9 @@ export class TwitchHelper {
                 "tw.helper.refreshUserAccessToken",
                 "Missing refresh token, aborting fetching of access token!"
             );
-            throw new Error("Missing refresh token, aborting fetching of access token!");
+            throw new Error(
+                "Missing refresh token, aborting fetching of access token!"
+            );
         }
 
         // oauth2
@@ -395,7 +411,9 @@ export class TwitchHelper {
 
         let response;
         try {
-            response = await axios.post<TwitchAuthUserTokenResponse | ErrorResponse>(
+            response = await axios.post<
+                TwitchAuthUserTokenResponse | ErrorResponse
+            >(
                 oauth_url,
                 {
                     client_id: Config.getInstance().cfg("api_client_id"),
@@ -430,7 +448,8 @@ export class TwitchHelper {
             log(
                 LOGLEVEL.FATAL,
                 "tw.helper.refreshUserAccessToken",
-                "Tried to refresh oauth token but server returned: " + response.data.message
+                "Tried to refresh oauth token but server returned: " +
+                    response.data.message
             );
             // throw new Error("Tried to refresh oauth token but server returned: " + response.data.message);
             return false;
@@ -438,28 +457,38 @@ export class TwitchHelper {
 
         const json = response.data;
 
+        const expires_at = Date.now() + json.expires_in * 1000;
+
         this.accessToken = json.access_token;
-        this.accessTokenTime = Date.now() + (json.expires_in * 1000);
+        this.accessTokenTime = expires_at;
         this.userRefreshToken = json.refresh_token;
 
         fs.writeFileSync(this.accessTokenUserRefreshFile, JSON.stringify(json));
-        fs.writeFileSync(this.accessTokenUserFile, JSON.stringify(json)); // i don't understand this
+        // fs.writeFileSync(this.accessTokenUserFile, JSON.stringify(json)); // i don't understand this
 
         fs.writeFileSync(
-            this.accessTokenExpireFile,
-            JSON.stringify(new Date(this.accessTokenTime))
+            this.accessTokenUserFile,
+            JSON.stringify({
+                access_token: json.access_token,
+                expires_in: json.expires_in,
+                expires_at,
+                refresh_token: json.refresh_token,
+                scope: json.scope,
+                token_type: json.token_type,
+            } as TwitchAuthUserTokenFile)
         );
 
         log(
             LOGLEVEL.SUCCESS,
             "tw.helper.refreshUserAccessToken",
-            `Refreshed user access token, expires at ${new Date(this.accessTokenTime).toISOString()}`
+            `Refreshed user access token, expires at ${new Date(
+                this.accessTokenTime
+            ).toISOString()}`
         );
 
         this.updateAxiosToken();
 
         return true;
-
     }
 
     /**
@@ -476,15 +505,15 @@ export class TwitchHelper {
             const num = parseInt(match[1]);
             const unit = match[2];
             switch (unit) {
-            case "h":
-                seconds += num * 3600;
-                break;
-            case "m":
-                seconds += num * 60;
-                break;
-            case "s":
-                seconds += num;
-                break;
+                case "h":
+                    seconds += num * 3600;
+                    break;
+                case "m":
+                    seconds += num * 60;
+                    break;
+                case "s":
+                    seconds += num;
+                    break;
             }
         }
         return seconds;
@@ -686,12 +715,12 @@ export class TwitchHelper {
         });
 
         if (subscriptions) {
-            subscriptions.forEach((sub) => {
-                KeyValue.getInstance().set(
+            subscriptions.forEach(async (sub) => {
+                await KeyValue.getInstance().setAsync(
                     `${sub.condition.broadcaster_user_id}.sub.${sub.type}`,
                     sub.id
                 );
-                KeyValue.getInstance().set(
+                await KeyValue.getInstance().setAsync(
                     `${sub.condition.broadcaster_user_id}.substatus.${sub.type}`,
                     sub.status == "enabled"
                         ? SubStatus.SUBSCRIBED
@@ -700,7 +729,9 @@ export class TwitchHelper {
 
                 if (sub.transport.method == "websocket") {
                     const session_id = sub.transport.session_id;
-                    const ws = TwitchHelper.eventWebsockets.find(ws => ws.sessionId == session_id);
+                    const ws = TwitchHelper.eventWebsockets.find(
+                        (ws) => ws.sessionId == session_id
+                    );
                     if (ws) {
                         ws.addSubscription(sub);
                         // ws.quotas = {
@@ -727,11 +758,7 @@ export class TwitchHelper {
     public static async getSubscription(
         id: string
     ): Promise<Subscription | false> {
-        log(
-            LOGLEVEL.INFO,
-            "tw.helper",
-            `Requesting subscription ${id}`
-        );
+        log(LOGLEVEL.INFO, "tw.helper", `Requesting subscription ${id}`);
 
         if (!this.axios) {
             throw new Error("Axios is not initialized");
@@ -746,11 +773,7 @@ export class TwitchHelper {
         const sub = subs.find((s) => s.id == id);
 
         if (!sub) {
-            log(
-                LOGLEVEL.ERROR,
-                "tw.helper",
-                `Subscription ${id} not found`
-            );
+            log(LOGLEVEL.ERROR, "tw.helper", `Subscription ${id} not found`);
             return false;
         }
 
@@ -758,11 +781,13 @@ export class TwitchHelper {
     }
 
     static async setupAxios() {
-
-        console.log(chalk.blue("Setting up axios..."));
+        // console.log(chalk.blue("Setting up axios..."));
+        log(LOGLEVEL.INFO, "tw.helper.setupAxios", "Setting up axios...");
 
         if (!Config.getInstance().hasValue("api_client_id")) {
-            console.error(chalk.red("API client id not set, can't setup axios"));
+            console.error(
+                chalk.red("API client id not set, can't setup axios")
+            );
             return;
         }
 
@@ -775,7 +800,11 @@ export class TwitchHelper {
         }
 
         if (!token) {
-            log(LOGLEVEL.FATAL, "tw.helper.setupAxios", "Could not get access token!");
+            log(
+                LOGLEVEL.FATAL,
+                "tw.helper.setupAxios",
+                "Could not get access token!"
+            );
             throw new Error("Could not get access token!");
         }
 
@@ -784,10 +813,18 @@ export class TwitchHelper {
         if (TwitchHelper.accessTokenType === "user") {
             const validateResult = await TwitchHelper.validateOAuth();
             if (!validateResult) {
-                log(LOGLEVEL.FATAL, "tw.helper.setupAxios", "Could not validate access token!");
+                log(
+                    LOGLEVEL.FATAL,
+                    "tw.helper.setupAxios",
+                    "Could not validate access token!"
+                );
                 throw new Error("Could not validate access token!");
             } else {
-                log(LOGLEVEL.SUCCESS, "tw.helper.setupAxios", "Access token validated!");
+                log(
+                    LOGLEVEL.SUCCESS,
+                    "tw.helper.setupAxios",
+                    "Access token validated!"
+                );
             }
         }
 
@@ -796,7 +833,7 @@ export class TwitchHelper {
             headers: {
                 "Client-ID": Config.getInstance().cfg("api_client_id"),
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
+                Authorization: `Bearer ${token}`,
             },
         });
 
@@ -806,42 +843,77 @@ export class TwitchHelper {
                 console.debug("No headers in config");
                 return config; // ???
             }
-            config.headers["Authorization"] = `Bearer ${TwitchHelper.accessToken}`;
+            config.headers[
+                "Authorization"
+            ] = `Bearer ${TwitchHelper.accessToken}`;
             return config;
         });
 
-        console.log(chalk.green(`✔ Axios setup with ${TwitchHelper.accessTokenType} token.`));
-
+        // console.log(chalk.green(`✔ Axios setup with ${TwitchHelper.accessTokenType} token.`));
+        log(
+            LOGLEVEL.SUCCESS,
+            "tw.helper.setupAxios",
+            `Axios setup with ${TwitchHelper.accessTokenType} token.`
+        );
     }
 
     public static updateAxiosToken(): boolean {
         if (!TwitchHelper.axios) {
-            log(LOGLEVEL.ERROR, "config", "Axios not initialized, can't update token");
+            log(
+                LOGLEVEL.ERROR,
+                "helper.updateAxiosToken",
+                "Axios not initialized, can't update token"
+            );
             return false;
         }
 
         // set authorization header for both default and instance
-        TwitchHelper.axios.defaults.headers.common["Authorization"] = `Bearer ${TwitchHelper.accessToken}`;
+        TwitchHelper.axios.defaults.headers.common[
+            "Authorization"
+        ] = `Bearer ${TwitchHelper.accessToken}`;
 
         censoredLogWords.add(TwitchHelper.accessToken);
-        console.log(chalk.green(`✔ Axios token updated with ${TwitchHelper.accessTokenType} token.`));
+        console.log(
+            chalk.green(
+                `✔ Axios token updated with ${TwitchHelper.accessTokenType} token.`
+            )
+        );
         return true;
     }
 
-    public static async getRequest<T>(url: string, config: AxiosRequestConfig = {}, retried = false): Promise<AxiosResponse<T>> {
-
-        if (!TwitchHelper.axios) { // TODO: use hasAxios() and getAxios() instead, but that won't type guard against undefined
+    public static async getRequest<T>(
+        url: string,
+        config: AxiosRequestConfig = {},
+        retried = false
+    ): Promise<AxiosResponse<T>> {
+        if (!TwitchHelper.axios) {
+            // TODO: use hasAxios() and getAxios() instead, but that won't type guard against undefined
             throw new Error("Axios is not initialized");
         }
 
-        log(LOGLEVEL.DEBUG, "tw.helper.getRequest", `Requesting GET ${url} with config ${JSON.stringify(config)}, retried: ${retried}`);
+        log(
+            LOGLEVEL.DEBUG,
+            "tw.helper.getRequest",
+            `Requesting GET ${url} with config ${JSON.stringify(
+                config
+            )}, retried: ${retried}`
+        );
 
         let response: AxiosResponse<T>;
         try {
             response = await TwitchHelper.axios.get<T>(url, config);
         } catch (error) {
-            if (axios.isAxiosError(error) && error.response?.status === 401 && !retried) { // 401 Unauthorized, don't retry if already retried
-                log(LOGLEVEL.WARNING, "tw.helper", "Access token expired during get request");
+            if (
+                axios.isAxiosError(error) &&
+                error.response?.status === 401 &&
+                !retried
+            ) {
+                // 401 Unauthorized, don't retry if already retried
+                log(
+                    LOGLEVEL.WARNING,
+                    "tw.helper",
+                    "Access token expired during get request"
+                );
                 if (this.accessTokenType === "user") {
                     await TwitchHelper.refreshUserAccessToken();
                 } else {
@@ -850,7 +922,12 @@ export class TwitchHelper {
                 }
                 return TwitchHelper.getRequest(url, config, true);
             } else {
-                log(LOGLEVEL.DEBUG, "tw.helper", `Error during get request: ${error}`, error);
+                log(
+                    LOGLEVEL.DEBUG,
+                    "tw.helper",
+                    `Error during get request: ${error}`,
+                    error
+                );
             }
             throw error;
         }
@@ -858,20 +935,39 @@ export class TwitchHelper {
         return response;
     }
 
-    public static async postRequest<T>(url: string, data: any, config: AxiosRequestConfig = {}, retried = false): Promise<AxiosResponse<T>> {
-
+    public static async postRequest<T>(
+        url: string,
+        data: unknown,
+        config: AxiosRequestConfig = {},
+        retried = false
+    ): Promise<AxiosResponse<T>> {
         if (!TwitchHelper.axios) {
             throw new Error("Axios is not initialized");
         }
 
-        log(LOGLEVEL.DEBUG, "tw.helper.postRequest", `Requesting POST ${url} with data ${JSON.stringify(data)} and config ${JSON.stringify(config)}, retried: ${retried}`);
+        log(
+            LOGLEVEL.DEBUG,
+            "tw.helper.postRequest",
+            `Requesting POST ${url} with data ${JSON.stringify(
+                data
+            )} and config ${JSON.stringify(config)}, retried: ${retried}`
+        );
 
         let response;
         try {
             response = await TwitchHelper.axios.post<T>(url, data, config);
         } catch (error) {
-            if (axios.isAxiosError(error) && error.response?.status === 401 && !retried) { // 401 Unauthorized, don't retry if already retried
-                log(LOGLEVEL.WARNING, "tw.helper", "Access token expired, during post request");
+            if (
+                axios.isAxiosError(error) &&
+                error.response?.status === 401 &&
+                !retried
+            ) {
+                // 401 Unauthorized, don't retry if already retried
+                log(
+                    LOGLEVEL.WARNING,
+                    "tw.helper",
+                    "Access token expired, during post request"
+                );
                 if (this.accessTokenType === "user") {
                     await TwitchHelper.refreshUserAccessToken();
                 } else {
@@ -886,20 +982,38 @@ export class TwitchHelper {
         return response;
     }
 
-    public static async deleteRequest<T>(url: string, config: AxiosRequestConfig = {}, retried = false): Promise<AxiosResponse<T>> {
-
+    public static async deleteRequest<T>(
+        url: string,
+        config: AxiosRequestConfig = {},
+        retried = false
+    ): Promise<AxiosResponse<T>> {
         if (!TwitchHelper.axios) {
             throw new Error("Axios is not initialized");
         }
 
-        log(LOGLEVEL.DEBUG, "tw.helper.deleteRequest", `Requesting DELETE ${url} with config ${JSON.stringify(config)}, retried: ${retried}`);
+        log(
+            LOGLEVEL.DEBUG,
+            "tw.helper.deleteRequest",
+            `Requesting DELETE ${url} with config ${JSON.stringify(
+                config
+            )}, retried: ${retried}`
+        );
 
         let response;
         try {
             response = await TwitchHelper.axios.delete<T>(url, config);
         } catch (error) {
-            if (axios.isAxiosError(error) && error.response?.status === 401 && !retried) { // 401 Unauthorized, don't retry if already retried
-                log(LOGLEVEL.WARNING, "tw.helper", "Access token expired, during delete request");
+            if (
+                axios.isAxiosError(error) &&
+                error.response?.status === 401 &&
+                !retried
+            ) {
+                // 401 Unauthorized, don't retry if already retried
+                log(
+                    LOGLEVEL.WARNING,
+                    "tw.helper",
+                    "Access token expired, during delete request"
+                );
                 if (this.accessTokenType === "user") {
                     await TwitchHelper.refreshUserAccessToken();
                 } else {
@@ -916,7 +1030,9 @@ export class TwitchHelper {
 
     public static async setupWebsocket() {
         this.removeAllEventWebsockets();
-        if (Config.getInstance().cfg("twitchapi.eventsub_type") == "websocket") {    
+        if (
+            Config.getInstance().cfg("twitchapi.eventsub_type") == "websocket"
+        ) {
             const subs = await this.getSubsList();
             if (subs && subs.length > 0) {
                 // let promiseList: Promise<boolean>[] = [];
@@ -926,7 +1042,11 @@ export class TwitchHelper {
                          * Websocket eventsub subscriptions get removed after 1 hour of inactivity.
                          * This unsubscribe call is mostly for the case where the server is restarted or for development purposes.
                          */
-                        if (Config.getInstance().cfg("twitchapi.eventsub_unsub_on_start")) {
+                        if (
+                            Config.getInstance().cfg(
+                                "twitchapi.eventsub_unsub_on_start"
+                            )
+                        ) {
                             // console.debug(chalk.red(`Sub ${sub.id} (websocket) is disconnected and unsub_on_start is enabled, unsubscribing...`));
                             await this.eventSubUnsubscribe(sub.id); // just make it a config option
                             // promiseList.push(this.eventSubUnsubscribe(sub.id));
@@ -947,11 +1067,7 @@ export class TwitchHelper {
                 console.log(chalk.green("✔ Websocket setup"));
             }
         } else {
-            log(
-                LOGLEVEL.INFO,
-                "tw.helper",
-                "Eventsub is not using websocket"
-            );
+            log(LOGLEVEL.INFO, "tw.helper", "Eventsub is not using websocket");
         }
     }
 
@@ -1098,13 +1214,16 @@ export class TwitchHelper {
     }
     */
 
-    public static createNewWebsocket(url: string, autoSubscribe = false): Promise<EventWebsocket> {
-
+    public static createNewWebsocket(
+        url: string,
+        autoSubscribe = false
+    ): Promise<EventWebsocket> {
         return new Promise<EventWebsocket>((resolve, reject) => {
-
             const randomId = randomUUID().substring(0, 8);
 
-            if (this.eventWebsockets.length >= this.eventWebsocketMaxWebsockets) {
+            if (
+                this.eventWebsockets.length >= this.eventWebsocketMaxWebsockets
+            ) {
                 log(
                     LOGLEVEL.ERROR,
                     "tw.helper",
@@ -1137,9 +1256,7 @@ export class TwitchHelper {
                     reject(new Error("Eventsub websocket validation failed"));
                 }
             };
-
         });
-
     }
 
     public static handleWebsocketReconnect(previousId: string, newUrl: string) {
@@ -1152,8 +1269,19 @@ export class TwitchHelper {
         this.createNewWebsocket(newUrl);
     }
 
-    public static findWebsocketSubscriptionBearer(user_id: string, sub_type: EventSubTypes): EventWebsocket | false {
-        const ws = this.eventWebsockets.find((w) => w.getSubscriptions().find((s) => s.condition.broadcaster_user_id === user_id && s.type === sub_type));
+    public static findWebsocketSubscriptionBearer(
+        user_id: string,
+        sub_type: EventSubTypes
+    ): EventWebsocket | false {
+        const ws = this.eventWebsockets.find((w) =>
+            w
+                .getSubscriptions()
+                .find(
+                    (s) =>
+                        s.condition.broadcaster_user_id === user_id &&
+                        s.type === sub_type
+                )
+        );
         if (ws) {
             return ws;
         }
@@ -1162,7 +1290,9 @@ export class TwitchHelper {
 
     public static printWebsockets() {
         if (LiveStreamDVR.shutting_down) return;
-        console.log(chalk.yellow(`Current websockets: ${this.eventWebsockets.length}`));
+        console.log(
+            chalk.yellow(`Current websockets: ${this.eventWebsockets.length}`)
+        );
         this.eventWebsockets.forEach((ws) => {
             console.log(`\t${ws.id} - ${ws.currentUrl}`);
             if (ws.quotas) {
@@ -1176,19 +1306,21 @@ export class TwitchHelper {
             console.log(`\t\tLast keepalive: ${ws.lastKeepalive}`);
             console.log(`\t\tSubscriptions: ${ws.getSubscriptions().length}`);
             ws.getSubscriptions().forEach((s) => {
-                console.log(`\t\t\ttype: ${s.type} - user: ${s.condition.broadcaster_user_id} - status: ${s.status} - created: ${s.created_at} - cost: ${s.cost}`);
+                console.log(
+                    `\t\t\ttype: ${s.type} - user: ${s.condition.broadcaster_user_id} - status: ${s.status} - created: ${s.created_at} - cost: ${s.cost}`
+                );
             });
-            console.log(`\t\tIs available: ${ws.isAvailable(TwitchHelper.CHANNEL_SUB_TYPES.length)}`);
+            console.log(
+                `\t\tIs available: ${ws.isAvailable(
+                    TwitchHelper.CHANNEL_SUB_TYPES.length
+                )}`
+            );
             console.log("");
         });
     }
 
     public static clearAccessToken() {
-        log(
-            LOGLEVEL.INFO,
-            "tw.helper",
-            "Clearing access token from memory"
-        );
+        log(LOGLEVEL.INFO, "tw.helper", "Clearing access token from memory");
         this.axios = undefined;
         this.accessToken = "";
         this.userRefreshToken = "";
@@ -1196,6 +1328,10 @@ export class TwitchHelper {
         this.accessTokenTime = 0;
     }
 
+    /**
+     * Validates OAuth token, only works for user tokens
+     * @returns
+     */
     public static async validateOAuth(): Promise<boolean> {
         const token = TwitchHelper.accessToken;
         if (TwitchHelper.accessTokenType !== "user") return false;
@@ -1210,17 +1346,31 @@ export class TwitchHelper {
 
         let res;
         try {
-            res = await axios.get<TwitchAuthTokenValidationResponse>("https://id.twitch.tv/oauth2/validate", {
-                headers: {
-                    Authorization: `OAuth ${token}`,
-                },
-            });
+            res = await axios.get<TwitchAuthTokenValidationResponse>(
+                "https://id.twitch.tv/oauth2/validate",
+                {
+                    headers: {
+                        Authorization: `OAuth ${token}`,
+                    },
+                }
+            );
         } catch (error) {
             if (axios.isAxiosError(error)) {
-                log(LOGLEVEL.ERROR, "tw.helper.validateOAuth", `Failed to validate oauth token: ${error.response?.data?.message}`);
+                log(
+                    LOGLEVEL.ERROR,
+                    "tw.helper.validateOAuth",
+                    `Failed to validate oauth token: ${error.response?.data?.message}`
+                );
                 console.error(error.response?.data);
             } else {
-                log(LOGLEVEL.ERROR, "tw.helper.validateOAuth", `Failed to validate oauth token: ${(error as Error).message}`, error);
+                log(
+                    LOGLEVEL.ERROR,
+                    "tw.helper.validateOAuth",
+                    `Failed to validate oauth token: ${
+                        (error as Error).message
+                    }`,
+                    error
+                );
             }
             return false;
         }
@@ -1228,25 +1378,54 @@ export class TwitchHelper {
         if (res.status === 200) {
             if (res.data.user_id) {
                 TwitchHelper.userTokenUserId = res.data.user_id;
-                TwitchHelper.accessTokenTime = Date.now() + (res.data.expires_in * 1000);
-                log(LOGLEVEL.INFO, "tw.helper.validateOAuth", `OAuth token is valid until ${new Date(TwitchHelper.accessTokenTime).toLocaleString()}`);
-                fs.writeFileSync(
-                    this.accessTokenExpireFile,
-                    JSON.stringify(new Date(this.accessTokenTime))
+                TwitchHelper.accessTokenTime =
+                    Date.now() + res.data.expires_in * 1000;
+                log(
+                    LOGLEVEL.INFO,
+                    "tw.helper.validateOAuth",
+                    `OAuth token is valid until ${new Date(
+                        TwitchHelper.accessTokenTime
+                    ).toLocaleString()}`
                 );
+                if (fs.existsSync(this.accessTokenUserFile)) {
+                    const old_data = JSON.parse(
+                        fs.readFileSync(this.accessTokenUserFile).toString()
+                    ) as TwitchAuthUserTokenResponse;
+                    fs.writeFileSync(
+                        this.accessTokenUserFile,
+                        JSON.stringify({
+                            ...old_data,
+                            access_token: TwitchHelper.accessToken,
+                            expires_in: TwitchHelper.accessTokenTime,
+                        } as TwitchAuthUserTokenResponse)
+                    );
+                } else {
+                    log(
+                        LOGLEVEL.ERROR,
+                        "tw.helper.validateOAuth",
+                        `Failed to write user token to file, file does not exist: ${this.accessTokenUserFile}`
+                    );
+                }
                 return true;
             } else {
-                log(LOGLEVEL.ERROR, "tw.helper.validateOAuth", "OAuth token is not valid");
+                log(
+                    LOGLEVEL.ERROR,
+                    "tw.helper.validateOAuth",
+                    "OAuth token is not valid"
+                );
                 return false;
             }
         } else {
-            log(LOGLEVEL.ERROR, "tw.helper.validateOAuth", `Failed to validate oauth token: ${res.status} ${res.statusText}`, res.data);
+            log(
+                LOGLEVEL.ERROR,
+                "tw.helper.validateOAuth",
+                `Failed to validate oauth token: ${res.status} ${res.statusText}`,
+                res.data
+            );
             TwitchHelper.clearAccessToken();
             return false;
         }
-
     }
-
 }
 
 /*
@@ -1316,13 +1495,13 @@ export class EventWebsocket {
                 return;
             }
 
-            if (json.metadata && json.metadata.message_type) json._type = json.metadata.message_type; // hack for discriminated unions
+            if (json.metadata && json.metadata.message_type)
+                json._type = json.metadata.message_type; // hack for discriminated unions
 
             this.eventWebsocketMessageHandler(json);
         });
 
         ws.on("close", (code) => {
-
             /*
             4000 	Internal server error 	        Indicates a problem with the server (similar to an HTTP 500 status code).
             4001 	Client sent inbound traffic 	Sending outgoing messages to the server is prohibited with the exception of pong messages.
@@ -1363,7 +1542,6 @@ export class EventWebsocket {
             }
 
             this.disconnectAndRemove();
-
         });
 
         ws.on("error", (err) => {
@@ -1381,7 +1559,8 @@ export class EventWebsocket {
 
         this.timeoutCheck = xTimeout(() => {
             if (this.lastKeepalive) {
-                const diff = new Date().getTime() - this.lastKeepalive.getTime();
+                const diff =
+                    new Date().getTime() - this.lastKeepalive.getTime();
                 if (diff > 60000) {
                     log(
                         LOGLEVEL.ERROR,
@@ -1394,7 +1573,6 @@ export class EventWebsocket {
     }
 
     public disconnectAndRemove(): boolean {
-
         log(
             LOGLEVEL.INFO,
             "tw.helper.ew",
@@ -1414,7 +1592,9 @@ export class EventWebsocket {
             );
         }
 
-        const index = TwitchHelper.eventWebsockets.findIndex((ws) => ws.id === this.id);
+        const index = TwitchHelper.eventWebsockets.findIndex(
+            (ws) => ws.id === this.id
+        );
         if (index > -1) {
             TwitchHelper.eventWebsockets.splice(index, 1);
             log(
@@ -1434,14 +1614,28 @@ export class EventWebsocket {
     }
 
     public eventWebsocketMessageHandler(json: EventSubWebsocketMessage): void {
-
         if (json._type === "session_welcome") {
             this.sessionId = json.payload.session.id;
-            console.debug("tw.helper.ew", `Received session_welcome event websocket message for ${this.id}: ${this.sessionId}`);
-            console.debug("tw.helper.ew", `Event websocket session id: ${this.sessionId}`);
-            console.debug("tw.helper.ew", `Event websocket keepalive: ${json.payload.session.keepalive_timeout_seconds}`);
-            console.debug("tw.helper.ew", `Event websocket status: ${json.payload.session.status}`);
-            console.debug("tw.helper.ew", `Event websocket reconnect url: ${json.payload.session.reconnect_url}`);
+            console.debug(
+                "tw.helper.ew",
+                `Received session_welcome event websocket message for ${this.id}: ${this.sessionId}`
+            );
+            console.debug(
+                "tw.helper.ew",
+                `Event websocket session id: ${this.sessionId}`
+            );
+            console.debug(
+                "tw.helper.ew",
+                `Event websocket keepalive: ${json.payload.session.keepalive_timeout_seconds}`
+            );
+            console.debug(
+                "tw.helper.ew",
+                `Event websocket status: ${json.payload.session.status}`
+            );
+            console.debug(
+                "tw.helper.ew",
+                `Event websocket reconnect url: ${json.payload.session.reconnect_url}`
+            );
 
             this.isValidated = true;
             if (this.onValidated) {
@@ -1454,21 +1648,23 @@ export class EventWebsocket {
             }
 
             this.connectedAt = new Date(json.payload.session.connected_at);
-
         } else if (json._type === "session_keepalive") {
             this.lastKeepalive = parseJSON(json.metadata.message_timestamp);
             // console.debug("tw.helper.ew", `Event websocket keepalive at ${this.eventWebsocketLastKeepalive}`);
             // this is a keepalive, do nothing. it spams the console every 10 seconds
-
         } else if (json._type === "notification") {
             console.debug("tw.helper.ew", "Event websocket notification", json);
             this.eventSubNotificationHandler(json);
-
         } else if (json._type === "session_reconnect") {
             console.debug("tw.helper.ew", "Event websocket reconnect", json);
-            console.debug("tw.helper.ew", `Event websocket reconnect new url: ${json.payload.session.reconnect_url}`);
-            TwitchHelper.handleWebsocketReconnect(this.id, json.payload.session.reconnect_url);
-
+            console.debug(
+                "tw.helper.ew",
+                `Event websocket reconnect new url: ${json.payload.session.reconnect_url}`
+            );
+            TwitchHelper.handleWebsocketReconnect(
+                this.id,
+                json.payload.session.reconnect_url
+            );
         } else if (json._type === "revocation") {
             console.debug("tw.helper.ew", "Event websocket revocation", json);
             // json.payload.subscription
@@ -1488,27 +1684,55 @@ export class EventWebsocket {
             );
             this.removeSubscription(json.payload.subscription.id);
         } else {
-            console.debug("tw.helper.ew", "Event websocket unknown message", json);
-
+            console.debug(
+                "tw.helper.ew",
+                "Event websocket unknown message",
+                json
+            );
         }
     }
 
-    public eventSubNotificationHandler(message: EventSubWebsocketNotificationMessage): void {
-
-        if (Config.debug || Config.getInstance().cfg<boolean>("dump_payloads")) {
-            let payload_filename = `tw_ew_${new Date().toISOString().replaceAll(/[-:.]/g, "_")}`;
-            if (message.payload.subscription.type) payload_filename += `_${message.payload.subscription.type}`;
+    public eventSubNotificationHandler(
+        message: EventSubWebsocketNotificationMessage
+    ): void {
+        if (
+            Config.debug ||
+            Config.getInstance().cfg<boolean>("dump_payloads")
+        ) {
+            let payload_filename = `tw_ew_${new Date()
+                .toISOString()
+                .replaceAll(/[-:.]/g, "_")}`;
+            if (message.payload.subscription.type)
+                payload_filename += `_${message.payload.subscription.type}`;
             payload_filename += ".json";
-            const payload_filepath = path.join(BaseConfigDataFolder.payloads, payload_filename);
-            log(LOGLEVEL.INFO, "hook", `Dumping debug hook payload to ${payload_filepath}`);
+            const payload_filepath = path.join(
+                BaseConfigDataFolder.payloads,
+                payload_filename
+            );
+            log(
+                LOGLEVEL.INFO,
+                "tw.helper.ew",
+                `Dumping debug hook payload to ${payload_filepath}`
+            );
             try {
-                fs.writeFileSync(payload_filepath, JSON.stringify({
-                    body: message,
-                }, null, 4));
+                fs.writeFileSync(
+                    payload_filepath,
+                    JSON.stringify(
+                        {
+                            body: message,
+                        },
+                        null,
+                        4
+                    )
+                );
             } catch (error) {
-                log(LOGLEVEL.ERROR, "hook", `Failed to dump payload to ${payload_filepath}`, error);
+                log(
+                    LOGLEVEL.ERROR,
+                    "tw.helper.ew",
+                    `Failed to dump payload to ${payload_filepath}`,
+                    error
+                );
             }
-
         }
 
         const metadata_proxy: AutomatorMetadata = {
@@ -1523,23 +1747,31 @@ export class EventWebsocket {
 
         const TA = new TwitchAutomator();
 
-        /* await */ TA.handle(message.payload, metadata_proxy).catch(error => {
-            log(LOGLEVEL.FATAL, "hook", `Automator returned error: ${error.message}`);
-        });
-
+        /* await */ TA.handle(message.payload, metadata_proxy).catch(
+            (error) => {
+                log(
+                    LOGLEVEL.FATAL,
+                    "tw.helper.ew",
+                    `Automator returned error: ${error.message}`
+                );
+            }
+        );
     }
 
     /**
      * Add subscription to the list
-     * 
+     *
      * The max cost for websocket subscriptions is just 10 due to it only allowing user access tokens.
      * This makes it quite useless to use, but one can hope that Twitch will change this in the future.
-     * 
-     * @param subscription 
+     *
+     * @param subscription
      */
     public addSubscription(subscription: Subscription): void {
         this.subscriptions.push(subscription);
-        if (this.subscriptions.length > TwitchHelper.eventWebsocketMaxSubscriptions) {
+        if (
+            this.subscriptions.length >
+            TwitchHelper.eventWebsocketMaxSubscriptions
+        ) {
             log(
                 LOGLEVEL.ERROR,
                 "tw.helper.ew",
@@ -1586,16 +1818,20 @@ export class EventWebsocket {
     }
 
     public isAvailable(amountWanted: number): boolean {
-        if ((this.subscriptions.length + amountWanted) > TwitchHelper.eventWebsocketMaxSubscriptions) return false;
+        if (
+            this.subscriptions.length + amountWanted >
+            TwitchHelper.eventWebsocketMaxSubscriptions
+        )
+            return false;
         if (
             this.quotas &&
             this.quotas.total_cost &&
             this.quotas.max_total_cost &&
             this.quotas.total_cost + amountWanted > this.quotas.max_total_cost
-        ) return false;
+        )
+            return false;
         return true;
     }
-
 }
 
 // TwitchHelper.connectEventWebsocket();

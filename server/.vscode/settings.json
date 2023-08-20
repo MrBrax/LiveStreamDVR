@@ -15,11 +15,28 @@
     {
       "templates": [
         "req.t(\"{key}\"{args})",
-        "t(\"{key}\"{args})",
+        "t(\"{key}\"{args})"
       ],
       "exclude": [
         "src/config/**"
       ]
     }
-  ]
+  ],
+  "editor.formatOnSave": true,
+  "eslint.options": {
+    "rulePaths": [
+      "./src/Extend"
+    ]
+  },
+  "prettier.prettierPath": ".yarn/sdks/prettier/index.js",
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true
+  }
 }

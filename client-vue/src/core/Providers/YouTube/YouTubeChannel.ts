@@ -55,5 +55,4 @@ export default class YouTubeChannel extends BaseChannel {
         channel.profilePictureUrl = apiResponse.profilePictureUrl;
         return channel;
     }
-
 }

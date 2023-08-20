@@ -1,23 +1,13 @@
 <template>
     <teleport to="body">
         <transition name="modal-transition">
-            <div
-                v-if="show"
-                class="modal-box"
-                @click.self="$emit('close')"
-            >
-                <div
-                    class="modal-box__container"
-                    :style="{ maxWidth: maxWidth }"
-                >
+            <div v-if="show" class="modal-box" @click.self="$emit('close')">
+                <div class="modal-box__container" :style="{ maxWidth: maxWidth }">
                     <div class="modal-box__header">
                         <div class="modal-box__title">
                             {{ title }}
                         </div>
-                        <div
-                            class="modal-box__close"
-                            @click="$emit('close')"
-                        >
+                        <div class="modal-box__close" @click="$emit('close')">
                             <font-awesome-icon icon="times" />
                         </div>
                     </div>

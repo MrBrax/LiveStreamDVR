@@ -11,26 +11,13 @@
         }"
         :aria-label="vod.basename"
     >
-        <div
-            :id="`vod_${vod.uuid}`"
-            class="anchor"
-        />
+        <div :id="`vod_${vod.uuid}`" class="anchor" />
 
         <!-- title -->
-        <vod-item-title
-            :vod="vod"
-            :minimized="minimized"
-            @toggle-minimize="emit('toggleMinimize')"
-        />
+        <vod-item-title :vod="vod" :minimized="minimized" @toggle-minimize="emit('toggleMinimize')" />
 
-        <div
-            v-if="!minimized"
-            class="video-content"
-        >
-            <vod-item-general
-                :vod="vod"
-                @show-modal="showModalEv($event as any)"
-            />
+        <div v-if="!minimized" class="video-content">
+            <vod-item-general :vod="vod" @show-modal="showModalEv($event as any)" />
 
             <vod-item-viewers :vod="vod" />
 
@@ -47,11 +34,7 @@
                 @fix-issues="doFixIssues"
             />
 
-            <vod-item-status
-                :vod="vod"
-                @delete="doDelete"
-                @fix-issues="doFixIssues"
-            />
+            <vod-item-status :vod="vod" @delete="doDelete" @fix-issues="doFixIssues" />
 
             <!-- troubleshoot error -->
             <!--
@@ -63,10 +46,7 @@
             {% endif %}
             -->
 
-            <vod-item-chapters
-                :vod="vod"
-                :show-advanced="showAdvanced"
-            />
+            <vod-item-chapters :vod="vod" :show-advanced="showAdvanced" />
         </div>
         <modal-box
             :show="showModal.burn && vod && vod.is_finalized && vod.video_metadata && vod.video_metadata.type !== 'audio'"
@@ -75,87 +55,47 @@
         >
             <render-modal :vod="vod" />
         </modal-box>
-        <modal-box
-            :show="showModal.chatDownload"
-            title="Chat download"
-            @close="showModal.chatDownload = false"
-        >
+        <modal-box :show="showModal.chatDownload" title="Chat download" @close="showModal.chatDownload = false">
             <div class="buttons is-centered">
-                <d-button
-                    class="is-confirm"
-                    icon="download"
-                    @click="doDownloadChat('tcd')"
-                >
-                    {{ t('vod.buttons.download-with', ['tcd']) }}
+                <d-button class="is-confirm" icon="download" @click="doDownloadChat('tcd')">
+                    {{ t("vod.buttons.download-with", ["tcd"]) }}
                 </d-button>
-                <d-button
-                    class="is-confirm"
-                    icon="download"
-                    @click="doDownloadChat('td')"
-                >
-                    {{ t('vod.buttons.download-with', ['TwitchDownloader']) }}
+                <d-button class="is-confirm" icon="download" @click="doDownloadChat('td')">
+                    {{ t("vod.buttons.download-with", ["TwitchDownloader"]) }}
                 </d-button>
             </div>
         </modal-box>
-        <modal-box
-            :show="showModal.vodDownload"
-            title="VOD download"
-            @close="showModal.vodDownload = false"
-        >
+        <modal-box :show="showModal.vodDownload" title="VOD download" @close="showModal.vodDownload = false">
             <div class="is-centered">
                 <div class="field">
                     <label class="label">Quality</label>
                     <div class="select">
-                        <select
-                            v-model="vodDownloadSettings.quality"
-                        >
-                            <option
-                                v-for="quality in VideoQualityArray"
-                                :key="quality"
-                                :value="quality"
-                            >
+                        <select v-model="vodDownloadSettings.quality">
+                            <option v-for="quality in VideoQualityArray" :key="quality" :value="quality">
                                 {{ quality }}
                             </option>
                         </select>
                     </div>
                 </div>
                 <div class="field">
-                    <button
-                        class="button is-confirm"
-                        @click="doDownloadVod"
-                    >
+                    <button class="button is-confirm" @click="doDownloadVod">
                         <span class="icon"><font-awesome-icon icon="download" /></span>
                         <span>Download</span>
                     </button>
                 </div>
             </div>
         </modal-box>
-        <modal-box
-            :show="showModal.player"
-            title="Player"
-            @close="showModal.player = false"
-        >
+        <modal-box :show="showModal.player" title="Player" @close="showModal.player = false">
             <div class="columns">
                 <div class="column">
                     <h3>VOD source</h3>
                     <ul class="radio-list">
                         <li>
-                            <label>
-                                <input
-                                    v-model="playerSettings.vodSource"
-                                    type="radio"
-                                    value="captured"
-                                > Captured
-                            </label>
+                            <label> <input v-model="playerSettings.vodSource" type="radio" value="captured" /> Captured </label>
                         </li>
                         <li>
                             <label>
-                                <input
-                                    v-model="playerSettings.vodSource"
-                                    type="radio"
-                                    value="downloaded"
-                                    :disabled="!vod?.is_vod_downloaded"
-                                > Downloaded
+                                <input v-model="playerSettings.vodSource" type="radio" value="downloaded" :disabled="!vod?.is_vod_downloaded" /> Downloaded
                             </label>
                         </li>
                     </ul>
@@ -164,77 +104,40 @@
                     <h3>Chat source</h3>
                     <ul class="radio-list">
                         <li>
-                            <label>
-                                <input
-                                    v-model="playerSettings.chatSource"
-                                    type="radio"
-                                    value="captured"
-                                > Captured
-                            </label>
+                            <label> <input v-model="playerSettings.chatSource" type="radio" value="captured" /> Captured </label>
                         </li>
                         <li>
                             <label>
-                                <input
-                                    v-model="playerSettings.chatSource"
-                                    type="radio"
-                                    value="downloaded"
-                                    :disabled="!vod?.is_chat_downloaded"
-                                > Downloaded
+                                <input v-model="playerSettings.chatSource" type="radio" value="downloaded" :disabled="!vod?.is_chat_downloaded" /> Downloaded
                             </label>
                         </li>
                     </ul>
                 </div>
             </div>
-            <br>
+            <br />
             <div class="field">
-                <button
-                    class="button is-confirm"
-                    @click="openPlayer"
-                >
+                <button class="button is-confirm" @click="openPlayer">
                     <span class="icon"><font-awesome-icon icon="play" /></span>
                     <span>Play</span>
                 </button>
             </div>
         </modal-box>
-        <modal-box
-            :show="showModal.edit"
-            :title="t('vod.edit.edit-vod')"
-            max-width="1200px"
-            @close="showModal.edit = false"
-        >
-            <edit-modal
-                :vod="vod"
-                @close="showModal.edit = false"
-            />
+        <modal-box :show="showModal.edit" :title="t('vod.edit.edit-vod')" max-width="1200px" @close="showModal.edit = false">
+            <edit-modal :vod="vod" @close="showModal.edit = false" />
         </modal-box>
-        <modal-box
-            :show="showModal.export"
-            title="Export VOD"
-            @close="showModal.export = false"
-        >
+        <modal-box :show="showModal.export" title="Export VOD" @close="showModal.export = false">
             <export-modal :vod="vod" />
         </modal-box>
-        <modal-box
-            :show="showModal.rename"
-            :title="t('vod.edit.rename-vod')"
-            @close="showModal.rename = false"
-        >
+        <modal-box :show="showModal.rename" :title="t('vod.edit.rename-vod')" @close="showModal.rename = false">
             <div class="field">
-                {{ t('vod.rename.current-name-vod-basename', [vod?.basename]) }}
+                {{ t("vod.rename.current-name-vod-basename", [vod?.basename]) }}
             </div>
             <div class="field">
-                <label class="label">{{ t('vod.edit.template') }}</label>
+                <label class="label">{{ t("vod.edit.template") }}</label>
                 <div class="control">
-                    <input
-                        v-model="renameVodSettings.template"
-                        class="input"
-                        type="text"
-                    >
+                    <input v-model="renameVodSettings.template" class="input" type="text" />
                     <ul class="template-replacements">
-                        <li
-                            v-for="(v, k) in VodBasenameFields"
-                            :key="k"
-                        >
+                        <li v-for="(v, k) in VodBasenameFields" :key="k">
                             {{ k }}
                         </li>
                     </ul>
@@ -244,19 +147,14 @@
                 </div>
             </div>
             <div class="field">
-                <button
-                    class="button is-confirm"
-                    @click="doRenameVod"
-                >
+                <button class="button is-confirm" @click="doRenameVod">
                     <span class="icon"><font-awesome-icon icon="save" /></span>
                     <span>{{ t("buttons.rename") }}</span>
                 </button>
             </div>
         </modal-box>
     </div>
-    <div v-else>
-        No VOD found
-    </div>
+    <div v-else>No VOD found</div>
 </template>
 
 <script lang="ts" setup>
@@ -330,16 +228,18 @@ library.add(
     faCommentDots,
     faSave,
     faUpload,
-    faKey
+    faKey,
 );
 
-const props = withDefaults(defineProps<{
-    vod: VODTypes;
-    minimized: boolean;
-}>(), {
-    minimized: false,
-});
-
+const props = withDefaults(
+    defineProps<{
+        vod: VODTypes;
+        minimized: boolean;
+    }>(),
+    {
+        minimized: false,
+    },
+);
 
 const emit = defineEmits(["forceFetchData", "refresh", "toggleMinimize"]);
 
@@ -396,24 +296,24 @@ const renameVodTemplatePreview = computed(() => {
     if (!props.vod) return "";
     const date = props.vod.started_at;
     const replacements: VodBasenameTemplate = {
-        login:              props.vod.provider == 'twitch' ? props.vod.streamer_login : "",
-        internalName:       props.vod.getChannel().internalName,
-        displayName:        props.vod.getChannel().displayName,
-        date:               date ? format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'").replaceAll(":", "_") : "",
-        year:               date ? format(date, "yyyy") : "",
-        year_short:         date ? format(date, "yy") : "",
-        month:              date ? format(date, "MM") : "",
-        day:                date ? format(date, "dd") : "",
-        hour:               date ? format(date, "HH") : "",
-        minute:             date ? format(date, "mm") : "",
-        second:             date ? format(date, "ss") : "",
-        id:                 "1234",
-        season:             props.vod.stream_season || "",
-        absolute_season:    props.vod.stream_absolute_season ? props.vod.stream_absolute_season.toString().padStart(2, "0") : "",
-        episode:            props.vod.stream_number ? props.vod.stream_number.toString().padStart(2, "0") : "",
-        absolute_episode:   props.vod.stream_absolute_number ? props.vod.stream_absolute_number.toString().padStart(2, "0") : "",
-        title:              props.vod.getTitle() || "",
-        game_name:          isTwitchVOD(props.vod) ? ( props.vod.current_game ? props.vod.current_game.name : "" ) : "",
+        login: props.vod.provider == "twitch" ? props.vod.getChannel().internalName : "",
+        internalName: props.vod.getChannel().internalName,
+        displayName: props.vod.getChannel().displayName,
+        date: date ? format(date, "yyyy-MM-dd'T'HH:mm:ss'Z'").replaceAll(":", "_") : "",
+        year: date ? format(date, "yyyy") : "",
+        year_short: date ? format(date, "yy") : "",
+        month: date ? format(date, "MM") : "",
+        day: date ? format(date, "dd") : "",
+        hour: date ? format(date, "HH") : "",
+        minute: date ? format(date, "mm") : "",
+        second: date ? format(date, "ss") : "",
+        id: "1234",
+        season: props.vod.stream_season || "",
+        absolute_season: props.vod.stream_absolute_season ? props.vod.stream_absolute_season.toString().padStart(2, "0") : "",
+        episode: props.vod.stream_number ? props.vod.stream_number.toString().padStart(2, "0") : "",
+        absolute_episode: props.vod.stream_absolute_number ? props.vod.stream_absolute_number.toString().padStart(2, "0") : "",
+        title: props.vod.getTitle() || "",
+        game_name: isTwitchVOD(props.vod) ? (props.vod.current_game ? props.vod.current_game.name : "") : "",
     };
     const replaced_string = formatString(renameVodSettings.value.template, replacements);
     return replaced_string;
@@ -492,12 +392,15 @@ function doDownloadVod(): void {
         });
 }
 
-
-
 function doDelete(): void {
     if (!props.vod) return;
     if (!confirm(`Do you want to delete "${props.vod?.basename}"?`)) return;
-    if (isTwitchVOD(props.vod) && props.vod.twitch_vod_exists === false && !confirm(`The VOD "${props.vod?.basename}" has been deleted from twitch, are you still sure?`)) return;
+    if (
+        isTwitchVOD(props.vod) &&
+        props.vod.twitch_vod_exists === false &&
+        !confirm(`The VOD "${props.vod?.basename}" has been deleted from twitch, are you still sure?`)
+    )
+        return;
     axios
         .delete(`/api/v0/vod/${props.vod.uuid}`)
         .then((response) => {
@@ -517,8 +420,8 @@ function doFixIssues(): void {
     if (!props.vod) return;
     const c = confirm(
         `Do you want to fix issues for "${props.vod?.basename}"?\n` +
-        `Please only do this if you know what you are doing.\n` +
-        `Using this function can cause issues with the VOD, especially if it is currently capturing or converting.`
+            "Please only do this if you know what you are doing.\n" +
+            "Using this function can cause issues with the VOD, especially if it is currently capturing or converting.",
     );
     if (!c) return;
     axios
@@ -539,13 +442,13 @@ function openPlayer(): void {
     if (!props.vod) return;
     // let url = `${store.cfg<string>("basepath", "")}/vodplayer#&`;
     let hash = "#&source=file_http";
-    if (playerSettings.value.vodSource == "captured"){
+    if (playerSettings.value.vodSource == "captured") {
         hash += `&video_path=${props.vod.webpath}/${props.vod.basename}.mp4`;
     } else {
         hash += `&video_path=${props.vod.webpath}/${props.vod.basename}_vod.mp4`;
     }
 
-    if (playerSettings.value.chatSource == "captured"){
+    if (playerSettings.value.chatSource == "captured") {
         hash += `&chatfile=${props.vod.webpath}/${props.vod.basename}.chatdump`;
     } else {
         hash += `&chatfile=${props.vod.webpath}/${props.vod.basename}_chat.json`;
@@ -554,7 +457,6 @@ function openPlayer(): void {
     // url.searchParams.set("offset", this.playerSettings.offset.toString());
     // window.open(url.toString(), "_blank");
     router.push({ name: "VODPlayer", hash });
-
 }
 
 function templatePreview(template: string): string {
@@ -576,16 +478,19 @@ function templatePreview(template: string): string {
 
 function doRenameVod(): void {
     if (!props.vod) return;
-    axios.post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/rename`, renameVodSettings.value).then((response) => {
-        const json = response.data;
-        if (json.message) alert(json.message);
-        console.log(json);
-        store.fetchAndUpdateStreamerList();
-        showModal.value.rename = false;
-    }).catch((err) => {
-        console.error("form error", err.response);
-        if (err.response.data && err.response.data.message) alert(err.response.data.message);
-    });
+    axios
+        .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/rename`, renameVodSettings.value)
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            store.fetchAndUpdateStreamerList();
+            showModal.value.rename = false;
+        })
+        .catch((err) => {
+            console.error("form error", err.response);
+            if (err.response.data && err.response.data.message) alert(err.response.data.message);
+        });
 }
 
 function showModalEv(modal: keyof typeof showModal.value): void {
@@ -595,7 +500,6 @@ function showModalEv(modal: keyof typeof showModal.value): void {
     }
     showModal.value[modal] = true;
 }
-
 </script>
 
 <style lang="scss" scoped>
@@ -618,7 +522,6 @@ function showModalEv(modal: keyof typeof showModal.value): void {
             &:hover {
                 background-color: lighten($favourite-base, 5%);
             }
-
         }
     }
 
@@ -629,7 +532,6 @@ function showModalEv(modal: keyof typeof showModal.value): void {
             &:hover {
                 background-color: lighten($favourite-base, 5%);
             }
-
         }
     }
 
@@ -640,7 +542,6 @@ function showModalEv(modal: keyof typeof showModal.value): void {
             &:hover {
                 background-color: lighten($favourite-base, 5%);
             }
-
         }
     }
 }
@@ -648,7 +549,6 @@ function showModalEv(modal: keyof typeof showModal.value): void {
 .video-content {
     overflow: hidden;
 }
-
 
 /*
 .video-status {
@@ -712,5 +612,4 @@ function showModalEv(modal: keyof typeof showModal.value): void {
         }
     }
 }
-
 </style>

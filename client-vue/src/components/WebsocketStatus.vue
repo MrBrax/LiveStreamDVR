@@ -1,22 +1,22 @@
 <template>
-    <div
-        ref="js-status"
-        :class="{ 'statustab': true, 'statustab-update': true, disconnected: websocket && !websocketConnected }"
-    >
+    <div ref="js-status" :class="{ statustab: true, 'statustab-update': true, disconnected: websocket && !websocketConnected }">
         <span v-if="store.loading">
-            <span class="icon"><fa
-                icon="sync"
-                spin
-            /></span> Store...
+            <span class="icon"><fa icon="sync" spin /></span> Store...
         </span>
         <div v-if="store.clientCfg('useWebsockets') && websocket">
-            {{ websocketConnected ? t('components.status.connected') : websocketConnecting ? t('components.status.connecting') : t('components.status.disconnected') }}
+            {{
+                websocketConnected
+                    ? t("components.status.connected")
+                    : websocketConnecting
+                    ? t("components.status.connecting")
+                    : t("components.status.disconnected")
+            }}
         </div>
         <div v-else-if="tickerInterval && store.clientCfg('useBackgroundTicker')">
-            {{ loading ? t('messages.loading') : t('components.status.refreshing-in-x-seconds', [timer]) }}
+            {{ loading ? t("messages.loading") : t("components.status.refreshing-in-x-seconds", [timer]) }}
         </div>
         <div v-else>
-            {{ t('components.status.disabled') }}
+            {{ t("components.status.disabled") }}
         </div>
     </div>
 </template>
@@ -57,5 +57,4 @@ const props = defineProps({
         type: Boolean,
     },
 });
-
 </script>

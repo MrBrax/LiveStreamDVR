@@ -1,7 +1,7 @@
 <template>
     <section class="section">
         <div class="section-title">
-            <h1>{{ t('pages.new-channel') }}</h1>
+            <h1>{{ t("pages.new-channel") }}</h1>
         </div>
         <div class="section-content">
             <channel-add-form @form-success="updateUsers" />
@@ -20,5 +20,4 @@ const { t } = useI18n();
 function updateUsers() {
     store.fetchAndUpdateStreamerList();
 }
-
 </script>

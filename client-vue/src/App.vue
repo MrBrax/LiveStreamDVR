@@ -2,30 +2,13 @@
     <div class="splitter">
         <side-menu />
         <div class="content">
-            <section
-                v-if="(store.authentication && !store.authenticated && !store.guest_mode)"
-                class="section"
-            >
-                <div class="errors">
-                    This site is only available to logged in users.
-                </div>
+            <section v-if="store.authentication && !store.authenticated && !store.guest_mode" class="section">
+                <div class="errors">This site is only available to logged in users.</div>
             </section>
-            <div
-                v-if="errors"
-                class="big-error"
-            >
-                <div
-                    v-for="error in errors"
-                    :key="error"
-                    class="big-error-item"
-                >
-                    Error
-                </div>
+            <div v-if="errors" class="big-error">
+                <div v-for="error in errors" :key="error" class="big-error-item">Error</div>
             </div>
-            <router-view
-                v-if="store.config !== null && store.favourite_games !== null"
-                ref="view"
-            />
+            <router-view v-if="store.config !== null && store.favourite_games !== null" ref="view" />
             <div v-else>
                 <div class="container">
                     <section class="section">
@@ -36,10 +19,7 @@
                 </div>
             </div>
         </div>
-        <job-status
-            v-if="store.authElement"
-            ref="jobstatus"
-        />
+        <job-status v-if="store.authElement" ref="jobstatus" />
         <websocket-status
             :websocket="websocket"
             :websocket-connected="websocketConnected"
@@ -49,33 +29,23 @@
             :loading="loading"
         />
     </div>
-    <dialog
-        ref="mediaplayer"
-        class="mediaplayer"
-    >
+    <dialog ref="mediaplayer" class="mediaplayer">
         <div>{{ mediaPlayerSource }}</div>
         <div>
-            <video
-                ref="mediaplayervideo"
-                :src="mediaPlayerSource"
-                controls
-                autoplay
-            />
+            <video ref="mediaplayervideo" :src="mediaPlayerSource" controls autoplay />
         </div>
         <div class="buttons is-centered">
             <button
                 class="button is-small is-danger"
-                @click="mediaPlayerSource = undefined; ($refs.mediaplayer as HTMLDialogElement).close()"
+                @click="
+                    mediaPlayerSource = undefined;
+                    ($refs.mediaplayer as HTMLDialogElement).close();
+                "
             >
                 <span class="icon"><font-awesome-icon icon="xmark" /></span>
                 <span>Close</span>
             </button>
-            <a
-                :href="mediaPlayerSource"
-                class="button is-small is-info"
-                target="_blank"
-                @click="($refs.mediaplayervideo as HTMLVideoElement).pause()"
-            >
+            <a :href="mediaPlayerSource" class="button is-small is-info" target="_blank" @click="($refs.mediaplayervideo as HTMLVideoElement).pause()">
                 <span class="icon"><font-awesome-icon icon="arrow-up-right-from-square" /></span>
                 <span>Open in new tab</span>
             </a>
@@ -87,7 +57,19 @@
 import SideMenu from "@/components/SideMenu.vue";
 import type { ApiAuthResponse } from "@common/Api/Api";
 import type { ApiLogLine } from "@common/Api/Client";
-import type { ChannelUpdated, ChapterUpdateData, EndCaptureData, EndConvertData, JobClear, JobProgress, JobSave, NotifyData, VodRemoved, VodUpdated, WebhookAction } from "@common/Webhook";
+import type {
+    ChannelUpdated,
+    ChapterUpdateData,
+    EndCaptureData,
+    EndConvertData,
+    JobClear,
+    JobProgress,
+    JobSave,
+    NotifyData,
+    VodRemoved,
+    VodUpdated,
+    WebhookAction,
+} from "@common/Webhook";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faArrowUpRightFromSquare } from "@fortawesome/free-solid-svg-icons";
 import axios from "axios";
@@ -100,6 +82,8 @@ import WebsocketStatus from "./components/WebsocketStatus.vue";
 import { prefersReducedMotion } from "./mixins/newhelpers";
 import { useStore } from "./store";
 import type { WebsocketJSON } from "./websocket";
+import type { WinstonLogLine } from "@common/Log";
+
 /**
  * LiveStreamDVR Client
  * Written in Vue 3 & TypeScript
@@ -122,12 +106,11 @@ faviconTempImage.onload = () => {
     faviconCtx.drawImage(faviconTempImage, 0, 0, 32, 32);
 };
 
-
-    // provide() {
-    //     return {
-    //         websocket: this.websocket,
-    //     };
-    // },
+// provide() {
+//     return {
+//         websocket: this.websocket,
+//     };
+// },
 
 // setup
 const store = useStore();
@@ -147,26 +130,35 @@ const vodUpdateInterval = ref(0);
 const timer = ref(120);
 const timerMax = ref(120);
 const tickerInterval = ref(0);
-const faviconSub = ref<() => void>(() => { console.log("faviconSub"); });
+const faviconSub = ref<() => void>(() => {
+    console.log("faviconSub");
+});
 const mediaPlayerSource = ref<string | undefined>(undefined);
-const actionSub = ref<() => void>(() => { console.log("action"); });
+const actionSub = ref<() => void>(() => {
+    console.log("action");
+});
 
 // refs
 const mediaplayer = ref<HTMLDialogElement>();
 const mediaplayervideo = ref<HTMLVideoElement>();
 
 // watch
-watch(() => route.name, () => {
-    updateTitle();
-});
+watch(
+    () => route.name,
+    () => {
+        updateTitle();
+    },
+);
 
-watch(() => store.channelsOnline, () => {
-    updateTitle();
-});
+watch(
+    () => store.channelsOnline,
+    () => {
+        updateTitle();
+    },
+);
 
 // mounted
 onMounted(() => {
-
     // created
     console.debug("App created");
     store.fetchClientConfig();
@@ -174,7 +166,6 @@ onMounted(() => {
     // this.applyAuthentication();
     watchFaviconBadgeSub();
     checkLoginStatus().then((s) => {
-        
         store.authentication = s.authentication;
         store.authenticated = s.status;
         store.guest_mode = s.guest_mode;
@@ -183,7 +174,6 @@ onMounted(() => {
         if ((store.authentication && store.authenticated) || store.guest_mode || !store.authentication) {
             fetchInitialData();
         }
-        
     });
 
     const wantsReducedMotion = prefersReducedMotion();
@@ -209,7 +199,7 @@ onMounted(() => {
 
     // mounted
     const theme = store.clientCfg("theme");
-    if (theme !== "" && theme !== "auto"){
+    if (theme !== "" && theme !== "auto") {
         document.body.classList.add(`is-${theme}`);
     }
 
@@ -217,7 +207,7 @@ onMounted(() => {
         if (name !== "playMedia" || !mediaplayer.value) return;
         const full_path = args[0];
         console.log("onaction", name, args);
-        mediaPlayerSource.value = full_path
+        mediaPlayerSource.value = full_path;
         mediaplayer.value.showModal();
 
         // json metadata from full_path replacing the extension with .json
@@ -241,7 +231,7 @@ onUnmounted(() => {
     if (vodUpdateInterval.value) clearTimeout(vodUpdateInterval.value);
     if (tickerInterval.value) clearTimeout(tickerInterval.value);
     const theme = store.clientCfg("theme");
-    if (theme !== "" && theme !== "auto"){
+    if (theme !== "" && theme !== "auto") {
         document.body.classList.remove(`is-${theme}`);
     }
     if (actionSub.value) actionSub.value(); // unsub
@@ -251,40 +241,44 @@ onUnmounted(() => {
 // methods
 function fetchInitialData() {
     console.debug("App fetchInitialData");
-    store.fetchData().then(() => {
-        updateTitle();
-        if (store.cfg("websocket_enabled") && store.clientCfg('useWebsockets')) {
-            console.debug("Connecting websocket...");
-            connectWebsocket();
-        } else {
-            console.debug("Websocket disabled");
-            if (store.clientCfg('useBackgroundTicker')) {
-                console.debug("Starting background ticker...");
-                tickerInterval.value = window.setInterval(() => {
-                    tickTicker();
-                }, 1000);
+    store
+        .fetchData()
+        .then(() => {
+            updateTitle();
+            if (store.cfg("websocket_enabled") && store.clientCfg("useWebsockets")) {
+                console.debug("Connecting websocket...");
+                connectWebsocket();
+            } else {
+                console.debug("Websocket disabled");
+                if (store.clientCfg("useBackgroundTicker")) {
+                    console.debug("Starting background ticker...");
+                    tickerInterval.value = window.setInterval(() => {
+                        tickTicker();
+                    }, 1000);
+                }
             }
-        }
 
-        // update vods every 15 minutes
-        if (store.clientCfg('useBackgroundRefresh')) {
-            vodUpdateInterval.value = window.setInterval(() => {
-                store.updateCapturingVods();
-            }, 1000 * 60 * 15);
-        }
-
-    }).catch((error) => {
-        console.error("fetchData error", error);
-    });
+            // update vods every 15 minutes
+            if (store.clientCfg("useBackgroundRefresh")) {
+                vodUpdateInterval.value = window.setInterval(
+                    () => {
+                        store.updateCapturingVods();
+                    },
+                    1000 * 60 * 15,
+                );
+            }
+        })
+        .catch((error) => {
+            console.error("fetchData error", error);
+        });
 }
 
 function connectWebsocket(): WebSocket | undefined {
-
     let websocket_url = "";
 
-    if (store.clientCfg('websocketAddressOverride')) {
-        websocket_url = store.clientCfg('websocketAddressOverride');
-        console.debug(`Overriding generated websocket URL with client config '${store.clientCfg('websocketAddressOverride')}'`);
+    if (store.clientCfg("websocketAddressOverride")) {
+        websocket_url = store.clientCfg("websocketAddressOverride");
+        console.debug(`Overriding generated websocket URL with client config '${store.clientCfg("websocketAddressOverride")}'`);
     } else {
         if (!store.websocketUrl || store.websocketUrl == "") {
             console.error("No websocket URL found");
@@ -309,7 +303,6 @@ function connectWebsocket(): WebSocket | undefined {
     });
 
     websocket.value.addEventListener("message", (ev: MessageEvent) => {
-
         const text: string = ev.data;
 
         if (text == "pong") {
@@ -331,7 +324,7 @@ function connectWebsocket(): WebSocket | undefined {
     });
 
     websocket.value.addEventListener("error", (ev: Event) => {
-        console.error(`Websocket error!`, ev);
+        console.error("Websocket error!", ev);
         websocketConnected.value = false;
         websocketConnecting.value = false;
         clearInterval(websocketKeepalive.value);
@@ -354,7 +347,6 @@ function connectWebsocket(): WebSocket | undefined {
     });
 
     return websocket.value;
-
 }
 
 function disconnectWebsocket() {
@@ -365,7 +357,6 @@ function disconnectWebsocket() {
 }
 
 function handleWebsocketMessage(action: WebhookAction, data: any) {
-
     // const { action, data } = event.detail;
 
     if (action) {
@@ -402,12 +393,13 @@ function handleWebsocketMessage(action: WebhookAction, data: any) {
             onNotify(_data.title, _data.body, _data.icon, _data.url, _data.tts);
         } else if (action == "log") {
             // merge log lines
-            const newLines: ApiLogLine[] = data;
+            const newLines: WinstonLogLine[] = data;
 
-            if (newLines.some((line) => line.date_string && parseISO(line.date_string).getDay() != new Date().getDay())) {
+            if (newLines.some((line) => line.metadata.timestamp && parseISO(line.metadata.timestamp).getDay() != new Date().getDay())) {
                 // new day, clear log
                 store.clearLog();
                 store.addLog(newLines);
+                console.log("New day, clearing log");
             } else {
                 store.addLog(newLines);
             }
@@ -490,7 +482,7 @@ function handleWebsocketMessage(action: WebhookAction, data: any) {
         }
         */
     } else {
-        console.log(`Websocket unknown data`, action, data);
+        console.log("Websocket unknown data", action, data);
     }
 }
 
@@ -506,7 +498,7 @@ function onNotify(title: string, body: string, icon: string, url: string, tts: b
         };
     }
 
-    if (tts && store.clientCfg('useSpeech')) {
+    if (tts && store.clientCfg("useSpeech")) {
         const utterance = new SpeechSynthesisUtterance(`${title} ${body}`);
         utterance.lang = "en-US";
         speechSynthesis.speak(utterance);
@@ -587,7 +579,7 @@ function updateTitle() {
     if (channelsOnline > 0) {
         document.title = `[${channelsOnline}] ${title} - ${app_name}`;
         setFaviconBadgeState(true, store.isAnyoneCapturing ? "red" : "limegreen");
-    } else{
+    } else {
         document.title = `${title} - ${app_name}`;
         setFaviconBadgeState(false);
     }
@@ -630,14 +622,17 @@ async function tickTicker() {
 //         delete axios.defaults.headers.common["X-Password"];
 //     }
 // }
-function checkLoginStatus(): Promise<{ authentication: boolean; status: boolean; guest_mode: boolean; }> {
-    return axios.get<ApiAuthResponse>("/api/v0/auth/check").then((response) => {
-        // console.debug("Check login status", response.data);
-        return { authentication: response.data.authentication as boolean, status: true, guest_mode: response.data.guest_mode as boolean };
-    }).catch((error) => {
-        // console.debug("Check login error", error);
-        return { authentication: error.response.data.authentication as boolean, status: false, guest_mode: error.response.data.guest_mode as boolean };       
-    });
+function checkLoginStatus(): Promise<{ authentication: boolean; status: boolean; guest_mode: boolean }> {
+    return axios
+        .get<ApiAuthResponse>("/api/v0/auth/check")
+        .then((response) => {
+            // console.debug("Check login status", response.data);
+            return { authentication: response.data.authentication as boolean, status: true, guest_mode: response.data.guest_mode as boolean };
+        })
+        .catch((error) => {
+            // console.debug("Check login error", error);
+            return { authentication: error.response.data.authentication as boolean, status: false, guest_mode: error.response.data.guest_mode as boolean };
+        });
 }
 
 function keyEvent(event: KeyboardEvent) {

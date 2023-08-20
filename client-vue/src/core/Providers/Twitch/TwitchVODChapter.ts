@@ -3,8 +3,6 @@ import { BaseVODChapter } from "../Base/BaseVODChapter";
 import { TwitchGame } from "./TwitchGame";
 
 export class TwitchVODChapter extends BaseVODChapter {
-
-
     public game_id?: string;
     public game?: TwitchGame;
 

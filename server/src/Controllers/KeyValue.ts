@@ -1,75 +1,77 @@
-import express from "express";
-import { ApiErrorResponse } from "@common/Api/Api";
 import { KeyValue } from "@/Core/KeyValue";
+import type { ApiErrorResponse } from "@common/Api/Api";
+import type express from "express";
 
 export function GetAllKeyValues(req: express.Request, res: express.Response) {
-
-    res.send({
+    res.api(200, {
         status: "OK",
         data: KeyValue.getInstance().getAllRaw(),
     });
-
 }
 
-export function GetKeyValue(req: express.Request, res: express.Response): void {
-
-    if (!KeyValue.getInstance().has(req.params.key)){
-        res.status(404).send({
+export async function GetKeyValue(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
+    if (!(await KeyValue.getInstance().hasAsync(req.params.key))) {
+        res.api(404, {
             status: "ERROR",
             message: "Key not found.",
         } as ApiErrorResponse);
         return;
     }
 
-    res.send({
+    res.api(200, {
         status: "OK",
-        data: KeyValue.getInstance().getRaw(req.params.key),
+        data: await KeyValue.getInstance().getRawAsync(req.params.key),
     });
-
 }
 
-export function SetKeyValue(req: express.Request, res: express.Response): void {
-
+export async function SetKeyValue(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
     if (!req.body.value) {
-        res.status(400).send({
+        res.api(400, {
             status: "ERROR",
             message: "No value provided.",
         } as ApiErrorResponse);
         return;
     }
 
-    KeyValue.getInstance().set(req.params.key, req.body.value);
+    await KeyValue.getInstance().setAsync(req.params.key, req.body.value);
 
-    res.send({
+    res.api(200, {
         status: "OK",
     });
-
 }
 
-export function DeleteKeyValue(req: express.Request, res: express.Response): void {
-
-    if (!KeyValue.getInstance().has(req.params.key)){
-        res.status(404).send({
+export async function DeleteKeyValue(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
+    if (!(await KeyValue.getInstance().hasAsync(req.params.key))) {
+        res.api(404, {
             status: "ERROR",
             message: "Key not found.",
         } as ApiErrorResponse);
         return;
     }
 
-    KeyValue.getInstance().delete(req.params.key);
+    await KeyValue.getInstance().deleteAsync(req.params.key);
 
-    res.send({
+    res.api(200, {
         status: "OK",
     });
-
 }
 
-export function DeleteAllKeyValues(req: express.Request, res: express.Response): void {
+export async function DeleteAllKeyValues(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
+    await KeyValue.getInstance().deleteAllAsync();
 
-    KeyValue.getInstance().deleteAll();
-
-    res.send({
+    res.api(200, {
         status: "OK",
     });
-
 }

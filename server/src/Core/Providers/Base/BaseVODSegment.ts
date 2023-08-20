@@ -1,4 +1,4 @@
-import { ApiVodSegment } from "@common/Api/Client";
+import type { ApiVodSegment } from "@common/Api/Client";
 
 export class BaseVODSegment {
     filename: string | undefined;
@@ -14,5 +14,4 @@ export class BaseVODSegment {
             deleted: this.deleted,
         };
     }
-
 }

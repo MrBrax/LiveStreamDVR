@@ -12,6 +12,6 @@ export default createI18n({
         en: messages_en,
         sv: messages_sv,
         ko: messages_ko,
-        de: messages_de
+        de: messages_de,
     },
 });

@@ -86,7 +86,7 @@ If you want the public webapp to have a custom base folder, you must provide `BA
 ### Main requirements
 - [node.js](https://nodejs.org/) 18+
 - npm and yarn 3+
-- Python 3.11+
+- Python 3.9+
 - [pip](https://pypi.org/project/pip/)
 - [FFmpeg](https://ffmpeg.org/download.html)
 - [MediaInfo](https://mediaarea.net/en/MediaInfo)
@@ -98,6 +98,7 @@ If you want the public webapp to have a custom base folder, you must provide `BA
 - [streamlink](https://github.com/streamlink/streamlink) (required)
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp) (not used at the moment)
 - [tcd](https://github.com/PetterKraabol/Twitch-Chat-Downloader) (optional)
+- [vcsi](https://github.com/amietn/vcsi) (optional)
 
 ### Steps
 

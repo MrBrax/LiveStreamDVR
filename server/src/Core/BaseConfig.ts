@@ -7,7 +7,7 @@ const argv = minimist(process.argv.slice(2));
 /**
  * Instead of using relative paths in every file, these paths are always
  * pointing to the correct location. This is of course dependent on where
- * the index.ts/js file is located. That's the bad hack here, but it works. * 
+ * the index.ts/js file is located. That's the bad hack here, but it works. *
  */
 
 export const AppName = "LiveStreamDVR";
@@ -16,7 +16,10 @@ export const AppName = "LiveStreamDVR";
  * The root directory of the application containing client-vue, public, etc.
  * @test disable/mock
  */
-export const AppRoot = process.env.NODE_ENV === "development" ? path.join(__dirname, "..", "..", "..") : path.join(__dirname, "..", "..");
+export const AppRoot =
+    process.env.NODE_ENV === "development"
+        ? path.join(__dirname, "..", "..", "..")
+        : path.join(__dirname, "..", "..");
 
 // let appdata = process.env.APPDATA || (process.platform == "darwin" ? `${process.env.HOME}/Library/Preferences` : `${process.env.HOME}/.local/share`);
 /**
@@ -28,9 +31,11 @@ export const HomeRoot = path.join(os.homedir(), ".config", "twitch-automator"); 
  * The data directory of the application.
  * @test disable/mock
  */
-export const DataRoot =
-        argv.home ? HomeRoot :
-            (argv.dataroot ? path.resolve(argv.dataroot) : path.join(AppRoot, "data"));
+export const DataRoot = argv.home
+    ? HomeRoot
+    : argv.dataroot
+    ? path.resolve(argv.dataroot)
+    : path.join(AppRoot, "data");
 
 export const BaseConfigFolder = {
     server: path.join(AppRoot, "server"),
@@ -44,38 +49,7 @@ export const BaseConfigFolder = {
  * It should be used for persistent data only.
  */
 export const BaseConfigDataFolder = {
-
     config: path.join(DataRoot, "config"),
-
-    /**
-     * TODO: Separate cache to its own object
-     */
-
-    /** @deprecated **/
-    cache: path.join(DataRoot, "cache"),
-    /** @deprecated **/
-    cron: path.join(DataRoot, "cache", "cron"),
-    /** @deprecated **/
-    pids: path.join(DataRoot, "cache", "pids"),
-    /** @deprecated **/
-    playlist: path.join(DataRoot, "cache", "playlist"),
-    /** @deprecated **/
-    keyvalue: path.join(DataRoot, "cache", "kv"),
-    /** @deprecated **/
-    history: path.join(DataRoot, "cache", "history"),
-    /** @deprecated **/
-    dotnet: path.join(DataRoot, "cache", "dotnet"),
-    /** @deprecated **/
-    capture: path.join(DataRoot, "cache", "capture"),
-    /** @deprecated **/
-    public_cache: path.join(DataRoot, "cache", "public"),
-    /** @deprecated **/
-    public_cache_avatars: path.join(DataRoot, "cache", "public", "avatars"),
-    /** @deprecated **/
-    public_cache_banners: path.join(DataRoot, "cache", "public", "banners"),
-    /** @deprecated **/
-    public_cache_thumbs: path.join(DataRoot, "cache", "public", "thumbs"),
-
     logs: path.join(DataRoot, "logs"),
     logs_software: path.join(DataRoot, "logs", "software"),
     payloads: path.join(DataRoot, "payloads"),
@@ -88,6 +62,10 @@ export const BaseConfigDataFolder = {
     streamlink_plugins: path.join(DataRoot, "streamlink_plugins"),
 };
 
+/**
+ * All the folders in this object will be created if they don't exist.
+ * It should be used for temporary data only.
+ */
 export const BaseConfigCacheFolder = {
     cache: path.join(DataRoot, "cache"),
     cron: path.join(DataRoot, "cache", "cron"),
@@ -107,13 +85,22 @@ export const BaseConfigCacheFolder = {
 export const BaseConfigPath = {
     config: path.join(BaseConfigDataFolder.config, "config.json"),
     channel: path.join(BaseConfigDataFolder.config, "channels.json"),
-    favouriteGames: path.join(BaseConfigDataFolder.config, "favourite_games.json"),
-    gameDb: path.join(BaseConfigDataFolder.cache, "games_v2.json"),
-    history: path.join(BaseConfigDataFolder.cache, "history.json"),
-    streamerCache: path.join(BaseConfigDataFolder.cache, "streamers_v2.json"),
-    streamerYouTubeCache: path.join(BaseConfigDataFolder.cache, "streamers_youtube.json"),
-    keyvalue: path.join(BaseConfigDataFolder.keyvalue, "kv.json"),
-    keyvalueDatabase: path.join(BaseConfigDataFolder.keyvalue, "kv2.json"),
+    favouriteGames: path.join(
+        BaseConfigDataFolder.config,
+        "favourite_games.json"
+    ),
+    gameDb: path.join(BaseConfigCacheFolder.cache, "games_v2.json"),
+    history: path.join(BaseConfigCacheFolder.cache, "history.json"),
+    streamerCache: path.join(BaseConfigCacheFolder.cache, "streamers_v2.json"),
+    streamerYouTubeCache: path.join(
+        BaseConfigCacheFolder.cache,
+        "streamers_youtube.json"
+    ),
+    keyvalue: path.join(BaseConfigCacheFolder.keyvalue, "kv.json"),
+    keyvalueDatabase: path.join(BaseConfigCacheFolder.keyvalue, "kv2.json"),
     notifications: path.join(BaseConfigDataFolder.config, "notifications.json"),
-    clientSettings: path.join(BaseConfigDataFolder.config, "client_settings.json"),
+    clientSettings: path.join(
+        BaseConfigDataFolder.config,
+        "client_settings.json"
+    ),
 };

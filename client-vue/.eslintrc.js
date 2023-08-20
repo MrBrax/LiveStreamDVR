@@ -1,23 +1,19 @@
 module.exports = {
     root: true,
-    env: {
-        browser: true,
-        es2021: true,
-        node: true,
-    },
     extends: [
         "plugin:vue/vue3-recommended",
-        // "eslint:recommended",
-        "@vue/typescript/recommended",
+        "eslint:recommended",
+        '@vue/eslint-config-typescript',
+        '@vue/eslint-config-prettier/skip-formatting'
         // "@vue/prettier",
         // "@vue/prettier/@typescript-eslint"
     ],
     // parser: "vue-eslint-parser",
     parserOptions: {
-        ecmaVersion: 2021,
-        parser: "@typescript-eslint/parser",
+        ecmaVersion: "latest",
+        // parser: "@typescript-eslint/parser",
         // sourceType: "module",
-        // project: "./tsconfig.eslint.json",
+        project: "./tsconfig.app.json",
         // extraFileExtensions: [".vue"],
     },
     plugins: [
@@ -32,6 +28,18 @@ module.exports = {
             4,
         ],
         */
+        "linebreak-style": [
+            "error",
+            "unix",
+        ],
+        "quotes": [
+            "error",
+            "double",
+        ],
+        "semi": [
+            "error",
+            "always",
+        ],
         "vue/html-indent": ["error", 4, {
             "attribute": 1,
             "baseIndent": 1,

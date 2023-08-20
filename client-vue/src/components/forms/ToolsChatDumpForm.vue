@@ -1,39 +1,22 @@
 <template>
-    <form
-        method="POST"
-        @submit.prevent="submitForm"
-    >
+    <form method="POST" @submit.prevent="submitForm">
         <div class="field">
             <label class="label">Login</label>
             <div class="control">
-                <input
-                    v-model="formData.login"
-                    class="input"
-                    type="text"
-                    required
-                >
-                <p class="input-help">
-                    Does not need to exist in your channels list.
-                </p>
+                <input v-model="formData.login" class="input" type="text" required />
+                <p class="input-help">Does not need to exist in your channels list.</p>
             </div>
         </div>
 
         <p>
-            The chat dumper will continue to run in the background until you manually stop it.<br>
+            The chat dumper will continue to run in the background until you manually stop it.<br />
             Keeping it running for a very long time can use up a large amount of disk space.
         </p>
 
-        <FormSubmit
-            :form-status="formStatus"
-            :form-status-text="formStatusText"
-        >
+        <FormSubmit :form-status="formStatus" :form-status-text="formStatusText">
             <div class="control">
-                <d-button
-                    icon="download"
-                    color="success"
-                    type="submit"
-                >
-                    {{ t('buttons.execute') }}
+                <d-button icon="download" color="success" type="submit">
+                    {{ t("buttons.execute") }}
                 </d-button>
             </div>
         </FormSubmit>
@@ -63,13 +46,12 @@ const formData = ref<{ login: string }>({
     login: "",
 });
 
-
 function submitForm(event: Event) {
     formStatusText.value = t("messages.loading");
     formStatus.value = "LOADING";
 
     axios
-        .post<ApiResponse>(`/api/v0/tools/chat_dump`, formData.value)
+        .post<ApiResponse>("/api/v0/tools/chat_dump", formData.value)
         .then((response) => {
             const json = response.data;
             formStatusText.value = json.message || "No message";
@@ -94,5 +76,4 @@ function submitForm(event: Event) {
     event.preventDefault();
     return false;
 }
-
 </script>

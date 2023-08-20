@@ -1,7 +1,7 @@
 <template>
     <section class="section">
         <div class="section-title">
-            <h1>{{ t('pages.notifications') }}</h1>
+            <h1>{{ t("pages.notifications") }}</h1>
         </div>
         <div class="section-content">
             <notifications-form />
@@ -14,4 +14,3 @@ import NotificationsForm from "@/components/forms/NotificationsForm.vue";
 import { useI18n } from "vue-i18n";
 const { t } = useI18n();
 </script>
-        

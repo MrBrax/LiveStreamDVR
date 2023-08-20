@@ -1,14 +1,25 @@
 import { BaseConfigCacheFolder } from "@/Core/BaseConfig";
 // import { OAuth2Client } from "googleapis-common";
-import { Credentials, OAuth2Client } from "google-auth-library";
-import path from "node:path";
 import { Config } from "@/Core/Config";
+import { KeyValue } from "@/Core/KeyValue";
 import { LOGLEVEL, log } from "@/Core/Log";
-import fs from "node:fs";
 import { youtube_v3 } from "@googleapis/youtube";
+import { addDays, isAfter, isBefore, isValid, set } from "date-fns";
+import type { Credentials } from "google-auth-library";
+import { OAuth2Client } from "google-auth-library";
+import fs from "node:fs";
+import path from "node:path";
 
+/**
+ * So as far as i can understand this whole token and refresh token thing:
+ * - The token is valid for 1 hour
+ * - The refresh token is valid for a few days at least, maybe a week
+ * - The token can be refreshed with the refresh token, and this is done automatically by oauth2client
+ * - Previously, the token was never refreshed, and the refresh token was never used
+ * - The token was previously deleted if it was thought to be expired, but this is not necessary
+ * So now, it seems the refresh token is the most important thing, and the token is just a temporary thing
+ */
 export class YouTubeHelper {
-
     public static readonly SCOPES = [
         "https://www.googleapis.com/auth/youtube.upload",
         "https://www.googleapis.com/auth/userinfo.profile",
@@ -20,22 +31,65 @@ export class YouTubeHelper {
         "https://www.googleapis.com/auth/youtubepartner",
     ];
 
-    static readonly accessTokenFile = path.join(BaseConfigCacheFolder.cache, "youtube_oauth.json");
-    static readonly accessTokenRefreshFile = path.join(BaseConfigCacheFolder.cache, "youtube_oauth_refresh.bin");
+    private static readonly accessTokenFile = path.join(
+        BaseConfigCacheFolder.cache,
+        "youtube_oauth.json"
+    );
+
+    private static readonly accessTokenExpiryFile = path.join(
+        BaseConfigCacheFolder.cache,
+        "youtube_oauth_expiry.txt"
+    );
+
+    private static readonly accessTokenRefreshFile = path.join(
+        BaseConfigCacheFolder.cache,
+        "youtube_oauth_refresh.bin"
+    );
+
     static readonly accessTokenExpire = 60 * 60 * 24 * 60 * 1000; // 60 days
     // static readonly accessTokenRefresh = 60 * 60 * 24 * 30 * 1000; // 30 days
 
     static oAuth2Client?: OAuth2Client;
     static authenticated = false;
     static username = "";
-    static username_file = path.join(BaseConfigCacheFolder.cache, "youtube_username.txt");
-    static accessTokenTime = 0;
+    static username_file = path.join(
+        BaseConfigCacheFolder.cache,
+        "youtube_username.txt"
+    );
+    // static accessTokenTime = 0;
+    public static accessTokenExpiryDate?: Date;
     private static accessToken?: Credentials;
     private static accessTokenRefresh?: string;
 
+    static isTokenExpired(): boolean {
+        if (!this.accessTokenExpiryDate) {
+            return true;
+        }
+
+        return isBefore(new Date(), this.accessTokenExpiryDate);
+    }
+
+    static hasToken(): boolean {
+        return !!this.accessToken;
+    }
+
+    static hasRefreshToken(): boolean {
+        return !!this.accessTokenRefresh;
+    }
+
+    static hasSetOAuth2ClientToken(): boolean {
+        return !!this.oAuth2Client?.credentials.access_token;
+    }
+
+    static hasSetOAuth2ClientRefreshToken(): boolean {
+        return !!this.oAuth2Client?.credentials.refresh_token;
+    }
+
     static async setupClient() {
         const client_id = Config.getInstance().cfg<string>("youtube.client_id");
-        const client_secret = Config.getInstance().cfg<string>("youtube.client_secret");
+        const client_secret = Config.getInstance().cfg<string>(
+            "youtube.client_secret"
+        );
         let app_url = Config.getInstance().cfg<string>("app_url");
 
         if (app_url == "debug") {
@@ -48,7 +102,11 @@ export class YouTubeHelper {
         this.oAuth2Client = undefined;
 
         if (!client_id || !client_secret) {
-            log(LOGLEVEL.WARNING, "YouTubeHelper", "No client_id or client_secret set up. YouTube uploads will not work.");
+            log(
+                LOGLEVEL.WARNING,
+                "YouTubeHelper.setupClient",
+                "No client_id or client_secret set up. YouTube uploads will not work."
+            );
             return;
         }
 
@@ -63,67 +121,135 @@ export class YouTubeHelper {
             full_app_url
         );
 
-        log(LOGLEVEL.INFO, "YouTubeHelper", `Created OAuth2Client with redirect ${full_app_url}`);
+        log(
+            LOGLEVEL.INFO,
+            "YouTubeHelper.setupClient",
+            `Created OAuth2Client with redirect ${full_app_url}`
+        );
 
         this.oAuth2Client.on("tokens", (tokens) => {
             if (tokens.refresh_token) {
-                console.log("youtube refresh token", tokens.refresh_token);
-                fs.writeFileSync(this.accessTokenRefreshFile, tokens.refresh_token);
-                if (this.oAuth2Client && !this.accessTokenRefresh) {
-                    this.accessTokenRefresh = tokens.refresh_token;
-                    this.oAuth2Client.setCredentials({
-                        refresh_token: this.accessTokenRefresh,
-                    });
-                }
+                log(
+                    LOGLEVEL.INFO,
+                    "YouTubeHelper.setupClient",
+                    `Got refresh token for YouTube`
+                );
+                this.storeRefreshToken(tokens.refresh_token);
+                this.applyRefreshToken(tokens.refresh_token);
+            } else {
+                log(
+                    LOGLEVEL.WARNING,
+                    "YouTubeHelper.setupClient",
+                    `Got new tokens, but no refresh.`
+                );
+                this.storeToken(tokens);
+                this.applyToken(tokens);
             }
-            console.log("youtube access token", tokens.access_token);
+
+            // console.log("youtube access token", tokens.access_token);
         });
 
-        const token = this.loadToken();
+        const token = this.loadTokenFromDisk();
         if (token) {
-            log(LOGLEVEL.INFO, "YouTubeHelper", "Found stored token, setting credentials...");
-            this.oAuth2Client.setCredentials(token);
-            this.authenticated = true;
+            log(
+                LOGLEVEL.INFO,
+                "YouTubeHelper.setupClient",
+                "Found stored token, setting credentials..."
+            );
+            this.applyToken(token);
+            // this.oAuth2Client.setCredentials(token);
             try {
                 await this.fetchUsername();
             } catch (error) {
-                log(LOGLEVEL.ERROR, "YouTubeHelper", `Failed to fetch username: ${(error as Error).message}`);
+                log(
+                    LOGLEVEL.ERROR,
+                    "YouTubeHelper.setupClient",
+                    `Failed to fetch username: ${(error as Error).message}`
+                );
             }
+            this.authenticated = true;
         } else {
-            log(LOGLEVEL.INFO, "YouTubeHelper", "No stored token found.");
+            log(
+                LOGLEVEL.INFO,
+                "YouTubeHelper.setupClient",
+                "No stored token found."
+            );
             return;
         }
 
-        this.loadRefreshToken();
-        if (this.accessTokenRefresh) {
-            log(LOGLEVEL.INFO, "YouTubeHelper", "Found refresh token, setting credentials...");
-            this.oAuth2Client.setCredentials({
-                refresh_token: fs.readFileSync(this.accessTokenRefreshFile, { encoding: "utf-8" }),
-            });
+        const refreshToken = this.loadRefreshTokenFromDisk();
+        if (refreshToken) {
+            this.applyRefreshToken(refreshToken);
         } else {
-            log(LOGLEVEL.ERROR, "YouTubeHelper", "No refresh token found");
+            log(
+                LOGLEVEL.WARNING,
+                "YouTubeHelper.setupClient",
+                "No refresh token found."
+            );
         }
 
-        log(LOGLEVEL.SUCCESS, "YouTubeHelper", `YouTubeHelper setup complete, authenticated: ${this.authenticated}`);
-
-        /*
-        this.oAuth2Client.setCredentials({
-            refresh_token: fs.readFileSync(this.accessTokenRefreshFile, { encoding: "utf-8" }),
-        });
-        */
-
+        log(
+            LOGLEVEL.SUCCESS,
+            "YouTubeHelper.setupClient",
+            `YouTubeHelper setup complete, authenticated: ${this.authenticated}`
+        );
     }
 
     static storeToken(token: Credentials) {
         const json = JSON.stringify(token);
-        log(LOGLEVEL.DEBUG, "YouTubeHelper", `Storing token in ${this.accessTokenFile}`);
+        log(
+            LOGLEVEL.DEBUG,
+            "YouTubeHelper.storeToken",
+            `Storing token in ${this.accessTokenFile}`
+        );
         fs.writeFileSync(this.accessTokenFile, json);
+
+        if (token.expiry_date) {
+            const expiry_date = new Date(token.expiry_date);
+            fs.writeFileSync(
+                this.accessTokenExpiryFile,
+                expiry_date.toISOString()
+            );
+            log(
+                LOGLEVEL.DEBUG,
+                "YouTubeHelper.storeToken",
+                `Updated expiry date to ${expiry_date.toISOString()}`
+            );
+            this.accessTokenExpiryDate = expiry_date;
+        }
     }
 
-    static loadToken(): Credentials | undefined {
+    static applyToken(token: Credentials) {
+        if (!this.oAuth2Client) {
+            log(
+                LOGLEVEL.ERROR,
+                "YouTubeHelper.applyToken",
+                `No OAuth2Client set up.`
+            );
+            return;
+        }
+        log(
+            LOGLEVEL.INFO,
+            "YouTubeHelper.applyToken",
+            `Applying regular token to OAuth2Client, keeping old refresh token.`
+        );
+        this.accessToken = token;
+        this.oAuth2Client.setCredentials({
+            ...token,
+            refresh_token: this.hasRefreshToken()
+                ? this.accessTokenRefresh
+                : "",
+        });
+        // this.oAuth2Client?.setCredentials(token);
+    }
 
+    static loadTokenFromDisk(): Credentials | undefined {
         if (!fs.existsSync(this.accessTokenFile)) {
-            log(LOGLEVEL.DEBUG, "YouTubeHelper", `No token found in ${this.accessTokenFile}`);
+            log(
+                LOGLEVEL.DEBUG,
+                "YouTubeHelper.loadToken",
+                `No token found in ${this.accessTokenFile}`
+            );
             return undefined;
         }
 
@@ -131,31 +257,90 @@ export class YouTubeHelper {
 
         const creds: Credentials = JSON.parse(json);
 
-        if (creds.expiry_date && new Date().getTime() > creds.expiry_date) {
-            log(LOGLEVEL.WARNING, "YouTubeHelper", `Token expired at ${creds.expiry_date}`);
-            fs.unlinkSync(this.accessTokenFile);
-            this.accessToken = undefined;
-            return undefined;
+        let expiry_date: Date | undefined = undefined;
+
+        if (fs.existsSync(this.accessTokenExpiryFile)) {
+            const expiry_date_str = fs.readFileSync(
+                this.accessTokenExpiryFile,
+                "utf8"
+            );
+            expiry_date = new Date(expiry_date_str);
+
+            if (isValid(expiry_date) && isAfter(expiry_date, new Date())) {
+                log(
+                    LOGLEVEL.WARNING,
+                    "YouTubeHelper.loadToken",
+                    `Token expired at ${creds.expiry_date}`
+                );
+                // fs.unlinkSync(this.accessTokenFile);
+                // this.accessToken = undefined;
+                // return undefined;
+            }
+
+            this.accessTokenExpiryDate = expiry_date;
+        } else {
+            log(
+                LOGLEVEL.WARNING,
+                "YouTubeHelper.loadToken",
+                `No expiry date found in ${this.accessTokenExpiryFile}`
+            );
         }
 
-        this.accessTokenTime = creds.expiry_date || 0;
         this.accessToken = creds;
 
-        log(LOGLEVEL.DEBUG, "YouTubeHelper", `Loaded token from ${this.accessTokenFile}`);
+        log(
+            LOGLEVEL.DEBUG,
+            "YouTubeHelper.loadToken",
+            `Loaded token from ${this.accessTokenFile}`
+        );
         return creds;
     }
 
-    static loadRefreshToken(): boolean {
+    static storeRefreshToken(refreshToken: string) {
+        log(
+            LOGLEVEL.DEBUG,
+            "YouTubeHelper.storeRefreshToken",
+            `Storing refresh token in ${this.accessTokenRefreshFile}`
+        );
+        fs.writeFileSync(this.accessTokenRefreshFile, refreshToken);
+    }
+
+    static loadRefreshTokenFromDisk(): string | false {
         if (!fs.existsSync(this.accessTokenRefreshFile)) {
-            log(LOGLEVEL.DEBUG, "YouTubeHelper", `No refresh token found in ${this.accessTokenRefreshFile}`);
+            log(
+                LOGLEVEL.DEBUG,
+                "YouTubeHelper.loadRefreshToken",
+                `No refresh token found in ${this.accessTokenRefreshFile}`
+            );
             return false;
         }
-        this.accessTokenRefresh = fs.readFileSync(this.accessTokenRefreshFile, { encoding: "utf-8" });
-        return true;
+        return fs.readFileSync(this.accessTokenRefreshFile, {
+            encoding: "utf-8",
+        });
+    }
+
+    static applyRefreshToken(refreshToken: string) {
+        if (!this.oAuth2Client) {
+            log(
+                LOGLEVEL.ERROR,
+                "YouTubeHelper.applyRefreshToken",
+                "No oAuth2Client found"
+            );
+            return;
+        }
+        log(
+            LOGLEVEL.INFO,
+            "YouTubeHelper.applyRefreshToken",
+            "Found refresh token, setting credentials..."
+        );
+        this.oAuth2Client.setCredentials({
+            ...this.accessToken,
+            refresh_token: refreshToken,
+        });
+        this.accessTokenRefresh = refreshToken;
     }
 
     static async fetchUsername(force = false): Promise<string> {
-
         if (this.username && !force) {
             return this.username;
         }
@@ -178,35 +363,62 @@ export class YouTubeHelper {
         let response;
 
         try {
-            response = await this.oAuth2Client.request({
+            response = await this.oAuth2Client.request<{
+                sub: string;
+                name: string;
+                given_name: string;
+                family_name: string;
+                picture: string;
+                locale: string;
+            }>({
                 url: "https://www.googleapis.com/oauth2/v3/userinfo",
             });
         } catch (error) {
-            log(LOGLEVEL.ERROR, "YouTubeHelper", `Failed to fetch username: ${(error as Error).message}`);
+            log(
+                LOGLEVEL.ERROR,
+                "YouTubeHelper.fetchUsername",
+                `Failed to fetch username: ${(error as Error).message}`
+            );
             throw error; // not pretty
         }
 
-        if (response && response.data && typeof response.data === "object" && "name" in response.data) {
-            const data: { sub: string; name: string; given_name: string; family_name: string; picture: string; locale: string; } = response.data as never;
+        if (
+            response &&
+            response.data &&
+            typeof response.data === "object" &&
+            "name" in response.data
+        ) {
+            const data = response.data;
             this.username = data.name;
             fs.writeFileSync(this.username_file, this.username);
             return this.username;
         } else {
-            log(LOGLEVEL.ERROR, "YouTubeHelper", `Failed to fetch username: ${response.statusText}`);
+            log(
+                LOGLEVEL.ERROR,
+                "YouTubeHelper.fetchUsername",
+                `Failed to fetch username: ${response.statusText}`
+            );
             throw new Error(`Failed to fetch username: ${response.statusText}`);
         }
-
     }
 
     static async destroyCredentials(): Promise<void> {
         if (!this.oAuth2Client) throw new Error("No client");
+        log(
+            LOGLEVEL.INFO,
+            "YouTubeHelper.destroyCredentials",
+            "Revoking credentials and deleting files"
+        );
         await this.oAuth2Client.revokeCredentials();
-        if (fs.existsSync(this.accessTokenFile)) fs.unlinkSync(this.accessTokenFile);
-        if (fs.existsSync(this.accessTokenRefreshFile)) fs.unlinkSync(this.accessTokenRefreshFile);
-        if (fs.existsSync(this.username_file)) fs.unlinkSync(this.username_file);
+        if (fs.existsSync(this.accessTokenFile))
+            fs.unlinkSync(this.accessTokenFile);
+        if (fs.existsSync(this.accessTokenRefreshFile))
+            fs.unlinkSync(this.accessTokenRefreshFile);
+        if (fs.existsSync(this.username_file))
+            fs.unlinkSync(this.username_file);
         this.username = "";
         this.accessToken = undefined;
-        this.accessTokenTime = 0;
+        this.accessTokenExpiryDate = undefined;
         this.accessTokenRefresh = undefined;
         return;
     }
@@ -220,84 +432,97 @@ export class YouTubeHelper {
             const num = parseInt(match[1]);
             const unit = match[2];
             switch (unit) {
-            case "H":
-                seconds += num * 3600;
-                break;
-            case "M":
-                seconds += num * 60;
-                break;
-            case "S":
-                seconds += num;
-                break;
+                case "H":
+                    seconds += num * 3600;
+                    break;
+                case "M":
+                    seconds += num * 60;
+                    break;
+                case "S":
+                    seconds += num;
+                    break;
             }
         }
         return seconds;
     }
 
     public static getPlaylists(): Promise<youtube_v3.Schema$Playlist[]> {
-
         return new Promise((resolve, reject) => {
-
             const service = new youtube_v3.Youtube({
                 auth: YouTubeHelper.oAuth2Client,
             });
 
-            service.playlists.list({
-                part: ["snippet", "contentDetails"],
-                mine: true,
-                maxResults: 50,
-            }).then((response) => {
+            service.playlists
+                .list({
+                    part: ["snippet", "contentDetails"],
+                    mine: true,
+                    maxResults: 50,
+                })
+                .then((response) => {
+                    if (!response || !response.data || !response.data.items) {
+                        log(
+                            LOGLEVEL.ERROR,
+                            "YouTubeHelper.getPlaylists",
+                            "No response from API"
+                        );
+                        reject(new Error("No response from API"));
+                        return;
+                    }
 
-                if (!response || !response.data || !response.data.items) {
-                    log(LOGLEVEL.ERROR, "YouTubeHelper", "No response from API");
-                    reject(new Error("No response from API"));
-                    return;
-                }
-
-                resolve(response.data.items);
-
-            }).catch((error) => {
-                log(LOGLEVEL.ERROR, "YouTubeHelper", `Failed to fetch playlists: ${(error as Error).message}`);
-                reject(error);
-            });
-
+                    resolve(response.data.items);
+                })
+                .catch((error) => {
+                    log(
+                        LOGLEVEL.ERROR,
+                        "YouTubeHelper.getPlaylists",
+                        `Failed to fetch playlists: ${(error as Error).message}`
+                    );
+                    reject(error);
+                });
         });
-
     }
 
-    public static createPlaylist(name: string, description: string): Promise<youtube_v3.Schema$Playlist> {
-
+    public static createPlaylist(
+        name: string,
+        description: string
+    ): Promise<youtube_v3.Schema$Playlist> {
         return new Promise((resolve, reject) => {
-
             const service = new youtube_v3.Youtube({
                 auth: YouTubeHelper.oAuth2Client,
             });
 
-            service.playlists.insert({
-                part: ["snippet", "contentDetails"],
-                requestBody: {
-                    snippet: {
-                        title: name,
-                        description,
+            service.playlists
+                .insert({
+                    part: ["snippet", "contentDetails"],
+                    requestBody: {
+                        snippet: {
+                            title: name,
+                            description,
+                        },
                     },
-                },
-            }).then((response) => {
+                })
+                .then((response) => {
+                    if (!response || !response.data) {
+                        log(
+                            LOGLEVEL.ERROR,
+                            "YouTubeHelper.createPlaylist",
+                            "No response from API"
+                        );
+                        reject(new Error("No response from API"));
+                        return;
+                    }
 
-                if (!response || !response.data) {
-                    log(LOGLEVEL.ERROR, "YouTubeHelper", "No response from API");
-                    reject(new Error("No response from API"));
-                    return;
-                }
-
-                resolve(response.data);
-
-            }).catch((error) => {
-                log(LOGLEVEL.ERROR, "YouTubeHelper", `Failed to create playlist: ${(error as Error).message}`);
-                reject(error);
-            });
-
+                    resolve(response.data);
+                })
+                .catch((error) => {
+                    log(
+                        LOGLEVEL.ERROR,
+                        "YouTubeHelper.createPlaylist",
+                        `Failed to create playlist: ${(error as Error).message}`
+                    );
+                    reject(error);
+                });
         });
-
     }
 
     /*
@@ -322,4 +547,66 @@ export class YouTubeHelper {
     }
     */
 
+    /**
+     * Check if the quota has been exceeded.
+     * @returns true if the quota has been exceeded, false if not.
+     */
+    public static async getQuotaStatus(): Promise<boolean> {
+        const override = Config.getInstance().cfg<boolean>(
+            "youtube.quota_override"
+        );
+        if (override) return false;
+
+        let value;
+
+        try {
+            value = await KeyValue.getInstance().getAsync(
+                "exporter.youtube.quota_exceeded_date"
+            );
+        } catch (error) {
+            // if there's no value, it's not exceeded
+            return false;
+        }
+
+        if (!value) return false; // just in case
+
+        const exceededDate = new Date(value);
+        const currentDate = new Date();
+
+        // quota resets at midnight pacific time, make a date that's midnight pacific time after the exceeded date using date-fns
+        const resetDate = set(addDays(exceededDate, 1), {
+            hours: 7,
+            minutes: 0,
+            seconds: 0,
+            milliseconds: 0,
+        });
+
+        if (isBefore(currentDate, resetDate)) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+}
+
+// Generated by https://quicktype.io
+
+export interface YouTubeAPIErrorResponse {
+    data: Data;
+}
+
+export interface Data {
+    error: DataError;
+}
+
+export interface DataError {
+    code: number;
+    message: string;
+    errors: ErrorElement[];
+}
+
+export interface ErrorElement {
+    message: string;
+    domain: string;
+    reason: string;
 }

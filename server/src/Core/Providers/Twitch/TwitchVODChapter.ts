@@ -1,10 +1,10 @@
-import chalk from "chalk";
+import { LOGLEVEL, log } from "@/Core/Log";
+import type { ApiVodTwitchChapter } from "@common/Api/Client";
+import type { Providers } from "@common/Defs";
 import { parseJSON } from "date-fns";
-import { ApiVodTwitchChapter } from "@common/Api/Client";
-import { TwitchVODChapterJSON } from "../../../Storage/JSON";
-import { TwitchGame } from "./TwitchGame";
+import type { TwitchVODChapterJSON } from "../../../Storage/JSON";
 import { BaseVODChapter } from "../Base/BaseVODChapter";
-import { Providers } from "@common/Defs";
+import { TwitchGame } from "./TwitchGame";
 
 /*
 export interface TwitchVODChapterJSON {
@@ -50,9 +50,7 @@ export interface TwitchVODChapterMinimalJSON {
                 'online'		=> false,
                 */
 
-
 export class TwitchVODChapter extends BaseVODChapter {
-
     public provider: Providers = "twitch";
 
     public raw_chapter: TwitchVODChapterJSON | undefined;
@@ -107,8 +105,9 @@ export class TwitchVODChapter extends BaseVODChapter {
         return this.game !== undefined && this.game.isFavourite();
     }
 
-    static async fromJSON(data: TwitchVODChapterJSON): Promise<TwitchVODChapter> {
-
+    static async fromJSON(
+        data: TwitchVODChapterJSON
+    ): Promise<TwitchVODChapter> {
         const chapter = new TwitchVODChapter();
         // chapter.box_art_url = data.box_art_url;
         chapter.game_id = data.game_id;
@@ -128,16 +127,24 @@ export class TwitchVODChapter extends BaseVODChapter {
                 // chapter.game_name = game.name;
                 // chapter.box_art_url = game.box_art_url;
             } else {
-                console.error(`Could not find game data for game_id: ${data.game_id}`);
+                log(
+                    LOGLEVEL.ERROR,
+                    "TwitchVODChapter.fromJSON",
+                    `Could not find game data for game_id: ${data.game_id}`
+                );
             }
         } else {
-            console.warn(chalk.red(`No game_id for chapter: ${data.title}`), data);
+            log(
+                LOGLEVEL.WARNING,
+                "TwitchVODChapter.fromJSON",
+                `No game_id for chapter: ${data.title}`,
+                data
+            );
         }
 
         chapter.raw_chapter = data;
 
         return chapter;
-
     }
 
     public getBoxArtUrl(width = 140, height = 190): string {
@@ -153,5 +160,4 @@ export class TwitchVODChapter extends BaseVODChapter {
     get box_art_url(): string {
         return this.getBoxArtUrl();
     }
-
 }

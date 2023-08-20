@@ -1,24 +1,23 @@
 import { Config } from "@/Core/Config";
-import express from "express";
-import { ApiLoginResponse, ApiAuthResponse } from "@common/Api/Api";
+import type { ApiAuthResponse, ApiLoginResponse } from "@common/Api/Api";
+import type express from "express";
 export function Login(req: express.Request, res: express.Response): void {
-
     const password = Config.getInstance().cfg<string>("password");
     const client_password = req.body.password;
 
     if (req.session.authenticated) {
-        res.status(400).send({
+        res.api(400, {
             authenticated: true,
-            message: "Already authenticated",
+            message: req.t("auth.already-authenticated"),
             status: "ERROR",
         } as ApiLoginResponse);
         return;
     }
 
     if (!password) {
-        res.status(400).send({
+        res.api(400, {
             authenticated: false,
-            message: "No password set",
+            message: req.t("auth.no-password-set"),
             status: "ERROR",
         } as ApiLoginResponse);
         return;
@@ -28,34 +27,36 @@ export function Login(req: express.Request, res: express.Response): void {
         req.session.regenerate((err) => {
             if (err) {
                 console.error(err);
-                res.status(500).send("Internal server error");
+                res.api(500, "Internal server error");
                 return;
             }
 
-            req.session.cookie.expires = new Date(Date.now() + (1000 * 60 * 60 * 24 * 7)); // 7 days
+            req.session.cookie.expires = new Date(
+                Date.now() + 1000 * 60 * 60 * 24 * 7
+            ); // 7 days
 
             req.session.authenticated = true;
 
             req.session.save((err) => {
                 if (err) {
                     console.error(err);
-                    res.status(500).send("Internal server error");
+                    res.api(500, "Internal server error");
                     return;
                 }
 
-                res.send({
-                    "authenticated": true,
-                    "message": "Login successful",
-                    "status": "OK",
-                } as ApiLoginResponse);
+                res.api<ApiLoginResponse>(200, {
+                    authenticated: true,
+                    message: req.t("auth.login-successful").toString(),
+                    status: "OK",
+                });
             });
         });
     } else {
-        res.send({
-            "authenticated": false,
-            "message": "Login failed",
-            "status": "ERROR",
-        } as ApiLoginResponse);
+        res.api<ApiLoginResponse>(401, {
+            authenticated: false,
+            message: req.t("auth.login-failed").toString(),
+            status: "ERROR",
+        });
     }
 }
 
@@ -63,39 +64,39 @@ export function Logout(req: express.Request, res: express.Response): void {
     req.session.destroy((err) => {
         if (err) {
             console.error(err);
-            res.status(500).send("Internal server error");
+            res.api(500, "Internal server error");
             return;
         }
-        res.send({
-            "authenticated": false,
-            "message": "Logout successful",
-            "status": "OK",
-        } as ApiLoginResponse);
+        res.api<ApiLoginResponse>(200, {
+            authenticated: false,
+            message: req.t("auth.logout-successful").toString(),
+            status: "OK",
+        });
     });
 }
 
 export function CheckLogin(req: express.Request, res: express.Response): void {
     if (!Config.getInstance().cfg<boolean>("password")) {
         res.status(200).send({
-            "authentication": false,
-            "authenticated": false,
-            "message": "No password protection",
+            authentication: false,
+            authenticated: false,
+            message: req.t("auth.no-password-protection"),
         } as ApiAuthResponse);
     } else if (req.session.authenticated) {
         res.status(200).send({
-            "authentication": true,
-            "authenticated": true,
-            "guest_mode": Config.getInstance().cfg<boolean>("guest_mode", false),
-            "message": "You are logged in",
-            "status": "OK",
+            authentication: true,
+            authenticated: true,
+            guest_mode: Config.getInstance().cfg<boolean>("guest_mode", false),
+            message: req.t("auth.you-are-logged-in"),
+            status: "OK",
         } as ApiAuthResponse);
     } else {
         res.status(401).send({
-            "authentication": true,
-            "authenticated": false,
-            "guest_mode": Config.getInstance().cfg<boolean>("guest_mode", false),
-            "message": "You are not logged in",
-            "status": "ERROR",
+            authentication: true,
+            authenticated: false,
+            guest_mode: Config.getInstance().cfg<boolean>("guest_mode", false),
+            message: req.t("auth.you-are-not-logged-in"),
+            status: "ERROR",
         } as ApiAuthResponse);
     }
 }

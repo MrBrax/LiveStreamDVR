@@ -1,4 +1,28 @@
-import type { ClientSettings } from "./ClientSettings.d";
+export type ClientSettings = {
+    useSpeech: boolean;
+    singlePage: boolean;
+    enableNotifications: boolean;
+    animationsEnabled: boolean;
+    tooltipStatic: boolean;
+    useRelativeTime: boolean;
+    // showAdvancedInfo: boolean;
+    useWebsockets: boolean;
+    useBackgroundRefresh: boolean;
+    useBackgroundTicker: boolean;
+    websocketAddressOverride: string;
+    expandVodList: boolean;
+    vodsToShowInMenu: number;
+    // alwaysShowCapturingVodInMenu: boolean;
+    minimizeVodsByDefault: boolean;
+    language: string;
+    theme: string;
+    showOfflineCategoryInSidebar: boolean;
+    sidemenuWidth: number;
+    expandDashboardVodList: boolean;
+    vodsToShowInDashboard: number;
+    jobStatusExpandedByDefault: boolean;
+    hideChapterTitlesAndGames: boolean;
+};
 
 export const defaultConfig: ClientSettings = {
     useSpeech: false,

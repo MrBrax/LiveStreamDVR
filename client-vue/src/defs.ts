@@ -11,7 +11,8 @@ export const defaultSidemenuShow: SidemenuShow = {
     vod_title: false,
 };
 
-export const defaultVideoBlockShow: VideoBlockShow = { // TODO: invert name
+export const defaultVideoBlockShow: VideoBlockShow = {
+    // TODO: invert name
     general: false,
     segments: false,
     bookmarks: true,

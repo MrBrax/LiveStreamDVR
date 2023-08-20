@@ -1,41 +1,47 @@
-import { SettingField } from "@common/Config";
+import { debugLog } from "@/Helpers/Console";
+import { GetRunningProcesses, execSimple } from "@/Helpers/Execute";
+import { is_docker } from "@/Helpers/System";
+import type { SettingField } from "@common/Config";
 import { settingsFields } from "@common/ServerConfig";
-import axios, { AxiosResponse } from "axios";
+import type { AxiosResponse } from "axios";
+import axios from "axios";
 import chalk from "chalk";
-import express from "express";
+import type express from "express";
+import i18next from "i18next";
 import minimist from "minimist";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { TwitchHelper } from "../Providers/Twitch";
 import { YouTubeHelper } from "../Providers/YouTube";
-import { AppRoot, BaseConfigCacheFolder, BaseConfigDataFolder, BaseConfigFolder, BaseConfigPath, DataRoot } from "./BaseConfig";
-import { Helper } from "./Helper";
+import {
+    AppRoot,
+    BaseConfigCacheFolder,
+    BaseConfigDataFolder,
+    BaseConfigFolder,
+    BaseConfigPath,
+    DataRoot,
+} from "./BaseConfig";
 import { LiveStreamDVR } from "./LiveStreamDVR";
-import { log, LOGLEVEL } from "./Log";
+import { LOGLEVEL, log, setLogDebug } from "./Log";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 import { Scheduler } from "./Scheduler";
-import i18next from "i18next";
-import { debugLog } from "@/Helpers/Console";
-import { GetRunningProcesses, execSimple } from "@/Helpers/Execute";
 
 const argv = minimist(process.argv.slice(2));
 
 export class Config {
-
     initialised = false;
     config: Record<string, string | number | boolean | string[]> | undefined;
     private _writeConfig = false;
     watcher: fs.FSWatcher | undefined;
 
-    forceDebug = false;
+    // forceDebug = false;
 
     gitHash?: string;
     gitBranch?: string;
 
     sessionParser?: express.RequestHandler;
-
 
     static readonly streamerCacheTime = 2592000 * 1000; // 30 days
     static readonly settingsFields = settingsFields;
@@ -66,14 +72,17 @@ export class Config {
     }
 
     cfg<T>(key: keyof typeof settingsFields, defaultValue?: T): T {
-
         if (this.config === undefined) {
             console.error("Config not loaded", key, defaultValue);
             throw new Error("Config not loaded");
         }
 
         if (!Config.settingExists(key)) {
-            log(LOGLEVEL.WARNING, "config", `Setting '${key}' does not exist.`);
+            log(
+                LOGLEVEL.WARNING,
+                "config.cfg",
+                `Setting '${key}' does not exist.`
+            );
             console.warn(chalk.red(`Setting '${key}' does not exist.`));
         }
 
@@ -114,7 +123,6 @@ export class Config {
         }
 
         return <T>this.config[key]; // return value
-
     }
 
     hasValue(key: keyof typeof settingsFields): boolean {
@@ -124,7 +132,11 @@ export class Config {
         }
 
         if (!Config.settingExists(key)) {
-            log(LOGLEVEL.WARNING, "config", `Setting '${key}' does not exist.`);
+            log(
+                LOGLEVEL.WARNING,
+                "config.hasValue",
+                `Setting '${key}' does not exist.`
+            );
             console.warn(chalk.red(`Setting '${key}' does not exist.`));
         }
 
@@ -157,17 +169,14 @@ export class Config {
             }
         }
 
-
         return true;
-
     }
 
     /**
      * @test disable
-     * @returns 
+     * @returns
      */
     loadConfig() {
-
         console.log(chalk.blue("Loading config..."));
 
         if (!fs.existsSync(BaseConfigPath.config)) {
@@ -182,7 +191,10 @@ export class Config {
         try {
             config = JSON.parse(data);
         } catch (e) {
-            console.error(chalk.bgRed.whiteBright("Error parsing config file"), e);
+            console.error(
+                chalk.bgRed.whiteBright("Error parsing config file"),
+                e
+            );
             process.exit(1);
             return;
         }
@@ -192,7 +204,11 @@ export class Config {
                 if (config[field.from] !== undefined) {
                     config[field.to] = config[field.from];
                     // delete this.config[field.from];
-                    log(LOGLEVEL.INFO, "config", `Migrated setting '${field.from}' to '${field.from}'.`);
+                    log(
+                        LOGLEVEL.INFO,
+                        "config.loadConfig",
+                        `Migrated setting '${field.from}' to '${field.from}'.`
+                    );
                 }
             }
         }
@@ -200,7 +216,11 @@ export class Config {
         // delete invalid settings
         for (const key in config) {
             if (!Config.settingExists(key)) {
-                console.warn(chalk.yellow(`Saved setting '${key}' does not exist, deprecated? Discarding.`));
+                console.warn(
+                    chalk.yellow(
+                        `Saved setting '${key}' does not exist, deprecated? Discarding.`
+                    )
+                );
                 delete config[key];
             }
         }
@@ -214,7 +234,11 @@ export class Config {
             const setting = Config.settingsFields[key];
             if (config[key] === undefined && setting.default !== undefined) {
                 config[key] = setting.default;
-                console.log(chalk.yellow(`Setting '${key}' not configured, using default value '${setting.default}'.`));
+                console.log(
+                    chalk.yellow(
+                        `Setting '${key}' not configured, using default value '${setting.default}'.`
+                    )
+                );
                 changed = true;
             }
         }
@@ -227,22 +251,31 @@ export class Config {
 
         if (!this.config) throw new Error("Config is empty");
 
-        console.log(chalk.green(`✔ ${Object.keys(this.config).length} settings loaded.`));
+        console.log(
+            chalk.green(
+                `✔ ${Object.keys(this.config).length} settings loaded.`
+            )
+        );
 
         for (const env_var of Object.keys(process.env)) {
             if (env_var.startsWith("TCD_")) {
                 const val = this.cfg(env_var.substring(4).toLowerCase());
-                console.log(chalk.green(`Overriding setting '${env_var.substring(4)}' with environment variable: '${val}'`));
+                console.log(
+                    chalk.green(
+                        `Overriding setting '${env_var.substring(
+                            4
+                        )}' with environment variable: '${val}'`
+                    )
+                );
             }
         }
-
     }
 
     generateConfig() {
-
         console.log("Generating config");
 
-        const example: Record<string, string | boolean | number | string[]> = {};
+        const example: Record<string, string | boolean | number | string[]> =
+            {};
         for (const key in Config.settingsFields) {
             const field = Config.settingsFields[key];
             if (field["default"] !== undefined) example[key] = field["default"];
@@ -252,20 +285,27 @@ export class Config {
 
         this.config = example;
         this.saveConfig("generate config");
-
     }
 
     static settingExists(key: string): boolean {
         return this.getSettingField(key) !== undefined;
     }
 
-    static getSettingField(key: string): SettingField<string> | SettingField<number> | SettingField<boolean> | undefined {
+    static getSettingField(
+        key: string
+    ):
+        | SettingField<string>
+        | SettingField<number>
+        | SettingField<boolean>
+        | undefined {
         // return this.settingsFields.find(field => field["key"] === key);
         return this.settingsFields[key];
     }
 
-    setConfig<T extends number | string | boolean>(key: keyof typeof settingsFields, value: T): void {
-
+    setConfig<T extends number | string | boolean>(
+        key: keyof typeof settingsFields,
+        value: T
+    ): void {
         if (!this.config) {
             throw new Error("Config not loaded");
         }
@@ -275,7 +315,6 @@ export class Config {
         if (!setting) {
             throw new Error("Setting does not exist: " + key);
         } else {
-
             let newValue: number | string | boolean = value;
 
             if (setting.stripslash && typeof newValue === "string") {
@@ -314,7 +353,6 @@ export class Config {
             this.config[key] = value;
             // TwitchConfig.saveConfig();
             */
-
         }
     }
 
@@ -330,11 +368,10 @@ export class Config {
 
     /**
      * @test disable
-     * @param source 
-     * @returns 
+     * @param source
+     * @returns
      */
     saveConfig(source = "unknown"): boolean {
-
         this._writeConfig = true;
         this.stopWatchingConfig();
 
@@ -342,26 +379,41 @@ export class Config {
         this.backupConfig();
 
         // save
-        fs.writeFileSync(BaseConfigPath.config, JSON.stringify(this.config, null, 4));
+        fs.writeFileSync(
+            BaseConfigPath.config,
+            JSON.stringify(this.config, null, 4)
+        );
 
         this._writeConfig = false;
 
-        const success = fs.existsSync(BaseConfigPath.config) && fs.statSync(BaseConfigPath.config).size > 0;
+        const success =
+            fs.existsSync(BaseConfigPath.config) &&
+            fs.statSync(BaseConfigPath.config).size > 0;
 
         if (success) {
-            log(LOGLEVEL.SUCCESS, "config", `Saved config from ${source}`);
+            log(
+                LOGLEVEL.SUCCESS,
+                "config.saveConfig",
+                `Saved config from ${source}`
+            );
         } else {
-            log(LOGLEVEL.ERROR, "config", `Failed to save config from ${source}`);
+            log(
+                LOGLEVEL.ERROR,
+                "config.saveConfig",
+                `Failed to save config from ${source}`
+            );
         }
 
         this.startWatchingConfig();
 
-        if (this.initialised) { // don't post save config on startup
+        if (this.initialised) {
+            // don't post save config on startup
             this.postSaveConfig();
         }
 
-        return success;
+        Config.updateDebug();
 
+        return success;
     }
 
     async postSaveConfig() {
@@ -375,15 +427,19 @@ export class Config {
 
     backupConfig() {
         if (fs.existsSync(BaseConfigPath.config)) {
-            fs.copyFileSync(BaseConfigPath.config, `${BaseConfigPath.config}.${Date.now()}.bak`);
+            fs.copyFileSync(
+                BaseConfigPath.config,
+                `${BaseConfigPath.config}.${Date.now()}.bak`
+            );
         }
     }
 
     static createFolders() {
-
         for (const folder of Object.values(BaseConfigFolder)) {
             if (!fs.existsSync(folder)) {
-                console.warn(chalk.yellow(`Folder '${folder}' does not exist, creating.`));
+                console.warn(
+                    chalk.yellow(`Folder '${folder}' does not exist, creating.`)
+                );
                 fs.mkdirSync(folder, { recursive: true });
                 console.log(chalk.green(`Created folder: ${folder}`));
             }
@@ -391,7 +447,11 @@ export class Config {
 
         for (const folder of Object.values(BaseConfigDataFolder)) {
             if (!fs.existsSync(folder)) {
-                console.warn(chalk.yellow(`Data folder '${folder}' does not exist, creating.`));
+                console.warn(
+                    chalk.yellow(
+                        `Data folder '${folder}' does not exist, creating.`
+                    )
+                );
                 fs.mkdirSync(folder, { recursive: true });
                 console.log(chalk.green(`Created data folder: ${folder}`));
             }
@@ -399,12 +459,15 @@ export class Config {
 
         for (const folder of Object.values(BaseConfigCacheFolder)) {
             if (!fs.existsSync(folder)) {
-                console.warn(chalk.yellow(`Cache folder '${folder}' does not exist, creating.`));
+                console.warn(
+                    chalk.yellow(
+                        `Cache folder '${folder}' does not exist, creating.`
+                    )
+                );
                 fs.mkdirSync(folder, { recursive: true });
                 console.log(chalk.green(`Created cache folder: ${folder}`));
             }
         }
-
     }
 
     generateEventSubSecret() {
@@ -416,7 +479,6 @@ export class Config {
     }
 
     getWebsocketClientUrl(): string | undefined {
-
         if (!this.cfg("websocket_enabled")) return undefined;
 
         // override
@@ -429,43 +491,55 @@ export class Config {
         }
 
         if (!this.cfg<string>("app_url")) {
-            console.error(chalk.red("App url not set, can't get websocket client url"));
+            console.error(
+                chalk.red("App url not set, can't get websocket client url")
+            );
             return undefined;
         }
 
         if (this.cfg<string>("app_url") === "debug") {
-            log(LOGLEVEL.WARNING, "config", "App url set to 'debug', can't get websocket client url");
+            log(
+                LOGLEVEL.WARNING,
+                "config.getWebsocketClientUrl",
+                "App url set to 'debug', can't get websocket client url"
+            );
             return undefined;
         }
 
         const http_path = this.cfg<string>("app_url");
         // const http_port = Twitchthis.cfg<number>("server_port", 8080);
         const route = "/socket/";
-        const ws_path = http_path.replace(/^https:\/\//, "wss://").replace(/^http:\/\//, "ws://");
+        const ws_path = http_path
+            .replace(/^https:\/\//, "wss://")
+            .replace(/^http:\/\//, "ws://");
 
         return `${ws_path}${route}`;
-
     }
 
     /**
      * @test disable
      */
     startWatchingConfig() {
-
         if (this.watcher) this.stopWatchingConfig();
 
         // no blocks in testing
         // if (process.env.NODE_ENV === "test") return;
 
         // monitor config for external changes
-        this.watcher = fs.watch(BaseConfigPath.config, (eventType, filename) => {
-            if (this._writeConfig) return;
-            console.log(`Config file changed: ${eventType} ${filename}`);
-            console.log("writeconfig check", Date.now());
-            log(LOGLEVEL.WARNING, "config", "Config file changed externally");
-            // TwitchConfig.loadConfig();
-        });
-
+        this.watcher = fs.watch(
+            BaseConfigPath.config,
+            (eventType, filename) => {
+                if (this._writeConfig) return;
+                console.log(`Config file changed: ${eventType} ${filename}`);
+                console.log("writeconfig check", Date.now());
+                log(
+                    LOGLEVEL.WARNING,
+                    "config.startWatchingConfig",
+                    "Config file changed externally"
+                );
+                // TwitchConfig.loadConfig();
+            }
+        );
     }
 
     stopWatchingConfig() {
@@ -479,7 +553,9 @@ export class Config {
             fs.writeFileSync(testfile, "test");
             fs.unlinkSync(testfile);
         } catch (err) {
-            console.error(chalk.bgRedBright.whiteBright.bold(`Permissions error: ${err}`));
+            console.error(
+                chalk.bgRedBright.whiteBright.bold(`Permissions error: ${err}`)
+            );
             process.exit(1);
         }
     }
@@ -488,15 +564,32 @@ export class Config {
      * @test disable
      */
     static checkBuiltDependencies() {
-
         // check if the client is built before starting the server
         if (!fs.existsSync(path.join(BaseConfigFolder.client, "index.html"))) {
-            console.error(chalk.red("Client is not built. Please run yarn build inside the client-vue folder."));
-            console.error(chalk.red(`Expected path: ${path.join(BaseConfigFolder.client, "index.html")}`));
+            console.error(
+                chalk.red(
+                    "Client is not built. Please run yarn build inside the client-vue folder."
+                )
+            );
+            console.error(
+                chalk.red(
+                    `Expected path: ${path.join(
+                        BaseConfigFolder.client,
+                        "index.html"
+                    )}`
+                )
+            );
             // process.exit(1);
-            throw new Error("Client is not built. Please run yarn build inside the client-vue folder.");
+            throw new Error(
+                "Client is not built. Please run yarn build inside the client-vue folder."
+            );
         } else {
-            console.log(chalk.green("Client is built: " + path.join(BaseConfigFolder.client, "index.html")));
+            console.log(
+                chalk.green(
+                    "Client is built: " +
+                        path.join(BaseConfigFolder.client, "index.html")
+                )
+            );
         }
 
         // check if the vodplayer is built before starting the server
@@ -512,15 +605,43 @@ export class Config {
         */
 
         // check if the chat dumper is built before starting the server
-        if (!fs.existsSync(path.join(AppRoot, "twitch-chat-dumper", "build", "index.js"))) {
-            console.error(chalk.red("Chat dumper is not built. Please run yarn build inside the twitch-chat-dumper folder."));
-            console.error(chalk.red(`Expected path: ${path.join(AppRoot, "twitch-chat-dumper", "build", "index.js")}`));
+        if (
+            !fs.existsSync(
+                path.join(AppRoot, "twitch-chat-dumper", "build", "index.js")
+            )
+        ) {
+            console.error(
+                chalk.red(
+                    "Chat dumper is not built. Please run yarn build inside the twitch-chat-dumper folder."
+                )
+            );
+            console.error(
+                chalk.red(
+                    `Expected path: ${path.join(
+                        AppRoot,
+                        "twitch-chat-dumper",
+                        "build",
+                        "index.js"
+                    )}`
+                )
+            );
             // process.exit(1);
-            throw new Error("Chat dumper is not built. Please run yarn build inside the twitch-chat-dumper folder.");
+            throw new Error(
+                "Chat dumper is not built. Please run yarn build inside the twitch-chat-dumper folder."
+            );
         } else {
-            console.log(chalk.green("Chat dumper is built: " + path.join(AppRoot, "twitch-chat-dumper", "build", "index.js")));
+            console.log(
+                chalk.green(
+                    "Chat dumper is built: " +
+                        path.join(
+                            AppRoot,
+                            "twitch-chat-dumper",
+                            "build",
+                            "index.js"
+                        )
+                )
+            );
         }
-
     }
 
     /**
@@ -528,17 +649,33 @@ export class Config {
      */
     static checkAppRoot() {
         // check that the app root is not outside of the root
-        if (!fs.existsSync(path.join(BaseConfigFolder.server, "tsconfig.json"))) {
-            console.error(chalk.red(`Could not find tsconfig.json in ${path.join(BaseConfigFolder.server, "tsconfig.json")}`));
+        if (
+            !fs.existsSync(path.join(BaseConfigFolder.server, "tsconfig.json"))
+        ) {
+            console.error(
+                chalk.red(
+                    `Could not find tsconfig.json in ${path.join(
+                        BaseConfigFolder.server,
+                        "tsconfig.json"
+                    )}`
+                )
+            );
             // process.exit(1);
-            throw new Error(`Could not find tsconfig.json in ${path.join(BaseConfigFolder.server, "tsconfig.json")}`);
+            throw new Error(
+                `Could not find tsconfig.json in ${path.join(
+                    BaseConfigFolder.server,
+                    "tsconfig.json"
+                )}`
+            );
         }
     }
 
     static async resetChannels() {
         TwitchChannel.channels_cache = {};
         LiveStreamDVR.getInstance().channels_config = [];
-        LiveStreamDVR.getInstance().getChannels().forEach((channel) => channel.clearVODs());
+        LiveStreamDVR.getInstance()
+            .getChannels()
+            .forEach((channel) => channel.clearVODs());
         LiveStreamDVR.getInstance().clearChannels();
         LiveStreamDVR.getInstance().clearVods();
         LiveStreamDVR.getInstance().loadChannelsConfig();
@@ -548,7 +685,6 @@ export class Config {
     }
 
     async validateExternalURL(test_url = ""): Promise<boolean> {
-
         const url = test_url !== "" ? test_url : this.cfg<string>("app_url");
 
         Config.validateExternalURLRules(url);
@@ -573,12 +709,16 @@ export class Config {
                 response_status = error.response?.status ?? 0;
             } else {
                 console.error("app url check error", error);
-                // res.status(400).send({
+                // res.api(400, {
                 //     status: "ERROR",
                 //     message: `External app url could not be contacted on '${full_url}' due to an error: ${error}`,
                 // });
                 // return;
-                throw new Error(`External app url could not be contacted on '${full_url}' due to an error: ${(error as Error).message}`);
+                throw new Error(
+                    `External app url could not be contacted on '${full_url}' due to an error: ${
+                        (error as Error).message
+                    }`
+                );
             }
         }
 
@@ -588,19 +728,19 @@ export class Config {
         }
 
         if (response_body !== "No data supplied") {
-            // res.status(400).send({
+            // res.api(400, {
             //     status: "ERROR",
             //     message: `External app url responded with an unexpected response: ${response_body}`,
             // });
-            throw new Error(`External app url '${full_url}' responded with an unexpected response: ${response_body} (status: ${response_status})`);
+            throw new Error(
+                `External app url '${full_url}' responded with an unexpected response: ${response_body} (status: ${response_status})`
+            );
         }
 
         return true;
-
     }
 
     static validateExternalURLRules(url: string) {
-
         debugLog(`Validating external url: ${url}`);
 
         // no url
@@ -630,33 +770,73 @@ export class Config {
         return true;
     }
 
+    private static _debug = false;
+
     static get debug(): boolean {
-        if (argv.debug) return true;
-        if (!Config.getInstance().initialised) return false;
-        if (Config.getInstance().forceDebug) return true;
-        return Config.getInstance().cfg("debug");
+        // if (argv.debug) return true;
+        // if (!Config.getInstance().initialised) return false;
+        // if (Config.getInstance().forceDebug) return true;
+        // return Config.getInstance().cfg("debug");
+        return this._debug;
+    }
+
+    static set debug(value: boolean) {
+        this._debug = value;
+        setLogDebug(value);
+    }
+
+    static updateDebug() {
+        if (argv.debug) {
+            Config.debug = true;
+        } else if (!Config.getInstance().initialised) {
+            Config.debug = false;
+        } else {
+            Config.debug = Config.getInstance().cfg("debug");
+        }
     }
 
     static get can_shutdown(): boolean {
-        if (!LiveStreamDVR.getInstance().getChannels() || LiveStreamDVR.getInstance().getChannels().length === 0) return true; // if there are no channels, allow shutdown
+        if (
+            !LiveStreamDVR.getInstance().getChannels() ||
+            LiveStreamDVR.getInstance().getChannels().length === 0
+        )
+            return true; // if there are no channels, allow shutdown
         if (GetRunningProcesses().length > 0) return false; // if there are any running processes, don't allow shutdown
-        return !LiveStreamDVR.getInstance().getChannels().some(c => c.is_live); // if there are any live channels, don't allow shutdown
+        return !LiveStreamDVR.getInstance()
+            .getChannels()
+            .some((c) => c.is_live); // if there are any live channels, don't allow shutdown
     }
 
     async getGitHash() {
         let ret;
         try {
-            ret = await execSimple("git", ["rev-parse", "HEAD"], "git hash check");
+            ret = await execSimple(
+                "git",
+                ["rev-parse", "HEAD"],
+                "git hash check"
+            );
         } catch (error) {
-            log(LOGLEVEL.WARNING, "config.getGitHash", "Could not fetch git hash");
+            log(
+                LOGLEVEL.WARNING,
+                "config.getGitHash",
+                "Could not fetch git hash"
+            );
             return false;
         }
         if (ret && ret.stdout) {
             this.gitHash = ret.stdout.join("").trim();
-            log(LOGLEVEL.SUCCESS, "config.getGitHash", `Running on Git hash: ${this.gitHash}`);
+            log(
+                LOGLEVEL.SUCCESS,
+                "config.getGitHash",
+                `Running on Git hash: ${this.gitHash}`
+            );
             return true;
         } else {
-            log(LOGLEVEL.WARNING, "config.getGitHash", "Could not fetch git hash");
+            log(
+                LOGLEVEL.WARNING,
+                "config.getGitHash",
+                "Could not fetch git hash"
+            );
             return false;
         }
     }
@@ -664,23 +844,39 @@ export class Config {
     async getGitBranch() {
         let ret;
         try {
-            ret = await execSimple("git", ["rev-parse", "--abbrev-ref", "HEAD"], "git branch check");
+            ret = await execSimple(
+                "git",
+                ["rev-parse", "--abbrev-ref", "HEAD"],
+                "git branch check"
+            );
         } catch (error) {
-            log(LOGLEVEL.WARNING, "config.getGitBranch", "Could not fetch git branch");
+            log(
+                LOGLEVEL.WARNING,
+                "config.getGitBranch",
+                "Could not fetch git branch"
+            );
             return false;
         }
         if (ret && ret.stdout) {
             this.gitBranch = ret.stdout.join("").trim();
-            log(LOGLEVEL.SUCCESS, "config.getGitBranch", `Running on Git branch: ${this.gitBranch}`);
+            log(
+                LOGLEVEL.SUCCESS,
+                "config.getGitBranch",
+                `Running on Git branch: ${this.gitBranch}`
+            );
             return true;
         } else {
-            log(LOGLEVEL.WARNING, "config.getGitBranch", "Could not fetch git branch");
+            log(
+                LOGLEVEL.WARNING,
+                "config.getGitBranch",
+                "Could not fetch git branch"
+            );
             return false;
         }
     }
 
     static debugLocalUrl() {
-        if (Helper.is_docker()) {
+        if (is_docker()) {
             return "localhost:8082";
         }
         return "localhost:8080";
@@ -690,9 +886,9 @@ export class Config {
         return this.cfg("date_format", "yyyy-MM-dd"); // if you're crazy enough to not use ISO8601
     }
 
-    hasEnvVar(key: keyof typeof settingsFields): boolean
-    {
-        const val = process.env[`TCD_${key.toUpperCase().replaceAll(".", "_")}`];
+    hasEnvVar(key: keyof typeof settingsFields): boolean {
+        const val =
+            process.env[`TCD_${key.toUpperCase().replaceAll(".", "_")}`];
 
         if (val === undefined) return false;
         if (val === "") return false;
@@ -700,9 +896,7 @@ export class Config {
         return true;
     }
 
-    envVarValue(key: keyof typeof settingsFields): string | undefined
-    {
+    envVarValue(key: keyof typeof settingsFields): string | undefined {
         return process.env[`TCD_${key.toUpperCase().replaceAll(".", "_")}`];
     }
-
 }

@@ -10,7 +10,6 @@ interface FFmpegMetadataChapter {
     meta?: string[];
 }
 export class FFmpegMetadata {
-
     public artist = "";
     public album = "";
     public title = "";
@@ -46,7 +45,7 @@ export class FFmpegMetadata {
             .replace(/=/g, "\\=")
             .replace(/;/g, "\\;")
             .replace(/#/g, "\\#")
-            .replace(/\n/g, "\\\n");            
+            .replace(/\n/g, "\\\n");
     }
 
     setArtist(artist: string): this {
@@ -104,7 +103,13 @@ export class FFmpegMetadata {
         return this;
     }
 
-    addChapter(start: number, end: number, title: string, timebase: string, meta?: string[]): this {
+    addChapter(
+        start: number,
+        end: number,
+        title: string,
+        timebase: string,
+        meta?: string[]
+    ): this {
         if (end < start) {
             throw new Error("End time must be greater than start time");
         }
@@ -121,24 +126,36 @@ export class FFmpegMetadata {
     getString(): string {
         let result = "";
         result += ";FFMETADATA1\n";
-        if (this.artist !== "") result += `artist=${this.sanitize(this.artist)}\n`;
+        if (this.artist !== "")
+            result += `artist=${this.sanitize(this.artist)}\n`;
         if (this.album !== "") result += `album=${this.sanitize(this.album)}\n`;
         if (this.title !== "") result += `title=${this.sanitize(this.title)}\n`;
-        if (this.author !== "") result += `author=${this.sanitize(this.author)}\n`;
-        if (this.album_artist !== "") result += `album_artist=${this.sanitize(this.album_artist)}\n`;
-        if (this.grouping !== "") result += `grouping=${this.sanitize(this.grouping)}\n`;
-        if (this.composer !== "") result += `composer=${this.sanitize(this.composer)}\n`;
+        if (this.author !== "")
+            result += `author=${this.sanitize(this.author)}\n`;
+        if (this.album_artist !== "")
+            result += `album_artist=${this.sanitize(this.album_artist)}\n`;
+        if (this.grouping !== "")
+            result += `grouping=${this.sanitize(this.grouping)}\n`;
+        if (this.composer !== "")
+            result += `composer=${this.sanitize(this.composer)}\n`;
         if (this.year !== "") result += `year=${this.sanitize(this.year)}\n`;
         if (this.track !== "") result += `track=${this.sanitize(this.track)}\n`;
-        if (this.comment !== "") result += `comment=${this.sanitize(this.comment)}\n`;
+        if (this.comment !== "")
+            result += `comment=${this.sanitize(this.comment)}\n`;
         if (this.genre !== "") result += `genre=${this.sanitize(this.genre)}\n`;
-        if (this.copyright !== "") result += `copyright=${this.sanitize(this.copyright)}\n`;
-        if (this.description !== "") result += `description=${this.sanitize(this.description)}\n`;
-        if (this.synopsis !== "") result += `synopsis=${this.sanitize(this.synopsis)}\n`;
+        if (this.copyright !== "")
+            result += `copyright=${this.sanitize(this.copyright)}\n`;
+        if (this.description !== "")
+            result += `description=${this.sanitize(this.description)}\n`;
+        if (this.synopsis !== "")
+            result += `synopsis=${this.sanitize(this.synopsis)}\n`;
         if (this.show !== "") result += `show=${this.sanitize(this.show)}\n`;
-        if (this.episode_id !== "") result += `episode_id=${this.sanitize(this.episode_id)}\n`;
-        if (this.network !== "") result += `network=${this.sanitize(this.network)}\n`;
-        if (this.lyrics !== "") result += `lyrics=${this.sanitize(this.lyrics)}\n`;
+        if (this.episode_id !== "")
+            result += `episode_id=${this.sanitize(this.episode_id)}\n`;
+        if (this.network !== "")
+            result += `network=${this.sanitize(this.network)}\n`;
+        if (this.lyrics !== "")
+            result += `lyrics=${this.sanitize(this.lyrics)}\n`;
         if (this.date !== undefined) {
             result += `date=${format(this.date, "yyyy-MM-dd")}\n`;
             result += `year=${format(this.date, "yyyy")}\n`;
@@ -169,5 +186,4 @@ export class FFmpegMetadata {
         fs.writeFileSync(file, this.getString(), { encoding: "utf8" });
         return file;
     }
-
 }

@@ -1,31 +1,17 @@
 <template>
     <span class="streamer-title-tools" aria-label="Streamer tools">
         <!-- edit -->
-        <router-link
-            class="icon-button white"
-            :to="{ name: 'SettingsChannels', params: { channel: streamer.uuid } }"
-            :title="t('streamer.tools.edit-channel')"
-        >
+        <router-link class="icon-button white" :to="{ name: 'SettingsChannels', params: { channel: streamer.uuid } }" :title="t('streamer.tools.edit-channel')">
             <span class="icon"><font-awesome-icon icon="pencil" /></span>
         </router-link>
 
         <!-- abort recording -->
-        <button
-            v-if="canAbortCapture"
-            class="icon-button white"
-            :title="t('streamer.tools.abort-record')"
-            @click="abortCapture"
-        >
+        <button v-if="canAbortCapture" class="icon-button white" :title="t('streamer.tools.abort-record')" @click="abortCapture">
             <span class="icon"><font-awesome-icon icon="video-slash" /></span>
         </button>
 
         <!-- force recording -->
-        <button
-            v-else
-            class="icon-button white"
-            :title="t('streamer.tools.force-record')"
-            @click="forceRecord"
-        >
+        <button v-else class="icon-button white" :title="t('streamer.tools.force-record')" @click="forceRecord">
             <span class="icon"><font-awesome-icon icon="video" /></span>
         </button>
 
@@ -41,37 +27,23 @@
         -->
 
         <!-- run cleanup -->
-        <button
-            class="icon-button white"
-            :title="t('streamer.tools.clean-up')"
-            @click="doChannelCleanup"
-        >
+        <button class="icon-button white" :title="t('streamer.tools.clean-up')" @click="doChannelCleanup">
             <span class="icon"><font-awesome-icon icon="trash" /></span>
         </button>
 
         <!-- expand/collapse all vods -->
-        <button
-            class="icon-button white"
-            :title="t('streamer.tools.expand-collapse-all-vods')"
-            @click="emit('toggleExpandVods')"
-        >
+        <button class="icon-button white" :title="t('streamer.tools.expand-collapse-all-vods')" @click="emit('toggleExpandVods')">
             <span class="icon"><font-awesome-icon :icon="!toggleAllVodsExpanded ? 'chevron-up' : 'chevron-down'" /></span>
         </button>
 
         <!-- more menu -->
         <ContextMenu>
             <template #trigger="trigger">
-                <button
-                    class="icon-button white"
-                    :title="t('streamer.tools.more')"
-                    @click="trigger.open"
-                    ref="moreMenuTrigger"
-                    aria-haspopup="true"
-                >
+                <button ref="moreMenuTrigger" class="icon-button white" :title="t('streamer.tools.more')" aria-haspopup="true" @click="trigger.open">
                     <span class="icon"><font-awesome-icon icon="ellipsis-h" /></span>
                 </button>
             </template>
-            <template v-slot:entries>
+            <template #entries>
                 <ul aria-label="Context menu">
                     <li class="context-menu-header">
                         {{ streamer.displayName }}
@@ -79,73 +51,49 @@
 
                     <!-- refresh channel data -->
                     <li>
-                        <button
-                            class="context-menu-button white"
-                            :title="t('streamer.tools.refresh-data')"
-                            @click="doChannelRefresh"
-                        >
+                        <button class="context-menu-button white" :title="t('streamer.tools.refresh-data')" @click="doChannelRefresh">
                             <span class="icon"><font-awesome-icon icon="sync" /></span>
-                            <span class="text">{{ t('streamer.tools.refresh-data') }}</span>
+                            <span class="text">{{ t("streamer.tools.refresh-data") }}</span>
                         </button>
                     </li>
 
                     <!-- download videos -->
                     <li>
-                        <button
-                            class="context-menu-button white"
-                            :title="t('streamer.tools.video-download')"
-                            @click="emit('showVideoDownloadMenu')"
-                        >
+                        <button class="context-menu-button white" :title="t('streamer.tools.video-download')" @click="emit('showVideoDownloadMenu')">
                             <span class="icon"><font-awesome-icon icon="download" /></span>
-                            <span>{{ t('streamer.tools.video-download') }}</span>
+                            <span>{{ t("streamer.tools.video-download") }}</span>
                         </button>
                     </li>
 
                     <!-- download clips -->
                     <li>
-                        <button
-                            class="context-menu-button white"
-                            :title="t('streamer.tools.clip-download')"
-                            @click="emit('showClipDownloadMenu')"
-                        >
+                        <button class="context-menu-button white" :title="t('streamer.tools.clip-download')" @click="emit('showClipDownloadMenu')">
                             <span class="icon"><font-awesome-icon icon="download" /></span>
-                            <span>{{ t('streamer.tools.clip-download') }}</span>
+                            <span>{{ t("streamer.tools.clip-download") }}</span>
                         </button>
                     </li>
 
                     <!-- scan vods -->
                     <li>
-                        <button
-                            class="context-menu-button white"
-                            :title="t('streamer.tools.scan-for-vods')"
-                            @click="doScanVods"
-                        >
+                        <button class="context-menu-button white" :title="t('streamer.tools.scan-for-vods')" @click="doScanVods">
                             <span class="icon"><font-awesome-icon icon="folder-open" /></span>
-                            <span>{{ t('streamer.tools.scan-for-vods') }}</span>
+                            <span>{{ t("streamer.tools.scan-for-vods") }}</span>
                         </button>
                     </li>
 
                     <!-- scan local videos -->
                     <li>
-                        <button
-                            class="context-menu-button white"
-                            :title="t('streamer.tools.scan-for-local-videos')"
-                            @click="doScanLocalVideos"
-                        >
+                        <button class="context-menu-button white" :title="t('streamer.tools.scan-for-local-videos')" @click="doScanLocalVideos">
                             <span class="icon"><font-awesome-icon icon="folder-open" /></span>
-                            <span>{{ t('streamer.tools.scan-for-local-videos') }}</span>
+                            <span>{{ t("streamer.tools.scan-for-local-videos") }}</span>
                         </button>
                     </li>
 
                     <!-- export vods -->
                     <li>
-                        <button
-                            class="context-menu-button white"
-                            :title="t('streamer.tools.export-vods')"
-                            @click="doExportVods"
-                        >
+                        <button class="context-menu-button white" :title="t('streamer.tools.export-vods')" @click="doExportVods">
                             <span class="icon"><font-awesome-icon icon="upload" /></span>
-                            <span>{{ t('streamer.tools.export-vods') }}</span>
+                            <span>{{ t("streamer.tools.export-vods") }}</span>
                         </button>
                     </li>
                 </ul>
@@ -156,15 +104,15 @@
 
 <script lang="ts" setup>
 import ContextMenu from "@/components/reusables/ContextMenu.vue";
-import { useStore } from '@/store';
-import type { ApiResponse } from '@common/Api/Api';
-import axios from 'axios';
-import { computed, ref } from 'vue';
+import { useStore } from "@/store";
+import type { ApiResponse } from "@common/Api/Api";
+import axios from "axios";
+import { computed, ref } from "vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUpload, faEllipsisH } from "@fortawesome/free-solid-svg-icons";
-import { formatBytes } from '@/mixins/newhelpers';
-import { useI18n } from 'vue-i18n';
+import { formatBytes } from "@/mixins/newhelpers";
+import { useI18n } from "vue-i18n";
 import type { ChannelTypes, VODTypes } from "@/twitchautomator";
 library.add(faUpload, faEllipsisH);
 
@@ -174,9 +122,9 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-    (event: 'showVideoDownloadMenu'): void;
-    (event: 'showClipDownloadMenu'): void;
-    (event: 'toggleExpandVods'): void;
+    (event: "showVideoDownloadMenu"): void;
+    (event: "showClipDownloadMenu"): void;
+    (event: "toggleExpandVods"): void;
 }>();
 
 const store = useStore();
@@ -411,7 +359,6 @@ function doExportVods() {
             }
         });
 }
-
 </script>
 
 <style lang="scss" scoped>

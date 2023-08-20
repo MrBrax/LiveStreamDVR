@@ -7,7 +7,6 @@ import { BaseExporter } from "./Base";
 import { xClearInterval, xInterval } from "@/Helpers/Timeout";
 
 export class FileExporter extends BaseExporter {
-
     public type = "File";
 
     public directory = "";
@@ -26,7 +25,8 @@ export class FileExporter extends BaseExporter {
         if (!this.extension) throw new Error("No extension");
         if (!this.getFormattedTitle()) throw new Error("No title");
 
-        const final_filename = sanitize(this.getFormattedTitle()) + "." + this.extension;
+        const final_filename =
+            sanitize(this.getFormattedTitle()) + "." + this.extension;
 
         this.final_path = path.join(this.directory, final_filename);
 
@@ -34,9 +34,15 @@ export class FileExporter extends BaseExporter {
             throw new Error(`File already exists: ${this.final_path}`);
         }
 
-        log(LOGLEVEL.INFO, "FileExporter", `Exporting ${this.filename} to ${this.final_path}...`);
+        log(
+            LOGLEVEL.INFO,
+            "FileExporter.export",
+            `Exporting ${this.filename} to ${this.final_path}...`
+        );
 
-        const job = Job.create(`FileExporter_${path.basename(this.final_path)}`);
+        const job = Job.create(
+            `FileExporter_${path.basename(this.final_path)}`
+        );
         job.dummy = true;
         job.save();
 
@@ -62,10 +68,8 @@ export class FileExporter extends BaseExporter {
     }
 
     async verify(): Promise<boolean> {
-        return new Promise<boolean>((resolve, reject) => {
-            const exists = fs.existsSync(this.final_path);
-            resolve(exists);
+        return await new Promise<boolean>((resolve, reject) => {
+            resolve(fs.existsSync(this.final_path));
         });
     }
-
 }

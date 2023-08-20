@@ -1,18 +1,17 @@
-import { MockApiChannelData, MockApiChapterData, MockApiGameData, MockApiVODData, MockApiVODSegmentData } from '@/../test/mockdata';
-import { expect, test } from 'vitest'
+import { MockApiChannelData, MockApiChapterData, MockApiGameData, MockApiVODData, MockApiVODSegmentData } from "@/../test/mockdata";
+import { expect, test } from "vitest";
 import TwitchChannel from "./Providers/Twitch/TwitchChannel";
-import TwitchVOD from './Providers/Twitch/TwitchVOD';
-import { TwitchGame } from './Providers/Twitch/TwitchGame';
-import { TwitchVODChapter } from './Providers/Twitch/TwitchVODChapter';
-import { BaseVODSegment } from './Providers/Base/BaseVODSegment';
+import TwitchVOD from "./Providers/Twitch/TwitchVOD";
+import { TwitchGame } from "./Providers/Twitch/TwitchGame";
+import { TwitchVODChapter } from "./Providers/Twitch/TwitchVODChapter";
+import { BaseVODSegment } from "./Providers/Base/BaseVODSegment";
 
 test("makeFromApiResponse", () => {
-
     const channel = TwitchChannel.makeFromApiResponse(MockApiChannelData);
     expect(channel).to.be.instanceof(TwitchChannel);
-    expect(channel.userid).toBe("123");
-    expect(channel.display_name).toBe("test");
-    expect(channel.login).toBe("test");
+    expect(channel.internalId).toBe("123");
+    expect(channel.displayName).toBe("Test");
+    expect(channel.internalName).toBe("test");
     expect(channel.description).toBe("test");
     expect(channel.quality).toEqual([]);
     expect(channel.vods_raw).toEqual([]);
@@ -21,11 +20,9 @@ test("makeFromApiResponse", () => {
     expect(channel.api_getSubscriptionStatus).toBe(false);
     expect(channel.broadcaster_type).toBe("");
     expect(channel.clips_list).toEqual([]);
-
 });
 
 test("is_capturing getter", () => {
-
     const channel = TwitchChannel.makeFromApiResponse(MockApiChannelData);
     expect(channel.is_capturing).toBe(false);
 
@@ -34,11 +31,9 @@ test("is_capturing getter", () => {
     mock_vod.is_capturing = true;
     live_channel.vods_list.push(mock_vod);
     expect(live_channel.is_capturing).toBe(true);
-
 });
 
 test("current_vod getter", () => {
-
     const channel = TwitchChannel.makeFromApiResponse(MockApiChannelData);
     expect(channel.current_vod).toBe(undefined);
 
@@ -47,11 +42,9 @@ test("current_vod getter", () => {
     mock_vod.is_capturing = true;
     live_channel.vods_list.push(mock_vod);
     expect(live_channel.current_vod).toBe(mock_vod);
-
 });
 
 test("is_converting getter", () => {
-
     const channel = TwitchChannel.makeFromApiResponse(MockApiChannelData);
     expect(channel.is_converting).toBe(false);
 
@@ -60,11 +53,9 @@ test("is_converting getter", () => {
     mock_vod.is_converting = true;
     converting_channel.vods_list.push(mock_vod);
     expect(converting_channel.is_converting).toBe(true);
-
 });
 
 test("current_game getter", () => {
-
     const channel = TwitchChannel.makeFromApiResponse(MockApiChannelData);
     expect(channel.current_game).toBe(undefined);
 
@@ -80,11 +71,9 @@ test("current_game getter", () => {
     gaming_channel.vods_list.push(mock_vod);
 
     expect(gaming_channel.current_game).toBe(mock_game);
-
 });
 
 test("vods_size getter", () => {
-
     const channel = TwitchChannel.makeFromApiResponse(MockApiChannelData);
     expect(channel.vods_size).toBe(0);
 
@@ -96,9 +85,7 @@ test("vods_size getter", () => {
     vod_channel.vods_list.push(mock_vod);
 
     expect(vod_channel.vods_size).toBe(1024);
-
 });
-
 
 /*
 test("current_game getter", () => {

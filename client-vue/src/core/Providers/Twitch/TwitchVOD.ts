@@ -28,13 +28,6 @@ export default class TwitchVOD extends BaseVOD {
     stream_resolution: string | undefined = "";
     stream_title = "";
 
-    /** @deprecated */
-    streamer_login = "";
-
-    /** @deprecated */
-    streamer_id = "";
-
-
     public static makeFromApiResponse(apiResponse: ApiTwitchVod): TwitchVOD {
         const vod = new TwitchVOD();
         vod.uuid = apiResponse.uuid;
@@ -70,8 +63,6 @@ export default class TwitchVOD extends BaseVOD {
         vod.is_capture_paused = apiResponse.is_capture_paused;
         vod.stream_resolution = apiResponse.stream_resolution;
         vod.stream_title = apiResponse.stream_title;
-        vod.streamer_login = apiResponse.streamer_login;
-        vod.streamer_id = apiResponse.streamer_id;
         vod.webpath = apiResponse.webpath;
         vod.convertingStatus = apiResponse.api_getConvertingStatus;
         vod.recordingSize = apiResponse.api_getRecordingSize;
@@ -88,8 +79,14 @@ export default class TwitchVOD extends BaseVOD {
         vod.bookmarks = apiResponse.bookmarks || [];
         vod.cloud_storage = apiResponse.cloud_storage || false;
         vod.exportData = apiResponse.export_data || {};
-        vod.viewers = apiResponse.viewers ? apiResponse.viewers.map(entry => { return { timestamp: new Date(entry.timestamp), amount: entry.amount } }) : [];
-        vod.stream_pauses = apiResponse.stream_pauses ? apiResponse.stream_pauses.map(entry => ({ start: new Date(entry.start), end: new Date(entry.end) })) : [];
+        vod.viewers = apiResponse.viewers
+            ? apiResponse.viewers.map((entry) => {
+                  return { timestamp: new Date(entry.timestamp), amount: entry.amount };
+              })
+            : [];
+        vod.stream_pauses = apiResponse.stream_pauses
+            ? apiResponse.stream_pauses.map((entry) => ({ start: new Date(entry.start), end: new Date(entry.end) }))
+            : [];
         return vod;
     }
 
@@ -147,5 +144,4 @@ export default class TwitchVOD extends BaseVOD {
         }
         return this.basename;
     }
-
 }

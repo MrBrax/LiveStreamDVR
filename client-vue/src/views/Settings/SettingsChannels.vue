@@ -1,41 +1,33 @@
 <template>
     <section class="section">
         <div class="section-title">
-            <h1>{{ t('pages.channels') }}</h1>
+            <h1>{{ t("pages.channels") }}</h1>
         </div>
         <div class="section-content">
             <h1>Channels</h1>
             <ul class="list">
-                <li
-                    v-for="channel in formChannels"
-                    :key="channel.uuid"
-                >
+                <li v-for="channel in formChannels" :key="channel.uuid">
                     <router-link :to="{ params: { channel: channel.uuid } }">
                         <span class="icon">
                             <font-awesome-icon :icon="['fab', channel.provider]" />
                         </span>
-                        <span>{{ store.channelUUIDToInternalName(channel.uuid) || channel.login || "<<unknown>>" }}</span>
+                        <span>{{ internalNameFallback(channel) }}</span>
                     </router-link>
                 </li>
             </ul>
-            <hr>
+            <hr />
             <div v-if="formChannel && !loading">
-                <h1>{{ store.channelUUIDToInternalName(formChannel.uuid) || formChannel.login || "<<unknown>>" }}</h1>
-                <channel-update-form
-                    :key="formChannel.uuid"
-                    :channel="formChannel"
-                    @form-success="updateAll"
-                />
+                <h1>{{ internalNameFallback(formChannel) }}</h1>
+                <channel-update-form :key="formChannel.uuid" :channel="formChannel" @form-success="updateAll" />
             </div>
             <span v-if="(!formChannels || formChannels.length == 0) && store.authElement && !loading">
-                No channels added. Use the tab "New channel" above.</span>
-            <div
-                v-else-if="!store.authElement && !loading"
-                class="section-content"
+                No channels added. Use the tab "New channel" above.</span
             >
+            <div v-else-if="!store.authElement && !loading" class="section-content">
                 <span class="icon">
                     <font-awesome-icon icon="sign-in-alt" />
-                </span> {{ t("messages.login") }}
+                </span>
+                {{ t("messages.login") }}
             </div>
             <LoadingBox v-else-if="loading" />
         </div>
@@ -70,28 +62,35 @@ const formChannels = ref<ApiChannelConfig[]>([]);
 const currentChannel = ref("");
 
 const formChannel = computed((): ApiChannelConfig | undefined => {
-    return formChannels.value.find(c => c.uuid == currentChannel.value);
+    return formChannels.value.find((c) => c.uuid == currentChannel.value);
 });
 
-watch(() => route.params.channel, (channel) => {
-    currentChannel.value = channel as string;
-});
+watch(
+    () => route.params.channel,
+    (channel) => {
+        currentChannel.value = channel as string;
+    },
+);
 
 onMounted(() => {
     currentChannel.value = route.params.channel as string;
     fetchData();
 });
 
+function internalNameFallback(channel: ApiChannelConfig) {
+    return store.channelUUIDToInternalName(channel.uuid) || channel.login || "<<unknown>>";
+}
+
 function fetchData() {
     console.debug("Fetching channels");
     loading.value = true;
     axios
-        .get<ApiSettingsResponse>(`api/v0/settings`)
+        .get<ApiSettingsResponse>("api/v0/settings")
         .then((response) => {
             const json = response.data;
             if (json.message) alert(json.message);
             const channels = json.data.channels;
-            /* formChannels.value = */ 
+            /* formChannels.value = */
             channels.sort((a, b) => {
                 // if (a.provider == "youtube" || b.provider == "youtube") return -1;
                 // return a..localeCompare(b.login)
@@ -99,7 +98,7 @@ function fetchData() {
             });
             formChannels.value = channels;
             if (!currentChannel.value && formChannels.value.length > 0) {
-                router.replace({ params: { channel: formChannels.value[0].uuid }});
+                router.replace({ params: { channel: formChannels.value[0].uuid } });
                 // this.currentChannel = formChannels.value[0].uuid;
             }
         })
@@ -111,10 +110,10 @@ function fetchData() {
                 alert("Error fetching settings");
                 console.error(err);
             }
-        }).finally(() => {
+        })
+        .finally(() => {
             loading.value = false;
         });
-
 }
 
 function updateUsers() {
@@ -125,11 +124,9 @@ function updateAll() {
     fetchData();
     updateUsers();
 }
-    
 </script>
 
 <style lang="scss" scoped>
-
 .list {
     list-style: none;
     margin: 0 0 0.8em 0;
@@ -154,5 +151,4 @@ function updateAll() {
         }
     }
 }
-
 </style>

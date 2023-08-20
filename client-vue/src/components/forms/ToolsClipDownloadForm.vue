@@ -1,17 +1,9 @@
 <template>
-    <form
-        method="POST"
-        @submit.prevent="submitForm"
-    >
+    <form method="POST" @submit.prevent="submitForm">
         <div class="field">
             <label class="label">Clip URL</label>
             <div class="control">
-                <input
-                    v-model="formData.url"
-                    class="input"
-                    type="text"
-                    required
-                >
+                <input v-model="formData.url" class="input" type="text" required />
             </div>
         </div>
 
@@ -19,14 +11,8 @@
             <label class="label">Quality</label>
             <div class="control">
                 <div class="select">
-                    <select
-                        v-model="formData.quality"
-                        required
-                    >
-                        <option
-                            v-for="quality of VideoQualityArray"
-                            :key="quality"
-                        >
+                    <select v-model="formData.quality" required>
+                        <option v-for="quality of VideoQualityArray" :key="quality">
                             {{ quality }}
                         </option>
                     </select>
@@ -34,25 +20,15 @@
             </div>
         </div>
 
-        <FormSubmit
-            :form-status="formStatus"
-            :form-status-text="formStatusText"
-        >
+        <FormSubmit :form-status="formStatus" :form-status-text="formStatusText">
             <div class="control">
-                <d-button
-                    color="success"
-                    icon="download"
-                    type="submit"
-                >
-                    {{ t('buttons.execute') }}
+                <d-button color="success" icon="download" type="submit">
+                    {{ t("buttons.execute") }}
                 </d-button>
             </div>
         </FormSubmit>
 
-        <div
-            v-if="fileLink"
-            class="field"
-        >
+        <div v-if="fileLink" class="field">
             <a :href="fileLink">{{ fileLink }}</a>
         </div>
     </form>
@@ -81,13 +57,12 @@ const formData = reactive({
 });
 const fileLink = ref<string>("");
 
-    
 function submitForm(event: Event) {
     formStatusText.value = t("messages.loading");
     formStatus.value = "LOADING";
 
     axios
-        .post<ApiResponse>(`/api/v0/tools/clip_download`, formData)
+        .post<ApiResponse>("/api/v0/tools/clip_download", formData)
         .then((response) => {
             const json = response.data;
             console.log("form success", json);
@@ -114,5 +89,4 @@ function submitForm(event: Event) {
     event.preventDefault();
     return false;
 }
-
 </script>

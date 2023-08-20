@@ -10,15 +10,12 @@
         <span class="icon">
             <font-awesome-icon :icon="isFlashing ? 'check' : 'copy'" />
         </span>
-        <span 
-            v-if="isFlashing"
-            class="tooltip"
-        >Copied!</span>
+        <span v-if="isFlashing" class="tooltip">Copied!</span>
     </span>
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, useSlots } from 'vue';
+import { computed, ref, useSlots } from "vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCopy, faCheck } from "@fortawesome/free-solid-svg-icons";
 library.add(faCopy, faCheck);
@@ -45,7 +42,6 @@ function flashBox() {
         isFlashing.value = false;
     }, 1000);
 }
-
 </script>
 
 <style lang="scss" scoped>
@@ -60,7 +56,9 @@ function flashBox() {
     cursor: pointer;
     transition: background-color 0.2s ease-in-out;
 
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.1);
+    box-shadow:
+        0 0 0 1px rgba(0, 0, 0, 0.1),
+        0 1px 2px rgba(0, 0, 0, 0.1);
 
     &:hover {
         background-color: var(--codebox-hover-background-color);
@@ -74,7 +72,6 @@ function flashBox() {
     &.is-flashing {
         animation: flash 0.5s ease-in-out;
     }
-
 }
 
 .tooltip {

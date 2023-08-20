@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 import chalk from "chalk";
-import { LiveStreamDVR } from "./Core/LiveStreamDVR";
 import dotenv from "dotenv";
 import express from "express";
 import session from "express-session";
@@ -10,13 +9,20 @@ import fs from "node:fs";
 import path from "node:path";
 import { WebSocketServer } from "ws";
 import { version } from "../package.json";
-import { AppName, BaseConfigDataFolder, BaseConfigFolder } from "./Core/BaseConfig";
+import {
+    AppName,
+    BaseConfigCacheFolder,
+    BaseConfigDataFolder,
+    BaseConfigFolder,
+} from "./Core/BaseConfig";
 import { ClientBroker } from "./Core/ClientBroker";
 import { Config } from "./Core/Config";
+import { LiveStreamDVR } from "./Core/LiveStreamDVR";
 import { Webhook } from "./Core/Webhook";
+import { applyExpressApiFunction } from "./Extend/express-api";
+import { debugLog } from "./Helpers/Console";
 import i18n from "./Helpers/i18n";
 import ApiRouter from "./Routes/Api";
-import { debugLog } from "./Helpers/Console";
 
 declare module "express-session" {
     interface SessionData {
@@ -44,7 +50,9 @@ if (LiveStreamDVR.argv.help || LiveStreamDVR.argv.h) {
 }
 
 // for overriding port if you can't or don't want to use the web gui to change it
-const override_port = LiveStreamDVR.argv.port ? parseInt(LiveStreamDVR.argv.port as string) : undefined;
+const override_port = LiveStreamDVR.argv.port
+    ? parseInt(LiveStreamDVR.argv.port as string)
+    : undefined;
 
 try {
     LiveStreamDVR.checkVersion();
@@ -54,13 +62,13 @@ try {
 
 // load all required config files and cache stuff
 LiveStreamDVR.init().then(() => {
-
     // if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "lock"))) {
     //     logAdvanced(LOGLEVEL.WARNING, "index", "Seems like the server was not shut down gracefully...");
     // }
 
     const app = express();
-    const port = override_port || Config.getInstance().cfg<number>("server_port", 8080);
+    const port =
+        override_port || Config.getInstance().cfg<number>("server_port", 8080);
 
     const basepath = Config.getInstance().cfg<string>("basepath", "");
 
@@ -70,19 +78,30 @@ LiveStreamDVR.init().then(() => {
         console.log(chalk.yellow("Setting trust proxy to true."));
     }
 
-
     /**
      * https://flaviocopes.com/express-get-raw-body/
-     * 
+     *
      * apparently this is needed to get the raw body since express doesn't do it by default,
      * i read it takes up twice the memory, but it's required for signature verification
      */
 
-    app.use(express.json({
-        verify: (req, res, buf, encoding) => {
-            (req as any).rawBody = buf;
-        },
-    }));
+    app.use(
+        express.json({
+            verify: (req, res, buf, encoding) => {
+                (req as any).rawBody = buf;
+            },
+        })
+    );
+
+    // extend express req object with an api function that takes a status code and a generic object as arguments
+    // this is used to send json responses
+    // app.use((req, res, next) => {
+    //     res.api = <T>(status: number, data: T) => {
+    //         res.status(status).json(data);
+    //     };
+    //     next();
+    // });
+    applyExpressApiFunction(app);
 
     app.use(express.text({ type: "application/xml" }));
     app.use(express.text({ type: "application/atom+xml" }));
@@ -91,6 +110,7 @@ LiveStreamDVR.init().then(() => {
     app.use(i18n);
 
     // logging
+    /** @TODO not sure if to continue using morgan since we now use winston for main logging **/
     if (process.env.NODE_ENV == "development") {
         app.use(morgan("dev"));
     } else {
@@ -98,7 +118,7 @@ LiveStreamDVR.init().then(() => {
     }
 
     const sessionParser = session({
-        secret: Config.getInstance().cfg<string>("eventsub_secret", ""), // TODO: make this unique from eventsub_secret
+        secret: Config.getInstance().cfg<string>("eventsub_secret", ""), // TODO make this unique from eventsub_secret
         resave: false,
         saveUninitialized: true,
         // cookie: {
@@ -124,9 +144,18 @@ LiveStreamDVR.init().then(() => {
     // static files and storage
     // baserouter.use("/vodplayer", express.static(BaseConfigFolder.vodplayer));
     baserouter.use("/vods", express.static(BaseConfigDataFolder.vod));
-    baserouter.use("/saved_vods", express.static(BaseConfigDataFolder.saved_vods));
-    baserouter.use("/saved_clips", express.static(BaseConfigDataFolder.saved_clips));
-    baserouter.use("/cache", express.static(BaseConfigDataFolder.public_cache));
+    baserouter.use(
+        "/saved_vods",
+        express.static(BaseConfigDataFolder.saved_vods)
+    );
+    baserouter.use(
+        "/saved_clips",
+        express.static(BaseConfigDataFolder.saved_clips)
+    );
+    baserouter.use(
+        "/cache",
+        express.static(BaseConfigCacheFolder.public_cache)
+    );
     if (process.env.TCD_EXPOSE_LOGS_TO_PUBLIC == "1") {
         baserouter.use("/logs", express.static(BaseConfigDataFolder.logs));
     }
@@ -183,34 +212,68 @@ LiveStreamDVR.init().then(() => {
     app.use(basepath, baserouter);
 
     const server = app.listen(port, () => {
-        console.log(chalk.bgBlue.greenBright(`🥞 ${AppName} listening on port ${port}, mode ${process.env.NODE_ENV}. Base path: ${basepath || "/"} 🥞`));
+        console.log(
+            chalk.bgBlue.greenBright(
+                `🥞 ${AppName} listening on port ${port}, mode ${
+                    process.env.NODE_ENV
+                }. Base path: ${basepath || "/"} 🥞`
+            )
+        );
         console.log(chalk.yellow(`Local: http://localhost:${port}${basepath}`));
-        console.log(chalk.yellow(`Public: ${Config.getInstance().cfg("app_url")}`));
-        if (process.env.HTTP_PROXY) console.log(chalk.yellow(`HTTP Proxy: ${process.env.HTTP_PROXY}`));
-        if (process.env.npm_lifecycle_script?.includes("index.ts")) {
-            console.log(chalk.greenBright("~ Running with TypeScript ~"));
-        } else {
-            console.log(chalk.greenBright("~ Running with plain JS ~"));
-            console.log(chalk.greenBright(`Build date: ${fs.statSync(__filename).mtime.toLocaleString()} (${path.basename(__filename)})`));
+        console.log(
+            chalk.yellow(`Public: ${Config.getInstance().cfg("app_url")}`)
+        );
+        if (process.env.HTTP_PROXY) {
+            console.log(chalk.yellow(`HTTP Proxy: ${process.env.HTTP_PROXY}`));
         }
-        console.log(chalk.greenBright(`Version: ${process.env.npm_package_version} running on node ${process.version} ${process.platform} 🦄`));
+
+        if (
+            process.env.npm_lifecycle_event == "start:dev" ||
+            process.env.NODE_ENV == "development" // probably not legit
+        ) {
+            console.log(chalk.greenBright("Type: Live TypeScript"));
+        } else {
+            console.log(chalk.greenBright("Type: Compiled JavaScript"));
+            console.log(
+                chalk.greenBright(
+                    `Build date: ${fs
+                        .statSync(__filename)
+                        .mtime.toLocaleString()} (${path.basename(__filename)})`
+                )
+            );
+        }
+
+        console.log(
+            chalk.greenBright(
+                `Version: ${process.env.npm_package_version} running on node ${process.version} ${process.platform} 🦄`
+            )
+        );
+
+        console.log(chalk.greenBright(`Debug: ${Config.debug}`));
 
         if (process.env.BUILD_DATE) {
-            console.log(chalk.greenBright("~ Detected CI build ~"));
-            console.log(chalk.greenBright(`Development: ${process.env.IS_DEV}`));
-            console.log(chalk.greenBright(`Build date: ${process.env.BUILD_DATE}`));
+            console.log(chalk.greenBright("Build: CI"));
+            console.log(
+                chalk.greenBright(`Development: ${process.env.IS_DEV}`)
+            );
+            console.log(
+                chalk.greenBright(`Build date: ${process.env.BUILD_DATE}`)
+            );
             console.log(chalk.greenBright(`Version: ${process.env.VERSION}`));
             console.log(chalk.greenBright(`VCS ref: ${process.env.VCS_REF}`));
         } else {
-            console.log(chalk.greenBright("~ Detected local build ~"));
+            console.log(chalk.greenBright("Build: Local"));
         }
-
     });
 
     server.on("error", (err) => {
-        console.log(chalk.bgRed.whiteBright(`${AppName} fatal error: ${err.message}`));
+        console.log(
+            chalk.bgRed.whiteBright(`${AppName} fatal error: ${err.message}`)
+        );
         if (err.message.includes("EADDRINUSE")) {
-            console.log(chalk.bgRed.whiteBright(`Port ${port} is already in use.`));
+            console.log(
+                chalk.bgRed.whiteBright(`Port ${port} is already in use.`)
+            );
             process.exit(1);
         }
     });
@@ -221,17 +284,22 @@ LiveStreamDVR.init().then(() => {
 
     let websocketServer: WebSocketServer | undefined = undefined;
     if (Config.getInstance().cfg<boolean>("websocket_enabled")) {
-
         // start websocket server and attach broker
-        websocketServer = new WebSocketServer({ server, path: `${basepath}/socket/` });
+        websocketServer = new WebSocketServer({
+            server,
+            path: `${basepath}/socket/`,
+        });
         ClientBroker.attach(websocketServer);
 
         Webhook.dispatchAll("init", {
-            "hello": "world",
+            hello: "world",
         });
-
     } else {
-        console.log(chalk.yellow("WebSocket is disabled. Change the 'websocket_enabled' config to enable it."));
+        console.log(
+            chalk.yellow(
+                "WebSocket is disabled. Change the 'websocket_enabled' config to enable it."
+            )
+        );
     }
 
     // handle uncaught exceptions, not sure if this is a good idea
@@ -250,16 +318,20 @@ LiveStreamDVR.init().then(() => {
                 undefined,
                 "system"
             );
-            const errorText = `[${AppName} ${version} ${Config.getInstance().gitHash}]\nUNCAUGHT EXCEPTION\n${err.name}: ${err.message}\n${err.stack}`;
-            fs.writeFileSync(path.join(BaseConfigDataFolder.logs, "crash.log"), errorText);
+            const errorText = `[${AppName} ${version} ${
+                Config.getInstance().gitHash
+            }]\nUNCAUGHT EXCEPTION\n${err.name}: ${err.message}\n${err.stack}`;
+            fs.writeFileSync(
+                path.join(BaseConfigDataFolder.logs, "crash.log"),
+                errorText
+            );
             LiveStreamDVR.shutdown("uncaught exception");
             // throw err;
         });
-
     }
 
     if (Config.getInstance().cfg<boolean>("debug.catch_global_rejections")) {
-        process.on("unhandledRejection", function(reason: Error, promise) {
+        process.on("unhandledRejection", function (reason: Error, promise) {
             console.error("Fatal error; Uncaught rejection");
             console.error("Error: ");
             console.error(reason);
@@ -277,8 +349,15 @@ LiveStreamDVR.init().then(() => {
                 undefined,
                 "system"
             );
-            const errorText = `[${AppName} ${version} ${Config.getInstance().gitHash}]\nUNCAUGHT REJECTION\n${reason.name}: ${reason.message}\n${reason.stack}\n\n${promise}`;
-            fs.writeFileSync(path.join(BaseConfigDataFolder.logs, "crash.log"), errorText);
+            const errorText = `[${AppName} ${version} ${
+                Config.getInstance().gitHash
+            }]\nUNCAUGHT REJECTION\n${reason.name}: ${reason.message}\n${
+                reason.stack
+            }\n\n${promise}`;
+            fs.writeFileSync(
+                path.join(BaseConfigDataFolder.logs, "crash.log"),
+                errorText
+            );
             LiveStreamDVR.shutdown("uncaught rejection");
             // throw err;
         });
@@ -294,33 +373,4 @@ LiveStreamDVR.init().then(() => {
     });
 
     LiveStreamDVR.postInit();
-
-    // fs.writeFileSync(path.join(BaseConfigDataFolder.cache, "lock"), "1");
-
-    /*
-    process.on("beforeExit", (code) => {
-        if (code == 0) {
-            if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "lock"))) fs.unlinkSync(path.join(BaseConfigDataFolder.cache, "lock"));
-        } else {
-            console.log(`Not removing lock, beforeExit code ${code}`);
-        }
-    });
-
-    process.on("exit", (code) => {
-        if (code == 0) {
-            if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "lock"))) fs.unlinkSync(path.join(BaseConfigDataFolder.cache, "lock"));
-        } else {
-            console.log(`Not removing lock, exit code ${code}`);
-        }
-    });
-
-    process.on("SIGINT", (signal) => {
-        if (signal) {
-            if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "lock"))) fs.unlinkSync(path.join(BaseConfigDataFolder.cache, "lock"));
-        } else {
-            console.log(`Not removing lock, sigint signal ${signal}`);
-        }
-    });
-    */
-
 });
