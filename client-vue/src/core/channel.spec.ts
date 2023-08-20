@@ -9,9 +9,9 @@ import { BaseVODSegment } from "./Providers/Base/BaseVODSegment";
 test("makeFromApiResponse", () => {
     const channel = TwitchChannel.makeFromApiResponse(MockApiChannelData);
     expect(channel).to.be.instanceof(TwitchChannel);
-    expect(channel.userid).toBe("123");
-    expect(channel.display_name).toBe("test");
-    expect(channel.login).toBe("test");
+    expect(channel.internalId).toBe("123");
+    expect(channel.displayName).toBe("Test");
+    expect(channel.internalName).toBe("test");
     expect(channel.description).toBe("test");
     expect(channel.quality).toEqual([]);
     expect(channel.vods_raw).toEqual([]);
