@@ -18,8 +18,8 @@ import {
 import { ClientBroker } from "./Core/ClientBroker";
 import { Config } from "./Core/Config";
 import { LiveStreamDVR } from "./Core/LiveStreamDVR";
-import { LOGLEVEL, log } from "./Core/Log";
 import { Webhook } from "./Core/Webhook";
+import { applyExpressApiFunction } from "./Extend/express-api";
 import { debugLog } from "./Helpers/Console";
 import i18n from "./Helpers/i18n";
 import ApiRouter from "./Routes/Api";
@@ -27,15 +27,6 @@ import ApiRouter from "./Routes/Api";
 declare module "express-session" {
     interface SessionData {
         authenticated: boolean;
-    }
-}
-
-declare global {
-    // eslint-disable-next-line @typescript-eslint/no-namespace
-    namespace Express {
-        interface Response {
-            api<T>(status: number, data: T): void;
-        }
     }
 }
 
@@ -110,20 +101,7 @@ LiveStreamDVR.init().then(() => {
     //     };
     //     next();
     // });
-    (app.response as any).api = function <T>(
-        this: express.Response,
-        status: number,
-        data: T
-    ) {
-        this.status(status).json(data);
-        if (status >= 400) {
-            log(
-                LOGLEVEL.ERROR,
-                "http.api",
-                `API error ${status} returned: ${JSON.stringify(data)}`
-            );
-        }
-    };
+    applyExpressApiFunction(app);
 
     app.use(express.text({ type: "application/xml" }));
     app.use(express.text({ type: "application/atom+xml" }));

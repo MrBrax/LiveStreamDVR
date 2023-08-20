@@ -1,14 +1,16 @@
-import { LiveStreamDVR } from "../src/Core/LiveStreamDVR";
-import express, { Express } from "express";
+import type { Express } from "express";
+import express from "express";
 import request from "supertest";
-import { UserData } from "../../common/User";
+import type { UserData } from "../../common/User";
 import { AppName } from "../src/Core/BaseConfig";
 import { Config } from "../src/Core/Config";
+import { LiveStreamDVR } from "../src/Core/LiveStreamDVR";
 import { TwitchChannel } from "../src/Core/Providers/Twitch/TwitchChannel";
+import { applyExpressApiFunction } from "../src/Extend/express-api";
 import { Auth } from "../src/Helpers/Auth";
-import ApiRouter from "../src/Routes/Api";
-import { TwitchHelper } from "../src/Providers/Twitch";
 import i18n from "../src/Helpers/i18n";
+import { TwitchHelper } from "../src/Providers/Twitch";
+import ApiRouter from "../src/Routes/Api";
 import "./environment";
 
 // jest.mock("../src/Core/TwitchChannel");
@@ -25,20 +27,26 @@ jest.spyOn(TwitchHelper, "getAccessToken").mockImplementation(() => {
     });
 });
 
-jest.spyOn(Config.prototype, "saveConfig").mockImplementation((source?: string): boolean => {
-    console.debug(`Config.saveConfig(${source})`);
-    return true;
-});
+jest.spyOn(Config.prototype, "saveConfig").mockImplementation(
+    (source?: string): boolean => {
+        console.debug(`Config.saveConfig(${source})`);
+        return true;
+    }
+);
 
 beforeAll(async () => {
     await LiveStreamDVR.init();
     app = express();
 
-    app.use(express.json({
-        verify: (req, res, buf) => {
-            (req as any).rawBody = buf;
-        },
-    }));
+    applyExpressApiFunction(app);
+
+    app.use(
+        express.json({
+            verify: (req, res, buf) => {
+                (req as any).rawBody = buf;
+            },
+        })
+    );
 
     app.use(Auth);
 
@@ -49,25 +57,26 @@ beforeAll(async () => {
     app.use("", baserouter);
 
     // TwitchChannel.getChannelDataProxy
-    spy1 = jest.spyOn(TwitchChannel, "getUserDataProxy").mockImplementation(() => {
-        return Promise.resolve({
-            provider: "twitch",
-            id: "12345",
-            login: "test",
-            display_name: "test",
-            type: "",
-            broadcaster_type: "partner",
-            description: "test",
-            profile_image_url: "test",
-            offline_image_url: "test",
-            view_count: 0,
-            created_at: "test",
-            _updated: 1234,
-            cache_avatar: "test",
-            cache_offline_image: "",
-        } as UserData);
-    });
-
+    spy1 = jest
+        .spyOn(TwitchChannel, "getUserDataProxy")
+        .mockImplementation(() => {
+            return Promise.resolve({
+                provider: "twitch",
+                id: "12345",
+                login: "test",
+                display_name: "test",
+                type: "",
+                broadcaster_type: "partner",
+                description: "test",
+                profile_image_url: "test",
+                offline_image_url: "test",
+                view_count: 0,
+                created_at: "test",
+                _updated: 1234,
+                cache_avatar: "test",
+                cache_offline_image: "",
+            } as UserData);
+        });
 });
 
 // afterEach(() => {
@@ -99,23 +108,24 @@ describe("settings", () => {
         }
 
         expect(res.body.data.app_name).toBe(AppName);
-
     });
 
     it("should update settings", async () => {
-        const res = await request(app).put("/api/v0/settings").send({
-            config: {
-                "password": "test",
-                "bin_dir": "test",
-                "ffmpeg_path": "test",
-                "mediainfo_path": "test",
-                "api_client_id": "test",
-                "api_secret": "test",
-                "eventsub_secret": "test",
-                "app_url": "debug",
-            },
-            // TODO: automatic required fields
-        });
+        const res = await request(app)
+            .put("/api/v0/settings")
+            .send({
+                config: {
+                    password: "test",
+                    bin_dir: "test",
+                    ffmpeg_path: "test",
+                    mediainfo_path: "test",
+                    api_client_id: "test",
+                    api_secret: "test",
+                    eventsub_secret: "test",
+                    app_url: "debug",
+                },
+                // TODO: automatic required fields
+            });
         expect(res.body.message).toBe("Settings saved");
         expect(res.status).toBe(200);
         expect(Config.getInstance().cfg("password")).toBe("test");
@@ -125,22 +135,26 @@ describe("settings", () => {
         Config.destroyInstance();
         Config.getInstance().generateConfig();
         expect(Config.getInstance().cfg("password")).toBe(undefined);
-        const res = await request(app).put("/api/v0/settings").send({
-            config: {
-                "password": "test",
-            },
-        });
+        const res = await request(app)
+            .put("/api/v0/settings")
+            .send({
+                config: {
+                    password: "test",
+                },
+            });
         expect(res.body.message).toBe("Missing required setting: bin_dir");
         expect(res.status).toBe(400);
 
         Config.destroyInstance();
         Config.getInstance().generateConfig();
-        const res2 = await request(app).put("/api/v0/settings").send({
-            config: {
-                "password": "test",
-                "bin_dir": "test",
-            },
-        });
+        const res2 = await request(app)
+            .put("/api/v0/settings")
+            .send({
+                config: {
+                    password: "test",
+                    bin_dir: "test",
+                },
+            });
         expect(res2.body.message).toBe("Missing required setting: ffmpeg_path");
     });
 });
@@ -170,7 +184,6 @@ describe("channels", () => {
     };
 
     it("should add a channel in isolated mode", async () => {
-
         Config.getInstance().setConfig("app_url", "");
         Config.getInstance().setConfig("isolated_mode", true);
         const res3 = await request(app).post("/api/v0/channels").send(add_data);
@@ -180,11 +193,9 @@ describe("channels", () => {
 
         LiveStreamDVR.getInstance().clearChannels();
         LiveStreamDVR.getInstance().channels_config = [];
-
     });
 
     it("should not add a channel", async () => {
-
         spy1?.mockClear();
 
         const res = await request(app).post("/api/v0/channels").send({
@@ -202,11 +213,9 @@ describe("channels", () => {
         expect(res.body.message).toContain("Invalid quality");
 
         expect(spy1).not.toHaveBeenCalled();
-
     });
 
     it("should fail adding channel due to subscribe stuff", async () => {
-
         // both disabled
         Config.getInstance().setConfig("app_url", "");
         Config.getInstance().setConfig("isolated_mode", false);
@@ -229,16 +238,14 @@ describe("channels", () => {
         // expect(res3.body.message).toContain("'test' created");
         // expect(res3.body.data).toHaveProperty("display_name");
         // expect(res3.status).toBe(200);
-        // 
+        //
         // TwitchChannel.channels = [];
         // TwitchChannel.channels_config = [];
-
     });
 
     let uuid = "";
 
     it("should add a channel", async () => {
-
         Config.getInstance().setConfig("app_url", "https://example.com");
         Config.getInstance().setConfig("isolated_mode", false);
         const res4 = await request(app).post("/api/v0/channels").send(add_data);
@@ -257,11 +264,9 @@ describe("channels", () => {
 
         Config.getInstance().setConfig("app_url", "");
         Config.getInstance().setConfig("isolated_mode", false);
-
     });
 
     it("duplicate channel should not be added", async () => {
-
         const res = await request(app).post("/api/v0/channels").send({
             login: "test",
             quality: "best 1080p60",
@@ -287,7 +292,9 @@ describe("channels", () => {
         const channels_res = await request(app).get("/api/v0/channels");
         expect(channels_res.status).toBe(200);
         expect(channels_res.body.data.streamer_list).toHaveLength(1);
-        expect(channels_res.body.data.streamer_list[0].display_name).toBe("test");
+        expect(channels_res.body.data.streamer_list[0].display_name).toBe(
+            "test"
+        );
     });
 
     it("should remove a channel", async () => {
@@ -297,11 +304,9 @@ describe("channels", () => {
         expect(res.status).toBe(200);
         expect(TwitchChannel.unsubscribeFromIdWithWebhook).toHaveBeenCalled();
     });
-
 });
 
 describe("auth", () => {
-
     const ignored_paths = [
         "/api/v0/hook",
         "/api/v0/cron/sub",
@@ -323,11 +328,8 @@ describe("auth", () => {
         expect(res.status).toBe(401);
 
         Config.getInstance().unsetConfig("password");
-
     });
-
 });
-
 
 // describe("Routes", () => {
 //     it("all get routes should return 200", async () => {
