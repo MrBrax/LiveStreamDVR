@@ -1261,6 +1261,19 @@ export class BaseAutomator {
     private chunks_missing = 0;
     private stream_pause?: Partial<StreamPause>;
     public captureTicker(source: "stdout" | "stderr", data: string) {
+        if (data == null || data == undefined) {
+            log(
+                LOGLEVEL.ERROR,
+                "automator.captureTicker",
+                "Empty data received from streamlink",
+                {
+                    source,
+                    data,
+                }
+            );
+            return;
+        }
+
         const basename = this.vod
             ? this.vod.basename
             : this.vodBasenameTemplate();
@@ -1268,7 +1281,7 @@ export class BaseAutomator {
         if (data.includes("bad interpreter: No such file or directory")) {
             log(
                 LOGLEVEL.ERROR,
-                "automator.captureVideo",
+                "automator.captureTicker",
                 "Fatal error with streamlink, please check logs"
             );
         }
@@ -1280,7 +1293,7 @@ export class BaseAutomator {
             if (this.vod) this.vod.stream_resolution = this.stream_resolution;
             log(
                 LOGLEVEL.INFO,
-                "automator.captureVideo",
+                "automator.captureTicker",
                 `Stream resolution for ${basename}: ${this.stream_resolution}`
             );
 
@@ -1290,7 +1303,7 @@ export class BaseAutomator {
                         // considered best as of 2022
                         log(
                             LOGLEVEL.WARNING,
-                            "automator.captureVideo",
+                            "automator.captureTicker",
                             `Stream resolution ${this.stream_resolution} assumed to not be in channel quality list`
                         );
                     }
@@ -1299,7 +1312,7 @@ export class BaseAutomator {
                         // considered worst
                         log(
                             LOGLEVEL.WARNING,
-                            "automator.captureVideo",
+                            "automator.captureTicker",
                             `Stream resolution ${this.stream_resolution} assumed to not be in channel quality list`
                         );
                     }
@@ -1309,7 +1322,7 @@ export class BaseAutomator {
                     ) {
                         log(
                             LOGLEVEL.WARNING,
-                            "automator.captureVideo",
+                            "automator.captureTicker",
                             `Stream resolution ${this.stream_resolution} not in channel quality list`
                         );
                     }
@@ -1321,14 +1334,14 @@ export class BaseAutomator {
         if (data.includes("404 Client Error")) {
             log(
                 LOGLEVEL.WARNING,
-                "automator.captureVideo",
+                "automator.captureTicker",
                 `Chunk 404'd for ${basename} (${this.chunks_missing}/100)!`
             );
             this.chunks_missing++;
             if (this.chunks_missing >= 100) {
                 log(
                     LOGLEVEL.WARNING,
-                    "automator.captureVideo",
+                    "automator.captureTicker",
                     `Too many 404'd chunks for ${basename}, stopping!`
                 );
                 this.captureJob?.kill();
@@ -1342,7 +1355,7 @@ export class BaseAutomator {
             ) {
                 log(
                     LOGLEVEL.INFO,
-                    "automator.captureVideo",
+                    "automator.captureTicker",
                     `Stream offline for ${basename}, stopping instead of waiting for 404s!`
                 );
                 this.captureJob?.kill();
@@ -1352,7 +1365,7 @@ export class BaseAutomator {
         if (data.includes("Failed to reload playlist")) {
             log(
                 LOGLEVEL.ERROR,
-                "automator.captureVideo",
+                "automator.captureTicker",
                 `Failed to reload playlist for ${basename}!`
             );
         }
@@ -1360,7 +1373,7 @@ export class BaseAutomator {
         if (data.includes("Failed to fetch segment")) {
             log(
                 LOGLEVEL.ERROR,
-                "automator.captureVideo",
+                "automator.captureTicker",
                 `Failed to fetch segment for ${basename}!`
             );
         }
@@ -1368,7 +1381,7 @@ export class BaseAutomator {
         if (data.includes("Waiting for streams")) {
             log(
                 LOGLEVEL.WARNING,
-                "automator.captureVideo",
+                "automator.captureTicker",
                 `No streams found for ${basename}, retrying...`
             );
         }
@@ -1377,7 +1390,7 @@ export class BaseAutomator {
         if (data.includes("403 Client Error")) {
             log(
                 LOGLEVEL.ERROR,
-                "automator.captureVideo",
+                "automator.captureTicker",
                 `Chunk 403'd for ${basename}! Private stream?`
             );
         }
@@ -1386,7 +1399,7 @@ export class BaseAutomator {
         if (data.includes("Will skip ad segments")) {
             log(
                 LOGLEVEL.INFO,
-                "automator.captureVideo",
+                "automator.captureTicker",
                 `Capturing of ${basename}, will try to remove ads!`
             );
             // current_ad_start = new Date();
@@ -1395,7 +1408,7 @@ export class BaseAutomator {
         if (data.includes("Writing output to")) {
             log(
                 LOGLEVEL.INFO,
-                "automator.captureVideo",
+                "automator.captureTicker",
                 "Streamlink now writing output to container."
             );
             if (this.vod) {
@@ -1407,7 +1420,7 @@ export class BaseAutomator {
         if (data.includes("Waiting for pre-roll ads to finish")) {
             log(
                 LOGLEVEL.INFO,
-                "automator.captureVideo",
+                "automator.captureTicker",
                 "Streamlink waiting for pre-roll ads to finish."
             );
         }
@@ -1415,7 +1428,7 @@ export class BaseAutomator {
         if (data.includes("Filtering out segments and pausing stream output")) {
             log(
                 LOGLEVEL.INFO,
-                "automator.captureVideo",
+                "automator.captureTicker",
                 "Streamlink filtering out segments and pausing stream output."
             );
             // create ad object
@@ -1429,7 +1442,7 @@ export class BaseAutomator {
         if (data.includes("Resuming stream output")) {
             log(
                 LOGLEVEL.INFO,
-                "automator.captureVideo",
+                "automator.captureTicker",
                 "Streamlink resuming stream output."
             );
             // end ad object
@@ -1443,7 +1456,7 @@ export class BaseAutomator {
                     );
                     log(
                         LOGLEVEL.INFO,
-                        "automator.captureVideo",
+                        "automator.captureTicker",
                         `Pause detected for ${basename}, ${duration}s long.`
                     );
                     this.vod.stream_pauses.push(
@@ -1459,7 +1472,7 @@ export class BaseAutomator {
         if (data.includes("Read timeout, exiting")) {
             log(
                 LOGLEVEL.ERROR,
-                "automator.captureVideo",
+                "automator.captureTicker",
                 `Read timeout, exiting for ${basename}!`
             );
             if (
@@ -1471,14 +1484,14 @@ export class BaseAutomator {
                     .then(() => {
                         log(
                             LOGLEVEL.INFO,
-                            "automator.captureVideo",
+                            "automator.captureTicker",
                             `Fallback capture finished for ${this.getLogin()}`
                         );
                     })
                     .catch((error) => {
                         log(
                             LOGLEVEL.ERROR,
-                            "automator.captureVideo",
+                            "automator.captureTicker",
                             `Fallback capture failed for ${this.getLogin()}: ${
                                 (error as Error).message
                             }`
@@ -1491,7 +1504,7 @@ export class BaseAutomator {
         if (data.includes("Stream ended")) {
             log(
                 LOGLEVEL.INFO,
-                "automator.captureVideo",
+                "automator.captureTicker",
                 `Stream ended for ${basename}!`
             );
         }
@@ -1499,7 +1512,7 @@ export class BaseAutomator {
         if (data.includes("Closing currently open stream...")) {
             log(
                 LOGLEVEL.INFO,
-                "automator.captureVideo",
+                "automator.captureTicker",
                 `Closing currently open stream for ${basename}!`
             );
         }
@@ -1507,7 +1520,7 @@ export class BaseAutomator {
         if (data.includes("error: The specified stream(s)")) {
             log(
                 LOGLEVEL.ERROR,
-                "automator.captureVideo",
+                "automator.captureTicker",
                 `Capturing of ${basename} failed, selected quality not available!`
             );
         }
@@ -1515,7 +1528,7 @@ export class BaseAutomator {
         if (data.includes("error: No playable streams found on this URL:")) {
             log(
                 LOGLEVEL.ERROR,
-                "automator.captureVideo",
+                "automator.captureTicker",
                 `Capturing of ${basename} failed, no streams available!`
             );
             ClientBroker.notify(
@@ -1532,7 +1545,7 @@ export class BaseAutomator {
         if (data.includes("error: Encountered a stream discontinuity")) {
             log(
                 LOGLEVEL.WARNING,
-                "automator.captureVideo",
+                "automator.captureTicker",
                 `Encountered a stream discontinuity for ${basename}!`
             );
         }
