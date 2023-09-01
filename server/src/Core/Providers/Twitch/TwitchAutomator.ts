@@ -734,6 +734,19 @@ export class TwitchAutomator extends BaseAutomator {
     public captureTicker(source: "stdout" | "stderr", data: string): void {
         super.captureTicker(source, data); // call parent
 
+        if (data == null || data == undefined || typeof data !== "string") {
+            log(
+                LOGLEVEL.ERROR,
+                "automator.captureTicker",
+                "Invalid data received from streamlink",
+                {
+                    source,
+                    data,
+                }
+            );
+            return;
+        }
+
         if (data.includes("2bc4 fork")) {
             log(
                 LOGLEVEL.INFO,

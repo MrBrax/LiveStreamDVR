@@ -1261,11 +1261,11 @@ export class BaseAutomator {
     private chunks_missing = 0;
     private stream_pause?: Partial<StreamPause>;
     public captureTicker(source: "stdout" | "stderr", data: string) {
-        if (data == null || data == undefined) {
+        if (data == null || data == undefined || typeof data !== "string") {
             log(
                 LOGLEVEL.ERROR,
                 "automator.captureTicker",
-                "Empty data received from streamlink",
+                "Invalid data received from streamlink",
                 {
                     source,
                     data,
