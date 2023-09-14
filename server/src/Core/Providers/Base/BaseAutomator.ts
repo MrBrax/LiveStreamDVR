@@ -1694,7 +1694,19 @@ export class BaseAutomator {
             let lastSize = 0;
             const keepaliveAlert = () => {
                 if (this.stream_pause !== undefined && this.stream_pause) {
-                    const size = fs.statSync(this.capture_filename).size;
+                    let size;
+                    try {
+                        size = fs.statSync(this.capture_filename).size;
+                    } catch (error) {
+                        log(
+                            LOGLEVEL.ERROR,
+                            "automator.captureVideo",
+                            `Failed to get size of ${this.capture_filename}: ${
+                                (error as Error).message
+                            }`
+                        );
+                        return;
+                    }
                     progressOutput(
                         `⏸ ${basename} ${this.stream_resolution} ` +
                             `${formatBytes(size)} / ${Math.round(
