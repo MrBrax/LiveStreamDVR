@@ -1016,7 +1016,7 @@ export async function SubscribeToChannel(
     ) {
         res.api(400, {
             status: "ERROR",
-            message: req.t("route.channels.channel-uuid-not-found"),
+            message: req.t("route.channels.channel-uuid-not-found", [ req.params.uuid ?? req.params.name ]),
         } as ApiErrorResponse);
         return;
     }
@@ -1047,7 +1047,7 @@ export async function UnsubscribeFromChannel(
     ) {
         res.api(400, {
             status: "ERROR",
-            message: req.t("route.channels.channel-uuid-not-found"),
+            message: req.t("route.channels.channel-uuid-not-found", [ req.params.uuid ?? req.params.name ]),
         } as ApiErrorResponse);
         return;
     }
@@ -1073,7 +1073,7 @@ export async function CheckSubscriptions(
     ) {
         res.api(400, {
             status: "ERROR",
-            message: req.t("route.channels.channel-uuid-not-found"),
+            message: req.t("route.channels.channel-uuid-not-found", [ req.params.uuid ?? req.params.name ]),
         } as ApiErrorResponse);
         return;
     }
