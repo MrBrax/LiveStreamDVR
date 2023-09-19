@@ -75,6 +75,7 @@ export default defineConfig({
     alias: {
       '@': path.resolve(__dirname, 'src'),
       '@common': path.resolve(__dirname, '..', 'common'),
+      '@server': path.resolve(__dirname, '..', 'server', 'src'),
     },
     dedupe: ['vue'],
   },

@@ -10,6 +10,9 @@
       "@/*": ["./src/*"],
       "@common/*": [
         "../common/*"
+      ],
+      "@server/*" : [
+        "../server/src/*"
       ]
     }
   }

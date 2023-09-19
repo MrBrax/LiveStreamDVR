@@ -35,7 +35,7 @@
                     <input
                         :id="`input_${channel.uuid}_quality`"
                         ref="quality"
-                        v-model="formData.quality"
+                        v-model="formQuality"
                         class="input input-required"
                         type="text"
                         required
@@ -57,7 +57,7 @@
             <div class="field">
                 <label class="label" :for="`input_${channel.uuid}_match`">{{ t("forms.channel.match-keywords") }}</label>
                 <div class="control">
-                    <input :id="`input_${channel.uuid}_match`" v-model="formData.match" class="input" type="text" name="match" />
+                    <input :id="`input_${channel.uuid}_match`" v-model="formMatch" class="input" type="text" name="match" />
                     <p class="input-help">Separate by commas, e.g. christmas,media share,opening,po box</p>
                 </div>
             </div>
@@ -132,7 +132,7 @@
                 <label class="label">{{ t("forms.channel.download_vod_at_end_quality") }}</label>
                 <div class="select">
                     <select v-model="formData.download_vod_at_end_quality" name="download_vod_at_end_quality">
-                        <option v-for="quality in VideoQualityArray" :key="quality" :value="quality">
+                        <option v-for="quality in VideoQuality.Values" :key="quality" :value="quality">
                             {{ quality }}
                         </option>
                     </select>
@@ -142,7 +142,7 @@
                 </p>
             </div>
 
-            <FormSubmit :form-status="formStatus" :form-status-text="formStatusText">
+            <FormSubmit :form-status="formStatus" :form-status-text="formStatusText" :form-status-error="formStatusError">
                 <d-button color="success" type="submit" icon="save">
                     {{ t("buttons.save") }}
                 </d-button>
@@ -219,13 +219,16 @@ import { useStore } from "@/store";
 import type { FormStatus } from "@/twitchautomator";
 import type { ApiResponse } from "@common/Api/Api";
 import type { ApiChannelConfig } from "@common/Api/Client";
-import { VideoQualityArray } from "@common/Defs";
+// import { VideoQualityArray } from "@common/Defs";
 import type { HistoryEntry, HistoryEntryOnline } from "@common/History";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faList, faPencil, faSave, faTrash, faVideoSlash } from "@fortawesome/free-solid-svg-icons";
 import axios, { AxiosError } from "axios";
+import { z } from "zod";
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import { BaseChannelConfig } from "@server/Zod/channel";
+import { VideoQuality } from "@server/Zod/defs";
 library.add(faSave, faList, faTrash, faVideoSlash, faPencil);
 
 // props
@@ -243,10 +246,15 @@ const { t } = useI18n();
 // data
 const formStatusText = ref<string>("Ready");
 const formStatus = ref<FormStatus>("IDLE");
-const formData = ref({
+const formStatusError = ref<z.ZodError>();
+const formData = ref<z.infer<typeof BaseChannelConfig>>({
     // ref or reactive?
-    quality: "",
-    match: "",
+    uuid: "",
+    provider: "twitch",
+    // quality: "",
+    quality: [],
+    // match: "",
+    match: [],
     download_chat: false,
     live_chat: false,
     burn_chat: false,
@@ -274,6 +282,21 @@ const averageOnlineStartTime = computed((): string => {
     return `${hours}:${minutes}`;
 });
 
+const formQuality = computed({
+    get() {
+        return formData.value.quality.join(" ");
+    },
+    set(value: string) {
+        // formData.value.quality = value.split(" ") as z.infer<typeof VideoQuality>>;
+        var p = z.array(VideoQuality).safeParse(value.split(" "));
+        if (p.success) {
+            formData.value.quality = p.data;
+        } else {
+            console.warn("Invalid quality", p.error);
+        }
+    },
+});
+
 // watch
 watch(() => props.channel, resetForm, { immediate: true });
 
@@ -289,8 +312,10 @@ function resetForm() {
     formStatusText.value = "Ready";
 
     formData.value = {
-        quality: props.channel.quality ? props.channel.quality.join(" ") : "",
-        match: props.channel.match ? props.channel.match.join(",") : "",
+        uuid: props.channel.uuid,
+        provider: props.channel.provider,
+        quality: props.channel.quality,
+        match: props.channel.match,
         download_chat: props.channel.download_chat || false,
         live_chat: props.channel.live_chat || false,
         burn_chat: props.channel.burn_chat || false,
@@ -325,6 +350,9 @@ function submitForm(event: Event) {
                 console.error("channel update form error", err.response);
                 formStatusText.value = err.response.data.message;
                 formStatus.value = err.response.data.status;
+                if ( err.response.data.error ) {
+                    formStatusError.value = err.response.data.error;
+                }
             } else {
                 console.error("channel update form error", err);
                 alert(`Error: ${err.message}`);

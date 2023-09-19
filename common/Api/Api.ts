@@ -2,7 +2,7 @@ import type { WinstonLogLine } from "@common/Log";
 import type { ChannelConfig } from "../Config";
 import { settingsFields } from "../ServerConfig";
 import type { AboutData } from "./About";
-import type { ApiChannels, ApiFile, ApiGame, ApiJob, ApiLogLine, ApiVods } from "./Client";
+import type { ApiChannels, ApiFile, ApiGame, ApiJob, ApiVods } from "./Client";
 
 export interface ApiResponse {
     data: any;
@@ -13,6 +13,7 @@ export interface ApiResponse {
 export interface ApiErrorResponse {
     status: "ERROR";
     message: string;
+    error?: any;
 }
 
 export interface ApiGenericResponse {
@@ -42,7 +43,7 @@ export interface ApiSettingsResponse extends ApiResponse {
         channels: ChannelConfig[];
         favourite_games: string[];
         // fields: Record<string, SettingField<any>>;
-        fields: typeof settingsFields,
+        fields: typeof settingsFields;
         version: string;
         server: string;
         websocket_url: string;
@@ -104,7 +105,7 @@ export interface ApiJobsResponse extends ApiResponse {
 export interface ApiFilesResponse extends ApiResponse {
     data: {
         files: ApiFile[];
-    }
+    };
 }
 
 export interface ApiAuthResponse {

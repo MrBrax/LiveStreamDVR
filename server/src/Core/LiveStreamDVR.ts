@@ -28,6 +28,7 @@ import {
 } from "@/Helpers/Timeout";
 import { TwitchHelper } from "@/Providers/Twitch";
 import { YouTubeHelper } from "@/Providers/YouTube";
+import { BaseChannelConfig } from "@/Zod/channel";
 import type { BinaryStatus } from "@common/Api/About";
 import type { ChannelConfig } from "@common/Config";
 import { SubStatus } from "@common/Defs";
@@ -64,7 +65,7 @@ export class LiveStreamDVR {
     public static instance: LiveStreamDVR | undefined;
     public static filenameIllegalChars = /[:*?"<>|]/g;
 
-    channels_config: ChannelConfig[] = [];
+    channels_config: (typeof BaseChannelConfig)[] = [];
     private channels: ChannelTypes[] = [];
     private vods: VODTypes[] = [];
 

@@ -15,6 +15,12 @@ import { Webhook } from "@/Core/Webhook";
 import { debugLog } from "@/Helpers/Console";
 import { generateStreamerList } from "@/Helpers/StreamerList";
 import { isError, isTwitchChannel, isYouTubeChannel } from "@/Helpers/Types";
+import {
+    KickChannelConfig,
+    TwitchChannelConfig,
+    YouTubeChannelConfig,
+} from "@/Zod/channel";
+import { VideoQuality } from "@/Zod/defs";
 import type {
     ApiChannelResponse,
     ApiChannelsResponse,
@@ -22,12 +28,7 @@ import type {
     ApiGenericResponse,
     ApiResponse,
 } from "@common/Api/Api";
-import type {
-    KickChannelConfig,
-    TwitchChannelConfig,
-    VideoQuality,
-    YouTubeChannelConfig,
-} from "@common/Config";
+import type {} from "@common/Config";
 import type { Providers } from "@common/Defs";
 import { VideoQualityArray } from "@common/Defs";
 import { formatString } from "@common/Format";
@@ -114,11 +115,14 @@ export function UpdateChannel(
     if (!channel || !channel.internalName) {
         res.api<ApiErrorResponse>(400, {
             status: "ERROR",
-            message: req.t("route.channels.channel-not-found"),
+            message: req.t("route.channels.channel-uuid-not-found", [
+                req.params.uuid ?? req.params.name,
+            ]),
         });
         return;
     }
 
+    /*
     const formdata: {
         quality: string;
         match: string;
@@ -148,8 +152,54 @@ export function UpdateChannel(
     const max_vods = formdata.max_vods;
     const download_vod_at_end = formdata.download_vod_at_end;
     const download_vod_at_end_quality = formdata.download_vod_at_end_quality;
+    */
+
+    /*
+    const formData = z.object({
+        quality: z.preprocess((val) => String(val).split(" "), z.array(VideoQuality)),
+        match: z.preprocess((val) => String(val).split(",").map((m) => m.trim()), z.array(z.string())),
+        download_chat: z.boolean(),
+        burn_chat: z.boolean(),
+        no_capture: z.boolean(),
+        live_chat: z.boolean(),
+        no_cleanup: z.boolean(),
+        max_storage: z.number(),
+        max_vods: z.number(),
+        download_vod_at_end: z.boolean(),
+        // download_vod_at_end_quality: z.string(),
+        download_vod_at_end_quality: VideoQuality,
+    });
+
+    const {
+        quality,
+        match,
+        download_chat,
+        burn_chat,
+        no_capture,
+        live_chat,
+        no_cleanup,
+        max_storage,
+        max_vods,
+        download_vod_at_end,
+        download_vod_at_end_quality,
+    } = formData.parse(req.body);
+    */
 
     if (channel instanceof TwitchChannel) {
+        const formData = TwitchChannelConfig.safeParse(req.body);
+
+        if (!formData.success) {
+            res.api<ApiErrorResponse>(400, {
+                status: "ERROR",
+                message: req.t("messages.invalid-form-data"),
+                error: formData.error,
+            });
+            return;
+        }
+
+        const data = formData.data;
+
+        /*
         const channel_config: TwitchChannelConfig = {
             uuid: channel.uuid,
             provider: "twitch",
@@ -166,8 +216,10 @@ export function UpdateChannel(
             download_vod_at_end: download_vod_at_end,
             download_vod_at_end_quality: download_vod_at_end_quality,
         };
-        channel.update(channel_config);
+        */
+        channel.update(data);
     } else if (channel instanceof YouTubeChannel) {
+        /*
         const channel_config: YouTubeChannelConfig = {
             uuid: channel.uuid,
             provider: "youtube",
@@ -185,6 +237,7 @@ export function UpdateChannel(
             download_vod_at_end_quality: download_vod_at_end_quality,
         };
         channel.update(channel_config);
+        */
     }
 
     channel.broadcastUpdate();
@@ -290,6 +343,7 @@ export async function AddChannel(
         return;
     }
 
+    /*
     const formdata: {
         login?: string;
         channel_id?: string;
@@ -306,10 +360,12 @@ export async function AddChannel(
         download_vod_at_end: boolean;
         download_vod_at_end_quality: VideoQuality;
     } = req.body;
+    */
 
     let new_channel;
 
     if (provider == "twitch") {
+        /*
         const channel_config: TwitchChannelConfig = {
             uuid: "",
             provider: "twitch",
@@ -330,6 +386,20 @@ export async function AddChannel(
             download_vod_at_end: formdata.download_vod_at_end,
             download_vod_at_end_quality: formdata.download_vod_at_end_quality,
         };
+        */
+
+        const formData = TwitchChannelConfig.safeParse(req.body);
+
+        if (!formData.success) {
+            res.api<ApiErrorResponse>(400, {
+                status: "ERROR",
+                message: req.t("route.channels.invalid-form-data"),
+                error: formData.error,
+            });
+            return;
+        }
+
+        const channel_config = formData.data;
 
         if (!channel_config.login) {
             res.api(400, {
@@ -426,6 +496,7 @@ export async function AddChannel(
             `Created channel: ${new_channel.internalName}`
         );
     } else if (provider == "youtube") {
+        /*
         const channel_config: YouTubeChannelConfig = {
             uuid: "",
             provider: "youtube",
@@ -446,6 +517,20 @@ export async function AddChannel(
             download_vod_at_end: formdata.download_vod_at_end,
             download_vod_at_end_quality: formdata.download_vod_at_end_quality,
         };
+        */
+
+        const formData = YouTubeChannelConfig.safeParse(req.body);
+
+        if (!formData.success) {
+            res.api<ApiErrorResponse>(400, {
+                status: "ERROR",
+                message: req.t("route.channels.invalid-form-data"),
+                error: formData.error,
+            });
+            return;
+        }
+
+        const channel_config = formData.data;
 
         if (!channel_config.channel_id) {
             res.api(400, {
@@ -523,6 +608,7 @@ export async function AddChannel(
             `Created channel: ${new_channel.displayName}`
         );
     } else if (provider == "kick") {
+        /*
         const channel_config: KickChannelConfig = {
             uuid: "",
             provider: "kick",
@@ -543,6 +629,20 @@ export async function AddChannel(
             download_vod_at_end: formdata.download_vod_at_end,
             download_vod_at_end_quality: formdata.download_vod_at_end_quality,
         };
+        */
+
+        const formData = KickChannelConfig.safeParse(req.body);
+
+        if (!formData.success) {
+            res.api<ApiErrorResponse>(400, {
+                status: "ERROR",
+                message: req.t("route.channels.invalid-form-data"),
+                error: formData.error,
+            });
+            return;
+        }
+
+        const channel_config = formData.data;
 
         if (!channel_config.slug) {
             res.api(400, {
@@ -643,11 +743,24 @@ export async function DownloadVideo(
     }
 
     const video_id = req.params.video_id;
+    /*
     const quality =
         req.query.quality &&
         VideoQualityArray.includes(req.query.quality as string)
             ? (req.query.quality as VideoQuality)
             : "best";
+    */
+
+    const qualityParse = VideoQuality.safeParse(req.query.quality);
+    if (!qualityParse.success) {
+        res.api(400, {
+            status: "ERROR",
+            message: req.t("route.channels.invalid-quality"),
+        } as ApiErrorResponse);
+        return;
+    }
+
+    const quality = qualityParse.data;
 
     const template = (video: ProxyVideo, what: string) => {
         if (!video) return "";
@@ -1016,7 +1129,9 @@ export async function SubscribeToChannel(
     ) {
         res.api(400, {
             status: "ERROR",
-            message: req.t("route.channels.channel-uuid-not-found", [ req.params.uuid ?? req.params.name ]),
+            message: req.t("route.channels.channel-uuid-not-found", [
+                req.params.uuid ?? req.params.name,
+            ]),
         } as ApiErrorResponse);
         return;
     }
@@ -1047,7 +1162,9 @@ export async function UnsubscribeFromChannel(
     ) {
         res.api(400, {
             status: "ERROR",
-            message: req.t("route.channels.channel-uuid-not-found", [ req.params.uuid ?? req.params.name ]),
+            message: req.t("route.channels.channel-uuid-not-found", [
+                req.params.uuid ?? req.params.name,
+            ]),
         } as ApiErrorResponse);
         return;
     }
@@ -1073,7 +1190,9 @@ export async function CheckSubscriptions(
     ) {
         res.api(400, {
             status: "ERROR",
-            message: req.t("route.channels.channel-uuid-not-found", [ req.params.uuid ?? req.params.name ]),
+            message: req.t("route.channels.channel-uuid-not-found", [
+                req.params.uuid ?? req.params.name,
+            ]),
         } as ApiErrorResponse);
         return;
     }

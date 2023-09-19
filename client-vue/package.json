@@ -34,7 +34,8 @@
     "vue-chartjs": "^5.2.0",
     "vue-i18n": "beta",
     "vue-observe-visibility": "next",
-    "vue-router": "^4.2.4"
+    "vue-router": "^4.2.4",
+    "zod": "^3.22.2"
   },
   "devDependencies": {
     "@tsconfig/node18": "^18.2.0",

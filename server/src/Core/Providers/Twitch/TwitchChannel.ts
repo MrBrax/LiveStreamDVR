@@ -1,6 +1,8 @@
 import { imageThumbnail } from "@/Helpers/Image";
 import type { ApiTwitchChannel } from "@common/Api/Client";
-import type { TwitchChannelConfig, VideoQuality } from "@common/Config";
+// import type { TwitchChannelConfig, VideoQuality } from "@common/Config";
+import type { TwitchChannelConfig } from "@/Zod/channel";
+import type { VideoQuality } from "@/Zod/defs";
 import type { Providers } from "@common/Defs";
 import { MuteStatus, SubStatus } from "@common/Defs";
 import { formatString } from "@common/Format";
@@ -32,6 +34,7 @@ import path from "node:path";
 import { pipeline } from "node:stream/promises";
 import sanitize from "sanitize-filename";
 import { Readable } from "stream";
+import type { z } from "zod";
 import { startJob } from "../../../Helpers/Execute";
 import { formatBytes } from "../../../Helpers/Format";
 import { xTimeout } from "../../../Helpers/Timeout";
@@ -339,7 +342,7 @@ export class TwitchChannel extends BaseChannel {
      *
      * @param config
      */
-    public update(config: TwitchChannelConfig): boolean {
+    public update(config: typeof TwitchChannelConfig): boolean {
         const i = LiveStreamDVR.getInstance().channels_config.findIndex(
             (ch) => ch.uuid === this.uuid
         );
@@ -1136,7 +1139,9 @@ export class TwitchChannel extends BaseChannel {
         );
     }
 
-    public async downloadLatestVod(quality: VideoQuality): Promise<string> {
+    public async downloadLatestVod(
+        quality: typeof VideoQuality
+    ): Promise<string> {
         if (!this.internalId) {
             throw new Error("Cannot download latest vod without userid");
         }
@@ -1655,7 +1660,7 @@ export class TwitchChannel extends BaseChannel {
      * @returns
      */
     public static async create(
-        config: TwitchChannelConfig
+        config: z.infer<typeof TwitchChannelConfig>
     ): Promise<TwitchChannel> {
         const exists_config = LiveStreamDVR.getInstance().channels_config.find(
             (ch) => ch.provider == "twitch" && ch.login === config.login
