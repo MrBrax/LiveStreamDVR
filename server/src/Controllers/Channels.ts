@@ -3,6 +3,7 @@ import { Config } from "@/Core/Config";
 import { KeyValue } from "@/Core/KeyValue";
 import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
 import { LOGLEVEL, log } from "@/Core/Log";
+import { BaseChannel } from "@/Core/Providers/Base/BaseChannel";
 import { KickChannel } from "@/Core/Providers/Kick/KickChannel";
 import type { AutomatorMetadata } from "@/Core/Providers/Twitch/TwitchAutomator";
 import { TwitchAutomator } from "@/Core/Providers/Twitch/TwitchAutomator";
@@ -1009,14 +1010,22 @@ export async function SubscribeToChannel(
 ): Promise<void> {
     const channel = getChannelFromRequest(req);
 
-    if (
-        !channel ||
-        !(channel instanceof TwitchChannel) ||
-        !channel.internalId
-    ) {
+    if (!channel || !channel.internalId) {
         res.api(400, {
             status: "ERROR",
-            message: req.t("route.channels.channel-uuid-not-found", [ req.params.uuid ?? req.params.name ]),
+            message: req.t("route.channels.channel-uuid-not-found", [
+                req.params.uuid ?? req.params.name,
+            ]),
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (channel.subscribe == BaseChannel.prototype.subscribe) {
+        res.api(400, {
+            status: "ERROR",
+            message: req.t("route.channels.channel-not-subscribable", [
+                req.params.uuid ?? req.params.name,
+            ]),
         } as ApiErrorResponse);
         return;
     }
@@ -1040,14 +1049,22 @@ export async function UnsubscribeFromChannel(
 ): Promise<void> {
     const channel = getChannelFromRequest(req);
 
-    if (
-        !channel ||
-        !(channel instanceof TwitchChannel) ||
-        !channel.internalId
-    ) {
+    if (!channel || !channel.internalId) {
         res.api(400, {
             status: "ERROR",
-            message: req.t("route.channels.channel-uuid-not-found", [ req.params.uuid ?? req.params.name ]),
+            message: req.t("route.channels.channel-uuid-not-found", [
+                req.params.uuid ?? req.params.name,
+            ]),
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (channel.unsubscribe == BaseChannel.prototype.unsubscribe) {
+        res.api(400, {
+            status: "ERROR",
+            message: req.t("route.channels.channel-not-subscribable", [
+                req.params.uuid ?? req.params.name,
+            ]),
         } as ApiErrorResponse);
         return;
     }
@@ -1066,14 +1083,22 @@ export async function CheckSubscriptions(
 ): Promise<void> {
     const channel = getChannelFromRequest(req);
 
-    if (
-        !channel ||
-        !(channel instanceof TwitchChannel) ||
-        !channel.internalId
-    ) {
+    if (!channel || !channel.internalId) {
         res.api(400, {
             status: "ERROR",
-            message: req.t("route.channels.channel-uuid-not-found", [ req.params.uuid ?? req.params.name ]),
+            message: req.t("route.channels.channel-uuid-not-found", [
+                req.params.uuid ?? req.params.name,
+            ]),
+        } as ApiErrorResponse);
+        return;
+    }
+
+    if (channel.subscribe == BaseChannel.prototype.subscribe) {
+        res.api(400, {
+            status: "ERROR",
+            message: req.t("route.channels.channel-not-subscribable", [
+                req.params.uuid ?? req.params.name,
+            ]),
         } as ApiErrorResponse);
         return;
     }
