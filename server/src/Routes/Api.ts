@@ -157,6 +157,7 @@ router.get(
 router.post("/youtubeapi/channelid", AuthAdmin, YouTubeAPI.YouTubeAPIChannelID);
 
 router.get("/kickapi/users/:slug", AuthAdmin, KickAPI.KickAPIUser);
+router.get("/kickapi/channels/:slug", AuthAdmin, KickAPI.KickAPIChannel);
 
 router.get("/keyvalue", AuthAdmin, KeyValue.GetAllKeyValues);
 router.delete("/keyvalue", AuthAdmin, KeyValue.DeleteAllKeyValues);

@@ -1,12 +1,12 @@
-import axios, { isAxiosError } from "axios";
+import { LOGLEVEL, log } from "@/Core/Log";
 import type {
     KickChannel,
-    KickUser,
-    KickChannelVideo,
     KickChannelLivestream,
     KickChannelLivestreamResponse,
+    KickChannelVideo,
+    KickUser,
 } from "@common/KickAPI/Kick";
-import { log, LOGLEVEL } from "@/Core/Log";
+import axios, { isAxiosError } from "axios";
 
 /*
 const axiosInstance = axios.create({
@@ -42,7 +42,7 @@ export function setApiToken(token: string) {
 }
 */
 
-const baseURL = "https://kick.com/api/v1/";
+const baseURL = "https://kick.com/api/v2/";
 
 const cookies: Record<string, string> = {};
 
@@ -108,18 +108,24 @@ export async function getRequest<T>(
     const request = await fetch(baseURL + url, mergedOptions);
     const body = await request.text();
 
+    console.debug(body);
+
     if (request.status !== 200) {
         log(
             LOGLEVEL.ERROR,
             "KickAPI.getRequest",
             `Error getting data (${request.url}): ${request.status} ${request.statusText}`
         );
-        if (body.includes("challenge-form")) {
+        if (
+            body.includes("challenge-form") ||
+            body.startsWith("<!DOCTYPE html>")
+        ) {
             log(
                 LOGLEVEL.ERROR,
                 "KickAPI.getRequest",
-                "Error getting data: Cloudflare challenge"
+                "Error getting data: Cloudflare challenge or HTML"
             );
+            throw new Error("Cloudflare challenge or HTML");
         }
         // throw new Error(`Error getting data (${request.url}): ${request.statusText}`);
     }
