@@ -2,7 +2,7 @@ import { Config } from "@/Core/Config";
 import { AuthAdmin, AuthCore, AuthGuest } from "@/Helpers/Auth";
 import express from "express";
 import * as About from "../Controllers/About";
-import * as Auth from "../Controllers/Auth";
+import Auth from "../Controllers/Auth";
 import * as Channels from "../Controllers/Channels";
 import * as ClientSettings from "../Controllers/ClientSettings";
 import * as Cron from "../Controllers/Cron";
