@@ -1,5 +1,5 @@
 import { Config } from "@/Core/Config";
-import { AuthAdmin, AuthCore, AuthGuest } from "@/Helpers/Auth";
+import { AuthAdmin, AuthCore, AuthGuest } from "@/Extend/express-auth";
 import express from "express";
 import * as About from "../Controllers/About";
 import Auth from "../Controllers/Auth";

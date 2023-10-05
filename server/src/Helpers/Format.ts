@@ -67,5 +67,5 @@ export function formatBytes(bytes: number, precision = 2): string {
 }
 
 export function formatBits(bits: number, precision = 2): string {
-    return formatBytes(bits * 8, precision).toLowerCase();
+    return formatBytes(bits * 8, precision).replace(/([a-zA-Z])B/, "$1b");
 }
