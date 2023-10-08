@@ -83,6 +83,16 @@ export default class AuthController {
 
     @Route("get", "/auth/check")
     static CheckLogin(req: express.Request, res: express.Response): void {
+        if (!req.session) {
+            res.status(500).send({
+                authentication: false,
+                authenticated: false,
+                message: "Session library not loaded",
+            } as ApiAuthResponse);
+            console.error("Session library not loaded");
+            return;
+        }
+
         if (!Config.getInstance().cfg<boolean>("password")) {
             res.status(200).send({
                 authentication: false,

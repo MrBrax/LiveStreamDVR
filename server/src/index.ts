@@ -14,6 +14,7 @@ import { Config } from "./Core/Config";
 import { LiveStreamDVR } from "./Core/LiveStreamDVR";
 import { Webhook } from "./Core/Webhook";
 import { debugLog } from "./Helpers/Console";
+import { applyRoutes } from "./Routes/Routes";
 import { getApp } from "./app";
 
 declare module "express-session" {
@@ -107,6 +108,8 @@ LiveStreamDVR.init().then(() => {
 
     // authentication
     // app.use(Auth);
+
+    applyRoutes(app);
 
     const server = app.listen(port, () => {
         console.log(
