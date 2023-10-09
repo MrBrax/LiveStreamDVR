@@ -1,3 +1,4 @@
+import { applySessionParser } from "@/Extend/express-session";
 import type { Express } from "express";
 import express from "express";
 import request from "supertest";
@@ -39,6 +40,8 @@ beforeAll(async () => {
     app = express();
 
     applyExpressApiFunction(app);
+
+    applySessionParser(app);
 
     app.use(
         express.json({

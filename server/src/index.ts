@@ -13,6 +13,7 @@ import { ClientBroker } from "./Core/ClientBroker";
 import { Config } from "./Core/Config";
 import { LiveStreamDVR } from "./Core/LiveStreamDVR";
 import { Webhook } from "./Core/Webhook";
+import { applySessionParser } from "./Extend/express-session";
 import { debugLog } from "./Helpers/Console";
 import { applyRoutes } from "./Routes/Routes";
 import { getApp } from "./app";
@@ -90,21 +91,7 @@ LiveStreamDVR.init().then(() => {
         app.use(morgan("combined"));
     }
 
-    const sessionParser = session({
-        secret: Config.getInstance().cfg<string>("eventsub_secret", ""), // TODO make this unique from eventsub_secret
-        resave: false,
-        saveUninitialized: true,
-        // cookie: {
-        //     secure: true,
-        //     httpOnly: true,
-        //     maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-        // },
-    }); // bad
-
-    Config.getInstance().sessionParser = sessionParser;
-
-    // session
-    app.use(sessionParser);
+    Config.getInstance().sessionParser = applySessionParser(app);
 
     // authentication
     // app.use(Auth);
