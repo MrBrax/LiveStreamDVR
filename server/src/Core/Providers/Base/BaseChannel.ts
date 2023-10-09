@@ -776,6 +776,16 @@ export class BaseChannel {
                 continue;
             }
 
+            if (!vod.is_finalized) {
+                completedVods++;
+                log(
+                    LOGLEVEL.INFO,
+                    "route.channels.exportallvods",
+                    `Skipping VOD ${vod.basename} because it is not finalized`
+                );
+                continue;
+            }
+
             const exporter_name = Config.getInstance().cfg<string>(
                 "exporter.default.exporter",
                 ""
