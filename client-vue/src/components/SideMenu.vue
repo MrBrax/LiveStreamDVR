@@ -21,7 +21,7 @@
         </div>
 
         <div v-if="store.streamerList && store.streamerList.length > 0" class="menu-middle">
-            <side-menu-streamer v-for="streamer in sortedStreamers" :key="streamer.login" ref="streamer" :streamer="streamer" />
+            <side-menu-streamer v-for="streamer in sortedStreamers" :key="streamer.internalName" ref="streamer" :streamer="streamer" />
         </div>
 
         <!-- what was the point of this divider? -->

@@ -10,9 +10,9 @@ import type { Providers } from "@common/Defs";
 
 export default class BaseChannel {
     provider: Providers = "base";
-    userid = "";
-    display_name = "";
-    login = "";
+    // userid = "";
+    // display_name = "";
+    // login = "";
     description = "";
     quality: VideoQuality[] = [];
     no_capture = false;

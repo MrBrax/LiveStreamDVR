@@ -38,7 +38,8 @@
       "forced-recording-of-channel-channel-internalname": "Forced recording of channel: {{0}}",
       "failed-to-refresh-channel": "Failed to refresh channel",
       "refreshed-channel-channel-internalname": "Refreshed channel: {{0}}",
-      "renamed-channel-channel-internalname-to-req-body-new_login": "Renamed channel: '{{0}}' to '{{1}}'"
+      "renamed-channel-channel-internalname-to-req-body-new_login": "Renamed channel: '{{0}}' to '{{1}}'",
+      "channel-not-subscribable": "This channel provider cannot be subscribed to at the moment."
     }
   },
   "notify": {

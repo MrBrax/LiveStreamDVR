@@ -899,4 +899,10 @@ export class Config {
     envVarValue(key: keyof typeof settingsFields): string | undefined {
         return process.env[`TCD_${key.toUpperCase().replaceAll(".", "_")}`];
     }
+
+    static getBasePath(): string {
+        if (!Config.getInstance().initialised)
+            return process.env.BASE_PATH ?? "";
+        return Config.getInstance().cfg<string>("basepath", "");
+    }
 }

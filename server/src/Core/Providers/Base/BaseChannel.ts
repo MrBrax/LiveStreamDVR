@@ -776,6 +776,16 @@ export class BaseChannel {
                 continue;
             }
 
+            if (!vod.is_finalized) {
+                completedVods++;
+                log(
+                    LOGLEVEL.INFO,
+                    "route.channels.exportallvods",
+                    `Skipping VOD ${vod.basename} because it is not finalized`
+                );
+                continue;
+            }
+
             const exporter_name = Config.getInstance().cfg<string>(
                 "exporter.default.exporter",
                 ""
@@ -818,12 +828,27 @@ export class BaseChannel {
             }
 
             if (exporter) {
+                let formattedTitle;
+
+                try {
+                    formattedTitle = exporter.getFormattedTitle();
+                } catch (error) {
+                    log(
+                        LOGLEVEL.ERROR,
+                        "route.channel.ExportAllVods",
+                        `Auto exporter error for '${vod.basename}': ${
+                            (error as Error).message
+                        }`
+                    );
+                    failedVods++;
+                    job.setProgress((completedVods + failedVods) / totalVods);
+                    continue;
+                }
+
                 log(
                     LOGLEVEL.INFO,
                     "route.channel.ExportAllVods",
-                    `Exporting VOD '${
-                        vod.basename
-                    }' as '${exporter.getFormattedTitle()}' with exporter '${exporter_name}'`
+                    `Exporting VOD '${vod.basename}' as '${formattedTitle}' with exporter '${exporter_name}'`
                 );
 
                 let out_path;

@@ -148,6 +148,9 @@ export class TwitchChat extends EventEmitter {
 
     public comedyScore = 0;
 
+    public server_motd: string | undefined;
+    public server_motd_start: Date | undefined;
+
     get bannedUserCount() {
         return Object.values(this.users).filter(u => u.ban_date && u.ban_date.getTime() + ((u.ban_duration || 0) * 1000) > Date.now()).length;
     }
@@ -654,12 +657,12 @@ export class TwitchChat extends EventEmitter {
                     channel: commandParts[1],
                 };
                 break;
-            case "002":  // Ignoring all other numeric messages.
+            case "002": // Ignoring all other numeric messages.
             case "003": // Ignoring all other numeric messages.
             case "004": // Logged in (successfully authenticated).
-            case "353":  // Tells you who else is in the chat room you're joining.
-            case "366":  // End of /NAMES list.
-            case "372":  // MOTD (message of the day).
+            case "353": // Tells you who else is in the chat room you're joining.
+            case "366": // End of /NAMES list.
+            case "372": // MOTD (message of the day).
             case "375": // Start of MOTD.
             case "376": // End of MOTD.
                 console.log(`numeric message: ${commandParts[0]}`);

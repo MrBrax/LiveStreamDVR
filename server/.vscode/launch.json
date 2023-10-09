@@ -8,13 +8,10 @@
             "type": "node",
             "request": "launch",
             "name": "Launch Program",
-            "skipFiles": [
-                "<node_internals>/**"
-            ],
+            "skipFiles": ["<node_internals>/**"],
             "program": "${workspaceFolder}\\src\\index.ts",
-            "outFiles": [
-                "${workspaceFolder}/**/*.js"
-            ]
+            "args": ["--port", "8081"],
+            "outFiles": ["${workspaceFolder}/**/*.js"]
         }
     ]
 }

@@ -2729,6 +2729,16 @@ export class BaseVOD {
             );
             return false;
         }
+
+        if (this.video_metadata?.type !== "video") {
+            log(
+                LOGLEVEL.ERROR,
+                "vod.createVideoContactSheet",
+                `VOD ${this.basename} is not a video, can't create video contact sheet`
+            );
+            return false;
+        }
+
         try {
             await videoContactSheet(
                 this.segments[0].filename,

@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import chalk from "chalk";
 import dotenv from "dotenv";
-import express from "express";
 import session from "express-session";
 import minimist from "minimist";
 import morgan from "morgan";
@@ -9,20 +8,15 @@ import fs from "node:fs";
 import path from "node:path";
 import { WebSocketServer } from "ws";
 import { version } from "../package.json";
-import {
-    AppName,
-    BaseConfigCacheFolder,
-    BaseConfigDataFolder,
-    BaseConfigFolder,
-} from "./Core/BaseConfig";
+import { AppName, BaseConfigDataFolder } from "./Core/BaseConfig";
 import { ClientBroker } from "./Core/ClientBroker";
 import { Config } from "./Core/Config";
 import { LiveStreamDVR } from "./Core/LiveStreamDVR";
 import { Webhook } from "./Core/Webhook";
-import { applyExpressApiFunction } from "./Extend/express-api";
+import { applySessionParser } from "./Extend/express-session";
 import { debugLog } from "./Helpers/Console";
-import i18n from "./Helpers/i18n";
-import ApiRouter from "./Routes/Api";
+import { applyRoutes } from "./Routes/Routes";
+import { getApp } from "./app";
 
 declare module "express-session" {
     interface SessionData {
@@ -66,32 +60,19 @@ LiveStreamDVR.init().then(() => {
     //     logAdvanced(LOGLEVEL.WARNING, "index", "Seems like the server was not shut down gracefully...");
     // }
 
-    const app = express();
+    // const app = express();
+    const app = getApp();
+
     const port =
         override_port || Config.getInstance().cfg<number>("server_port", 8080);
 
-    const basepath = Config.getInstance().cfg<string>("basepath", "");
+    // const basepath = Config.getInstance().cfg<string>("basepath", "");
 
     // https://github.com/expressjs/morgan/issues/76#issuecomment-450552807
     if (Config.getInstance().cfg<boolean>("trust_proxy", false)) {
         app.set("trust proxy", true);
         console.log(chalk.yellow("Setting trust proxy to true."));
     }
-
-    /**
-     * https://flaviocopes.com/express-get-raw-body/
-     *
-     * apparently this is needed to get the raw body since express doesn't do it by default,
-     * i read it takes up twice the memory, but it's required for signature verification
-     */
-
-    app.use(
-        express.json({
-            verify: (req, res, buf, encoding) => {
-                (req as any).rawBody = buf;
-            },
-        })
-    );
 
     // extend express req object with an api function that takes a status code and a generic object as arguments
     // this is used to send json responses
@@ -101,13 +82,6 @@ LiveStreamDVR.init().then(() => {
     //     };
     //     next();
     // });
-    applyExpressApiFunction(app);
-
-    app.use(express.text({ type: "application/xml" }));
-    app.use(express.text({ type: "application/atom+xml" }));
-
-    // i18n
-    app.use(i18n);
 
     // logging
     /** @TODO not sure if to continue using morgan since we now use winston for main logging **/
@@ -117,109 +91,26 @@ LiveStreamDVR.init().then(() => {
         app.use(morgan("combined"));
     }
 
-    const sessionParser = session({
-        secret: Config.getInstance().cfg<string>("eventsub_secret", ""), // TODO make this unique from eventsub_secret
-        resave: false,
-        saveUninitialized: true,
-        // cookie: {
-        //     secure: true,
-        //     httpOnly: true,
-        //     maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-        // },
-    }); // bad
-
-    Config.getInstance().sessionParser = sessionParser;
-
-    // session
-    app.use(sessionParser);
+    Config.getInstance().sessionParser = applySessionParser(app);
 
     // authentication
     // app.use(Auth);
 
-    const baserouter = express.Router();
-
-    // bind the api routes
-    baserouter.use("/api/v0", ApiRouter);
-
-    // static files and storage
-    // baserouter.use("/vodplayer", express.static(BaseConfigFolder.vodplayer));
-    baserouter.use("/vods", express.static(BaseConfigDataFolder.vod));
-    baserouter.use(
-        "/saved_vods",
-        express.static(BaseConfigDataFolder.saved_vods)
-    );
-    baserouter.use(
-        "/saved_clips",
-        express.static(BaseConfigDataFolder.saved_clips)
-    );
-    baserouter.use(
-        "/cache",
-        express.static(BaseConfigCacheFolder.public_cache)
-    );
-    if (process.env.TCD_EXPOSE_LOGS_TO_PUBLIC == "1") {
-        baserouter.use("/logs", express.static(BaseConfigDataFolder.logs));
-    }
-
-    baserouter.use(express.static(BaseConfigFolder.client));
-
-    // send index.html for all other routes, so that SPA routes are handled correctly
-    baserouter.use((req, res, next) => {
-        /*const ext = path.extname(req.path);
-
-        if (!([ ".js", ".css", ".png", ".jpg", ".jpeg", ".webp", ".gif", ".svg", ".ico", ".woff", ".woff2", ".ttf", ".otf", ".eot", ".map", ".webmanifest", ".xml", ".json", ".mp4", ".mkv", ".ts" ].includes(ext))) {
-            // vodplayer
-            if (req.path.includes("/vodplayer/")) {
-                res.sendFile(path.join(BaseConfigFolder.vodplayer, "index.html"));
-            } else {
-                res.sendFile(path.join(BaseConfigFolder.client, "index.html"));
-            }
-        } else {
-            next();
-        }*/
-
-        const fpath = req.path;
-
-        // console.log(fpath, fpath.startsWith(`${basepath}/api/`), `${basepath}/api/`);
-        // console.log(fpath.startsWith(`${basepath}/vodplayer/`), fpath, `${basepath}/vodplayer/`);
-
-        if (
-            fpath.startsWith(`${basepath}/api/`) ||
-            fpath.startsWith(`${basepath}/vods/`) ||
-            fpath.startsWith(`${basepath}/saved_vods/`) ||
-            fpath.startsWith(`${basepath}/saved_clips/`) ||
-            fpath.startsWith(`${basepath}/cache/`) ||
-            fpath.startsWith(`${basepath}/logs/`)
-        ) {
-            next();
-            return;
-        }
-
-        // if (fpath.startsWith(`${basepath}/vodplayer/`)) {
-        //     res.sendFile(path.join(BaseConfigFolder.vodplayer, "index.html"));
-        //     return;
-        // }
-
-        res.sendFile(path.join(BaseConfigFolder.client, "index.html"));
-        // next();
-    });
-
-    // 404 handler
-    baserouter.use((req, res) => {
-        res.status(404).send(`404 - Not Found - ${req.url}`);
-    });
-
-    // for the base path to work
-    app.use(basepath, baserouter);
+    applyRoutes(app);
 
     const server = app.listen(port, () => {
         console.log(
             chalk.bgBlue.greenBright(
                 `🥞 ${AppName} listening on port ${port}, mode ${
                     process.env.NODE_ENV
-                }. Base path: ${basepath || "/"} 🥞`
+                }. Base path: ${Config.getBasePath() || "/"} 🥞`
             )
         );
-        console.log(chalk.yellow(`Local: http://localhost:${port}${basepath}`));
+        console.log(
+            chalk.yellow(
+                `Local: http://localhost:${port}${Config.getBasePath()}`
+            )
+        );
         console.log(
             chalk.yellow(`Public: ${Config.getInstance().cfg("app_url")}`)
         );
@@ -287,7 +178,7 @@ LiveStreamDVR.init().then(() => {
         // start websocket server and attach broker
         websocketServer = new WebSocketServer({
             server,
-            path: `${basepath}/socket/`,
+            path: `${Config.getBasePath()}/socket/`,
         });
         ClientBroker.attach(websocketServer);
 

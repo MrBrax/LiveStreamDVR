@@ -2,5 +2,10 @@
     "search.exclude": {
         "**/*.lock": true,
         "build/**": true,
-    }
+    },
+    "eslint.workingDirectories": [
+        "./server",
+        "./twitch-chat-dumper",
+        "./client-vue"
+    ],
 }

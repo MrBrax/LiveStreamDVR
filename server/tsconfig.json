@@ -1,40 +1,32 @@
 {
-  "compilerOptions": {
-    "target": "es2021",
-    "module": "commonjs",
-    "moduleResolution": "node",
-    "strict": true,
-    "esModuleInterop": true,
-    "resolveJsonModule": true,
-    "sourceMap": true,
-    "baseUrl": ".",
-    "outDir": "./build",
-    "isolatedModules": true,
-    "skipLibCheck": true,
-    "paths": {
-      "@/*": [
-        "./src/*"
-      ],
-      "@common/*": [
-        "../common/*"
-      ],
+    "compilerOptions": {
+        "target": "es2021",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "strict": true,
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "sourceMap": true,
+        "baseUrl": ".",
+        "outDir": "./build",
+        "isolatedModules": true,
+        "skipLibCheck": true,
+        "experimentalDecorators": true,
+        "paths": {
+            "@/*": ["./src/*"],
+            "@common/*": ["../common/*"]
+        }
     },
-  },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.tsx",
-    "src/**/*.vue",
-    "tests/**/*.ts",
-    "tests/**/*.tsx",
-    "../common/**/*.ts",
-  ],
-  "exclude": [
-    "node_modules",
-    ".yarn",
-  ],
-  "ts-node": {
-    "require": [
-      "tsconfig-paths/register"
-    ]
-  }
+    "include": [
+        "src/**/*.ts",
+        "src/**/*.tsx",
+        "src/**/*.vue",
+        "tests/**/*.ts",
+        "tests/**/*.tsx",
+        "../common/**/*.ts"
+    ],
+    "exclude": ["node_modules", ".yarn"],
+    "ts-node": {
+        "require": ["tsconfig-paths/register"]
+    }
 }

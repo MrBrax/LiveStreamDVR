@@ -65,7 +65,7 @@ async function fetchTwitchVods() {
     let response;
 
     try {
-        response = await axios.get<ApiResponse>(`/api/v0/twitchapi/videos/${props.streamer.login}`);
+        response = await axios.get<ApiResponse>(`/api/v0/twitchapi/videos/${props.streamer.internalName}`);
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error("fetchTwitchVods error", error.response);

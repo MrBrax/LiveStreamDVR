@@ -1,8 +1,8 @@
 import { Config } from "@/Core/Config";
-import { AuthAdmin, AuthCore, AuthGuest } from "@/Helpers/Auth";
+import { AuthAdmin, AuthCore, AuthGuest } from "@/Extend/express-auth";
 import express from "express";
 import * as About from "../Controllers/About";
-import * as Auth from "../Controllers/Auth";
+import Auth from "../Controllers/Auth";
 import * as Channels from "../Controllers/Channels";
 import * as ClientSettings from "../Controllers/ClientSettings";
 import * as Cron from "../Controllers/Cron";
@@ -157,6 +157,7 @@ router.get(
 router.post("/youtubeapi/channelid", AuthAdmin, YouTubeAPI.YouTubeAPIChannelID);
 
 router.get("/kickapi/users/:slug", AuthAdmin, KickAPI.KickAPIUser);
+router.get("/kickapi/channels/:slug", AuthAdmin, KickAPI.KickAPIChannel);
 
 router.get("/keyvalue", AuthAdmin, KeyValue.GetAllKeyValues);
 router.delete("/keyvalue", AuthAdmin, KeyValue.DeleteAllKeyValues);

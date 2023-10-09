@@ -138,8 +138,8 @@
         <!-- tooltip -->
         <div :class="{ tooltip: true, 'is-static': store.clientCfg('tooltipStatic') }">
             <div class="stream-channel">
-                {{ streamer.display_name }}
-                <template v-if="streamer.login.toLowerCase() != streamer.display_name.toLowerCase()"> ({{ streamer.login }}) </template>
+                {{ streamer.displayName }}
+                <template v-if="streamer.internalName.toLowerCase() != streamer.internalName.toLowerCase()"> ({{ streamer.displayName }}) </template>
             </div>
             <div class="stream-name">
                 {{ vod.basename }}

@@ -1,6 +1,6 @@
 {
     "name": "livestreamdvr-server",
-    "version": "1.6.2",
+    "version": "1.6.3",
     "description": "",
     "main": "index.ts",
     "scripts": {
@@ -79,7 +79,7 @@
         "winston-daily-rotate-file": "^4.7.1",
         "ws": "^8.13.0"
     },
-    "packageManager": "yarn@3.6.1",
+    "packageManager": "yarn@3.6.3",
     "engines": {
         "node": ">=18"
     },

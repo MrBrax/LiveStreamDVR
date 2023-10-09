@@ -1,3 +1,4 @@
+import { applySessionParser } from "@/Extend/express-session";
 import type { Express } from "express";
 import express from "express";
 import request from "supertest";
@@ -7,7 +8,7 @@ import { Config } from "../src/Core/Config";
 import { LiveStreamDVR } from "../src/Core/LiveStreamDVR";
 import { TwitchChannel } from "../src/Core/Providers/Twitch/TwitchChannel";
 import { applyExpressApiFunction } from "../src/Extend/express-api";
-import { Auth } from "../src/Helpers/Auth";
+import { Auth } from "../src/Extend/express-auth";
 import i18n from "../src/Helpers/i18n";
 import { TwitchHelper } from "../src/Providers/Twitch";
 import ApiRouter from "../src/Routes/Api";
@@ -39,6 +40,8 @@ beforeAll(async () => {
     app = express();
 
     applyExpressApiFunction(app);
+
+    applySessionParser(app);
 
     app.use(
         express.json({

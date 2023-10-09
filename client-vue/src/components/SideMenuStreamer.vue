@@ -6,12 +6,12 @@
             'is-live': streamer.is_live,
             'is-capturing': streamer.is_capturing,
             'is-animated': store.clientCfg('animationsEnabled'),
-            'is-active': route.query.channel == streamer.login,
+            'is-active': route.query.channel == streamer.internalName,
             'is-converting': streamer.is_converting,
             'no-capture': streamer.no_capture,
             streamer: true,
         }"
-        :data-streamer="streamer.login"
+        :data-streamer="streamer.internalName"
     >
         <!-- :style="{
             'background-image': 'url(' + bannerUrl + ')',

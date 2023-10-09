@@ -1,8 +1,8 @@
+import { AppName } from "@/Core/BaseConfig";
+import { Config } from "@/Core/Config";
 import auth from "basic-auth";
 import chalk from "chalk";
 import type express from "express";
-import { AppName } from "@/Core/BaseConfig";
-import { Config } from "@/Core/Config";
 
 export function Auth(
     req: express.Request,
@@ -56,6 +56,17 @@ export function AuthGuest(
     next: express.NextFunction
 ): void {
     const guest_mode = Config.getInstance().cfg<boolean>("guest_mode", false);
+
+    if (!req.session) {
+        res.status(500)
+            .send({
+                status: "ERROR",
+                message: "Session library not loaded",
+            })
+            .end();
+        console.error("Session library not loaded");
+        return;
+    }
 
     if (!Config.getInstance().cfg<boolean>("password")) {
         next();
