@@ -2102,6 +2102,14 @@ export class TwitchVOD extends BaseVOD {
                             logOutput.trim()
                         );
                     }
+
+                    if (logOutput.match(/403 Client Error/)) {
+                        log(
+                            LOGLEVEL.ERROR,
+                            "vod.downloadVideo",
+                            "Twitch returned 403, is the VOD deleted or subscriber only?"
+                        );
+                    }
                 }
             );
 
