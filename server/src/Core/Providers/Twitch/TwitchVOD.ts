@@ -41,7 +41,7 @@ import { FFmpegMetadata } from "../../FFmpegMetadata";
 import { Helper } from "../../Helper";
 import { Job } from "../../Job";
 import { LiveStreamDVR } from "../../LiveStreamDVR";
-import { LOGLEVEL, log } from "../../Log";
+import { LOGLEVEL, censoredLogWords, log } from "../../Log";
 import { Webhook } from "../../Webhook";
 import { BaseVOD } from "../Base/BaseVOD";
 import { TwitchChannel } from "./TwitchChannel";
@@ -1497,7 +1497,7 @@ export class TwitchVOD extends BaseVOD {
 
         let filename = "";
         try {
-            filename = await TwitchVOD.downloadVideo(
+            filename = await Twitchtw.VOD.downloadVideo(
                 this.twitch_vod_id.toString(),
                 quality,
                 path.join(this.directory, `${this.basename}_vod.mp4`)
@@ -1990,15 +1990,19 @@ export class TwitchVOD extends BaseVOD {
         quality: VideoQuality = "best",
         filename: string
     ): Promise<string> {
-        log(LOGLEVEL.INFO, "vod.downloadVideo", `Download VOD ${video_id}`);
+        log(
+            LOGLEVEL.INFO,
+            "tw.vod.downloadVideo",
+            `Prepare to download VOD ${video_id}`
+        );
 
         const video = await TwitchVOD.getVideo(video_id);
 
         if (!video) {
             log(
                 LOGLEVEL.ERROR,
-                "vod.downloadVideo",
-                `Failed to get video ${video_id}`
+                "tw.vod.downloadVideo",
+                `Failed to get video info about id ${video_id}`
             );
             throw new Error(`Failed to get video ${video_id}`);
         }
@@ -2024,7 +2028,7 @@ export class TwitchVOD extends BaseVOD {
             if (!streamlink_bin) {
                 log(
                     LOGLEVEL.ERROR,
-                    "vod.downloadVideo",
+                    "tw.vod.downloadVideo",
                     "Failed to find streamlink binary!"
                 );
                 throw new Error("Failed to find streamlink binary!");
@@ -2033,7 +2037,7 @@ export class TwitchVOD extends BaseVOD {
             if (!ffmpeg_bin) {
                 log(
                     LOGLEVEL.ERROR,
-                    "vod.downloadVideo",
+                    "tw.vod.downloadVideo",
                     "Failed to find ffmpeg binary!"
                 );
                 throw new Error("Failed to find ffmpeg binary!");
@@ -2051,6 +2055,38 @@ export class TwitchVOD extends BaseVOD {
 
             cmd.push("--default-stream", quality); // twitch url and quality
 
+            /**
+             * Pass auth token to streamlink if it exists and the config option is enabled
+             */
+            if (Config.getInstance().cfg("twitch.voddownload.auth_enabled")) {
+                if (
+                    fs.existsSync(
+                        path.join(
+                            BaseConfigDataFolder.config,
+                            "twitch_oauth.txt"
+                        )
+                    )
+                ) {
+                    const token = fs
+                        .readFileSync(
+                            path.join(
+                                BaseConfigDataFolder.config,
+                                "twitch_oauth.txt"
+                            ),
+                            "utf8"
+                        )
+                        .trim();
+                    censoredLogWords.add(token.toString());
+                    cmd.push(
+                        `--twitch-api-header=Authorization=OAuth ${token}`
+                    );
+                } else {
+                    throw new Error(
+                        "Twitch OAuth token not found but auth_enabled is true!"
+                    );
+                }
+            }
+
             // logging level
             if (Config.debug) {
                 cmd.push("--loglevel", "debug");
@@ -2060,7 +2096,7 @@ export class TwitchVOD extends BaseVOD {
 
             log(
                 LOGLEVEL.INFO,
-                "vod.downloadVideo",
+                "tw.vod.downloadVideo",
                 `Downloading VOD ${video_id}...`
             );
 
@@ -2098,7 +2134,7 @@ export class TwitchVOD extends BaseVOD {
                     ) {
                         log(
                             LOGLEVEL.ERROR,
-                            "vod.downloadVideo",
+                            "tw.vod.downloadVideo",
                             logOutput.trim()
                         );
                     }
@@ -2106,7 +2142,10 @@ export class TwitchVOD extends BaseVOD {
                     if (logOutput.match(/403 Client Error/)) {
                         log(
                             LOGLEVEL.ERROR,
-                            "vod.downloadVideo",
+                            "tw.vod.downloadVideo",
+                            "Twitch returned 403, is the VOD deleted or subscriber only?"
+                        );
+                        throw new Error(
                             "Twitch returned 403, is the VOD deleted or subscriber only?"
                         );
                     }
@@ -2115,7 +2154,7 @@ export class TwitchVOD extends BaseVOD {
 
             log(
                 LOGLEVEL.INFO,
-                "vod.downloadVideo",
+                "tw.vod.downloadVideo",
                 `Downloaded VOD ${video_id}...}`
             );
 
@@ -2129,10 +2168,21 @@ export class TwitchVOD extends BaseVOD {
             }
         }
 
+        if (!fs.existsSync(capture_filename)) {
+            log(
+                LOGLEVEL.ERROR,
+                "tw.vod.downloadVideo",
+                `Failed to download ${basename}, no output file found!`
+            );
+            throw new Error(
+                `Failed to download ${basename}, no output file found!`
+            );
+        }
+
         if (!fs.existsSync(converted_filename)) {
             log(
                 LOGLEVEL.INFO,
-                "vod.downloadVideo",
+                "tw.vod.downloadVideo",
                 `Starting remux of ${basename}`
             );
 
@@ -2152,7 +2202,7 @@ export class TwitchVOD extends BaseVOD {
                 } catch (e) {
                     log(
                         LOGLEVEL.ERROR,
-                        "vod.downloadVideo",
+                        "tw.vod.downloadVideo",
                         `Failed to add chapter to ${basename}: ${
                             (e as Error).message
                         }`
@@ -2173,7 +2223,7 @@ export class TwitchVOD extends BaseVOD {
             } catch (error) {
                 log(
                     LOGLEVEL.ERROR,
-                    "vod.downloadVideo",
+                    "tw.vod.downloadVideo",
                     `Failed to remux ${basename}: ${(error as Error).message}`
                 );
                 throw new Error(
@@ -2190,14 +2240,14 @@ export class TwitchVOD extends BaseVOD {
             if (ret.success) {
                 log(
                     LOGLEVEL.INFO,
-                    "vod.downloadVideo",
+                    "tw.vod.downloadVideo",
                     `Successfully remuxed ${basename}, removing ${capture_filename}`
                 );
                 fs.unlinkSync(capture_filename);
             } else {
                 log(
                     LOGLEVEL.INFO,
-                    "vod.downloadVideo",
+                    "tw.vod.downloadVideo",
                     `Failed to remux ${basename}`
                 );
             }
@@ -2210,7 +2260,7 @@ export class TwitchVOD extends BaseVOD {
         if (!successful) {
             log(
                 LOGLEVEL.ERROR,
-                "vod.downloadVideo",
+                "tw.vod.downloadVideo",
                 `Failed to download ${basename}, no file found!`
             );
             throw new Error(`Failed to download ${basename}, no file found!`);
@@ -2218,7 +2268,7 @@ export class TwitchVOD extends BaseVOD {
 
         log(
             LOGLEVEL.INFO,
-            "vod.downloadVideo",
+            "tw.vod.downloadVideo",
             `Download of ${basename} successful`
         );
 

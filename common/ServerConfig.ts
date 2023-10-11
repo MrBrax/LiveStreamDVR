@@ -390,6 +390,12 @@ export const settingsFields: Record<
         type: "boolean",
         default: false,
     },
+    "twitch.voddownload.auth_enabled": {
+        group: "Twitch",
+        text: "Enable VOD download auth with oauth_config.txt",
+        type: "boolean",
+        default: false,
+    },
 
     "youtube.client_id": {
         group: "YouTube",
