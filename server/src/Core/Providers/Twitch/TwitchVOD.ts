@@ -1497,7 +1497,7 @@ export class TwitchVOD extends BaseVOD {
 
         let filename = "";
         try {
-            filename = await Twitchtw.VOD.downloadVideo(
+            filename = await TwitchVOD.downloadVideo(
                 this.twitch_vod_id.toString(),
                 quality,
                 path.join(this.directory, `${this.basename}_vod.mp4`)
