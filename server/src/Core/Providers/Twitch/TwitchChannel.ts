@@ -1098,6 +1098,13 @@ export class TwitchChannel extends BaseChannel {
     public async isLiveApi(): Promise<boolean> {
         if (!this.internalId) return false;
         const streams = await TwitchChannel.getStreams(this.internalId);
+        log(
+            LOGLEVEL.DEBUG,
+            "tw.channel.isLiveApi",
+            `Checking if channel ${this.internalName} is live: ${
+                streams ? streams.length : 0
+            } streams found`
+        );
         return streams && streams.length > 0;
     }
 
