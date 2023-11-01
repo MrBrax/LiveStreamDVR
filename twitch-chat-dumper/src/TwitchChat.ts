@@ -4,6 +4,7 @@ import { EventEmitter } from "node:events";
 import fs from "node:fs";
 import { WebSocket } from "ws";
 import { TwitchComment, TwitchCommentDumpTD, TwitchCommentMessageFragment, TwitchCommentEmoticons, TwitchCommentUserBadge } from "../../common/Comments";
+import { isValid, parseJSON } from "date-fns";
 
 function getNiceDuration(duration: number) {
     // format 1d 2h 3m 4s
@@ -163,8 +164,22 @@ export class TwitchChat extends EventEmitter {
         super();
         this.channel_login = channel_login;
         if (channel_id) this.channel_id = channel_id;
-        if (start_date) this.startDate = new Date(start_date);
+        if (start_date) {
+            TwitchChat.validateDate(start_date);
+            this.startDate = parseJSON(start_date);
+        }
         // this.connect();
+    }
+
+    private static validateDate(date: string) {
+        const parsedDate = parseJSON(date);
+        if (!isValid(parsedDate)) {
+            throw new Error(`Invalid date ${date}`);
+        }
+        console.log(`Date ${date} is valid, parsed to ${parsedDate}. Current date is ${JSON.stringify(new Date())}`);
+        if (parsedDate.getTime() - 60 > Date.now() ) {
+            throw new Error(`Date ${date} is in the future`);
+        }
     }
 
     public connect() {
@@ -710,6 +725,10 @@ export class TwitchChat extends EventEmitter {
             throw new Error("messageToDump: message.parameters is undefined");
         }
 
+        if (offset_seconds === undefined || offset_seconds === null) {
+            throw new Error("messageToDump: offset_seconds is undefined");
+        }
+
         const emoticons: TwitchCommentEmoticons[] = [];
         if (message.getTag('emotes')) {
             for (const emote in message.tags.emotes) {
@@ -865,7 +884,7 @@ export class TwitchChat extends EventEmitter {
             throw new Error("Dump already started");
         }
         if (fs.existsSync(filename)) {
-            throw new Error(`File ${filename} already exists`);
+            throw new Error(`EEXIST: File ${filename} already exists`);
         }
         this.dumpFilename = filename;
         this.dumpStream = fs.createWriteStream(`${this.dumpFilename}.line`, { flags: "a" });
