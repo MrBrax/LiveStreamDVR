@@ -454,8 +454,6 @@ function openPlayer(): void {
         hash += `&chatfile=${props.vod.webpath}/${props.vod.basename}_chat.json`;
     }
 
-    hash += `&tci=${store.cfg("api_client_id", "0")}`;
-
     // url.searchParams.set("offset", this.playerSettings.offset.toString());
     // window.open(url.toString(), "_blank");
     router.push({ name: "VODPlayer", hash });

@@ -54,6 +54,7 @@ interface Tags {
     id?: string;
     mod?: "1" | "0"; // number
     "room-id"?: string;
+    "returning-chatter"?: "1" | "0";
     subscriber?: "1" | "0";
     turbo?: "1" | "0";
     "tmi-sent-ts"?: string;
@@ -736,7 +737,7 @@ export class TwitchChat extends EventEmitter {
                     emoticons.push({
                         _id: emote,
                         begin: parseInt(pos.startPosition),
-                        end: parseInt(pos.endPosition),
+                        end: parseInt(pos.endPosition) + 1, // 2023-11-02 - for some reason the end position is off by 1 now
                     });
                 }
             }
@@ -767,66 +768,6 @@ export class TwitchChat extends EventEmitter {
                 emoticon: null,
             });
         }
-
-        /*
-        const words = message.parameters.split(" ");
-
-        for (let i = 0; i < words.length; i++) {
-            const word = words[i];
-            const fragment: TwitchCommentMessageFragment = {
-                "text": word,
-                "emoticon": null,
-            };
-
-            if (emoticons.length > 0) {
-                // find emoticon based on entire message text position
-                // i in this case is the word index, not the character index
-                const emoticon = emoticons.find(e => e.begin <= i && e.end >= i);
-                if (emoticon) {
-                    fragment.emoticon = {
-                        emoticon_id: emoticon._id,
-                        // emoticon_set_id: message.tags["emote-sets"][0],
-                    };
-                } else {
-                    console.debug(`No emoticon found for word ${word}`);
-                }
-            }
-
-            fragments.push(fragment);
-        }
-        */
-
-        // console.debug(`Got ${fragments.length} fragments`, fragments);
-
-        // merge fragments with only text
-        /*
-        const mergedFragments: TwitchCommentMessageFragment[] = [];
-        let currentFragment: TwitchCommentMessageFragment | undefined = undefined;
-        for (let i = 0; i < fragments.length; i++) {
-            const fragment = fragments[i];
-            if (fragment.emoticon) {
-                if (currentFragment) {
-                    mergedFragments.push(currentFragment);
-                }
-                currentFragment = undefined;
-                mergedFragments.push(fragment);
-            } else {
-                if (!currentFragment) {
-                    currentFragment = {
-                        text: fragment.text,
-                        emoticon: null,
-                    };
-                } else {
-                    currentFragment.text += " " + fragment.text;
-                }
-            }
-        }
-        if (currentFragment) {
-            mergedFragments.push(currentFragment);
-        }
-
-        console.debug(`Merged ${fragments.length} fragments to ${mergedFragments.length}`);
-        */
 
         const badges: TwitchCommentUserBadge[] = [];
         if (message.tags?.badges) {
