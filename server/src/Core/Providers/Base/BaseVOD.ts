@@ -347,7 +347,7 @@ export class BaseVOD {
             `${this.basename}-ffmpeg-chapters.txt`,
             `${this.basename}.chapters.vtt`,
             `${this.basename}.nfo`,
-            `${this.basename}-contact-sheet.png`,
+            `${this.basename}-contact_sheet.png`,
         ];
 
         if (this.segments_raw) {
