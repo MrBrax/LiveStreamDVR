@@ -16,6 +16,11 @@ import type {
     TwitchAuthUserTokenResponse,
 } from "@common/TwitchAPI/Auth";
 import type {
+    ChatBadge,
+    ChatBadgesResponse,
+    GlobalChatBadgesResponse,
+} from "@common/TwitchAPI/Badges";
+import type {
     EventSubWebsocketMessage,
     EventSubWebsocketNotificationMessage,
 } from "@common/TwitchAPI/EventSub/Websocket";
@@ -489,6 +494,81 @@ export class TwitchHelper {
         this.updateAxiosToken();
 
         return true;
+    }
+
+    static async getGlobalChatBadges(): Promise<ChatBadge[] | false> {
+        if (!TwitchHelper.hasAxios()) {
+            throw new Error("Axios is not initialized");
+        }
+
+        let response;
+
+        try {
+            response = await TwitchHelper.getRequest<GlobalChatBadgesResponse>(
+                "/helix/chat/badges/global"
+            );
+        } catch (e) {
+            log(
+                LOGLEVEL.ERROR,
+                "tw.helper.getGlobalChatBadges",
+                `Error getting global chat badges: ${e}`
+            );
+            return false;
+        }
+
+        const json = response.data;
+
+        if (!json || !json.data) {
+            log(
+                LOGLEVEL.ERROR,
+                "tw.helper.getGlobalChatBadges",
+                `Error getting global chat badges: ${json}`
+            );
+            return false;
+        }
+
+        return json.data;
+    }
+
+    static async getChannelChatBadges(
+        broadcaster_id: string
+    ): Promise<ChatBadge[] | false> {
+        if (!TwitchHelper.hasAxios()) {
+            throw new Error("Axios is not initialized");
+        }
+
+        let response;
+
+        try {
+            response = await TwitchHelper.getRequest<ChatBadgesResponse>(
+                "/helix/chat/badges",
+                {
+                    params: {
+                        broadcaster_id,
+                    },
+                }
+            );
+        } catch (e) {
+            log(
+                LOGLEVEL.ERROR,
+                "tw.helper.getChannelChatBadges",
+                `Error getting channel chat badges: ${e}`
+            );
+            return false;
+        }
+
+        const json = response.data;
+
+        if (!json || !json.data) {
+            log(
+                LOGLEVEL.ERROR,
+                "tw.helper.getChannelChatBadges",
+                `Error getting channel chat badges: ${json}`
+            );
+            return false;
+        }
+
+        return json.data;
     }
 
     /**

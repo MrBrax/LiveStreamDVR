@@ -1,3 +1,4 @@
+import { TwitchChat } from "../src/TwitchChat";
 import { TwitchComment, TwitchCommentDumpTD, TwitchCommentMessageFragment, TwitchCommentEmoticons, TwitchCommentUserBadge } from "../../common/Comments";
 import fs from "node:fs";
 
@@ -51,5 +52,37 @@ describe("TwitchDownloader compliance", () => {
         expect(typeof data.video.end).toBe("number");
 
     });
+
+    // relying on a live channel is not a good idea, TODO: mock this somehow
+    /*
+    test("Live Dump", async () => {
+
+        const channel = "bobross";
+
+        const dumper = new TwitchChat(channel, "0", JSON.stringify(new Date()));
+        dumper.connect();
+
+        dumper.startDump("temp.json");
+
+        // wait 30 seconds, probably enough time to get a few messages
+        await new Promise(resolve => setTimeout(resolve, 30000));
+
+        dumper.stopDump();
+        dumper.close();
+
+        expect(fs.existsSync("temp.json")).toBe(true);
+
+        const data: TwitchCommentDumpTD = JSON.parse(fs.readFileSync("temp.json", "utf8"));
+
+        expect(data.comments).not.toBeUndefined();
+        // expect(data.emotes).not.toBeUndefined();
+        expect(data.streamer).not.toBeUndefined();
+
+        expect(data.comments[0].content_offset_seconds).toBeGreaterThan(0);
+
+        fs.unlinkSync("temp.json");
+
+    }, 40000);
+    */
 
 });
