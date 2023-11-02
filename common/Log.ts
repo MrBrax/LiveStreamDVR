@@ -3,7 +3,7 @@ export interface WinstonLogLine {
     level: string;
     module: string;
     timestamp: string;
-    metadata: {
+    metadata?: {
         [key: string]: any;
         module: string;
         timestamp: string;

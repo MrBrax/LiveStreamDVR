@@ -15,12 +15,12 @@
     <div ref="logViewer" class="log_viewer">
         <table>
             <tr v-for="(line, lineIndex) in logFiltered" :key="lineIndex" :class="logLineClass(line)">
-                <td v-if="line.metadata.timestamp">
-                    {{ formatDate(line.metadata.timestamp) }}
+                <td v-if="line.timestamp">
+                    {{ formatDate(line.timestamp) }}
                 </td>
                 <td v-else>(no date)</td>
                 <td>
-                    <a @click="logSetFilter(line.metadata.module)">{{ line.metadata.module }}</a>
+                    <a @click="logSetFilter(line.module)">{{ line.module }}</a>
                 </td>
                 <td>
                     {{ line.level || "UNKNOWN" }}
@@ -61,7 +61,7 @@ const logViewer = ref<HTMLElement | null>(null);
 const logFiltered = computed((): WinstonLogLine[] => {
     return logLines.value.filter((line) => {
         if (logModule.value) {
-            return line.metadata.module === logModule.value;
+            return line.module === logModule.value;
         }
         return true;
     });
