@@ -672,6 +672,11 @@ export class BaseChannel {
         return Helper.vodFolder(this.internalName);
     }
 
+    /**
+     * Scans the channel folder for VOD files and returns a list of relative paths to the files.
+     * Only files with the extension ".json" and a size less than 1MB are included.
+     * @returns An array of relative paths to the VOD files.
+     */
     public rescanVods(): string[] {
         const list = readdirSyncRecursive(this.getFolder()).filter(
             (file) =>
@@ -703,6 +708,11 @@ export class BaseChannel {
         }
     }
 
+    /**
+     * Deletes any empty VOD folders for the channel.
+     * Only deletes folders if channel folders are enabled and clean empty VOD folders is enabled.
+     * Will not delete the root VOD folder.
+     */
     public deleteEmptyVodFolders(): void {
         if (!Config.getInstance().cfg("channel_folders")) return; // only if channel folders are enabled
         if (!Config.getInstance().cfg("storage.clean_empty_vod_folders"))

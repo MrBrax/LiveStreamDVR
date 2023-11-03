@@ -24,6 +24,7 @@ import type {
     EventSubWebsocketMessage,
     EventSubWebsocketNotificationMessage,
 } from "@common/TwitchAPI/EventSub/Websocket";
+import type { GqlResponse } from "@common/TwitchAPI/GQL/Shared";
 import type {
     ErrorResponse,
     EventSubTypes,
@@ -1106,6 +1107,58 @@ export class TwitchHelper {
         }
 
         return response;
+    }
+
+    public static async gqlRequest<T extends GqlResponse>(
+        query: object
+        // variables?: Record<string, unknown>
+    ): Promise<T> {
+        if (!TwitchHelper.axios) {
+            throw new Error("Axios is not initialized");
+        }
+
+        log(
+            LOGLEVEL.DEBUG,
+            "tw.helper.gqlRequest",
+            `Requesting GQL query ${JSON.stringify(query)})}`
+        );
+
+        let response;
+        try {
+            response = await axios.post<T>(
+                "https://gql.twitch.tv/gql",
+                // {
+                query,
+                //     variables,
+                // },
+                {
+                    headers: {
+                        "Client-Id": "kd1unb4b3q4t58fwlpcbzcbnm76a8fp",
+                    },
+                }
+            );
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                log(
+                    LOGLEVEL.ERROR,
+                    "tw.helper",
+                    `Error during gql request: ${
+                        error.response?.data?.message || error
+                    }`,
+                    error
+                );
+                console.error(error);
+            }
+            throw error;
+        }
+
+        log(
+            LOGLEVEL.DEBUG,
+            "tw.helper.gqlRequest",
+            `GQL response: ${JSON.stringify(response.data)}`
+        );
+
+        return response.data;
     }
 
     public static async setupWebsocket() {

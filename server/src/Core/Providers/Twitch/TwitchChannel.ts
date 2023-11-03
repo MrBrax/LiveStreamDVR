@@ -24,7 +24,7 @@ import type { AxiosResponse } from "axios";
 import axios from "axios";
 import chalk from "chalk";
 import chokidar from "chokidar";
-import { format, isValid, parseJSON } from "date-fns";
+import { addSeconds, format, isValid, parseJSON } from "date-fns";
 import { encode as htmlentities } from "html-entities";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
@@ -1191,6 +1191,26 @@ export class TwitchChannel extends BaseChannel {
         const channel_basepath = this.getFolder();
         let basepath = "";
 
+        // fetch supplementary data
+        let videoGqlData;
+        try {
+            videoGqlData = await TwitchVOD.getGqlVideoInfo(latestVodId);
+        } catch (error) {
+            log(
+                LOGLEVEL.ERROR,
+                "route.channels.download",
+                `Failed to fetch video data: ${(error as Error).message}`
+            );
+        }
+
+        let gameName = "";
+        let gameId = "";
+
+        if (videoGqlData) {
+            gameName = videoGqlData.game.displayName;
+            gameId = videoGqlData.game.id;
+        }
+
         // const basename = `${this.login}_${latestVodData.created_at.replaceAll(":", "-")}_${latestVodData.stream_id}`;
 
         if (Config.getInstance().cfg<boolean>("vod_folders")) {
@@ -1229,7 +1249,8 @@ export class TwitchChannel extends BaseChannel {
                 absolute_episode: "",
 
                 title: latestVodData.title,
-                game_name: "", // not exposed by twitch api
+                game_name: gameName,
+                game_id: gameId,
             };
 
             const vod_folder_base = sanitize(
@@ -1275,7 +1296,8 @@ export class TwitchChannel extends BaseChannel {
             absolute_episode: "",
 
             title: latestVodData.title,
-            game_name: "", // not exposed by twitch api
+            game_name: gameName,
+            game_id: gameId,
         };
 
         const vod_filename_base = sanitize(
@@ -1320,6 +1342,53 @@ export class TwitchChannel extends BaseChannel {
         await vod.saveJSON("manual creation");
 
         await vod.addSegment(path.basename(video_file_path));
+
+        // fetch supplementary chapter data
+        let chapterData;
+
+        try {
+            chapterData = await TwitchVOD.getGqlVideoChapters(latestVodId);
+        } catch (error) {
+            log(
+                LOGLEVEL.ERROR,
+                "route.channels.download",
+                `Failed to fetch chapter data: ${(error as Error).message}`
+            );
+        }
+
+        if (chapterData && chapterData.length > 0) {
+            const chapters: TwitchVODChapterJSON[] = [];
+            for (const c of chapterData) {
+                if (!vod.started_at) continue;
+                const start_time = addSeconds(
+                    vod.started_at,
+                    c.positionMilliseconds / 1000
+                );
+                chapters.push({
+                    title: c.description,
+                    game_id: c.details.game.id,
+                    game_name: c.details.game.displayName,
+                    started_at: start_time.toJSON(),
+                    is_mature: false,
+                    online: true,
+                });
+            }
+
+            await vod.parseChapters(chapters);
+        } else if (videoGqlData) {
+            const chapters: TwitchVODChapterJSON[] = [];
+            chapters.push({
+                title: videoGqlData.title,
+                game_id: videoGqlData.game.id,
+                game_name: videoGqlData.game.displayName,
+                started_at: vod.started_at.toJSON(),
+                is_mature: false,
+                online: true,
+            });
+
+            await vod.parseChapters(chapters);
+        }
+
         await vod.finalize();
         await vod.saveJSON("manual finalize");
 

@@ -35,7 +35,7 @@ import { formatString } from "@common/Format";
 import type { ProxyVideo } from "@common/Proxies/Video";
 import type { VodBasenameTemplate } from "@common/Replacements";
 import type { EventSubStreamOnline } from "@common/TwitchAPI/EventSub/StreamOnline";
-import { format, isValid, parseJSON } from "date-fns";
+import { addSeconds, format, isValid, parseJSON } from "date-fns";
 import type express from "express";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
@@ -650,7 +650,11 @@ export async function DownloadVideo(
             ? (req.query.quality as VideoQuality)
             : "best";
 
-    const template = (video: ProxyVideo, what: string) => {
+    const template = (
+        video: ProxyVideo,
+        extraData: Record<string, any>,
+        what: string
+    ) => {
         if (!video) return "";
 
         const date = parseJSON(video.created_at);
@@ -684,7 +688,8 @@ export async function DownloadVideo(
             // episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
             episode: "0", // episode won't work with random downloads
             title: video.title || "",
-            game_name: "", // not exposed by twitch api
+            game_name: extraData.game_name || "",
+            game_id: extraData.game_id || "",
         };
 
         return sanitize(
@@ -693,6 +698,7 @@ export async function DownloadVideo(
     };
 
     if (isTwitchChannel(channel)) {
+        // check if vod is already downloaded
         if (TwitchVOD.getVodByProviderId(video_id)) {
             res.api(400, {
                 status: "ERROR",
@@ -701,6 +707,7 @@ export async function DownloadVideo(
             return;
         }
 
+        // fetch vod info online
         let video: ProxyVideo | false;
         try {
             video = await TwitchVOD.getVideoProxy(video_id);
@@ -723,37 +730,42 @@ export async function DownloadVideo(
             return;
         }
 
-        // const basename = `${channel.login}_${replaceAll(video.created_at, ":", "-")}_${video.stream_id}`;
+        // fetch supplementary data
+        let videoGqlData;
+        try {
+            videoGqlData = await TwitchVOD.getGqlVideoInfo(video_id);
+        } catch (error) {
+            log(
+                LOGLEVEL.ERROR,
+                "route.channels.download",
+                `Failed to fetch video data: ${(error as Error).message}`
+            );
+        }
 
-        /*
-
-        const variables: VodBasenameTemplate = {
-            login: channel.login,
-            date: video.created_at.replaceAll(":", "_"),
-            year: isValid(date) ? format(date, "yyyy") : "",
-            year_short: isValid(date) ? format(date, "yy") : "",
-            month: isValid(date) ? format(date, "MM") : "",
-            day: isValid(date) ? format(date, "dd") : "",
-            hour: isValid(date) ? format(date, "HH") : "",
-            minute: isValid(date) ? format(date, "mm") : "",
-            second: isValid(date) ? format(date, "ss") : "",
-            id: video.stream_id?.toString() || randomUUID(), // bad solution
-            season: channel.current_season,
-            absolute_season: channel.current_absolute_season ? channel.current_absolute_season.toString().padStart(2, "0") : "",
-            // episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
-            episode: "0", // episode won't work with random downloads
-        };
-
-        const basename = sanitize(formatString(Config.getInstance().cfg("filename_vod"), variables));
-        const basefolder = "";
-        */
-
-        const basename = template(video, "filename_vod");
-        const basefolder = path.join(
-            channel.getFolder(),
-            template(video, "filename_vod_folder")
+        // make filename
+        const basename = template(
+            video,
+            {
+                game_name: videoGqlData?.game?.displayName || "",
+                game_id: videoGqlData?.game?.id || "",
+            },
+            "filename_vod"
         );
 
+        // make folder name
+        const basefolder = path.join(
+            channel.getFolder(),
+            template(
+                video,
+                {
+                    game_name: videoGqlData?.game?.displayName || "",
+                    game_id: videoGqlData?.game?.id || "",
+                },
+                "filename_vod_folder"
+            )
+        );
+
+        // make filepath
         const filepath = path.join(
             basefolder,
             `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`
@@ -769,6 +781,7 @@ export async function DownloadVideo(
             return;
         }
 
+        // create folder if it doesn't exist
         try {
             fs.mkdirSync(path.dirname(filepath), { recursive: true });
         } catch (error) {
@@ -787,6 +800,8 @@ export async function DownloadVideo(
                 }
             }
         }
+
+        // download video
 
         let status = false;
 
@@ -808,8 +823,8 @@ export async function DownloadVideo(
         }
 
         if (status) {
-            let vod;
-
+            // create vod object
+            let vod: TwitchVOD;
             try {
                 vod = await channel.createVOD(
                     path.join(basefolder, `${basename}.json`)
@@ -822,21 +837,66 @@ export async function DownloadVideo(
                 return;
             }
 
-            // vod.meta = video;
-            // vod.streamer_name = channel.display_name || channel.login;
-            // vod.streamer_login = channel.login;
-            // vod.streamer_id = channel.userid || "";
+            // substitute started at with created at
             vod.started_at = parseJSON(video.created_at);
 
             if (video.stream_id) vod.capture_id = video.stream_id;
 
-            // const duration = TwitchHelper.parseTwitchDuration(video.duration);
+            // calculate ended at from started at and duration
             vod.ended_at = new Date(
                 vod.started_at.getTime() + video.duration * 1000
             );
             await vod.saveJSON("manual creation");
 
+            // add segment to vod
             vod.addSegment(path.basename(filepath));
+
+            // fetch supplementary chapter data
+            let chapterData;
+
+            try {
+                chapterData = await TwitchVOD.getGqlVideoChapters(video_id);
+            } catch (error) {
+                log(
+                    LOGLEVEL.ERROR,
+                    "route.channels.download",
+                    `Failed to fetch chapter data: ${(error as Error).message}`
+                );
+            }
+
+            if (chapterData && chapterData.length > 0) {
+                const chapters: TwitchVODChapterJSON[] = [];
+                for (const c of chapterData) {
+                    if (!vod.started_at) continue;
+                    const start_time = addSeconds(
+                        vod.started_at,
+                        c.positionMilliseconds / 1000
+                    );
+                    chapters.push({
+                        title: c.description,
+                        game_id: c.details.game.id,
+                        game_name: c.details.game.displayName,
+                        started_at: start_time.toJSON(),
+                        is_mature: false,
+                        online: true,
+                    });
+                }
+
+                await vod.parseChapters(chapters);
+            } else if (videoGqlData) {
+                const chapters: TwitchVODChapterJSON[] = [];
+                chapters.push({
+                    title: videoGqlData.title,
+                    game_id: videoGqlData.game.id,
+                    game_name: videoGqlData.game.displayName,
+                    started_at: vod.started_at.toJSON(),
+                    is_mature: false,
+                    online: true,
+                });
+
+                await vod.parseChapters(chapters);
+            }
+
             await vod.finalize();
             await vod.saveJSON("manual finalize");
 
@@ -882,10 +942,10 @@ export async function DownloadVideo(
 
         debugLog("video", video);
 
-        const basename = template(video, "filename_vod");
+        const basename = template(video, {}, "filename_vod");
         const basefolder = path.join(
             channel.getFolder(),
-            template(video, "filename_vod_folder")
+            template(video, {}, "filename_vod_folder")
         );
 
         const filepath = path.join(

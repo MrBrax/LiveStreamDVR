@@ -14,6 +14,11 @@ import type { VideoMetadata } from "@common/MediaInfo";
 import type { ProxyVideo } from "@common/Proxies/Video";
 import type { Clip, ClipsResponse } from "@common/TwitchAPI/Clips";
 import type {
+    GqlVideoChapterResponse,
+    VideoMomentEdge,
+} from "@common/TwitchAPI/GQL/VideoChapter";
+import type { GqlVideoInfoResponse } from "@common/TwitchAPI/GQL/VideoInfo";
+import type {
     Video,
     VideoRequestParams,
     VideosResponse,
@@ -2754,7 +2759,7 @@ export class TwitchVOD extends BaseVOD {
                 id: item.id,
                 title: item.title,
                 description: item.description,
-                url: `https://www.twitch.tv/v/${item.id}`,
+                url: `https://www.twitch.tv/videos/${item.id}`,
                 thumbnail: item.thumbnail_url,
                 created_at: item.created_at,
                 duration: TwitchHelper.parseTwitchDuration(item.duration),
@@ -2821,7 +2826,7 @@ export class TwitchVOD extends BaseVOD {
             id: item.id,
             title: item.title,
             description: item.description,
-            url: `https://www.twitch.tv/v/${item.id}`,
+            url: `https://www.twitch.tv/videos/${item.id}`,
             thumbnail: item.thumbnail_url,
             created_at: item.created_at,
             duration: TwitchHelper.parseTwitchDuration(item.duration),
@@ -2934,6 +2939,40 @@ export class TwitchVOD extends BaseVOD {
         }
 
         return clips;
+    }
+
+    static async getGqlVideoChapters(
+        video_id: string
+    ): Promise<VideoMomentEdge[]> {
+        // new StringContent("{\"extensions\":{\"persistedQuery\":{\"sha256Hash\":\"8d2793384aac3773beab5e59bd5d6f585aedb923d292800119e03d40cd0f9b41\",\"version\":1}},\"operationName\":\"VideoPlayer_ChapterSelectButtonVideo\",\"variables\":{\"videoID\":\"" + videoId + "\"}}", Encoding.UTF8, "application/json")
+        const response = await TwitchHelper.gqlRequest<GqlVideoChapterResponse>(
+            {
+                operationName: "VideoPlayer_ChapterSelectButtonVideo",
+                variables: {
+                    videoID: video_id,
+                },
+                extensions: {
+                    persistedQuery: {
+                        version: 1,
+                        sha256Hash:
+                            "8d2793384aac3773beab5e59bd5d6f585aedb923d292800119e03d40cd0f9b41",
+                    },
+                },
+            }
+        );
+
+        return response.data.video.moments.edges;
+    }
+
+    static async getGqlVideoInfo(video_id: string) {
+        // new StringContent("{\"query\":\"query{video(id:\\\"" + videoId + "\\\"){title,thumbnailURLs(height:180,width:320),createdAt,lengthSeconds,owner{id,displayName},viewCount,game{id,displayName,boxArtURL},description}}\",\"variables\":{}}", Encoding.UTF8, "application/json")
+
+        const response = await TwitchHelper.gqlRequest<GqlVideoInfoResponse>({
+            query: `query{video(id:"${video_id}"){title,thumbnailURLs(height:180,width:320),createdAt,lengthSeconds,owner{id,displayName},viewCount,game{id,displayName,boxArtURL},description}}`,
+            variables: {},
+        });
+
+        return response.data.video;
     }
 
     public static async downloadChat(
