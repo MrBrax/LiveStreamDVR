@@ -396,6 +396,13 @@ export const settingsFields: Record<
         type: "boolean",
         default: false,
     },
+    "twitchapi.enable_gql": {
+        group: "Twitch",
+        text: "Enable GQL",
+        type: "boolean",
+        default: false,
+        help: "End-users are not supposed to use GQL, use at your own risk.",
+    },
 
     "youtube.client_id": {
         group: "YouTube",

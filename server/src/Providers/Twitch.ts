@@ -1113,8 +1113,8 @@ export class TwitchHelper {
         query: object
         // variables?: Record<string, unknown>
     ): Promise<T> {
-        if (!TwitchHelper.axios) {
-            throw new Error("Axios is not initialized");
+        if (!Config.getInstance().cfg("twitchapi.enable_gql")) {
+            throw new Error("GQL requests are disabled. Check your config.");
         }
 
         log(
