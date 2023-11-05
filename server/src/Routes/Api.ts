@@ -103,6 +103,7 @@ router.get("/vod/:uuid/sync", AuthAdmin, Vod.GetSync);
 router.post("/vod/:uuid/rename", AuthAdmin, Vod.RenameVod);
 router.post("/vod/:uuid/fix_issues", AuthAdmin, Vod.FixIssues);
 router.post("/vod/:uuid/refresh_metadata", AuthAdmin, Vod.RefreshVodMetadata);
+router.post("/vod/:uuid/splitbychapters", AuthAdmin, Vod.SplitVodByChapters);
 
 router.get("/games", AuthGuest, Games.ListGames);
 // router.get("/games/:id", AuthGuest, Games.GetGame);

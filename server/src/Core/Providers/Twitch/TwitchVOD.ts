@@ -365,6 +365,13 @@ export class TwitchVOD extends BaseVOD {
         return this.chapters[0].game_name;
     }
 
+    /**
+     * Returns an array of filenames associated with this Twitch VOD, including the JSON metadata file,
+     * chat logs, video files, and other related files. If the VOD has been segmented, the filenames of
+     * the individual segments will also be included in the array.
+     *
+     * @returns An array of filenames associated with this Twitch VOD.
+     */
     get associatedFiles(): string[] {
         if (!this.directory) return [];
 
@@ -399,6 +406,11 @@ export class TwitchVOD extends BaseVOD {
         );
     }
 
+    /**
+     * Parses the raw chapter data for the VOD and creates an array of `TwitchVODChapter` objects.
+     * @param raw_chapters The raw chapter data to parse.
+     * @returns A boolean indicating whether the parsing was successful or not.
+     */
     public async parseChapters(
         raw_chapters: TwitchVODChapterJSON[]
     ): Promise<boolean> {
@@ -494,15 +506,6 @@ export class TwitchVOD extends BaseVOD {
         return true;
     }
 
-    // public generateChaptersRaw() {
-    //     const raw_chapters: TwitchVODChapterJSON[] = [];
-    //     for (const chapter of this.chapters) {
-    //         const raw_chapter = chapter.getRawChapter();
-    //         if (raw_chapter) raw_chapters.push(raw_chapter);
-    //     }
-    //     return raw_chapters;
-    // }
-
     public addChapter(chapter: TwitchVODChapter): void {
         log(
             LOGLEVEL.INFO,
@@ -524,6 +527,136 @@ export class TwitchVOD extends BaseVOD {
         });
 
         this.addChapter(chapter);
+    }
+
+    /**
+     * Splits the video by chapters.
+     * @returns A boolean indicating whether the operation was successful or not.
+     */
+    public async splitSegmentVideoByChapters(): Promise<boolean> {
+        if (!this.segments_raw || this.segments_raw.length == 0) {
+            log(
+                LOGLEVEL.ERROR,
+                "vod.splitSegmentByChapters",
+                `No segments found for ${this.basename}`
+            );
+            throw new Error(`No segments found for ${this.basename}`);
+            return false;
+        }
+
+        if (!this.chapters || this.chapters.length == 0) {
+            log(
+                LOGLEVEL.ERROR,
+                "vod.splitSegmentByChapters",
+                `No chapters found for ${this.basename}`
+            );
+            throw new Error(`No chapters found for ${this.basename}`);
+            return false;
+        }
+
+        const bin = Helper.path_ffmpeg();
+
+        if (!bin) {
+            log(
+                LOGLEVEL.ERROR,
+                "vod.splitSegmentByChapters",
+                `FFmpeg binary not found for ${this.basename}`
+            );
+            throw new Error(`FFmpeg binary not found for ${this.basename}`);
+            return false;
+        }
+
+        let chapter_index = 1;
+        for (const chapter of this.chapters) {
+            if (!chapter.started_at) {
+                log(
+                    LOGLEVEL.ERROR,
+                    "vod.splitSegmentByChapters",
+                    `Chapter ${chapter.title} has no start time for ${this.basename}`
+                );
+                throw new Error(
+                    `Chapter ${chapter.title} has no start time for ${this.basename}`
+                );
+                return false;
+            }
+
+            if (!chapter.offset || !chapter.duration) {
+                log(
+                    LOGLEVEL.ERROR,
+                    "vod.splitSegmentByChapters",
+                    `Chapter ${chapter.title} has no offset or duration for ${this.basename}`
+                );
+                throw new Error(
+                    `Chapter ${chapter.title} has no offset or duration for ${this.basename}`
+                );
+            }
+
+            if (
+                chapter.offset < 0 ||
+                chapter.duration < 0 ||
+                chapter.offset + chapter.duration > this.duration
+            ) {
+                log(
+                    LOGLEVEL.ERROR,
+                    "vod.splitSegmentByChapters",
+                    `Chapter ${chapter.title} has invalid offset or duration for ${this.basename}`
+                );
+                throw new Error(
+                    `Chapter ${chapter.title} has invalid offset or duration for ${this.basename}`
+                );
+            }
+
+            const chapter_start = chapter.offset || 0;
+            const chapter_end = chapter.offset + chapter.duration;
+
+            const chapter_title =
+                `${chapter_index}. ${chapter.title} (${chapter.game_name})`.replace(
+                    /[^a-z0-9]/gi,
+                    "_"
+                );
+
+            const chapter_filename = `${this.basename}.${chapter_title}.mp4`;
+
+            const chapter_path = path.join(this.directory, chapter_filename);
+
+            const job = await execAdvanced(
+                bin,
+                [
+                    // "-y",
+                    "-i",
+                    this.realpath(
+                        path.join(this.directory, this.segments_raw[0])
+                    ),
+                    "-ss",
+                    formatSubtitleDuration(chapter_start),
+                    "-to",
+                    formatSubtitleDuration(chapter_end),
+                    "-c",
+                    "copy",
+                    chapter_path,
+                ],
+                `chapter_split_${this.basename}_${chapter_index}`
+            );
+
+            if (
+                !fs.existsSync(chapter_path) ||
+                fs.statSync(chapter_path).size == 0
+            ) {
+                log(
+                    LOGLEVEL.ERROR,
+                    "vod.splitSegmentByChapters",
+                    `Chapter ${chapter.title} did not generate a file for ${this.basename}`
+                );
+                throw new Error(
+                    `Chapter ${chapter.title} did not generate a file for ${this.basename}`
+                );
+                return false;
+            }
+
+            chapter_index++;
+        }
+
+        return true;
     }
 
     /**
