@@ -1211,6 +1211,12 @@ export class TwitchChannel extends BaseChannel {
             gameId = videoGqlData.game.id;
         }
 
+        const streamNumberInfo = this.incrementStreamNumber();
+        // this.vod_season = s.season;
+        // this.vod_absolute_season = s.absolute_season;
+        // this.vod_episode = s.stream_number;
+        // this.vod_absolute_episode = s.absolute_stream_number;
+
         // const basename = `${this.login}_${latestVodData.created_at.replaceAll(":", "-")}_${latestVodData.stream_id}`;
 
         if (Config.getInstance().cfg<boolean>("vod_folders")) {
@@ -1243,11 +1249,11 @@ export class TwitchChannel extends BaseChannel {
                 // absolute_episode: this.vod_absolute_episode ? this.vod_absolute_episode.toString().padStart(2, "0") : "",
 
                 // TODO: add season and episode
-                season: "",
-                absolute_season: "",
-                episode: "",
-                absolute_episode: "",
-
+                season: streamNumberInfo.season,
+                absolute_season: streamNumberInfo.absolute_season.toString(),
+                episode: streamNumberInfo.stream_number.toString(),
+                absolute_episode:
+                    streamNumberInfo.absolute_stream_number.toString(),
                 title: latestVodData.title,
                 game_name: gameName,
                 game_id: gameId,
@@ -1290,11 +1296,11 @@ export class TwitchChannel extends BaseChannel {
             // absolute_episode: this.vod_absolute_episode ? this.vod_absolute_episode.toString().padStart(2, "0") : "",
 
             // TODO: add season and episode
-            season: "",
-            absolute_season: "",
-            episode: "",
-            absolute_episode: "",
-
+            season: streamNumberInfo.season,
+            absolute_season: streamNumberInfo.absolute_season.toString(),
+            episode: streamNumberInfo.stream_number.toString(),
+            absolute_episode:
+                streamNumberInfo.absolute_stream_number.toString(),
             title: latestVodData.title,
             game_name: gameName,
             game_id: gameId,
