@@ -14,6 +14,11 @@ import { YouTubeChannel } from "@/Core/Providers/YouTube/YouTubeChannel";
 import { YouTubeVOD } from "@/Core/Providers/YouTube/YouTubeVOD";
 import { Webhook } from "@/Core/Webhook";
 import { debugLog } from "@/Helpers/Console";
+import {
+    validateAbsolutePath,
+    validateFilename,
+    validateRelativePath,
+} from "@/Helpers/Filesystem";
 import { generateStreamerList } from "@/Helpers/StreamerList";
 import { isError, isTwitchChannel, isYouTubeChannel } from "@/Helpers/Types";
 import type {
@@ -40,7 +45,6 @@ import type express from "express";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import sanitize from "sanitize-filename";
 import { TwitchHelper } from "../Providers/Twitch";
 import type { TwitchVODChapterJSON } from "../Storage/JSON";
 
@@ -692,9 +696,7 @@ export async function DownloadVideo(
             game_id: extraData.game_id || "",
         };
 
-        return sanitize(
-            formatString(Config.getInstance().cfg(what), variables)
-        );
+        return formatString(Config.getInstance().cfg(what), variables);
     };
 
     if (isTwitchChannel(channel)) {
@@ -752,18 +754,48 @@ export async function DownloadVideo(
             "filename_vod"
         );
 
+        if (!validateFilename(basename)) {
+            res.api(400, {
+                status: "ERROR",
+                message: req.t("message.invalid-filesystem-entry", [basename]),
+            } as ApiErrorResponse);
+            return;
+        }
+
+        const basefolderPathTemplate = template(
+            video,
+            {
+                game_name: videoGqlData?.game?.displayName || "",
+                game_id: videoGqlData?.game?.id || "",
+            },
+            "filename_vod_folder"
+        );
+
+        if (!validateRelativePath(basefolderPathTemplate)) {
+            res.api(400, {
+                status: "ERROR",
+                message: req.t("message.invalid-filesystem-entry", [
+                    basefolderPathTemplate,
+                ]),
+            } as ApiErrorResponse);
+            return;
+        }
+
         // make folder name
         const basefolder = path.join(
             channel.getFolder(),
-            template(
-                video,
-                {
-                    game_name: videoGqlData?.game?.displayName || "",
-                    game_id: videoGqlData?.game?.id || "",
-                },
-                "filename_vod_folder"
-            )
+            basefolderPathTemplate
         );
+
+        if (!validateAbsolutePath(basefolder)) {
+            res.api(400, {
+                status: "ERROR",
+                message: req.t("message.invalid-filesystem-entry", [
+                    basefolder,
+                ]),
+            } as ApiErrorResponse);
+            return;
+        }
 
         // make filepath
         const filepath = path.join(

@@ -70,5 +70,8 @@
     "no-password-protection": "No password protection",
     "you-are-logged-in": "You are logged in",
     "you-are-not-logged-in": "You are not logged in"
+  },
+  "message": {
+    "invalid-filesystem-entry": "The entry '{{0}}' contains either invalid characters or sequences."
   }
 }
