@@ -125,6 +125,7 @@ export class BaseAutomator {
                 : "",
             title: this.getTitle(),
             game_name: this.getGameName(),
+            game_id: this.getGameID(),
         };
 
         return sanitize(
@@ -175,6 +176,7 @@ export class BaseAutomator {
                 : "",
             title: this.getTitle(),
             game_name: this.getGameName(),
+            game_id: this.getGameID(),
         };
 
         return sanitize(
@@ -239,6 +241,18 @@ export class BaseAutomator {
             );
             if (data && data.game_name) {
                 return data.game_name || "";
+            }
+        }
+        return "";
+    }
+
+    public getGameID(): string {
+        if (KeyValue.getInstance().has(`${this.getLogin()}.chapterdata`)) {
+            const data = KeyValue.getInstance().getObject<TwitchVODChapterJSON>(
+                `${this.getLogin()}.chapterdata`
+            );
+            if (data && data.game_id) {
+                return data.game_id || "";
             }
         }
         return "";

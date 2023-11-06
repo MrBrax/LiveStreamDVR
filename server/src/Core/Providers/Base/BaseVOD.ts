@@ -2703,6 +2703,10 @@ export class BaseVOD {
         return ""; // base vod does not have game_name
     }
 
+    public get game_id(): string {
+        return ""; // base vod does not have game_id
+    }
+
     public calculateBookmarks(): boolean {
         if (!this.bookmarks || this.bookmarks.length == 0) return false;
         if (!this.started_at) return false;

@@ -1,5 +1,11 @@
 import { progressOutput } from "@/Helpers/Console";
-import { execAdvanced, execSimple, startJob } from "@/Helpers/Execute";
+import {
+    execAdvanced,
+    execSimple,
+    isExecReturn,
+    startJob,
+} from "@/Helpers/Execute";
+import { validateAbsolutePath, validateFilename } from "@/Helpers/Filesystem";
 import { formatDuration, formatSubtitleDuration } from "@/Helpers/Format";
 import { xClearInterval, xInterval, xTimeout } from "@/Helpers/Timeout";
 import { isTwitchVOD } from "@/Helpers/Types";
@@ -10,8 +16,10 @@ import type { VideoQuality } from "@common/Config";
 import type { Providers } from "@common/Defs";
 import { JobStatus, MuteStatus } from "@common/Defs";
 import type { AudioStream, FFProbe, VideoStream } from "@common/FFProbe";
+import { formatString } from "@common/Format";
 import type { VideoMetadata } from "@common/MediaInfo";
 import type { ProxyVideo } from "@common/Proxies/Video";
+import type { VodBasenameWithChapterTemplate } from "@common/Replacements";
 import type { Clip, ClipsResponse } from "@common/TwitchAPI/Clips";
 import type {
     GqlVideoChapterResponse,
@@ -30,6 +38,7 @@ import { format, parseJSON } from "date-fns";
 import { encode as htmlentities } from "html-entities";
 import fs from "node:fs";
 import path from "node:path";
+import sanitize from "sanitize-filename";
 import { TwitchHelper } from "../../../Providers/Twitch";
 import type {
     TwitchVODChapterJSON,
@@ -365,6 +374,11 @@ export class TwitchVOD extends BaseVOD {
         return this.chapters[0].game_name;
     }
 
+    public get game_id(): string {
+        if (!this.chapters || this.chapters.length == 0) return "";
+        return this.chapters[0].game_id?.toString() || "";
+    }
+
     /**
      * Returns an array of filenames associated with this Twitch VOD, including the JSON metadata file,
      * chat logs, video files, and other related files. If the VOD has been segmented, the filenames of
@@ -554,6 +568,14 @@ export class TwitchVOD extends BaseVOD {
             return false;
         }
 
+        if (!this.created_at) {
+            throw new Error(
+                "TwitchVOD.splitSegmentVideoByChapters: created_at is not set"
+            );
+        }
+
+        const video_input = path.join(this.directory, this.segments_raw[0]); // TODO: burned video etc
+
         const bin = Helper.path_ffmpeg();
 
         if (!bin) {
@@ -580,21 +602,32 @@ export class TwitchVOD extends BaseVOD {
                 return false;
             }
 
-            if (!chapter.offset || !chapter.duration) {
+            if (chapter.offset == undefined) {
                 log(
                     LOGLEVEL.ERROR,
                     "vod.splitSegmentByChapters",
-                    `Chapter ${chapter.title} has no offset or duration for ${this.basename}`
+                    `Chapter ${chapter.title} has no offset for ${this.basename}`
                 );
                 throw new Error(
-                    `Chapter ${chapter.title} has no offset or duration for ${this.basename}`
+                    `Chapter ${chapter.title} has no offset for ${this.basename}`
+                );
+            }
+
+            if (chapter.duration == undefined) {
+                log(
+                    LOGLEVEL.ERROR,
+                    "vod.splitSegmentByChapters",
+                    `Chapter ${chapter.title} has no duration for ${this.basename}`
+                );
+                throw new Error(
+                    `Chapter ${chapter.title} has no duration for ${this.basename}`
                 );
             }
 
             if (
                 chapter.offset < 0 ||
                 chapter.duration < 0 ||
-                chapter.offset + chapter.duration > this.duration
+                chapter.offset > this.duration
             ) {
                 log(
                     LOGLEVEL.ERROR,
@@ -606,37 +639,128 @@ export class TwitchVOD extends BaseVOD {
                 );
             }
 
+            if (
+                chapter.offset + chapter.duration > this.duration &&
+                chapter_index != this.chapters.length
+            ) {
+                log(
+                    LOGLEVEL.ERROR,
+                    "vod.splitSegmentByChapters",
+                    `Chapter ${chapter.title} has invalid duration for ${this.basename}`
+                );
+                throw new Error(
+                    `Chapter ${chapter.title} has invalid duration for ${this.basename}`
+                );
+            }
+
             const chapter_start = chapter.offset || 0;
             const chapter_end = chapter.offset + chapter.duration;
 
-            const chapter_title =
-                `${chapter_index}. ${chapter.title} (${chapter.game_name})`.replace(
-                    /[^a-z0-9]/gi,
-                    "_"
+            let basepath = this.directory;
+
+            const channel_basepath = this.getChannel().getFolder();
+
+            const chapter_template_variables: VodBasenameWithChapterTemplate = {
+                // login: this.getChannel().login,
+                internalName: this.getChannel().internalName,
+                displayName: this.getChannel().displayName,
+                date: format(this.created_at, "yyyy-MM-dd"), // TODO: check format
+                year: format(this.created_at, "yyyy"),
+                year_short: format(this.created_at, "yy"),
+                month: format(this.created_at, "MM"),
+                day: format(this.created_at, "dd"),
+                hour: format(this.created_at, "HH"),
+                minute: format(this.created_at, "mm"),
+                second: format(this.created_at, "ss"),
+                id: this.twitch_vod_id || "",
+                season: this.stream_season || "",
+                absolute_season: this.stream_absolute_season?.toString() || "",
+                episode: this.stream_number?.toString() || "",
+                absolute_episode: this.stream_absolute_number?.toString() || "",
+                title: this.twitch_vod_title || "",
+                game_name: this.game_name,
+                game_id: this.current_game?.id || "",
+                chapter_number: chapter_index.toString(),
+                chapter_title: chapter.title,
+                chapter_game_id: chapter.game_id?.toString() || "",
+                chapter_game_name: chapter.game_name,
+            };
+
+            if (Config.getInstance().cfg<boolean>("vod_folders")) {
+                basepath = path.join(
+                    channel_basepath,
+                    formatString(
+                        Config.getInstance().cfg<string>(
+                            "template.vodsplit.folder"
+                        ),
+                        chapter_template_variables
+                    )
                 );
 
-            const chapter_filename = `${this.basename}.${chapter_title}.mp4`;
+                if (!validateAbsolutePath(basepath)) {
+                    throw new Error(
+                        `Invalid basepath for ${this.basename}: ${basepath}`
+                    );
+                }
+            }
 
-            const chapter_path = path.join(this.directory, chapter_filename);
+            if (!fs.existsSync(basepath)) {
+                fs.mkdirSync(basepath, { recursive: true });
+            }
 
-            const job = await execAdvanced(
-                bin,
-                [
-                    // "-y",
-                    "-i",
-                    this.realpath(
-                        path.join(this.directory, this.segments_raw[0])
+            let chapter_filename =
+                formatString(
+                    Config.getInstance().cfg<string>(
+                        "template.vodsplit.filename"
                     ),
-                    "-ss",
-                    formatSubtitleDuration(chapter_start),
-                    "-to",
-                    formatSubtitleDuration(chapter_end),
-                    "-c",
-                    "copy",
-                    chapter_path,
-                ],
-                `chapter_split_${this.basename}_${chapter_index}`
+                    chapter_template_variables
+                ) +
+                "." +
+                Config.getInstance().cfg<string>("vod_container", "mp4");
+
+            // quickly replace invalid characters
+            chapter_filename = sanitize(chapter_filename);
+
+            if (!validateFilename(chapter_filename)) {
+                throw new Error(
+                    `Invalid filename for ${this.basename}: ${chapter_filename}`
+                );
+            }
+
+            const chapter_path = path.join(basepath, chapter_filename);
+
+            const args: string[] = [];
+
+            // args.push(// "-y",);
+            args.push(
+                "-i",
+                // this.realpath(path.join(this.directory, this.segments_raw[0]))
+                this.realpath(video_input)
             );
+            args.push("-ss", formatSubtitleDuration(chapter_start));
+            // final chapter doesn't need to end at a specific time
+            if (chapter_index == this.chapters.length) {
+                args.push("-to", formatSubtitleDuration(this.duration));
+            }
+            args.push("-c", "copy");
+            args.push(chapter_path);
+
+            let job;
+
+            try {
+                job = await execAdvanced(
+                    bin,
+                    args,
+                    `chapter_split_${this.basename}_${chapter_index}`
+                );
+            } catch (error) {
+                if (isExecReturn(error)) {
+                    throw new Error(
+                        `Chapter ${chapter.title} failed to split for ${this.basename}: ${error.stderr}`
+                    );
+                }
+                throw error;
+            }
 
             if (
                 !fs.existsSync(chapter_path) ||

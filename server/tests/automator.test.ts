@@ -38,7 +38,7 @@ describe("Automator", () => {
 
         Config.getInstance().setConfig(
             "filename_vod",
-            "{login}_{year}_{month}_{day}"
+            "{internalName}_{year}_{month}_{day}"
         );
         expect(TA.vodBasenameTemplate()).toBe("test_2022_09_02");
 

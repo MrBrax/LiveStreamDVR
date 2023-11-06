@@ -248,7 +248,7 @@ const { t } = useI18n();
 
 const exportVodSettings = ref<ExporterOptions>({
     // exporter: "file",
-    title_template: "[{login}] {title} ({date})",
+    title_template: "[{internalName}] {title} ({date})",
     directory: "",
     host: "",
     username: "",

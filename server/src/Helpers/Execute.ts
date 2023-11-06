@@ -1,11 +1,11 @@
+import { Config } from "@/Core/Config";
+import { Job } from "@/Core/Job";
+import { LOGLEVEL, log } from "@/Core/Log";
+import chalk from "chalk";
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { spawn } from "node:child_process";
-import type { ExecReturn } from "../Providers/Twitch";
-import { LOGLEVEL, log } from "@/Core/Log";
 import type { Stream } from "node:stream";
-import { Config } from "@/Core/Config";
-import chalk from "chalk";
-import { Job } from "@/Core/Job";
+import type { ExecReturn } from "../Providers/Twitch";
 
 interface RunningProcess {
     internal_pid: number;
@@ -104,6 +104,21 @@ export function execSimple(
             }
         });
     });
+}
+
+export function isExecReturn(
+    execReturn: ExecReturn | unknown
+): execReturn is ExecReturn {
+    return (
+        typeof execReturn === "object" &&
+        execReturn !== null &&
+        "code" in execReturn &&
+        "stdout" in execReturn &&
+        "stderr" in execReturn &&
+        "bin" in execReturn &&
+        "args" in execReturn &&
+        "what" in execReturn
+    );
 }
 
 /**

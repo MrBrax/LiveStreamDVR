@@ -2,6 +2,7 @@ import type { SettingField } from "./Config";
 import {
     ClipBasenameFields,
     ExporterFilenameFields,
+    VodBasenameChapterFields,
     VodBasenameFields,
 } from "./ReplacementsConsts";
 import { YouTubeCategories } from "./YouTube";
@@ -667,7 +668,7 @@ export const settingsFields: Record<
         group: "Video",
         text: "Vod filename",
         type: "template",
-        default: "{login}_{date}_{id}",
+        default: "{internalName}_{date}_{id}",
         help: "Vod filename.",
         replacements: VodBasenameFields,
         context: "{template}.json, {template}.mp4",
@@ -677,10 +678,30 @@ export const settingsFields: Record<
         group: "Video",
         text: "Vod folder name",
         type: "template",
-        default: "{login}_{date}_{id}",
+        default: "{internalName}_{date}_{id}",
         help: "Vod folder filename.",
         replacements: VodBasenameFields,
-        context: "/vods/{login}/{template}/",
+        context: "/vods/{internalName}/{template}/",
+    },
+
+    "template.vodsplit.folder": {
+        group: "Video",
+        text: "Vodsplit folder name",
+        type: "template",
+        default: "{internalName}_{date}_{id}",
+        help: "Vodsplit folder filename. If same as Vod folder name, it will be placed in the same folder.",
+        replacements: VodBasenameChapterFields,
+        context: "/vods/{internalName}/{template}/",
+    },
+
+    "template.vodsplit.filename": {
+        group: "Video",
+        text: "Vodsplit filename",
+        type: "template",
+        default: "{internalName}_{date}_{id}-{chapter_number}._{chapter_title}_({game_name})",
+        help: "Vodsplit filename.",
+        replacements: VodBasenameChapterFields,
+        context: "{template}.mp4",
     },
 
     min_chapter_duration: {
