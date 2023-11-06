@@ -97,41 +97,54 @@ export async function fetchXSFRToken(): Promise<boolean> {
 
 // fetchXSFRToken();
 
-export async function getRequest<T>(
-    url: string,
-    options?: RequestInit
-): Promise<FetchResponse<T>> {
-    const mergedOptions = {
-        ...baseFetchOptions(),
-        ...(options ?? {}),
-    };
-    const request = await fetch(baseURL + url, mergedOptions);
-    const body = await request.text();
+export async function getRequest<T>(url: string): Promise<FetchResponse<T>> {
+    // const request = await fetch(baseURL + url, mergedOptions);
+    // const body = await request.text();
+    // console.debug(body);
 
-    console.debug(body);
+    // const fullURL = baseURL + url;
 
-    if (request.status !== 200) {
-        log(
-            LOGLEVEL.ERROR,
-            "KickAPI.getRequest",
-            `Error getting data (${request.url}): ${request.status} ${request.statusText}`
-        );
-        if (
-            body.includes("challenge-form") ||
-            body.startsWith("<!DOCTYPE html>")
-        ) {
+    log(LOGLEVEL.DEBUG, "KickAPI.getRequest", `Getting ${url}`);
+
+    let request;
+
+    try {
+        request = await axios.get(url, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+                "User-Agent":
+                    "Mozilla/5.0 (Windows NT 10.0; rv:114.0) Gecko/20100101 Firefox/114.0",
+            },
+        });
+    } catch (error) {
+        if (isAxiosError(error)) {
             log(
                 LOGLEVEL.ERROR,
                 "KickAPI.getRequest",
-                "Error getting data: Cloudflare challenge or HTML"
+                `Error getting data (${error.response?.config.url}): ${error.response?.data}`,
+                error
             );
-            throw new Error("Cloudflare challenge or HTML");
+            if (
+                error.response?.data.includes("window._cf_chl") ||
+                error.response?.data.includes("<!DOCTYPE html>")
+            ) {
+                log(
+                    LOGLEVEL.ERROR,
+                    "KickAPI.getRequest",
+                    "Error getting data: Cloudflare challenge"
+                );
+                throw new Error("Cloudflare challenge");
+            }
         }
-        // throw new Error(`Error getting data (${request.url}): ${request.statusText}`);
+
+        throw error;
     }
 
+    const body = request.data;
+
     return {
-        data: body ? JSON.parse(body) : undefined,
+        data: body,
         // error: request.error,
         status: request.status,
         statusText: request.statusText,
@@ -145,35 +158,14 @@ export async function GetUser(username: string): Promise<KickUser | undefined> {
         // response = await axiosInstance.get<KickUser>(`users/${username}`);
         response = await getRequest<KickUser>(`users/${username}`);
     } catch (error) {
-        if (isAxiosError(error)) {
-            log(
-                LOGLEVEL.ERROR,
-                "KickAPI.GetUser",
-                `Error getting user data (${axios.getUri(
-                    error.request
-                )}): ${error.response?.statusText}`,
-                error
-            );
-            if (error.response?.data.includes("challenge-form")) {
-                log(
-                    LOGLEVEL.ERROR,
-                    "KickAPI.GetUser",
-                    "Error getting user data: Cloudflare challenge"
-                );
-            }
-        } else {
-            log(
-                LOGLEVEL.ERROR,
-                "KickAPI.GetUser",
-                `Error getting user data: ${(error as Error).message}`,
-                error
-            );
-        }
-        return undefined;
+        log(LOGLEVEL.ERROR, "KickAPI.GetUser", `Error getting data: ${error}`);
+        throw error;
     }
+
     if (!response.data) {
         log(LOGLEVEL.ERROR, "KickAPI.GetUser", `User ${username} not found`);
-        return undefined;
+        // return undefined;
+        throw new Error(`User ${username} not found`);
     }
     log(
         LOGLEVEL.DEBUG,
@@ -189,7 +181,9 @@ export async function GetChannel(
     // const request = axiosInstance.get<KickChannel>(`channels/${username}`);
     // const response = await request;
     // return response.data;
-    const response = await getRequest<KickChannel>(`channels/${username}`);
+    const response = await getRequest<KickChannel>(
+        `https://kick.com/api/v2/channels/${username}`
+    );
     return response.data;
 }
 
@@ -197,12 +191,45 @@ export async function GetChannel(
 export async function GetChannelVideos(
     username: string
 ): Promise<KickChannelVideo[] | undefined> {
-    // const request = axiosInstance.get<KickChannelVideo[]>(`channels/${username}/videos/latest`);
-    // const response = await request;
+    // const response = await getRequest<KickChannelVideo[]>(
+    //     `channels/${username}/videos/latest`
+    // );
     // return response.data;
-    const response = await getRequest<KickChannelVideo[]>(
-        `channels/${username}/videos/latest`
+
+    let response;
+
+    try {
+        // response = await axiosInstance.get<KickChannelVideo[]>(
+        //     `channels/${username}/videos/latest`
+        // );
+        response = await getRequest<KickChannelVideo[]>(
+            `channels/${username}/videos/latest`
+        );
+    } catch (error) {
+        log(
+            LOGLEVEL.ERROR,
+            "KickAPI.GetChannelVideos",
+            `Error getting data: ${error}`
+        );
+        throw error;
+    }
+
+    if (!response.data) {
+        log(
+            LOGLEVEL.ERROR,
+            "KickAPI.GetChannelVideos",
+            `Channel ${username} not found`
+        );
+        // return undefined;
+        throw new Error(`Channel ${username} not found`);
+    }
+
+    log(
+        LOGLEVEL.DEBUG,
+        "KickAPI.GetChannelVideos",
+        `Got ${response.data.length} videos`
     );
+
     return response.data;
 }
 

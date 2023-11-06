@@ -12,35 +12,41 @@ import { humanDuration, niceDuration, shortDuration } from "@/mixins/newhelpers"
  * @param outputStyle The output style of the duration.
  */
 
-const props = defineProps({
-    startDate: { type: [String, Number, Date], default: "0" },
-    outputStyle: { type: String, default: "human" },
-});
+const props = defineProps<{
+    startDate: string | number | Date;
+    outputStyle?: "human" | "humanLong" | "numbers";
+}>();
 
-const interval = ref(0);
-const timeString = ref("??:??");
+// interval counter
+const interval = ref<number>(0);
 
+// the time string to display, updated every second and when the start date changes
+const timeString = ref<string>("??:??");
+
+// update the time string when the start date changes
 watch(
     () => props.startDate,
-    (a, b) => {
+    () => {
         refreshTime();
     },
 );
 
+// start the interval when the component is mounted
 onMounted(() => {
     refreshTime();
     // start the interval on a rounded second
     const now = new Date();
     const delay = 1000 - now.getMilliseconds();
-    setTimeout(() => {
+    window.setTimeout(() => {
         interval.value = window.setInterval(refreshTime, 1000);
     }, delay);
 });
 
+// clear the interval when the component is unmounted
 onUnmounted(() => {
     if (interval.value) {
         console.debug("Clearing interval");
-        clearTimeout(interval.value);
+        window.clearTimeout(interval.value);
     }
 });
 
@@ -57,10 +63,6 @@ const refreshTime = () => {
     // const dur = intervalToDuration({ start: dateObj, end: new Date() });
     const totalSeconds = Math.abs(Math.floor((new Date().getTime() - dateObj.getTime()) / 1000));
     if (props.outputStyle == "human") {
-        // let str = "";
-        // if (dur.hours && dur.hours > 0) str += `${dur.hours}h `;
-        // if ((dur.minutes && dur.minutes > 0) || (dur.hours && dur.hours > 0)) str += `${dur.minutes}m `;
-        // if ((dur.seconds && dur.seconds > 0) || (dur.minutes && dur.minutes > 0)) str += `${dur.seconds}s `;
         timeString.value = niceDuration(totalSeconds);
     } else if (props.outputStyle == "humanLong") {
         timeString.value = shortDuration(totalSeconds);

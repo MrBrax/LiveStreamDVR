@@ -5,21 +5,13 @@
                 <tr v-for="job in store.jobList" :key="job.name">
                     <td>
                         <span class="icon">
-                            <fa v-if="job.status == JobStatus.RUNNING" icon="sync" spin />
-                            <fa v-else-if="job.status == JobStatus.STOPPED" icon="exclamation-triangle" />
-                            <fa v-else-if="job.status == JobStatus.ERROR" icon="times" />
-                            <fa v-else-if="job.status == JobStatus.WAITING" icon="clock" />
-                            <fa v-else-if="job.status == JobStatus.NONE" icon="circle" />
+                            <fa :icon="jobStatusIcon(job.status)" />
                         </span>
                         <span class="text-overflow px-1">{{ job.name }}</span>
                     </td>
                     <td>{{ job.pid }}</td>
                     <td>
-                        <span v-if="job.status == JobStatus.RUNNING">Running</span>
-                        <span v-else-if="job.status == JobStatus.STOPPED">Stopped</span>
-                        <span v-else-if="job.status == JobStatus.ERROR">Error</span>
-                        <span v-else-if="job.status == JobStatus.WAITING">Waiting</span>
-                        <span v-else-if="job.status == JobStatus.NONE">None</span>
+                        <span>{{ jobStatusString(job.status) }}</span>
                     </td>
                     <td v-if="job.progress && job.progress > 0">{{ Math.round(job.progress * 100) }}%</td>
                     <td v-if="job.progress && job.progress > 0">
@@ -59,4 +51,35 @@ const expanded = ref(false);
 onMounted(() => {
     expanded.value = store.clientCfg("jobStatusExpandedByDefault", false);
 });
+
+const jobStatusString = (status: JobStatus) => {
+    switch (status) {
+        case JobStatus.RUNNING:
+            return "Running";
+        case JobStatus.STOPPED:
+            return "Stopped";
+        case JobStatus.ERROR:
+            return "Error";
+        case JobStatus.WAITING:
+            return "Waiting";
+        case JobStatus.NONE:
+            return "None";
+    }
+};
+
+const jobStatusIcon = (status: JobStatus) => {
+    switch (status) {
+        case JobStatus.RUNNING:
+            return "sync";
+        case JobStatus.STOPPED:
+            return "exclamation-triangle";
+        case JobStatus.ERROR:
+            return "times";
+        case JobStatus.WAITING:
+            return "clock";
+        case JobStatus.NONE:
+            return "circle";
+    }
+};
+
 </script>
