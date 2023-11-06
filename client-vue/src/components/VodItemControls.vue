@@ -71,6 +71,10 @@
             <d-button v-if="showAdvanced" icon="sync" @click="doRefreshMetadata">
                 {{ t("vod.controls.refresh-metadata") }}
             </d-button>
+            <!-- Split video -->
+            <d-button v-if="showAdvanced" icon="wrench" @click="doSplitVideo">
+                {{ t("vod.controls.split-video") }}
+            </d-button>
             <!-- Vod export menu -->
             <d-button v-if="showAdvanced" class="is-confirm" icon="upload" @click="emit('showModal', 'export')">
                 {{ t("buttons.export") }}
@@ -225,6 +229,26 @@ function doCheckMute(): void {
             }
         });
 }
+
+function doSplitVideo(): void {
+    if (!props.vod) return;
+    axios
+        .post<ApiResponse>(`/api/v0/vod/${props.vod.uuid}/splitbychapters`)
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            // emit("refresh");
+        })
+        .catch((err) => {
+            console.error("doSplitVideo error", err.response);
+            if (err.response.data) {
+                const json = err.response.data;
+                if (json.message) alert(json.message);
+            }
+        });
+}
+
 </script>
 
 <style lang="scss" scoped>

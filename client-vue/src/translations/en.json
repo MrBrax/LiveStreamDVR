@@ -70,7 +70,8 @@
       "render-menu": "Render menu",
       "fix-issues": "Fix issues",
       "download-vod-muted": "Download muted VOD",
-      "refresh-metadata": "Refresh metadata"
+      "refresh-metadata": "Refresh metadata",
+      "split-video": "Split video"
     },
     "chapters": {
       "offset": "Offset",
