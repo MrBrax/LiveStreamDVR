@@ -255,7 +255,7 @@ export class TwitchChannel extends BaseChannel {
         );
     }
 
-    public async toAPI(): Promise<ApiTwitchChannel> {
+    public override async toAPI(): Promise<ApiTwitchChannel> {
         if (!this.internalId || !this.internalName || !this.displayName)
             console.error(
                 chalk.red(

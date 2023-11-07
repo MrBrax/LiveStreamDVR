@@ -1,9 +1,19 @@
+import type { BaseChannel } from "@/Core/Providers/Base/BaseChannel";
+import { BaseVOD } from "@/Core/Providers/Base/BaseVOD";
 import type { KickChannel } from "@/Core/Providers/Kick/KickChannel";
 import type { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
 import type { TwitchVOD } from "@/Core/Providers/Twitch/TwitchVOD";
 import type { TwitchVODChapter } from "@/Core/Providers/Twitch/TwitchVODChapter";
 import type { YouTubeChannel } from "@/Core/Providers/YouTube/YouTubeChannel";
 import type { YouTubeVOD } from "@/Core/Providers/YouTube/YouTubeVOD";
+
+export function isBaseChannel(data: unknown): data is BaseChannel {
+    return (data as BaseChannel).config?.provider === undefined;
+}
+
+export function isBaseVOD(data: unknown): data is BaseVOD {
+    return (data as BaseVOD).provider === "base";
+}
 
 export function isTwitchChannel(data: unknown): data is TwitchChannel {
     return (data as TwitchChannel).provider === "twitch";

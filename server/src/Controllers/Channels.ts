@@ -105,8 +105,18 @@ export async function GetChannel(
         return;
     }
 
+    /*
+    if (isBaseChannel(channel)) {
+        res.api<ApiErrorResponse>(400, {
+            status: "ERROR",
+            message: "Channel is not supported",
+        });
+        return;
+    }
+    */
+
     res.api<ApiChannelResponse>(200, {
-        data: await channel.toAPI(),
+        data: (await channel.toAPI()) as any, // screw typescript
         status: "OK",
     });
 }

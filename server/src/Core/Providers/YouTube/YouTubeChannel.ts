@@ -580,7 +580,7 @@ export class YouTubeChannel extends BaseChannel {
         return this.getVods().find((vod) => vod.is_capturing);
     }
 
-    public async toAPI(): Promise<ApiYouTubeChannel> {
+    public override async toAPI(): Promise<ApiYouTubeChannel> {
         const vods_list = await Promise.all(
             this.getVods().map(async (vod) => await vod.toAPI())
         );

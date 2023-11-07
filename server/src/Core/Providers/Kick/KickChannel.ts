@@ -1,3 +1,4 @@
+import type { ApiKickChannel } from "@common/Api/Client";
 import type { KickChannelConfig } from "@common/Config";
 import type { Providers } from "@common/Defs";
 import type {
@@ -314,5 +315,12 @@ export class KickChannel extends BaseChannel {
         // }
 
         return channel;
+    }
+
+    public override async toAPI(): Promise<ApiKickChannel> {
+        return {
+            ...(await super.toAPI()),
+            provider: "kick",
+        };
     }
 }

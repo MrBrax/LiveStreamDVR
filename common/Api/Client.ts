@@ -264,8 +264,12 @@ export interface ApiYouTubeChannel extends ApiBaseChannel {
     chapter_data?: BaseVODChapterJSON;
 }
 
-export type ApiChannels = ApiTwitchChannel | ApiYouTubeChannel;
-export type ApiVods = ApiTwitchVod | ApiYouTubeVod;
+export interface ApiKickChannel extends ApiBaseChannel {
+    provider: "kick";
+}
+
+export type ApiChannels = ApiTwitchChannel | ApiYouTubeChannel | ApiKickChannel;
+export type ApiVods = ApiTwitchVod | ApiYouTubeVod | ApiKickVod;
 
 export type ApiSubscription = {
     type: string;

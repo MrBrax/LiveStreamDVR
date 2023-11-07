@@ -6,8 +6,6 @@ import fs from "node:fs";
 import type { Server } from "node:http";
 // import { version } from "node:os";
 import type { BaseVODChapter } from "@/Core/Providers/Base/BaseVODChapter";
-import type { KickChannel } from "@/Core/Providers/Kick/KickChannel";
-import type { KickVOD } from "@/Core/Providers/Kick/KickVOD";
 import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
 import { TwitchGame } from "@/Core/Providers/Twitch/TwitchGame";
 import type { TwitchVOD } from "@/Core/Providers/Twitch/TwitchVOD";
@@ -51,6 +49,8 @@ import { Helper } from "./Helper";
 import { Job } from "./Job";
 import { KeyValue } from "./KeyValue";
 import { LOGLEVEL, log } from "./Log";
+import { KickChannel } from "./Providers/Kick/KickChannel";
+import { KickVOD } from "./Providers/Kick/KickVOD";
 import { Scheduler } from "./Scheduler";
 import { Webhook } from "./Webhook";
 
