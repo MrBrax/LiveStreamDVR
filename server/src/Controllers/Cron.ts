@@ -1,11 +1,12 @@
-import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
-import type express from "express";
-import { MuteStatus } from "@common/Defs";
 import { ClientBroker } from "@/Core/ClientBroker";
 import { log, LOGLEVEL } from "@/Core/Log";
-import { generateStreamerList } from "@/Helpers/StreamerList";
+import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "@/Core/Providers/Twitch/TwitchVOD";
 import { Scheduler } from "@/Core/Scheduler";
+import { generateStreamerList } from "@/Helpers/StreamerList";
+import { isTwitchChannel } from "@/Helpers/Types";
+import { MuteStatus } from "@common/Defs";
+import type express from "express";
 
 export async function fCheckDeletedVods(): Promise<string> {
     const streamerList = generateStreamerList();
@@ -22,12 +23,12 @@ export async function fCheckDeletedVods(): Promise<string> {
         for (const vod of channel.getVods()) {
             if (!vod.is_finalized) continue;
 
-            if (vod.twitch_vod_id) {
-                videosToCheck.push(vod.twitch_vod_id);
+            if (vod.external_vod_id) {
+                videosToCheck.push(vod.external_vod_id);
             } else {
                 // fallback
                 const check = await vod.checkValidVod(true);
-                if (vod.twitch_vod_id && check === false) {
+                if (vod.external_vod_id && check === false) {
                     // notify
                     // $this->sendNotify("{$vod->basename} deleted");
                     output += `${vod.basename} deleted<br>\n`;
@@ -82,8 +83,8 @@ export async function fCheckDeletedVods(): Promise<string> {
             if (!vod.is_finalized) continue;
 
             if (
-                vod.twitch_vod_id &&
-                checkedVodsRecord[vod.twitch_vod_id] === false
+                vod.external_vod_id &&
+                checkedVodsRecord[vod.external_vod_id] === false
             ) {
                 // notify
                 // $this->sendNotify("{$vod->basename} deleted");
@@ -206,7 +207,7 @@ export async function fMatchVods(force = false): Promise<string> {
     let output = "";
 
     for (const channel of streamerList.channels) {
-        if (!(channel instanceof TwitchChannel)) continue;
+        if (!isTwitchChannel(channel)) continue;
 
         if (!channel.getVods() || channel.getVods().length == 0) continue;
 
@@ -219,7 +220,7 @@ export async function fMatchVods(force = false): Promise<string> {
             //     continue;
             // }
 
-            if (vod.twitch_vod_id) continue;
+            if (vod.external_vod_id) continue;
 
             let status;
 

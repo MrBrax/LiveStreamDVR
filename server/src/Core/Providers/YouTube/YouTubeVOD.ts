@@ -35,10 +35,11 @@ export class YouTubeVOD extends BaseVOD {
         if (!this.channel_uuid)
             throw new Error(`No channel UUID set on VOD ${this.basename}`);
         return await Promise.resolve({
+            ...(await super.toAPI()),
             provider: "youtube",
-            uuid: this.uuid,
-            channel_uuid: this.channel_uuid,
-            basename: this.basename || "",
+            // uuid: this.uuid,
+            // channel_uuid: this.channel_uuid,
+            // basename: this.basename || "",
 
             // stream_title: this.stream_title,
             // stream_resolution: this.stream_resolution,
@@ -49,33 +50,6 @@ export class YouTubeVOD extends BaseVOD {
             streamer_name: this.streamer_name || "",
             streamer_id: this.streamer_id || "",
             // streamer_login: this.streamer_login || "",
-
-            created_at: this.created_at ? this.created_at.toISOString() : "",
-            saved_at: this.saved_at ? this.saved_at.toISOString() : "",
-            started_at: this.started_at ? this.started_at.toISOString() : "",
-            ended_at: this.ended_at ? this.ended_at.toISOString() : undefined,
-            capture_started: this.capture_started
-                ? this.capture_started.toISOString()
-                : undefined,
-            capture_started2: this.capture_started2
-                ? this.capture_started2.toISOString()
-                : undefined,
-            conversion_started: this.conversion_started
-                ? this.conversion_started.toISOString()
-                : undefined,
-
-            is_converted: this.is_converted,
-            is_capturing: this.is_capturing,
-            is_converting: this.is_converting,
-            is_finalized: this.is_finalized,
-
-            is_chat_downloaded: this.is_chat_downloaded,
-            is_vod_downloaded: this.is_vod_downloaded,
-            is_chat_rendered: this.is_chat_rendered,
-            is_chat_burned: this.is_chat_burned,
-            is_lossless_cut_generated: this.is_lossless_cut_generated,
-            is_chatdump_captured: this.is_chatdump_captured,
-            is_capture_paused: this.is_capture_paused,
 
             // api_hasFavouriteGame: this.hasFavouriteGame(),
             // api_getUniqueGames: this.getUniqueGames().map((g) => g.toAPI()),
@@ -88,68 +62,7 @@ export class YouTubeVOD extends BaseVOD {
             // api_getDurationLive: this.getDurationLive(),
             // api_getConvertingStatus: await this.getConvertingStatus(),
 
-            path_chat: this.path_chat,
-            path_downloaded_vod: this.path_downloaded_vod,
-            path_losslesscut: this.path_losslesscut,
-            path_chatrender: this.path_chatrender,
-            path_chatburn: this.path_chatburn,
-            path_chatdump: this.path_chatdump,
-            path_chatmask: this.path_chatmask,
-            // path_adbreak: this.path_adbreak,
-            path_playlist: this.path_playlist,
-
-            duration_live: this.getDurationLive(),
-            duration: this.duration || 0,
-
-            total_size: this.total_size,
-
             chapters: this.chapters.map((c) => c.toAPI()),
-            // chapters_raw: this.chapters_raw,
-
-            webpath: this.webpath,
-
-            video_metadata: this.video_metadata,
-
-            stream_number: this.stream_number,
-            stream_season: this.stream_season,
-            stream_absolute_number: this.stream_absolute_number,
-            stream_absolute_season: this.stream_absolute_season,
-
-            comment: this.comment,
-
-            prevent_deletion: this.prevent_deletion,
-
-            failed: this.failed,
-
-            bookmarks: this.bookmarks,
-
-            viewers: this.viewers.map((v) => {
-                return {
-                    timestamp: v.timestamp.toISOString(),
-                    amount: v.amount,
-                };
-            }),
-            stream_pauses: this.stream_pauses.map((v) => {
-                return {
-                    start: v.start.toISOString(),
-                    end: v.end.toISOString(),
-                };
-            }),
-
-            // bookmarks: this.bookmarks,
-
-            // game_offset: this.game_offset || 0,
-            // twitch_vod_url: this.twitch_vod_url,
-            // twitch_vod_exists: this.twitch_vod_exists,
-            // twitch_vod_attempted: this.twitch_vod_attempted,
-            // twitch_vod_neversaved: this.twitch_vod_neversaved,
-            // video_fail2: this.video_fail2,
-            // json_hash: this.json_hash,
-            // created: this.created,
-            // force_record: this.force_record,
-            // automator_fail: this.automator_fail,
-            // dt_started_at: this.dt_started_at ? TwitchHelper.JSDateToPHPDate(this.dt_started_at) : null,
-            // dt_ended_at: this.dt_ended_at ? TwitchHelper.JSDateToPHPDate(this.dt_ended_at) : null,
         });
     }
 

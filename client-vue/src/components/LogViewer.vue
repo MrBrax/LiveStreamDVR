@@ -20,7 +20,7 @@
                 </td>
                 <td v-else>(no date)</td>
                 <td>
-                    <a @click="logSetFilter(line.metadata?.module || '')">{{ line.metadata?.module }}</a>
+                    <a @click="logSetFilter(line.metadata?.module || '')">{{ line.metadata?.module || "Unknown" }}</a>
                 </td>
                 <td>
                     {{ line.level || "UNKNOWN" }}

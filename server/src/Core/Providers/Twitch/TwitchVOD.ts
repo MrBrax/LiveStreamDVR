@@ -677,12 +677,12 @@ export class TwitchVOD extends BaseVOD {
                 hour: format(this.created_at, "HH"),
                 minute: format(this.created_at, "mm"),
                 second: format(this.created_at, "ss"),
-                id: this.twitch_vod_id || "",
+                id: this.external_vod_id || "",
                 season: this.stream_season || "",
                 absolute_season: this.stream_absolute_season?.toString() || "",
                 episode: this.stream_number?.toString() || "",
                 absolute_episode: this.stream_absolute_number?.toString() || "",
-                title: this.twitch_vod_title || "",
+                title: this.stream_title || this.external_vod_title || "",
                 game_name: this.game_name,
                 game_id: this.current_game?.id || "",
                 chapter_number: chapter_index.toString(),
@@ -926,7 +926,7 @@ export class TwitchVOD extends BaseVOD {
      * @returns
      */
     public async matchProviderVod(force = false): Promise<boolean | undefined> {
-        if (this.twitch_vod_id && !force) {
+        if (this.external_vod_id && !force) {
             throw new Error("VOD already has a provider VOD ID");
         }
         if (this.is_capturing || this.is_converting) {
@@ -952,7 +952,7 @@ export class TwitchVOD extends BaseVOD {
                 `No videos returned from streamer of ${this.basename}`
             );
             this.twitch_vod_neversaved = true;
-            this.twitch_vod_exists = false;
+            this.external_vod_exists = false;
             this.broadcastUpdate();
             // return false;
             throw new Error("No videos returned from streamer");
@@ -996,7 +996,7 @@ export class TwitchVOD extends BaseVOD {
                 // this.twitch_vod_title = video.title;
                 // this.twitch_vod_date = video.created_at;
                 this.setProviderVod(video);
-                this.twitch_vod_exists = true;
+                this.external_vod_exists = true;
 
                 this.broadcastUpdate();
 
@@ -1006,7 +1006,7 @@ export class TwitchVOD extends BaseVOD {
 
         this.twitch_vod_attempted = true;
         this.twitch_vod_neversaved = true;
-        this.twitch_vod_exists = false;
+        this.external_vod_exists = false;
 
         log(
             LOGLEVEL.ERROR,
@@ -1038,7 +1038,7 @@ export class TwitchVOD extends BaseVOD {
 
     getTitle(): string {
         if (!this.chapters || this.chapters.length == 0)
-            return this.twitch_vod_title ?? "Unknown title";
+            return this.external_vod_title ?? "Unknown title";
         return this.chapters[0].title;
     }
 
@@ -1102,8 +1102,8 @@ export class TwitchVOD extends BaseVOD {
             `Saving Kodi NFO file for ${this.basename} to ${this.path_kodinfo}`
         );
 
-        const title = this.twitch_vod_title
-            ? this.twitch_vod_title
+        const title = this.external_vod_title
+            ? this.external_vod_title
             : this.chapters[0]
             ? this.chapters[0].title
             : this.basename;
@@ -1113,7 +1113,7 @@ export class TwitchVOD extends BaseVOD {
         data += "<episodedetails>\n";
         data += `\t<title>${htmlentities(title)}</title>\n`;
         data += `\t<showtitle>${this.getChannel().displayName}</showtitle>\n`;
-        data += `\t<uniqueid type="twitch">${this.twitch_vod_id}</uniqueid>\n`;
+        data += `\t<uniqueid type="twitch">${this.external_vod_id}</uniqueid>\n`;
 
         data += `\t<season>${format(
             this.started_at,
@@ -1157,7 +1157,7 @@ export class TwitchVOD extends BaseVOD {
         data += `\t<year>${format(this.started_at, "yyyy")}</year>\n`;
         data += `\t<studio>${this.getChannel().displayName}</studio>\n`;
 
-        data += `\t<id>${this.twitch_vod_id}</id>\n`;
+        data += `\t<id>${this.external_vod_id}</id>\n`;
 
         data += "</episodedetails>\n";
 
@@ -1185,119 +1185,31 @@ export class TwitchVOD extends BaseVOD {
         if (!this.uuid) throw new Error(`No UUID set on VOD ${this.basename}`);
         if (!this.channel_uuid)
             throw new Error(`No channel UUID set on VOD ${this.basename}`);
-        return {
-            provider: "twitch",
-            uuid: this.uuid,
-            channel_uuid: this.channel_uuid,
-            basename: this.basename || "",
 
-            stream_title: this.stream_title,
+        return {
+            ...(await super.toAPI()),
+            provider: "twitch",
+
             stream_resolution: this.stream_resolution,
 
-            segments: this.segments.map((s) => s.toAPI()),
-            segments_raw: this.segments_raw,
-
-            twitch_vod_duration: this.twitch_vod_duration,
+            // twitch_vod_duration: this.twitch_vod_duration,
             twitch_vod_muted: this.twitch_vod_muted,
             // twitch_vod_status: this.twitch_vod_status,
-            twitch_vod_id: this.twitch_vod_id,
-            twitch_vod_date: this.twitch_vod_date,
-            twitch_vod_title: this.twitch_vod_title,
+            // twitch_vod_id: this.twitch_vod_id,
+            // twitch_vod_date: this.twitch_vod_date,
+            // twitch_vod_title: this.twitch_vod_title,
             twitch_vod_neversaved: this.twitch_vod_neversaved,
-            twitch_vod_exists: this.twitch_vod_exists,
+            // twitch_vod_exists: this.twitch_vod_exists,
             twitch_vod_attempted: this.twitch_vod_attempted,
-
-            created_at: this.created_at ? this.created_at.toISOString() : "",
-            saved_at: this.saved_at ? this.saved_at.toISOString() : "",
-            started_at: this.started_at ? this.started_at.toISOString() : "",
-            ended_at: this.ended_at ? this.ended_at.toISOString() : undefined,
-            capture_started: this.capture_started
-                ? this.capture_started.toISOString()
-                : undefined,
-            capture_started2: this.capture_started2
-                ? this.capture_started2.toISOString()
-                : undefined,
-            conversion_started: this.conversion_started
-                ? this.conversion_started.toISOString()
-                : undefined,
-
-            capture_id: this.capture_id,
-
-            is_converted: this.is_converted,
-            is_capturing: this.is_capturing,
-            is_converting: this.is_converting,
-            is_finalized: this.is_finalized,
-
-            is_chat_downloaded: this.is_chat_downloaded,
-            is_vod_downloaded: this.is_vod_downloaded,
-            is_chat_rendered: this.is_chat_rendered,
-            is_chat_burned: this.is_chat_burned,
-            is_lossless_cut_generated: this.is_lossless_cut_generated,
-            is_chatdump_captured: this.is_chatdump_captured,
-            is_capture_paused: this.is_capture_paused,
 
             api_hasFavouriteGame: this.hasFavouriteGame(),
             api_getUniqueGames: this.getUniqueGames().map((g) => g.toAPI()),
             api_getWebhookDuration: this.getWebhookDuration(),
             // api_getDuration: this.duration, // this.getDuration(),
-            api_getDuration: await this.getDuration(true),
-            api_getCapturingStatus: await this.getCapturingStatus(),
-            api_getRecordingSize: this.getRecordingSize(),
             api_getChatDumpStatus: await this.getChatDumpStatus(),
-            api_getDurationLive: this.getDurationLive(),
-            api_getConvertingStatus: await this.getConvertingStatus(),
-
-            path_chat: this.path_chat,
-            path_downloaded_vod: this.path_downloaded_vod,
-            path_losslesscut: this.path_losslesscut,
-            path_chatrender: this.path_chatrender,
-            path_chatburn: this.path_chatburn,
-            path_chatdump: this.path_chatdump,
-            path_chatmask: this.path_chatmask,
-            // path_adbreak: this.path_adbreak,
-            path_playlist: this.path_playlist,
-
-            duration_live: this.getDurationLive(),
-            duration: this.duration || 0,
-
-            total_size: this.total_size,
 
             chapters: this.chapters.map((c) => c.toAPI()),
             // chapters_raw: this.chapters_raw,
-
-            webpath: this.webpath,
-
-            video_metadata: this.video_metadata,
-
-            stream_number: this.stream_number,
-            stream_season: this.stream_season,
-            stream_absolute_season: this.stream_absolute_season,
-            stream_absolute_number: this.stream_absolute_number,
-
-            comment: this.comment,
-
-            prevent_deletion: this.prevent_deletion,
-
-            failed: this.failed,
-
-            bookmarks: this.bookmarks,
-
-            cloud_storage: this.cloud_storage,
-
-            export_data: this.exportData,
-
-            viewers: this.viewers.map((v) => {
-                return {
-                    timestamp: v.timestamp.toISOString(),
-                    amount: v.amount,
-                };
-            }),
-            stream_pauses: this.stream_pauses.map((v) => {
-                return {
-                    start: v.start.toISOString(),
-                    end: v.end.toISOString(),
-                };
-            }),
 
             // game_offset: this.game_offset || 0,
             // twitch_vod_url: this.twitch_vod_url,
@@ -1461,7 +1373,7 @@ export class TwitchVOD extends BaseVOD {
     }
 
     public async checkValidVod(save = false): Promise<boolean | null> {
-        const current_status = this.twitch_vod_exists;
+        const current_status = this.external_vod_exists;
 
         if (!this.is_finalized) {
             log(
@@ -1472,7 +1384,7 @@ export class TwitchVOD extends BaseVOD {
             return null;
         }
 
-        if (this.twitch_vod_exists === undefined && !this.twitch_vod_id) {
+        if (this.external_vod_exists === undefined && !this.external_vod_id) {
             log(
                 LOGLEVEL.INFO,
                 "vod.checkValidVod",
@@ -1492,7 +1404,7 @@ export class TwitchVOD extends BaseVOD {
             }
         }
 
-        if (!this.twitch_vod_id) {
+        if (!this.external_vod_id) {
             log(
                 LOGLEVEL.ERROR,
                 "vod.checkValidVod",
@@ -1500,7 +1412,7 @@ export class TwitchVOD extends BaseVOD {
             );
             if (this.twitch_vod_neversaved) {
                 if (save && current_status !== false) {
-                    this.twitch_vod_exists = false;
+                    this.external_vod_exists = false;
                     await this.saveJSON("vod check neversaved");
                 }
             }
@@ -1516,7 +1428,7 @@ export class TwitchVOD extends BaseVOD {
         let video;
 
         try {
-            video = await TwitchVOD.getVideo(this.twitch_vod_id.toString());
+            video = await TwitchVOD.getVideo(this.external_vod_id.toString());
         } catch (error) {
             log(
                 LOGLEVEL.ERROR,
@@ -1534,8 +1446,8 @@ export class TwitchVOD extends BaseVOD {
                 "vod.checkValidVod",
                 `VOD exists for ${this.basename}`
             );
-            this.twitch_vod_exists = true;
-            if (save && current_status !== this.twitch_vod_exists) {
+            this.external_vod_exists = true;
+            if (save && current_status !== this.external_vod_exists) {
                 await this.saveJSON("vod check true");
             }
             return true;
@@ -1547,9 +1459,9 @@ export class TwitchVOD extends BaseVOD {
             `No VOD for ${this.basename}`
         );
 
-        this.twitch_vod_exists = false;
+        this.external_vod_exists = false;
 
-        if (save && current_status !== this.twitch_vod_exists) {
+        if (save && current_status !== this.external_vod_exists) {
             await this.saveJSON("vod check false");
         }
 
@@ -1579,7 +1491,7 @@ export class TwitchVOD extends BaseVOD {
      * @returns
      */
     public async checkMutedVod(save = false): Promise<MuteStatus> {
-        if (!this.twitch_vod_id) {
+        if (!this.external_vod_id) {
             log(
                 LOGLEVEL.ERROR,
                 "vod.checkMutedVod",
@@ -1588,7 +1500,7 @@ export class TwitchVOD extends BaseVOD {
             throw new Error("No VOD id");
         }
 
-        if (!this.twitch_vod_exists) {
+        if (!this.external_vod_exists) {
             log(
                 LOGLEVEL.ERROR,
                 "vod.checkMutedVod",
@@ -1617,11 +1529,11 @@ export class TwitchVOD extends BaseVOD {
     }
 
     private async checkMutedVodAPI(save = false): Promise<MuteStatus> {
-        if (!this.twitch_vod_id) return MuteStatus.UNKNOWN;
+        if (!this.external_vod_id) return MuteStatus.UNKNOWN;
 
         const previous = this.twitch_vod_muted;
 
-        const data = await TwitchVOD.getVideo(this.twitch_vod_id.toString());
+        const data = await TwitchVOD.getVideo(this.external_vod_id.toString());
 
         if (!data) {
             log(
@@ -1669,7 +1581,7 @@ export class TwitchVOD extends BaseVOD {
             slp,
             [
                 "--stream-url",
-                `https://www.twitch.tv/videos/${this.twitch_vod_id}`,
+                `https://www.twitch.tv/videos/${this.external_vod_id}`,
                 "best",
             ],
             "vod mute check"
@@ -1723,13 +1635,13 @@ export class TwitchVOD extends BaseVOD {
      * @throws
      */
     public async downloadVod(quality: VideoQuality = "best"): Promise<boolean> {
-        if (!this.twitch_vod_id) throw new Error("No VOD id!");
+        if (!this.external_vod_id) throw new Error("No VOD id!");
         if (!this.directory) throw new Error("No directory!");
 
         let filename = "";
         try {
             filename = await TwitchVOD.downloadVideo(
-                this.twitch_vod_id.toString(),
+                this.external_vod_id.toString(),
                 quality,
                 path.join(this.directory, `${this.basename}_vod.mp4`)
             );
@@ -1780,10 +1692,10 @@ export class TwitchVOD extends BaseVOD {
     }
 
     public getStartOffset(): number | false {
-        if (!this.twitch_vod_duration) return false;
+        if (!this.external_vod_duration) return false;
         // const dur = await this.getDuration();
         // if (!dur) return false;
-        return this.twitch_vod_duration - this.duration;
+        return this.external_vod_duration - this.duration;
     }
 
     /**
@@ -1956,12 +1868,12 @@ export class TwitchVOD extends BaseVOD {
 
     public async downloadChat(method: "td" | "tcd" = "td"): Promise<boolean> {
         // since tcd does not work anymore, twitchdownloadercli is used instead
-        if (!this.twitch_vod_id) {
+        if (!this.external_vod_id) {
             throw new Error("No twitch_vod_id for chat download");
         }
         return await TwitchVOD.downloadChat(
             method,
-            this.twitch_vod_id,
+            this.external_vod_id,
             this.path_chat
         );
     }
@@ -2203,7 +2115,7 @@ export class TwitchVOD extends BaseVOD {
             .getVods()
             .find<TwitchVOD>(
                 (vod): vod is TwitchVOD =>
-                    isTwitchVOD(vod) && vod.twitch_vod_id == provider_id
+                    isTwitchVOD(vod) && vod.external_vod_id == provider_id
             );
     }
 

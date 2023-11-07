@@ -91,8 +91,8 @@ export class BaseExporter {
         if (!this.vod.started_at) throw new Error("No started_at");
 
         let title = "Title";
-        if (isTwitchVOD(this.vod) && this.vod.twitch_vod_title)
-            title = this.vod.twitch_vod_title;
+        if (isTwitchVOD(this.vod) && this.vod.external_vod_title)
+            title = this.vod.external_vod_title;
         if (this.vod.chapters[0]) title = this.vod.chapters[0].title;
 
         const replacements: ExporterFilenameTemplate = {

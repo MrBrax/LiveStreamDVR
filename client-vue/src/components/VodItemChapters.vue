@@ -112,8 +112,8 @@
 
                                         <!-- open on twitch link -->
                                         <a
-                                            v-if="vod.provider == 'twitch' && vod.twitch_vod_exists && vod.twitch_vod_id && chapter.offset"
-                                            :href="twitchVideoLink(vod.twitch_vod_id) + '?t=' + twitchDuration(chapter.offset)"
+                                            v-if="vod.provider == 'twitch' && vod.external_vod_exists && vod.external_vod_id && chapter.offset"
+                                            :href="twitchVideoLink(vod.external_vod_id) + '?t=' + twitchDuration(chapter.offset)"
                                             target="_blank"
                                             rel="noreferrer"
                                             aria-label="Open on Twitch"

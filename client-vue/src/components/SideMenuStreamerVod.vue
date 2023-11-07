@@ -101,13 +101,13 @@
         <template v-if="vod.is_finalized">
             <span class="flags">
                 <!-- vod deleted -->
-                <span v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === false" class="icon is-error" title="Deleted from provider"
+                <span v-if="isTwitchVOD(vod) && vod.external_vod_exists === false" class="icon is-error" title="Deleted from provider"
                     ><font-awesome-icon icon="trash"
                 /></span>
 
                 <!-- vod deleted -->
                 <span
-                    v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === true && isRiskOfBeingDeleted(vod)"
+                    v-if="isTwitchVOD(vod) && vod.external_vod_exists === true && isRiskOfBeingDeleted(vod)"
                     class="icon is-warning"
                     title="Is risking deletion from provider"
                 >
@@ -115,7 +115,7 @@
                 </span>
 
                 <!-- vod not checked -->
-                <span v-if="isTwitchVOD(vod) && vod.twitch_vod_exists === null" class="icon is-error" title="Not checked"
+                <span v-if="isTwitchVOD(vod) && vod.external_vod_exists === null" class="icon is-error" title="Not checked"
                     ><font-awesome-icon icon="question"
                 /></span>
 

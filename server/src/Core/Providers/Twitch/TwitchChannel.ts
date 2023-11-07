@@ -526,7 +526,7 @@ export class TwitchChannel extends BaseChannel {
     public hasVod(video_id: string): boolean {
         return (
             this.getVods().find(
-                (v) => v.twitch_vod_id && v.twitch_vod_id === video_id
+                (v) => v.external_vod_id && v.external_vod_id === video_id
             ) != undefined
         );
     }
@@ -617,7 +617,7 @@ export class TwitchChannel extends BaseChannel {
 
                 if (
                     Config.getInstance().cfg<boolean>("keep_deleted_vods") &&
-                    vodclass.twitch_vod_exists === false
+                    vodclass.external_vod_exists === false
                 ) {
                     log(
                         LOGLEVEL.DEBUG,
@@ -1172,7 +1172,7 @@ export class TwitchChannel extends BaseChannel {
         // check locally captured vods for a base vod object to use instead of downloading a new one
         const localVod = this.getVods().find(
             (v) =>
-                v.twitch_vod_id === latestVodData.id ||
+                v.external_vod_id === latestVodData.id ||
                 (v.created_at?.getTime() &&
                     now.getTime() - v.created_at?.getTime() < latestVodDateDiff)
         );

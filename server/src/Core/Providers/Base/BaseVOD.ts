@@ -397,7 +397,111 @@ export class BaseVOD {
     }
 
     public async toAPI(): Promise<ApiBaseVod> {
-        throw new Error("Not implemented");
+        return await Promise.resolve({
+            provider: this.provider,
+            uuid: this.uuid,
+            channel_uuid: this.channel_uuid || "",
+            basename: this.basename || "",
+
+            stream_title: this.stream_title || "",
+
+            capture_id: this.capture_id,
+
+            segments: this.segments.map((s) => s.toAPI()),
+            segments_raw: this.segments_raw,
+
+            created_at: this.created_at ? this.created_at.toISOString() : "",
+            saved_at: this.saved_at ? this.saved_at.toISOString() : "",
+            started_at: this.started_at ? this.started_at.toISOString() : "",
+            ended_at: this.ended_at ? this.ended_at.toISOString() : undefined,
+            capture_started: this.capture_started
+                ? this.capture_started.toISOString()
+                : undefined,
+            capture_started2: this.capture_started2
+                ? this.capture_started2.toISOString()
+                : undefined,
+            conversion_started: this.conversion_started
+                ? this.conversion_started.toISOString()
+                : undefined,
+
+            external_vod_id: this.external_vod_id,
+            external_vod_duration: this.external_vod_duration,
+            external_vod_title: this.external_vod_title,
+            external_vod_date: this.external_vod_date
+                ? this.external_vod_date.toISOString()
+                : undefined,
+            external_vod_exists: this.external_vod_exists,
+
+            is_converted: this.is_converted,
+            is_capturing: this.is_capturing,
+            is_converting: this.is_converting,
+            is_finalized: this.is_finalized,
+
+            is_chat_downloaded: this.is_chat_downloaded,
+            is_vod_downloaded: this.is_vod_downloaded,
+            is_chat_rendered: this.is_chat_rendered,
+            is_chat_burned: this.is_chat_burned,
+            is_lossless_cut_generated: this.is_lossless_cut_generated,
+            is_chatdump_captured: this.is_chatdump_captured,
+            is_capture_paused: this.is_capture_paused,
+
+            path_chat: this.path_chat,
+            path_downloaded_vod: this.path_downloaded_vod,
+            path_losslesscut: this.path_losslesscut,
+            path_chatrender: this.path_chatrender,
+            path_chatburn: this.path_chatburn,
+            path_chatdump: this.path_chatdump,
+            path_chatmask: this.path_chatmask,
+            // path_adbreak: this.path_adbreak,
+            path_playlist: this.path_playlist,
+
+            duration_live: this.getDurationLive(),
+            duration: this.duration || 0,
+
+            video_metadata: this.video_metadata,
+
+            total_size: this.total_size,
+
+            webpath: this.webpath,
+
+            stream_number: this.stream_number,
+            stream_season: this.stream_season,
+            stream_absolute_season: this.stream_absolute_season,
+            stream_absolute_number: this.stream_absolute_number,
+
+            comment: this.comment,
+
+            prevent_deletion: this.prevent_deletion,
+
+            failed: this.failed,
+
+            bookmarks: this.bookmarks,
+
+            cloud_storage: this.cloud_storage,
+
+            export_data: this.exportData,
+
+            chapters: this.chapters.map((c) => c.toAPI()),
+
+            viewers: this.viewers.map((v) => {
+                return {
+                    timestamp: v.timestamp.toISOString(),
+                    amount: v.amount,
+                };
+            }),
+            stream_pauses: this.stream_pauses.map((v) => {
+                return {
+                    start: v.start.toISOString(),
+                    end: v.end.toISOString(),
+                };
+            }),
+
+            api_getDuration: await this.getDuration(true),
+            api_getRecordingSize: this.getRecordingSize(),
+            api_getDurationLive: this.getDurationLive(),
+            api_getConvertingStatus: await this.getConvertingStatus(),
+            api_getCapturingStatus: await this.getCapturingStatus(),
+        });
     }
 
     public async toJSON(): Promise<VODJSON> {
@@ -1081,9 +1185,9 @@ export class BaseVOD {
             this.getChannel().displayName
         );
 
-        if (isTwitchVOD(this)) {
-            meta.setTitle(this.twitch_vod_title ?? this.chapters[0].title);
-        }
+        // if (isTwitchVOD(this)) {
+        meta.setTitle(this.external_vod_title ?? this.chapters[0].title);
+        // }
 
         if (this.started_at) meta.setDate(this.started_at);
 

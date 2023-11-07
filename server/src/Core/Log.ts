@@ -135,12 +135,8 @@ const jsonLogger = createLogger({
 const textLogger = createLogger({
     level: "info",
     levels: winstonCustomlevels.levels,
-    transports: [
-        textLogTransport,
-    ],
+    transports: [textLogTransport],
 });
-
-
 
 export function getLogger() {
     return jsonLogger;
@@ -191,7 +187,6 @@ export async function getLogLines({
     });
 }
 
-
 /**
  * Log a message to the log file. Do NOT call before loading the config.
  *
@@ -208,7 +203,7 @@ export function log(
     text: string,
     metadata?: any
 ): void {
-    const logData: WinstonLogLine = {
+    const winstonLogData = {
         level: level,
         message: text,
         module: module,
@@ -216,15 +211,25 @@ export function log(
         metadata: metadata,
     };
 
-    jsonLogger.log(logData);
-    textLogger.log(logData); // hack to get query working
+    const websocketLogData = {
+        level: level,
+        message: text,
+        metadata: {
+            ...metadata,
+            module: module,
+            timestamp: new Date().toISOString(),
+        },
+    };
+
+    jsonLogger.log(winstonLogData);
+    textLogger.log(winstonLogData); // hack to get query working
 
     // send over websocket, probably extremely slow
     if (
         Config.getInstance().initialised &&
         Config.getInstance().cfg<boolean>("websocket_log")
     ) {
-        websocket_buffer.push(logData);
+        websocket_buffer.push(websocketLogData);
 
         if (websocket_timer) xClearTimeout(websocket_timer);
         websocket_timer = xTimeout(() => {
@@ -240,10 +245,7 @@ export function log(
             websocket_timer = undefined;
         }, 5000);
     }
-
 }
-
-
 
 export function setLogDebug(state: boolean): void {
     console.log(`Setting debug to ${state}`);
