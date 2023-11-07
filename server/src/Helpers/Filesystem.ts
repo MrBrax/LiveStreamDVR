@@ -70,3 +70,12 @@ export function validateRelativePath(dir: string): boolean {
 export function validateFilename(filename: string): boolean {
     return !/[\\/:*?"<>|\0]/.test(filename);
 }
+
+/**
+ * Replaces any invalid characters in a file path with an underscore. Does not prevent directory traversal.
+ * @param dir - The file path to sanitize.
+ * @returns The sanitized file path.
+ */
+export function sanitizePath(dir: string): string {
+    return dir.replace(/[:*?"<>|\0]/g, "_");
+}

@@ -15,6 +15,7 @@ import { YouTubeVOD } from "@/Core/Providers/YouTube/YouTubeVOD";
 import { Webhook } from "@/Core/Webhook";
 import { debugLog } from "@/Helpers/Console";
 import {
+    sanitizePath,
     validateAbsolutePath,
     validateFilename,
     validateRelativePath,
@@ -672,7 +673,7 @@ export async function DownloadVideo(
         }
 
         const variables: VodBasenameTemplate = {
-            login: channel.internalName || "",
+            // login: channel.internalName || "",
             internalName: channel.internalName,
             displayName: channel.displayName,
             date: video.created_at?.replaceAll(":", "_"),
@@ -782,9 +783,8 @@ export async function DownloadVideo(
         }
 
         // make folder name
-        const basefolder = path.join(
-            channel.getFolder(),
-            basefolderPathTemplate
+        const basefolder = sanitizePath(
+            path.join(channel.getFolder(), basefolderPathTemplate)
         );
 
         if (!validateAbsolutePath(basefolder)) {

@@ -1,3 +1,4 @@
+import { sanitizePath } from "@/Helpers/Filesystem";
 import { imageThumbnail } from "@/Helpers/Image";
 import type { ApiTwitchChannel } from "@common/Api/Client";
 import type { TwitchChannelConfig, VideoQuality } from "@common/Config";
@@ -1266,7 +1267,9 @@ export class TwitchChannel extends BaseChannel {
                 )
             );
 
-            basepath = path.join(channel_basepath, vod_folder_base);
+            basepath = sanitizePath(
+                path.join(channel_basepath, vod_folder_base)
+            );
         } else {
             basepath = channel_basepath;
         }
