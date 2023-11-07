@@ -23,7 +23,7 @@ import axios from "axios";
 import { parseJSON } from "date-fns";
 import { defineStore } from "pinia";
 import type { WinstonLogLine } from "@common/Log";
-import { isTwitchChannel, isTwitchApiChannel, isYouTubeApiChannel } from "@/mixins/newhelpers";
+import { isTwitchChannel, isTwitchApiChannel, isYouTubeApiChannel, isTwitchApiVOD, isYouTubeVOD, isYouTubeChannel, isYouTubeApiVOD } from "@/mixins/newhelpers";
 
 interface StoreType {
     app_name: string;
@@ -219,13 +219,13 @@ export const useStore = defineStore("twitchAutomator", {
             if (!vod_data) return false;
 
             // check if streamer is already in the list
-            if (vod_data.provider == "twitch") {
-                const index = this.streamerList.findIndex((s) => s instanceof TwitchChannel && s.uuid === vod_data.uuid);
+            if (isTwitchApiVOD(vod_data)){
+                const index = this.streamerList.findIndex((s) => isTwitchChannel(s) && s.uuid === vod_data.uuid);
                 if (index === -1) return false;
                 const vod = TwitchVOD.makeFromApiResponse(vod_data);
                 return this.updateVod(vod);
-            } else if (vod_data.provider == "youtube") {
-                const index = this.streamerList.findIndex((s) => s instanceof YouTubeChannel && s.uuid === vod_data.uuid);
+            } else if (isYouTubeApiVOD(vod_data)){
+                const index = this.streamerList.findIndex((s) => isYouTubeChannel(s) && s.uuid === vod_data.uuid);
                 if (index === -1) return false;
                 const vod = YouTubeVOD.makeFromApiResponse(vod_data);
                 return this.updateVod(vod);
@@ -236,8 +236,8 @@ export const useStore = defineStore("twitchAutomator", {
             const provider = vod.provider;
 
             const streamer = this.streamerList.find<ChannelTypes>((s): s is ChannelTypes => {
-                if (provider == "twitch") return s instanceof TwitchChannel && s.uuid === vod.channel_uuid;
-                if (provider == "youtube") return s instanceof YouTubeChannel && s.uuid === vod.channel_uuid;
+                if (provider == "twitch") return isTwitchChannel(s) && s.uuid === vod.channel_uuid;
+                if (provider == "youtube") return isYouTubeChannel(s) && s.uuid === vod.channel_uuid;
                 return false;
             });
             if (!streamer) return false;
@@ -263,12 +263,12 @@ export const useStore = defineStore("twitchAutomator", {
             // const vod = TwitchVOD.makeFromApiResponse(vod_data);
             // return this.updateVod(vod);
 
-            if (vod_data.provider == "twitch") {
+            if (isTwitchApiVOD(vod_data)){
                 const index = this.streamerList.findIndex((channel) => channel instanceof TwitchChannel && channel.uuid === vod_data.channel_uuid);
                 if (index === -1) return false;
                 const vod = TwitchVOD.makeFromApiResponse(vod_data);
                 return this.updateVod(vod);
-            } else if (vod_data.provider == "youtube") {
+            } else if (isYouTubeApiVOD(vod_data)){
                 const index = this.streamerList.findIndex((channel) => channel instanceof YouTubeChannel && channel.uuid === vod_data.channel_uuid);
                 if (index === -1) return false;
                 const vod = YouTubeVOD.makeFromApiResponse(vod_data);
@@ -365,10 +365,13 @@ export const useStore = defineStore("twitchAutomator", {
         },
         updateStreamerFromData(streamer_data: ApiChannels): boolean {
             let streamer;
-            if (streamer_data.provider == "youtube") {
+            if (isYouTubeApiChannel(streamer_data)) {
                 streamer = YouTubeChannel.makeFromApiResponse(streamer_data);
-            } else {
+            } else if (isTwitchApiChannel(streamer_data)) {
                 streamer = TwitchChannel.makeFromApiResponse(streamer_data);
+            } else {
+                console.error("updateStreamerFromData", streamer_data);
+                return false;
             }
             return this.updateStreamer(streamer);
         },

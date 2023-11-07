@@ -252,7 +252,7 @@ import FormSubmit from "@/components/reusables/FormSubmit.vue";
 import type { BaseVODChapter } from "@/core/Providers/Base/BaseVODChapter";
 import TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
 import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
-import { formatBytes, humanDuration } from "@/mixins/newhelpers";
+import { formatBytes, humanDuration, isTwitchApiChannel, isTwitchApiVOD, isYouTubeApiChannel, isYouTubeApiVOD } from "@/mixins/newhelpers";
 import { useStore } from "@/store";
 import type { FormStatus, VODTypes } from "@/twitchautomator";
 import type { ApiResponse, ApiVodResponse } from "@common/Api/Api";
@@ -401,14 +401,12 @@ function fetchData() {
         .get<ApiVodResponse>(`/api/v0/vod/${props.uuid}`)
         .then((response) => {
             const json = response.data;
-            if (json.data.provider == "twitch") {
-                vodData.value = TwitchVOD.makeFromApiResponse(json.data);
-            } else {
-                vodData.value = YouTubeVOD.makeFromApiResponse(json.data);
+            const vod = json.data;
+            if (isTwitchApiVOD(vod)) {
+                vodData.value = TwitchVOD.makeFromApiResponse(vod);
+            } else if (isYouTubeApiVOD(vod)) {
+                vodData.value = YouTubeVOD.makeFromApiResponse(vod);
             }
-            // setTimeout(() => {
-            //     setupPlayer();
-            // }, 500);
         })
         .catch((err) => {
             console.error("about error", err.response);
