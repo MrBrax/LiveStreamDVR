@@ -77,7 +77,8 @@
         "true-case-path": "^2.2.1",
         "winston": "^3.10.0",
         "winston-daily-rotate-file": "^4.7.1",
-        "ws": "^8.13.0"
+        "ws": "^8.13.0",
+        "zod": "^3.22.4"
     },
     "packageManager": "yarn@3.6.3",
     "engines": {

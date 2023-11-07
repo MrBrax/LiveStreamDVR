@@ -94,6 +94,12 @@ export class BaseVOD {
     stream_absolute_season?: number;
     stream_absolute_number?: number;
 
+    external_vod_id?: string;
+    external_vod_title?: string;
+    external_vod_duration?: number;
+    external_vod_exists = false;
+    external_vod_date?: Date;
+
     comment?: string;
 
     prevent_deletion = false;
@@ -394,7 +400,82 @@ export class BaseVOD {
         throw new Error("Not implemented");
     }
 
+    public async toJSON(): Promise<VODJSON> {
+        const generated: VODJSON =
+            this.json && Object.keys(this.json).length > 0
+                ? JSON.parse(JSON.stringify(this.json))
+                : {};
+
+        generated.type = this.provider;
+
+        generated.uuid = this.uuid;
+
+        generated.capture_id = this.capture_id;
+
+        generated.stream_resolution = this.stream_resolution ?? undefined;
+
+        if (this.channel_uuid) generated.channel_uuid = this.channel_uuid;
+
+        generated.is_capturing = this.is_capturing;
+        generated.is_converting = this.is_converting;
+        generated.is_finalized = this.is_finalized;
+
+        generated.duration = this.duration ?? undefined;
+        generated.video_metadata = this.video_metadata;
+        generated.saved_at = new Date().toISOString();
+
+        if (this.created_at)
+            generated.created_at = this.created_at.toISOString();
+        if (this.capture_started)
+            generated.capture_started = this.capture_started.toISOString();
+        if (this.capture_started2)
+            generated.capture_started2 = this.capture_started2.toISOString();
+        if (this.conversion_started)
+            generated.conversion_started =
+                this.conversion_started.toISOString();
+        if (this.started_at)
+            generated.started_at = this.started_at.toISOString();
+        if (this.ended_at) generated.ended_at = this.ended_at.toISOString();
+
+        generated.not_started = this.not_started;
+
+        generated.stream_number = this.stream_number;
+        generated.stream_season = this.stream_season;
+        generated.stream_absolute_season = this.stream_absolute_season;
+        generated.stream_absolute_number = this.stream_absolute_number;
+
+        generated.comment = this.comment;
+        generated.prevent_deletion = this.prevent_deletion;
+        generated.failed = this.failed;
+        generated.bookmarks = this.bookmarks;
+        generated.cloud_storage = this.cloud_storage;
+        generated.export_data = this.exportData;
+
+        generated.viewers = this.viewers.map((viewer) => ({
+            timestamp: viewer.timestamp.toJSON(),
+            amount: viewer.amount,
+        }));
+
+        generated.stream_pauses = this.stream_pauses.flatMap((pause) => {
+            return pause.start && pause.end
+                ? [{ start: pause.start.toJSON(), end: pause.end.toJSON() }]
+                : [];
+        });
+
+        generated.external_vod_exists = this.external_vod_exists;
+        generated.external_vod_id = this.external_vod_id;
+        generated.external_vod_duration = this.external_vod_duration;
+        generated.external_vod_title = this.external_vod_title;
+        generated.external_vod_date = this.external_vod_date?.toISOString();
+
+        return await Promise.resolve(generated);
+    }
+
     public async saveJSON(reason = ""): Promise<boolean> {
+        throw new Error("Not implemented");
+    }
+
+    public async migrate(): Promise<boolean> {
         throw new Error("Not implemented");
     }
 
@@ -1817,6 +1898,14 @@ export class BaseVOD {
                         : [];
                 });
         }
+
+        this.external_vod_id = this.json.external_vod_id;
+        this.external_vod_title = this.json.external_vod_title;
+        this.external_vod_date = this.json.external_vod_date
+            ? parseJSON(this.json.external_vod_date)
+            : undefined;
+        this.external_vod_duration = this.json.external_vod_duration;
+        this.external_vod_exists = this.json.external_vod_exists ?? false;
     }
     public setupProvider(): void {
         return;
@@ -2136,6 +2225,17 @@ export class BaseVOD {
             );
             this.issueFixCount = 0;
             return true;
+        }
+
+        if (await this.migrate()) {
+            log(
+                LOGLEVEL.INFO,
+                "vod.fixIssues",
+                `VOD ${this.basename} has been migrated`
+            );
+            this.issueFixCount++;
+            this.saveJSON("fix migrate");
+            return false;
         }
 
         // fix illegal characters

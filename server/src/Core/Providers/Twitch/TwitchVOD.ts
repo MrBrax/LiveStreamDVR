@@ -75,13 +75,18 @@ export class TwitchVOD extends BaseVOD {
     chapters_raw: Array<TwitchVODChapterJSON> = [];
     chapters: Array<TwitchVODChapter> = [];
 
+    /** @deprecated Use external_vod_id instead */
     twitch_vod_id?: string;
+    /** @deprecated Use external_vod_duration instead */
     twitch_vod_duration?: number;
+    /** @deprecated Use external_vod_title instead */
     twitch_vod_title?: string;
+    /** @deprecated Use external_vod_date instead */
     twitch_vod_date?: string;
     twitch_vod_muted?: MuteStatus;
     // twitch_vod_status?: ExistStatus;
     twitch_vod_neversaved?: boolean;
+    /** @deprecated Use external_vod_exists instead */
     twitch_vod_exists?: boolean;
     twitch_vod_attempted?: boolean;
 
@@ -879,6 +884,40 @@ export class TwitchVOD extends BaseVOD {
         return true;
     }
 
+    public async migrate(): Promise<boolean> {
+        if (!this.json) {
+            throw new Error("No JSON loaded for migration!");
+        }
+
+        let migrated = false;
+
+        if (this.json.twitch_vod_id && !this.external_vod_id) {
+            this.external_vod_id = this.json.twitch_vod_id;
+            migrated = true;
+        }
+        if (this.json.twitch_vod_duration && !this.external_vod_duration) {
+            this.external_vod_duration = this.json.twitch_vod_duration;
+            migrated = true;
+        }
+        if (this.json.twitch_vod_title && !this.external_vod_title) {
+            this.external_vod_title = this.json.twitch_vod_title;
+            migrated = true;
+        }
+        if (this.json.twitch_vod_date && !this.external_vod_date) {
+            this.external_vod_date = parseJSON(this.json.twitch_vod_date);
+            migrated = true;
+        }
+        if (
+            this.json.twitch_vod_exists &&
+            this.external_vod_exists === undefined
+        ) {
+            this.external_vod_exists = this.json.twitch_vod_exists;
+            migrated = true;
+        }
+
+        return await Promise.resolve(migrated);
+    }
+
     /**
      * Match the stored vod to the online vod.
      * Does **NOT** save.
@@ -987,8 +1026,14 @@ export class TwitchVOD extends BaseVOD {
         );
         this.twitch_vod_title = video.title;
         this.twitch_vod_date = video.created_at;
-        // this.twitch_vod_exists = true;
-        // this.broadcastUpdate();
+
+        this.external_vod_id = video.id;
+        this.external_vod_duration = TwitchHelper.parseTwitchDuration(
+            video.duration
+        );
+        this.external_vod_title = video.title;
+        this.external_vod_date = parseJSON(video.created_at);
+        // this.external_vod_exists = true;
     }
 
     getTitle(): string {
@@ -1274,14 +1319,38 @@ export class TwitchVOD extends BaseVOD {
         return job ? await job.getStatus() : JobStatus.STOPPED;
     }
 
+    public async toJSON(): Promise<TwitchVODJSON> {
+        const generated = (await super.toJSON()) as TwitchVODJSON;
+
+        generated.version = 2;
+        generated.type = "twitch";
+
+        generated.chapters = this.chapters.map((chapter) => chapter.toJSON());
+        generated.segments = this.segments.map(
+            (segment) => segment.filename || ""
+        ); // hack?
+
+        if (this.twitch_vod_id) {
+            generated.twitch_vod_id = this.twitch_vod_id;
+            // generated.twitch_vod_url = this.twitch_vod_url;
+            generated.twitch_vod_duration =
+                this.twitch_vod_duration ?? undefined;
+            generated.twitch_vod_title = this.twitch_vod_title;
+            generated.twitch_vod_date = this.twitch_vod_date;
+        }
+
+        generated.twitch_vod_exists = this.twitch_vod_exists;
+        generated.twitch_vod_attempted = this.twitch_vod_attempted;
+        generated.twitch_vod_neversaved = this.twitch_vod_neversaved;
+        generated.twitch_vod_muted = this.twitch_vod_muted;
+
+        return generated;
+    }
+
     public async saveJSON(reason = ""): Promise<boolean> {
         if (!this.filename) {
             throw new Error("Filename not set.");
         }
-
-        // if (!this.created && (this.is_capturing || this.is_converting || !this.is_finalized)) {
-        //     TwitchlogAdvanced(LOGLEVEL.WARNING, "vod", `Saving JSON of ${this.basename} while not finalized!`);
-        // }
 
         if (
             !this.not_started &&
@@ -1303,106 +1372,7 @@ export class TwitchVOD extends BaseVOD {
             return false;
         }
 
-        // clone this.json
-        const generated: TwitchVODJSON =
-            this.json && Object.keys(this.json).length > 0
-                ? JSON.parse(JSON.stringify(this.json))
-                : {};
-        // const generated: TwitchVODJSON = Object.assign({}, this.json || {});
-
-        generated.version = 2;
-        generated.type = "twitch";
-        generated.uuid = this.uuid;
-        generated.capture_id = this.capture_id;
-        // if (this.meta) generated.meta = this.meta;
-        generated.stream_resolution = this.stream_resolution ?? undefined;
-
-        if (this.channel_uuid) generated.channel_uuid = this.channel_uuid;
-
-        // generated.chapters = this.chapters_raw;
-        // generated.segments = this.segments_raw;
-        generated.chapters = this.chapters.map((chapter) => chapter.toJSON());
-        generated.segments = this.segments.map(
-            (segment) => segment.filename || ""
-        ); // hack?
-
-        generated.is_capturing = this.is_capturing;
-        generated.is_converting = this.is_converting;
-        generated.is_finalized = this.is_finalized;
-
-        generated.duration = this.duration ?? undefined;
-
-        generated.video_metadata = this.video_metadata;
-
-        generated.saved_at = new Date().toISOString();
-
-        if (this.created_at)
-            generated.created_at = this.created_at.toISOString();
-        if (this.capture_started)
-            generated.capture_started = this.capture_started.toISOString();
-        if (this.capture_started2)
-            generated.capture_started2 = this.capture_started2.toISOString();
-        if (this.conversion_started)
-            generated.conversion_started =
-                this.conversion_started.toISOString();
-        if (this.started_at)
-            generated.started_at = this.started_at.toISOString();
-        if (this.ended_at) generated.ended_at = this.ended_at.toISOString();
-
-        if (this.twitch_vod_id) {
-            generated.twitch_vod_id = this.twitch_vod_id;
-            // generated.twitch_vod_url = this.twitch_vod_url;
-            generated.twitch_vod_duration =
-                this.twitch_vod_duration ?? undefined;
-            generated.twitch_vod_title = this.twitch_vod_title;
-            generated.twitch_vod_date = this.twitch_vod_date;
-        }
-
-        generated.twitch_vod_exists = this.twitch_vod_exists;
-        generated.twitch_vod_attempted = this.twitch_vod_attempted;
-        generated.twitch_vod_neversaved = this.twitch_vod_neversaved;
-        generated.twitch_vod_muted = this.twitch_vod_muted;
-
-        generated.not_started = this.not_started;
-
-        generated.stream_number = this.stream_number;
-        generated.stream_season = this.stream_season;
-        generated.stream_absolute_season = this.stream_absolute_season;
-        generated.stream_absolute_number = this.stream_absolute_number;
-
-        generated.comment = this.comment;
-
-        generated.prevent_deletion = this.prevent_deletion;
-
-        generated.failed = this.failed;
-
-        generated.bookmarks = this.bookmarks;
-
-        generated.cloud_storage = this.cloud_storage;
-
-        generated.export_data = this.exportData;
-
-        generated.viewers = this.viewers.map((viewer) => ({
-            timestamp: viewer.timestamp.toJSON(),
-            amount: viewer.amount,
-        }));
-
-        generated.stream_pauses = this.stream_pauses.flatMap((pause) => {
-            return pause.start && pause.end
-                ? [{ start: pause.start.toJSON(), end: pause.end.toJSON() }]
-                : [];
-        });
-
-        // generated.twitch_vod_status = this.twitch_vod_status;
-
-        // generated.video_fail2 = this.video_fail2;
-        // generated.force_record = this.force_record;
-        // generated.automator_fail = this.automator_fail;
-
-        // if (!is_writable(this.filename)) { // this is not the function i want
-        // 	// TwitchHelper::log(TwitchHelper::LOG_FATAL, "Saving JSON of " . this.basename . " failed, permissions issue?");
-        // 	// return false;
-        // }
+        const generated = await this.toJSON();
 
         log(
             LOGLEVEL.SUCCESS,
@@ -1412,7 +1382,6 @@ export class TwitchVOD extends BaseVOD {
             }`
         );
 
-        //file_put_contents(this.filename, json_encode(generated));
         this.setPermissions();
 
         await this.stopWatching();
@@ -3011,6 +2980,14 @@ export class TwitchVOD extends BaseVOD {
             return false;
         }
 
+        log(
+            LOGLEVEL.DEBUG,
+            "vod.getVideosProxy",
+            `Got ${
+                json.data.length
+            } videos for channel id ${channel_id}: ${JSON.stringify(json.data)}`
+        );
+
         return json.data.map((item) => {
             return {
                 id: item.id,
@@ -3023,6 +3000,7 @@ export class TwitchVOD extends BaseVOD {
                 view_count: item.view_count,
                 muted_segments: item.muted_segments,
                 stream_id: item.stream_id,
+                type: item.type,
             } as ProxyVideo;
         });
     }

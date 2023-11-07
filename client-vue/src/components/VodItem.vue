@@ -455,7 +455,7 @@ function openPlayer(): void {
         hash += `&chatfile=${props.vod.webpath}/${props.vod.basename}_chat.json`;
     }
 
-    hash += `&chapters=${props.vod.chapters?.map((c) => `${c.offset}:${c.title.replaceAll(":", "").replaceAll(";", "")}`).join(";")}`;
+    hash += `&chapters=${props.vod.chapters?.map((c) => `${c.offset}:${encodeURIComponent(c.title.replaceAll(":", "").replaceAll(";", ""))}`).join(";")}`;
 
     // url.searchParams.set("offset", this.playerSettings.offset.toString());
     // window.open(url.toString(), "_blank");
