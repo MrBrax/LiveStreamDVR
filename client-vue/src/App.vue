@@ -395,7 +395,7 @@ function handleWebsocketMessage(action: WebhookAction, data: any) {
             // merge log lines
             const newLines: WinstonLogLine[] = data;
 
-            if (newLines.some((line) => line.timestamp && parseISO(line.timestamp).getDay() != new Date().getDay())) {
+            if (newLines.some((line) => line.metadata?.timestamp && parseISO(line.metadata.timestamp).getDay() != new Date().getDay())) {
                 // new day, clear log
                 store.clearLog();
                 store.addLog(newLines);
