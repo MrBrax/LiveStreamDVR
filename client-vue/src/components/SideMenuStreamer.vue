@@ -39,7 +39,7 @@
             <span class="vodcount" :data-count="streamer.vods_list.length" title="VOD count">{{ streamer.vods_list.length }}</span>
             <span class="subtitle">
                 <template v-if="streamer.is_live && streamer.is_capturing">
-                    <template v-if="isTwitch(streamer) && streamer.current_game && streamer.current_game.name != ''">
+                    <template v-if="isTwitchChannel(streamer) && streamer.current_game && streamer.current_game.name != ''">
                         {{ gameVerb }}
                         <strong :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }">{{ streamer.current_game.name }}</strong>
                     </template>
@@ -60,7 +60,7 @@
                 <template v-else-if="streamer.chapter_data && store.clientCfg('showOfflineCategoryInSidebar')">
                     <span :title="streamer.chapter_data.title" :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }">
                         <span class="icon is-small"><fa icon="bed" title="Offline category" /></span>
-                        {{ isTwitch(streamer) ? streamer.chapter_data.game_name : "" }} @ {{ formatLogicalDate(streamer.chapter_data.started_at) }}
+                        {{ isTwitchChannel(streamer) ? streamer.chapter_data.game_name : "" }} @ {{ formatLogicalDate(streamer.chapter_data.started_at) }}
                     </span>
                 </template>
                 <template v-else>
@@ -122,7 +122,7 @@ import {
 import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import { useStore } from "@/store";
 import { nonGameCategories } from "../../../common/Defs";
-import { isTwitch } from "@/mixins/newhelpers";
+import { isTwitchChannel } from "@/mixins/newhelpers";
 import { useRoute } from "vue-router";
 import { formatLogicalDate } from "@/mixins/newhelpers";
 import type { ChannelTypes, VODTypes } from "@/twitchautomator";
@@ -172,14 +172,14 @@ const avatarUrl = computed((): string => {
 });
 
 const bannerUrl = computed((): string => {
-    if (!props.streamer || !isTwitch(props.streamer)) return "";
+    if (!props.streamer || !isTwitchChannel(props.streamer)) return "";
     if (props.streamer.channel_data?.cache_offline_image)
         return `${store.cfg<string>("basepath", "")}/cache/banners/${props.streamer.channel_data.cache_offline_image}`;
     return props.streamer.offline_image_url;
 });
 
 const gameVerb = computed((): string => {
-    if (!props.streamer || !isTwitch(props.streamer)) return "";
+    if (!props.streamer || !isTwitchChannel(props.streamer)) return "";
     if (!props.streamer.current_game) return "";
     if (nonGameCategories.includes(props.streamer.current_game.name)) return "Streaming";
     if (props.streamer.current_game.name === "Among Us") return "Sussing"; // lol

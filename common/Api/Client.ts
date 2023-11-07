@@ -177,8 +177,8 @@ export type ApiSettingsField = {
 };
 
 export interface ApiBaseChannel {
-    uuid: string;
     provider: Providers;
+    uuid: string;
     description: string;
     vods_raw: string[];
     vods_size: number;
@@ -204,7 +204,6 @@ export interface ApiBaseChannel {
     current_stream_number?: number;
     current_season?: string;
     current_absolute_season?: number;
-    saves_vods: boolean;
 
     displayName: string;
     internalName: string;
@@ -237,6 +236,8 @@ export interface ApiTwitchChannel extends ApiBaseChannel {
     api_getSubscriptionStatus: boolean;
 
     chapter_data?: TwitchVODChapterJSON;
+
+    saves_vods: boolean;
 }
 
 export interface ApiYouTubeChannel extends ApiBaseChannel {

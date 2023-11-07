@@ -47,7 +47,7 @@ export default class YouTubeChannel extends BaseChannel {
         // channel.is_capturing = apiResponse.is_capturing ?? false;
         channel.is_live = apiResponse.is_live ?? false;
         channel.chapter_data = apiResponse.chapter_data as BaseVODChapterJSON; // temp
-        channel.saves_vods = apiResponse.saves_vods ?? false;
+        // channel.saves_vods = apiResponse.saves_vods ?? false;
         channel.displayName = apiResponse.displayName;
         channel.internalName = apiResponse.internalName;
         channel.internalId = apiResponse.internalId;

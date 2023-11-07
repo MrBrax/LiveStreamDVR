@@ -4,10 +4,10 @@
             {{ t("messages.video_download_help") }}<br />
             <!--<span v-if="averageVodBitrate">Average bitrate: {{ averageVodBitrate / 1000 }} kbps</span>-->
         </p>
-        <d-button v-if="isTwitch(streamer)" color="success" icon="download" @click="fetchTwitchVods">
+        <d-button v-if="isTwitchChannel(streamer)" color="success" icon="download" @click="fetchTwitchVods">
             {{ t("vod.fetch-vod-list") }}
         </d-button>
-        <d-button v-if="isYouTube(streamer)" color="success" icon="download" @click="fetchYouTubeVods">
+        <d-button v-if="isYouTubeChannel(streamer)" color="success" icon="download" @click="fetchYouTubeVods">
             {{ t("vod.fetch-vod-list") }}
         </d-button>
         <hr />
@@ -41,7 +41,7 @@
 
 <script lang="ts" setup>
 import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
-import { isTwitch, isYouTube, humanDuration, formatNumber } from "@/mixins/newhelpers";
+import { isTwitchChannel, isYouTubeChannel, humanDuration, formatNumber } from "@/mixins/newhelpers";
 import type { ProxyVideo } from "@common/Proxies/Video";
 import axios from "axios";
 import { ref } from "vue";

@@ -3,7 +3,7 @@ import { GetExporter } from "@/Controllers/Exporter";
 import { Job } from "@/Core/Job";
 import { debugLog } from "@/Helpers/Console";
 import { directorySize } from "@/Helpers/Filesystem";
-import type { ApiChannels } from "@common/Api/Client";
+import type { ApiBaseChannel } from "@common/Api/Client";
 import type { ChannelConfig, VideoQuality } from "@common/Config";
 import type { ExporterOptions } from "@common/Exporter";
 import type { LocalClip } from "@common/LocalClip";
@@ -175,8 +175,45 @@ export class BaseChannel {
                 : "best";
     }
 
-    public async toAPI(): Promise<ApiChannels> {
-        throw new Error("Method not implemented");
+    public async toAPI(): Promise<ApiBaseChannel> {
+        const vods_list = await Promise.all(
+            this.getVods().map(async (vod) => await vod.toAPI())
+        );
+        return await Promise.resolve({
+            provider: "base",
+            uuid: this.uuid || "-1",
+            description: this.description || "",
+            is_live: this.is_live,
+            is_capturing: this.is_capturing,
+            is_converting: this.is_converting,
+            quality: this.quality,
+            match: this.match,
+            download_chat: this.download_chat,
+            no_capture: this.no_capture,
+            burn_chat: this.burn_chat,
+            live_chat: this.live_chat,
+            no_cleanup: this.no_cleanup,
+            max_storage: this.max_storage,
+            max_vods: this.max_vods,
+            download_vod_at_end: this.download_vod_at_end,
+            download_vod_at_end_quality: this.download_vod_at_end_quality,
+            vods_list: vods_list || [],
+            vods_raw: this.vods_raw,
+            vods_size: this.vods_size || 0,
+            last_online: this.last_online
+                ? this.last_online.toISOString()
+                : undefined,
+            clips_list: this.clips_list,
+            video_list: this.video_list,
+            current_stream_number: this.current_stream_number,
+            current_season: this.current_season,
+            current_absolute_season: this.current_absolute_season,
+            displayName: this.displayName,
+            internalName: this.internalName,
+            internalId: this.internalId,
+            url: this.url,
+            profilePictureUrl: this.profilePictureUrl,
+        });
     }
 
     /**
@@ -349,6 +386,10 @@ export class BaseChannel {
     }
 
     get description(): string {
+        return "";
+    }
+
+    get url(): string {
         return "";
     }
 

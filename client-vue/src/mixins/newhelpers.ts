@@ -4,6 +4,7 @@ import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
 import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
 import type { ChannelTypes, VODTypes } from "@/twitchautomator";
 import { format, formatDistance, parseJSON, isDate } from "date-fns";
+import type { ApiTwitchChannel, ApiYouTubeChannel } from "@common/Api/Client";
 
 export function niceDuration(durationInSeconds: number): string {
     if (durationInSeconds < 0) {
@@ -139,12 +140,20 @@ export function twitchDuration(seconds: number): string {
     // return trim(str_replace(" ", "", self::getNiceDuration($seconds)));
 }
 
-export function isTwitch(vod: ChannelTypes): vod is TwitchChannel {
+export function isTwitchChannel(vod: ChannelTypes): vod is TwitchChannel {
     return vod instanceof TwitchChannel;
 }
 
-export function isYouTube(vod: ChannelTypes): vod is YouTubeChannel {
+export function isYouTubeChannel(vod: ChannelTypes): vod is YouTubeChannel {
     return vod instanceof YouTubeChannel;
+}
+
+export function isTwitchApiChannel(vod: any): vod is ApiTwitchChannel {
+    return vod.provider == "twitch";
+}
+
+export function isYouTubeApiChannel(vod: any): vod is ApiYouTubeChannel {
+    return vod.provider == "youtube";
 }
 
 export function isTwitchVOD(vod: VODTypes): vod is TwitchVOD {

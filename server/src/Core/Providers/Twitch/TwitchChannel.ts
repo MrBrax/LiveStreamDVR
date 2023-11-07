@@ -268,40 +268,22 @@ export class TwitchChannel extends BaseChannel {
         );
 
         return {
-            uuid: this.uuid || "-1",
+            ...(await super.toAPI()),
             provider: "twitch",
             userid: this.userid || "",
             login: this.login || "",
             display_name: this.display_name || "",
-            description: this.description || "",
             profile_image_url: this.profile_image_url || "",
             offline_image_url: this.offline_image_url || "",
             banner_image_url: this.banner_image_url || "",
             broadcaster_type: this.broadcaster_type || "",
-            is_live: this.is_live,
-            is_capturing: this.is_capturing,
-            is_converting: this.is_converting,
             current_vod: await this.current_vod?.toAPI(),
             current_game: this.current_game?.toAPI(),
             current_chapter: this.current_chapter?.toAPI(),
             // current_duration: this.current_duration,
-            quality: this.quality,
-            match: this.match,
-            download_chat: this.download_chat,
-            no_capture: this.no_capture,
-            burn_chat: this.burn_chat,
-            live_chat: this.live_chat,
-            no_cleanup: this.no_cleanup,
-            max_storage: this.max_storage,
-            max_vods: this.max_vods,
-            download_vod_at_end: this.download_vod_at_end,
-            download_vod_at_end_quality: this.download_vod_at_end_quality,
             // subbed_at: this.subbed_at,
             // expires_at: this.expires_at,
             // last_online: this.last_online,
-            vods_list: vods_list || [],
-            vods_raw: this.vods_raw,
-            vods_size: this.vods_size || 0,
             channel_data: this.channel_data,
             // config: this.config,
             // deactivated: this.deactivated,
@@ -313,25 +295,14 @@ export class TwitchChannel extends BaseChannel {
             expires_at: this.expires_at
                 ? this.expires_at.toISOString()
                 : undefined,
-            last_online: this.last_online
-                ? this.last_online.toISOString()
-                : undefined,
-            clips_list: this.clips_list,
-            video_list: this.video_list,
-
-            current_stream_number: this.current_stream_number,
-            current_season: this.current_season,
-            current_absolute_season: this.current_absolute_season,
 
             chapter_data: this.getChapterData(),
 
             saves_vods: this.saves_vods,
 
-            displayName: this.displayName,
-            internalName: this.internalName,
-            internalId: this.internalId,
-            url: this.url,
-            profilePictureUrl: this.profilePictureUrl,
+            quality: this.quality,
+
+            vods_list,
         };
     }
 

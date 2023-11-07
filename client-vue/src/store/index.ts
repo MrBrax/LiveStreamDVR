@@ -23,6 +23,7 @@ import axios from "axios";
 import { parseJSON } from "date-fns";
 import { defineStore } from "pinia";
 import type { WinstonLogLine } from "@common/Log";
+import { isTwitchChannel, isTwitchApiChannel, isYouTubeApiChannel } from "@/mixins/newhelpers";
 
 interface StoreType {
     app_name: string;
@@ -149,13 +150,10 @@ export const useStore = defineStore("twitchAutomator", {
             if (data) {
                 const channels = data.streamer_list
                     .map((channel) => {
-                        switch (channel.provider) {
-                            case "twitch":
-                                // console.debug("Creating TwitchChannel", channel.internalName);
-                                return TwitchChannel.makeFromApiResponse(channel);
-                            case "youtube":
-                                // console.debug("Creating YouTubeChannel", channel.internalName);
-                                return YouTubeChannel.makeFromApiResponse(channel);
+                        if (isTwitchApiChannel(channel)) {
+                            return TwitchChannel.makeFromApiResponse(channel);
+                        } else if (isYouTubeApiChannel(channel)) {
+                            return YouTubeChannel.makeFromApiResponse(channel);
                         }
                     })
                     .filter((c) => c !== undefined);
@@ -382,11 +380,12 @@ export const useStore = defineStore("twitchAutomator", {
             const channels = data.map((channel) => {
                 if (channel.provider == "youtube") {
                     return YouTubeChannel.makeFromApiResponse(channel);
-                } else {
+                } else if (channel.provider == "twitch") {
                     return TwitchChannel.makeFromApiResponse(channel);
                 }
+                throw new Error(`Unknown provider ${channel}`);
             });
-            this.streamerList = channels;
+            this.streamerList = channels.filter((c): c is ChannelTypes => c !== undefined);
             this.streamerListLoaded = true;
         },
         updateErrors(data: string[]): void {

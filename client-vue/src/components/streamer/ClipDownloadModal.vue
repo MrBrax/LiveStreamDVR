@@ -1,6 +1,6 @@
 <template>
     <div class="video-download-menu">
-        <d-button v-if="isTwitch(streamer)" color="success" icon="download" @click="fetchTwitchClips">
+        <d-button v-if="isTwitchChannel(streamer)" color="success" icon="download" @click="fetchTwitchClips">
             {{ t("vod.fetch-clip-list") }}
         </d-button>
         <hr />
@@ -27,7 +27,7 @@
 </template>
 
 <script lang="ts" setup>
-import { humanDuration, isTwitch, formatNumber } from "@/mixins/newhelpers";
+import { humanDuration, isTwitchChannel, formatNumber } from "@/mixins/newhelpers";
 import type { Clip } from "@common/TwitchAPI/Clips";
 import axios from "axios";
 import { ref } from "vue";
