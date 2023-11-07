@@ -398,7 +398,7 @@ function doDelete(): void {
     if (!confirm(`Do you want to delete "${props.vod?.basename}"?`)) return;
     if (
         isTwitchVOD(props.vod) &&
-        props.vod.twitch_vod_exists === false &&
+        props.vod.external_vod_exists === false &&
         !confirm(`The VOD "${props.vod?.basename}" has been deleted from twitch, are you still sure?`)
     )
         return;
@@ -455,7 +455,7 @@ function openPlayer(): void {
         hash += `&chatfile=${props.vod.webpath}/${props.vod.basename}_chat.json`;
     }
 
-    hash += `&chapters=${props.vod.chapters?.map((c) => `${c.offset}:${c.title.replaceAll(":", "").replaceAll(";", "")}`).join(";")}`;
+    hash += `&chapters=${props.vod.chapters?.map((c) => `${c.offset}:${encodeURIComponent(c.title.replaceAll(":", "").replaceAll(";", ""))}`).join(";")}`;
 
     // url.searchParams.set("offset", this.playerSettings.offset.toString());
     // window.open(url.toString(), "_blank");

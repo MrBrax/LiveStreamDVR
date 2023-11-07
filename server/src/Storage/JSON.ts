@@ -60,6 +60,12 @@ export interface VODJSON {
     stream_pauses?: { start?: string; end?: string }[];
 
     bookmarks: VODBookmark[];
+
+    external_vod_id?: string;
+    external_vod_title?: string;
+    external_vod_duration?: number;
+    external_vod_exists?: boolean;
+    external_vod_date?: string;
 }
 export interface TwitchVODJSON extends VODJSON {
     type: "twitch";

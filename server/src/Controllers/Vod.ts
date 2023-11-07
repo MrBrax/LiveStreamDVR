@@ -585,8 +585,8 @@ export async function MatchVod(
     res.send({
         status: "OK",
         message: `Vod matched to ${
-            vod.twitch_vod_id
-        }, duration ${formatDuration(vod.twitch_vod_duration || 0)}`,
+            vod.external_vod_id
+        }, duration ${formatDuration(vod.external_vod_duration || 0)}`,
     } as ApiResponse);
 }
 

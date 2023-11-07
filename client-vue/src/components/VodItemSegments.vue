@@ -93,7 +93,7 @@ function doDeleteSegment(index = 0) {
     const keepEntry = confirm("Do you want to keep the entry and mark it as cloud storage?");
     if (
         isTwitchVOD(props.vod) &&
-        props.vod.twitch_vod_exists === false &&
+        props.vod.external_vod_exists === false &&
         !confirm(`The VOD "${props.vod?.basename}" has been deleted from twitch, are you still sure?`)
     )
         return;

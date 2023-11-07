@@ -18,11 +18,11 @@ export default class TwitchVOD extends BaseVOD {
     chapters: TwitchVODChapter[] = [];
     bookmarks: VODBookmark[] = [];
 
-    twitch_vod_id: string | undefined;
-    twitch_vod_duration: number | undefined;
-    twitch_vod_exists: boolean | undefined;
-    twitch_vod_date: Date | undefined;
-    twitch_vod_title: string | undefined;
+    // twitch_vod_id: string | undefined;
+    // twitch_vod_duration: number | undefined;
+    // twitch_vod_exists: boolean | undefined;
+    // twitch_vod_date: Date | undefined;
+    // twitch_vod_title: string | undefined;
     twitch_vod_muted: MuteStatus | undefined = MuteStatus.UNKNOWN;
 
     stream_resolution: string | undefined = "";
@@ -48,11 +48,18 @@ export default class TwitchVOD extends BaseVOD {
         vod.capture_started2 = apiResponse.capture_started2 ? new Date(apiResponse.capture_started2) : undefined;
         vod.conversion_started = apiResponse.conversion_started ? new Date(apiResponse.conversion_started) : undefined;
         vod.duration = apiResponse.duration;
-        vod.twitch_vod_id = apiResponse.twitch_vod_id;
-        vod.twitch_vod_duration = apiResponse.twitch_vod_duration;
-        vod.twitch_vod_exists = apiResponse.twitch_vod_exists;
-        vod.twitch_vod_date = apiResponse.twitch_vod_date ? new Date(apiResponse.twitch_vod_date) : undefined;
-        vod.twitch_vod_title = apiResponse.twitch_vod_title;
+        // vod.twitch_vod_id = apiResponse.twitch_vod_id;
+        // vod.twitch_vod_duration = apiResponse.twitch_vod_duration;
+        // vod.twitch_vod_exists = apiResponse.twitch_vod_exists;
+        // vod.twitch_vod_date = apiResponse.twitch_vod_date ? new Date(apiResponse.twitch_vod_date) : undefined;
+        // vod.twitch_vod_title = apiResponse.twitch_vod_title;
+        // TODO: inheritance
+        vod.external_vod_id = apiResponse.external_vod_id;
+        vod.external_vod_title = apiResponse.external_vod_title;
+        vod.external_vod_duration = apiResponse.external_vod_duration;
+        vod.external_vod_exists = apiResponse.external_vod_exists;
+        vod.external_vod_date = apiResponse.external_vod_date ? new Date(apiResponse.external_vod_date) : undefined;
+
         vod.twitch_vod_muted = apiResponse.twitch_vod_muted;
         vod.is_chat_downloaded = apiResponse.is_chat_downloaded;
         vod.is_chatdump_captured = apiResponse.is_chatdump_captured;
@@ -136,8 +143,8 @@ export default class TwitchVOD extends BaseVOD {
     }
 
     public getTitle() {
-        if (this.twitch_vod_title) {
-            return this.twitch_vod_title;
+        if (this.external_vod_title) {
+            return this.external_vod_title;
         }
         if (this.chapters && this.chapters.length > 0) {
             return this.chapters[0].title;

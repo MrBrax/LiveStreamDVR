@@ -13,7 +13,7 @@ import { humanDuration, niceDuration, shortDuration } from "@/mixins/newhelpers"
  */
 
 const props = defineProps<{
-    startDate: string | number | Date;
+    startDate: string | number | Date | undefined;
     outputStyle?: "human" | "humanLong" | "numbers";
 }>();
 
