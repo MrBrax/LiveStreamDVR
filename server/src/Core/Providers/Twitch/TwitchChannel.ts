@@ -1399,6 +1399,115 @@ export class TwitchChannel extends BaseChannel {
         );
     }
 
+    public async matchAllProviderVods(force = false): Promise<void> {
+        const channel_videos = await TwitchVOD.getLatestVideos(this.internalId);
+
+        if (!channel_videos) {
+            throw new Error("No videos returned from streamer");
+        }
+
+        for (const vod of this.getVods()) {
+            if (vod.external_vod_id && !force) {
+                // throw new Error("VOD already has a provider VOD ID");
+                log(
+                    LOGLEVEL.WARNING,
+                    "channel.matchProviderVod",
+                    `VOD ${vod.basename} already has a provider VOD ID`
+                );
+                continue;
+            }
+
+            if (vod.is_capturing || vod.is_converting) {
+                // throw new Error("VOD is still capturing or converting");
+                log(
+                    LOGLEVEL.ERROR,
+                    "channel.matchProviderVod",
+                    `VOD ${vod.basename} is still capturing or converting`
+                );
+                continue;
+            }
+
+            if (!vod.started_at) {
+                // throw new Error("VOD has no start time");
+                log(
+                    LOGLEVEL.ERROR,
+                    "channel.matchProviderVod",
+                    `VOD ${vod.basename} has no start time`
+                );
+                continue;
+            }
+
+            log(
+                LOGLEVEL.INFO,
+                "channel.matchProviderVod",
+                `Trying to match ${vod.basename} to provider...`
+            );
+
+            let found = false;
+            for (const video of channel_videos) {
+                const video_time = parseJSON(video.created_at);
+                if (!video_time) continue;
+
+                const startOffset = Math.abs(
+                    vod.started_at.getTime() - video_time.getTime()
+                );
+                const matchingCaptureId =
+                    video.stream_id &&
+                    vod.capture_id &&
+                    video.stream_id == vod.capture_id;
+                const maxOffset = 1000 * 60 * 5; // 5 minutes
+
+                const videoDuration = TwitchHelper.parseTwitchDuration(
+                    video.duration
+                );
+
+                if (
+                    startOffset < maxOffset || // 5 minutes
+                    matchingCaptureId
+                ) {
+                    log(
+                        LOGLEVEL.SUCCESS,
+                        "channel.matchProviderVod",
+                        `Found matching VOD for ${
+                            vod.basename
+                        } (${vod.started_at.toISOString()}): ${video.id} (${
+                            video.title
+                        })`
+                    );
+
+                    vod.setProviderVod(video);
+                    vod.external_vod_exists = true;
+
+                    vod.broadcastUpdate();
+
+                    found = true;
+                    break;
+                }
+            }
+
+            if (found) {
+                await vod.saveJSON("matchProviderVod: found");
+                continue;
+            }
+
+            vod.twitch_vod_attempted = true;
+            vod.twitch_vod_neversaved = true;
+            vod.external_vod_exists = false;
+
+            log(
+                LOGLEVEL.ERROR,
+                "vod.matchProviderVod",
+                `No matching VOD for ${vod.basename}`
+            );
+
+            await vod.saveJSON("matchProviderVod: not found");
+
+            vod.broadcastUpdate();
+
+            // throw new Error(`No matching VOD from ${channel_videos.length} videos`);
+        }
+    }
+
     fileWatcher?: chokidar.FSWatcher;
     /**
      * @test disable

@@ -96,6 +96,14 @@
                             <span>{{ t("streamer.tools.export-vods") }}</span>
                         </button>
                     </li>
+
+                    <!-- match all provider vods -->
+                    <li>
+                        <button class="context-menu-button white" :title="t('streamer.tools.match-all-provider-vods')" @click="doMatchProviderVods">
+                            <span class="icon"><font-awesome-icon icon="upload" /></span>
+                            <span>{{ t("streamer.tools.match-all-provider-vods") }}</span>
+                        </button>
+                    </li>
                 </ul>
             </template>
         </ContextMenu>
@@ -359,6 +367,28 @@ function doExportVods() {
             }
         });
 }
+
+async function doMatchProviderVods() {
+    if (!props.streamer) return;
+    if (!confirm("Do you want to match all provider VODs?")) return;
+    axios
+        .post<ApiResponse>(`/api/v0/channels/${props.streamer.uuid}/matchallprovidervods`)
+        .then((response) => {
+            const json = response.data;
+            if (json.message) alert(json.message);
+            console.log(json);
+            store.fetchStreamerList();
+        })
+        .catch((error) => {
+            if (axios.isAxiosError(error)) {
+                console.error("doMatchProviderVods error", error.response);
+                if (error.response && error.response.data && error.response.data.message) {
+                    alert(error.response.data.message);
+                }
+            }
+        });
+}
+
 </script>
 
 <style lang="scss" scoped>

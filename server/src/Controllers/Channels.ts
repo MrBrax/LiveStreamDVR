@@ -1769,3 +1769,42 @@ export async function ExportAllVods(
         message: `Exported ${completedVods} VODs, ${failedVods} failed`,
     });
 }
+
+export async function MatchAllProviderVods(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
+    const channel = getChannelFromRequest(req);
+    const force = req.query.force === "true";
+
+    if (!channel || !channel.internalName) {
+        res.api(400, {
+            status: "ERROR",
+            message: req.t("route.channels.channel-not-found"),
+        });
+        return;
+    }
+
+    if (!isTwitchChannel(channel)) {
+        res.api(400, {
+            status: "ERROR",
+            message: req.t("route.channels.channel-is-not-a-twitch-channel"),
+        });
+        return;
+    }
+
+    try {
+        await channel.matchAllProviderVods(force);
+    } catch (error) {
+        res.api(500, {
+            status: "ERROR",
+            message: (error as Error).message,
+        });
+        return;
+    }
+
+    res.api(200, {
+        status: "OK",
+        message: "Matched vods",
+    });
+}

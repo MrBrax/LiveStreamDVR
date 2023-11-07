@@ -83,6 +83,11 @@ router.post(
 );
 router.get("/channels/:uuid/clips", AuthAdmin, Channels.GetClips);
 router.post("/channels/:uuid/exportallvods", AuthAdmin, Channels.ExportAllVods);
+router.post(
+    "/channels/:uuid/matchallprovidervods",
+    AuthAdmin,
+    Channels.MatchAllProviderVods
+);
 
 router.get("/vod/:uuid", AuthGuest, Vod.GetVod);
 router.post("/vod/:uuid", AuthAdmin, Vod.EditVod);

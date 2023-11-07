@@ -331,7 +331,8 @@
       "clean-up": "Clean up",
       "refresh-data": "Refresh data",
       "expand-collapse-all-vods": "Expand/collapse all vods",
-      "more": "More tools"
+      "more": "More tools",
+      "match-all-provider-vods": "Match all provider VODs"
     }
   },
   "about": {

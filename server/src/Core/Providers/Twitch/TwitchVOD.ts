@@ -994,10 +994,6 @@ export class TwitchVOD extends BaseVOD {
                     })`
                 );
 
-                // this.twitch_vod_id = video.id;
-                // this.twitch_vod_duration = TwitchHelper.parseTwitchDuration(video.duration);
-                // this.twitch_vod_title = video.title;
-                // this.twitch_vod_date = video.created_at;
                 this.setProviderVod(video);
                 this.external_vod_exists = true;
 
