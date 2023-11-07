@@ -587,7 +587,7 @@ export class BaseAutomator {
             if (
                 this.vod instanceof TwitchVOD &&
                 this.channel.download_chat &&
-                this.vod.twitch_vod_id
+                this.vod.external_vod_id
             ) {
                 log(
                     LOGLEVEL.INFO,

@@ -17,12 +17,15 @@
                     <a :href="vod.url" rel="nofollow" target="_blank">{{ vod.created_at }}</a>
                 </h2>
                 <img :src="imageUrl(vod.thumbnail, 320, 240)" /><br />
-                <p>{{ vod.title }}</p>
+                <p><strong>{{ vod.title }}</strong></p>
+                <p>{{ vod.description }}</p>
                 <ul>
-                    <li>{{ humanDuration(vod.duration) }}</li>
-                    <li>{{ formatNumber(vod.view_count, 0) }} views</li>
+                    <li><strong>Type:</strong> {{ vod.type }}</li>
+                    <li><strong>Duration:</strong> {{ humanDuration(vod.duration) }}</li>
+                    <li><strong>Views:</strong> {{ formatNumber(vod.view_count, 0) }}</li>
+                    <li><strong>Stream ID:</strong> {{ vod.stream_id }}</li>
                     <li v-if="vod.muted_segments && vod.muted_segments.length > 0">
-                        <span class="text-is-error">Muted segments: {{ vod.muted_segments.length }}</span>
+                        <span class="text-is-error"><strong>Muted segments:</strong> {{ vod.muted_segments.length }}</span>
                     </li>
                     <!--<li>Estimated size: {{ formatBytes(((averageVodBitrate || 6000000) / 10) * parseTwitchDuration(vod.duration)) }}</li>-->
                 </ul>

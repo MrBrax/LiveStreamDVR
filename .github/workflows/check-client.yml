@@ -30,7 +30,7 @@ jobs:
       - name: yarn install, lint and build
         run: | 
           cd ./twitch-vod-chat
-          yarn install --immutable --immutable-cache
+          yarn install --immutable
           yarn buildlib
           cd ../client-vue
           yarn install --immutable --immutable-cache

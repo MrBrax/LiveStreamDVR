@@ -59,9 +59,9 @@
                 </template>
                 <li v-if="vod.getDuration() && showAdvanced">
                     <strong>{{ t("vod.video-info.missing-from-captured-file") }}:</strong>
-                    <span v-if="vod.provider == 'twitch' && vod.twitch_vod_duration" class="px-1">
-                        {{ humanDuration(vod.twitch_vod_duration - vod.getDuration()) }}
-                        <strong v-if="vod.twitch_vod_duration - vod.getDuration() > 600" class="text-is-error"><br />A lot missing!</strong>
+                    <span v-if="vod.provider == 'twitch' && vod.external_vod_duration" class="px-1">
+                        {{ humanDuration(vod.external_vod_duration - vod.getDuration()) }}
+                        <strong v-if="vod.external_vod_duration - vod.getDuration() > 600" class="text-is-error"><br />A lot missing!</strong>
                     </span>
                     <span v-else class="px-1">
                         <strong><em>No data</em></strong>
@@ -159,18 +159,18 @@
         <article v-if="vod.provider == 'twitch'" class="info-column">
             <h4>Twitch VOD</h4>
             <ul class="video-info">
-                <template v-if="vod.twitch_vod_exists === true">
+                <template v-if="vod.external_vod_exists === true">
                     <li>
                         <strong>{{ t("vod.video-info.duration") }}:</strong>
-                        <span v-if="vod.twitch_vod_duration" class="px-1">
-                            {{ humanDuration(vod.twitch_vod_duration) }}
+                        <span v-if="vod.external_vod_duration" class="px-1">
+                            {{ humanDuration(vod.external_vod_duration) }}
                         </span>
                         <span v-else class="px-1">
                             <strong><em>No data</em></strong>
                         </span>
                         <div
                             v-if="
-                                vod.twitch_vod_duration &&
+                                vod.external_vod_duration &&
                                 videoAndTwitchDurationDifference &&
                                 videoAndTwitchDurationDifference > videoAndTwitchDurationDifferenceRequired
                             "
@@ -178,7 +178,7 @@
                         >
                             {{
                                 t("vod.video-info.twitch-duration-difference", {
-                                    full: humanDuration(vod.twitch_vod_duration),
+                                    full: humanDuration(vod.external_vod_duration),
                                     diff: humanDuration(videoAndTwitchDurationDifference),
                                     dur: humanDuration(vod.video_metadata?.duration || 0),
                                 })
@@ -187,9 +187,9 @@
                     </li>
                     <li>
                         <strong>{{ t("vod.video-info.id") }}:</strong>
-                        <span v-if="vod.twitch_vod_id" class="px-1">
-                            <a :href="twitchVideoLink(vod.twitch_vod_id)" rel="noreferrer" target="_blank" title="Open external video">{{
-                                vod.twitch_vod_id
+                        <span v-if="vod.external_vod_id" class="px-1">
+                            <a :href="twitchVideoLink(vod.external_vod_id)" rel="noreferrer" target="_blank" title="Open external video">{{
+                                vod.external_vod_id
                             }}</a>
                             &nbsp;<a href="javascript:void(0)" title="Match VOD" @click="matchVod()"><font-awesome-icon icon="sync" /></a>
                         </span>
@@ -199,15 +199,15 @@
                     </li>
                     <li>
                         <strong>{{ t("vod.video-info.date") }}:</strong>&#32;
-                        <span v-if="vod.twitch_vod_date" class="px-1">{{ formatDate(vod.twitch_vod_date) }}</span>
+                        <span v-if="vod.external_vod_date" class="px-1">{{ formatDate(vod.external_vod_date) }}</span>
                         <span v-else class="px-1">
                             <strong><em>No data</em></strong>
                         </span>
                     </li>
                     <li>
                         <strong>{{ t("vod.video-info.title") }}:</strong>
-                        <span v-if="vod.twitch_vod_title" class="px-1 text-overflow" :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }">
-                            {{ vod.twitch_vod_title }}
+                        <span v-if="vod.external_vod_title" class="px-1 text-overflow" :class="{ 'is-spoiler': store.clientCfg('hideChapterTitlesAndGames') }">
+                            {{ vod.external_vod_title }}
                         </span>
                         <span v-else class="px-1">
                             <strong><em>No data</em></strong>
@@ -224,15 +224,15 @@
                         >
                     </li>
                 </template>
-                <template v-else-if="vod.twitch_vod_exists === false">
+                <template v-else-if="vod.external_vod_exists === false">
                     <li>
                         <strong class="text-is-error">{{ t("vod.video-info.vod-is-deleted") }}</strong>
                         &nbsp;<a href="javascript:void(0)" title="Retry VOD match" @click="matchVod()"><font-awesome-icon icon="sync" /></a>
                         <a href="javascript:void(0)" title="Manually match VOD" @click="manualVodMatch()"><font-awesome-icon icon="pencil" /></a>
                     </li>
                     <li>
-                        <template v-if="vod.twitch_vod_id">
-                            The ID was <a :href="twitchVideoLink(vod.twitch_vod_id)" rel="noreferrer" target="_blank">{{ vod.twitch_vod_id }}</a
+                        <template v-if="vod.external_vod_id">
+                            The ID was <a :href="twitchVideoLink(vod.external_vod_id)" rel="noreferrer" target="_blank">{{ vod.external_vod_id }}</a
                             >.
                         </template>
                         <template v-else>
@@ -309,8 +309,8 @@ const fileAndVideoDurationDifference = computed((): number | null => {
 
 const videoAndTwitchDurationDifference = computed((): number | null => {
     if (!props.vod.video_metadata || !props.vod.video_metadata.duration || !isTwitchVOD(props.vod)) return null;
-    if (!props.vod.twitch_vod_duration) return null;
-    return props.vod.twitch_vod_duration - props.vod.video_metadata.duration;
+    if (!props.vod.external_vod_duration) return null;
+    return props.vod.external_vod_duration - props.vod.video_metadata.duration;
 });
 
 const fileAndVideoDurationDifferenceRequired = ref(10);

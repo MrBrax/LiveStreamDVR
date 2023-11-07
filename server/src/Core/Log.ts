@@ -112,7 +112,7 @@ const textLogTransport = new transports.DailyRotateFile({
     // json: false,
 });
 
-const logger = createLogger({
+const jsonLogger = createLogger({
     level: "info",
     levels: winstonCustomlevels.levels,
     // format: format.json(),
@@ -126,21 +126,30 @@ const logger = createLogger({
             ),
         }),
         jsonLogTransport,
-        textLogTransport,
     ],
     handleExceptions: true,
     handleRejections: true,
     // exitOnError: false,
 });
 
+const textLogger = createLogger({
+    level: "info",
+    levels: winstonCustomlevels.levels,
+    transports: [textLogTransport],
+});
+
 export function getLogger() {
-    return logger;
+    return jsonLogger;
 }
 
 addColors(winstonCustomlevels.colors);
 
 jsonLogTransport.on("rotate", function (oldFilename, newFilename) {
-    console.log(`Rotated log file from ${oldFilename} to ${newFilename}`);
+    console.log(`Rotated JSON log file from ${oldFilename} to ${newFilename}`);
+});
+
+textLogTransport.on("rotate", function (oldFilename, newFilename) {
+    console.log(`Rotated text log file from ${oldFilename} to ${newFilename}`);
 });
 
 export const censoredLogWords: Set<string> = new Set();
@@ -168,7 +177,7 @@ export async function getLogLines({
             fields: ["message", "level", "module", "metadata", "timestamp"],
         };
 
-        logger.query(query, function (err, results) {
+        jsonLogger.query(query, function (err, results) {
             if (err) {
                 reject(err);
             }
@@ -193,7 +202,7 @@ export function log(
     text: string,
     metadata?: any
 ): void {
-    const logData: WinstonLogLine = {
+    const winstonLogData = {
         level: level,
         message: text,
         module: module,
@@ -201,14 +210,25 @@ export function log(
         metadata: metadata,
     };
 
-    logger.log(logData);
+    const websocketLogData = {
+        level: level,
+        message: text,
+        metadata: {
+            ...metadata,
+            module: module,
+            timestamp: new Date().toISOString(),
+        },
+    };
+
+    jsonLogger.log(winstonLogData);
+    textLogger.log(winstonLogData); // hack to get query working
 
     // send over websocket, probably extremely slow
     if (
         Config.getInstance().initialised &&
         Config.getInstance().cfg<boolean>("websocket_log")
     ) {
-        websocket_buffer.push(logData);
+        websocket_buffer.push(websocketLogData);
 
         if (websocket_timer) xClearTimeout(websocket_timer);
         websocket_timer = xTimeout(() => {
@@ -228,5 +248,6 @@ export function log(
 
 export function setLogDebug(state: boolean): void {
     console.log(`Setting debug to ${state}`);
-    logger.level = state ? "debug" : "info";
+    jsonLogger.level = state ? "debug" : "info";
+    textLogger.level = state ? "debug" : "info";
 }

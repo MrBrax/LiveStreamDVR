@@ -53,6 +53,12 @@ export default class BaseVOD {
     stream_absolute_season?: number;
     stream_absolute_number?: number;
 
+    external_vod_id?: string;
+    external_vod_title?: string;
+    external_vod_duration?: number;
+    external_vod_exists?: boolean;
+    external_vod_date?: Date;
+
     comment?: string;
     prevent_deletion = false;
 

@@ -38,14 +38,14 @@
             </d-button>
             <!-- Download chat-->
             <d-button
-                v-if="vod.provider == 'twitch' && vod.twitch_vod_id && !vod?.is_chat_downloaded"
+                v-if="vod.provider == 'twitch' && vod.external_vod_id && !vod?.is_chat_downloaded"
                 icon="comments"
                 :loading="compDownloadChat"
                 @click="emit('showModal', 'chatDownload')"
             >
                 {{ t("vod.controls.download-chat") }}
             </d-button>
-            <template v-if="vod.provider == 'twitch' && vod.twitch_vod_id">
+            <template v-if="vod.provider == 'twitch' && vod.external_vod_id">
                 <!-- Download VOD -->
                 <d-button v-if="!vod.is_vod_downloaded" icon="download" @click="emit('showModal', 'vodDownload')">
                     <template v-if="vod.twitch_vod_muted == MuteStatus.MUTED">
