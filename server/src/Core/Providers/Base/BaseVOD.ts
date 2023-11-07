@@ -97,7 +97,7 @@ export class BaseVOD {
     external_vod_id?: string;
     external_vod_title?: string;
     external_vod_duration?: number;
-    external_vod_exists = false;
+    external_vod_exists?: boolean;
     external_vod_date?: Date;
 
     comment?: string;

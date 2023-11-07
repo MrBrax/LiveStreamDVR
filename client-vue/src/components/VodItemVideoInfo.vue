@@ -243,6 +243,8 @@
                 <template v-else>
                     <li>
                         <em>{{ t("vod.video-info.vod-has-not-been-checked") }}</em>
+                        &nbsp;<a href="javascript:void(0)" title="Retry VOD match" @click="matchVod()"><font-awesome-icon icon="sync" /></a>
+                        <a href="javascript:void(0)" title="Manually match VOD" @click="manualVodMatch()"><font-awesome-icon icon="pencil" /></a>
                     </li>
                 </template>
                 <li>

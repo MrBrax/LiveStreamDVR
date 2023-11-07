@@ -891,27 +891,30 @@ export class TwitchVOD extends BaseVOD {
 
         let migrated = false;
 
-        if (this.json.twitch_vod_id && !this.external_vod_id) {
-            this.external_vod_id = this.json.twitch_vod_id;
-            migrated = true;
-        }
-        if (this.json.twitch_vod_duration && !this.external_vod_duration) {
-            this.external_vod_duration = this.json.twitch_vod_duration;
-            migrated = true;
-        }
-        if (this.json.twitch_vod_title && !this.external_vod_title) {
-            this.external_vod_title = this.json.twitch_vod_title;
-            migrated = true;
-        }
-        if (this.json.twitch_vod_date && !this.external_vod_date) {
-            this.external_vod_date = parseJSON(this.json.twitch_vod_date);
+        if (this.twitch_vod_id !== undefined && !this.external_vod_id) {
+            this.external_vod_id = this.twitch_vod_id;
             migrated = true;
         }
         if (
-            this.json.twitch_vod_exists &&
+            this.twitch_vod_duration !== undefined &&
+            !this.external_vod_duration
+        ) {
+            this.external_vod_duration = this.twitch_vod_duration;
+            migrated = true;
+        }
+        if (this.twitch_vod_title !== undefined && !this.external_vod_title) {
+            this.external_vod_title = this.twitch_vod_title;
+            migrated = true;
+        }
+        if (this.twitch_vod_date !== undefined && !this.external_vod_date) {
+            this.external_vod_date = parseJSON(this.twitch_vod_date);
+            migrated = true;
+        }
+        if (
+            this.twitch_vod_exists !== undefined &&
             this.external_vod_exists === undefined
         ) {
-            this.external_vod_exists = this.json.twitch_vod_exists;
+            this.external_vod_exists = this.twitch_vod_exists;
             migrated = true;
         }
 
