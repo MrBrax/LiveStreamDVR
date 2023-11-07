@@ -1,2 +1,3 @@
 #!/bin/bash
-node ./pack.mjs --prerelease
+#node ./pack.mjs --prerelease
+./packer-main.sh --prerelease

@@ -1,2 +1,3 @@
 #!/bin/bash
-node ./pack.mjs
+# node ./pack.mjs
+./packer-main.sh
