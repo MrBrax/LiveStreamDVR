@@ -22,6 +22,13 @@
                 </div>
             </div>
 
+            <div class="field">
+                <label class="label">{{ t("forms.channel.internal-id") }}</label>
+                <div class="control">
+                    <input class="input" type="text" :value="localChannelData?.internalId" disabled readonly />
+                </div>
+            </div>
+
             <div v-if="'channel_id' in channel" class="field">
                 <label class="label">{{ t("forms.channel.id") }}</label>
                 <div class="control">
@@ -272,6 +279,10 @@ const averageOnlineStartTime = computed((): string => {
     const hours = Math.floor(average / 60);
     const minutes = Math.floor(average % 60);
     return `${hours}:${minutes}`;
+});
+
+const localChannelData = computed(() => {
+    return store.streamerList.find((c) => c.uuid == props.channel.uuid);
 });
 
 // watch

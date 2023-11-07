@@ -224,7 +224,8 @@
       "uses-default-settings-defined-in-the-settings": "Uses default settings defined in the settings",
       "subscriptions-warning": "Remember to delete all subscriptions before you stop using this application. Old subscriptions will not be deleted automatically, and will continue to send requests to your server.",
       "slug": "Slug",
-      "slug_help": "The channel slug (username in url)"
+      "slug_help": "The channel slug (username in url)",
+      "internal-id": "Internal ID"
     },
     "config": {
       "validate-external-url": "Validate external URL"
