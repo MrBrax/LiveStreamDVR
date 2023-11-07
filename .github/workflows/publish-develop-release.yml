@@ -16,6 +16,6 @@ jobs:
       # - name: Install dependencies
       #   run: yarn install
       - name: Run pack (also releases to GitHub)
-        run: chmod +x ./pack-dev.sh && ./pack-dev.sh
+        run: chmod +x ./packer-main.sh && ./packer-main.sh --prerelease
         env: 
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
