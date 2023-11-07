@@ -91,6 +91,7 @@ RUN cd /usr/local/share/twitchautomator/server \
     && yarn lint:ts \
     && yarn build \
     && yarn run generate-licenses \
+    && rm -rf node_modules \
     && rm -rf .yarn/cache \
     && yarn cache clean --all
 
@@ -100,6 +101,7 @@ RUN cd /usr/local/share/twitchautomator/client-vue \
     && yarn \
     && yarn build \
     && yarn run generate-licenses \
+    && rm -rf node_modules \
     && rm -rf .yarn/cache \
     && yarn cache clean --all
 
