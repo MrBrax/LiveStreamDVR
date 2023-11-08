@@ -576,13 +576,15 @@ export class BaseVOD {
     }
 
     public async saveJSON(reason = ""): Promise<boolean> {
-        fs.writeFileSync(
-            path.join(
-                BaseConfigDataFolder.backup,
-                `${this.uuid}-${Date.now()}-${reason}.json`
-            ),
-            JSON.stringify(this.json, null, 4)
-        );
+        if (this.json) {
+            fs.writeFileSync(
+                path.join(
+                    BaseConfigDataFolder.backup,
+                    `${this.uuid}-${Date.now()}-${reason}.json`
+                ),
+                JSON.stringify(this.json, null, 4)
+            );
+        }
         return await Promise.resolve(true);
     }
 
@@ -803,26 +805,26 @@ export class BaseVOD {
                 throw new Error("Could not start job");
             }
 
-            job.on("stdout", (data: string) => {
-                if (data.includes("Fetching ")) {
+            job.on("stdout", (stdData: string) => {
+                if (stdData.includes("Fetching ")) {
                     log(
                         LOGLEVEL.INFO,
                         "vod.renderChat",
-                        `Chat render fetching: ${data}`
+                        `Chat render fetching: ${stdData}`
                     );
-                } else if (data.includes("Rendering Comments")) {
+                } else if (stdData.includes("Rendering Comments")) {
                     log(
                         LOGLEVEL.INFO,
                         "vod.renderChat",
                         "Comments now rendering!"
                     );
-                } else if (data.trim() == "[STATUS] - Rendering Video 0%") {
+                } else if (stdData.trim() == "[STATUS] - Rendering Video 0%") {
                     log(
                         LOGLEVEL.INFO,
                         "vod.renderChat",
                         "Chat history now rendering!"
                     );
-                } else if (data.includes("FINISHED")) {
+                } else if (stdData.includes("FINISHED")) {
                     log(
                         LOGLEVEL.INFO,
                         "vod.renderChat",

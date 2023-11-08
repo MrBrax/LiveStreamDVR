@@ -16,6 +16,16 @@ export function applyExpressApiFunction(app: express.Express) {
         status: number,
         data: T
     ) {
+        if (data == undefined) {
+            this.status(status).end();
+            log(
+                LOGLEVEL.ERROR,
+                "http.api",
+                `API error ${status} returned blank`
+            );
+            console.trace(`API error ${status} returned blank`);
+            return;
+        }
         this.status(status).json(data);
         if (status >= 400) {
             log(

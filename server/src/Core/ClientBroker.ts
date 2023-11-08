@@ -276,14 +276,14 @@ export class ClientBroker {
         ws.send(JSON.stringify({ action: "connected" }));
     }
 
-    static broadcast(data: unknown) {
+    static broadcast(broadcastData: unknown) {
         if (LiveStreamDVR.shutting_down) return;
 
         // const jsonData = JSON.stringify(data);
         let jsonData: any;
 
         try {
-            jsonData = JSON.stringify(data);
+            jsonData = JSON.stringify(broadcastData);
         } catch (error) {
             console.error(
                 chalk.bgRed.whiteBright(

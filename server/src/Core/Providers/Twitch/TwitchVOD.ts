@@ -1279,10 +1279,6 @@ export class TwitchVOD extends BaseVOD {
             return false;
         }
 
-        await super.saveJSON(reason);
-
-        const generated = await this.toJSON();
-
         log(
             LOGLEVEL.SUCCESS,
             "vod.saveJSON",
@@ -1290,6 +1286,10 @@ export class TwitchVOD extends BaseVOD {
                 reason ? " (" + reason + ")" : ""
             }`
         );
+
+        await super.saveJSON(reason);
+
+        const generated = await this.toJSON();
 
         this.setPermissions();
 
