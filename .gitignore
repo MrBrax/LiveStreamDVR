@@ -29,4 +29,5 @@ data/storage
 data/cache
 data/config
 data/payloads
+data/backup
 release/

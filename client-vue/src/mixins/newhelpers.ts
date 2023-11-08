@@ -119,6 +119,16 @@ export function formatNumber(num: number, decimals = 0): string {
     return num.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
 
+export function formatNumberShort(num: number, decimals = 0): string {
+    if (num < 1000) {
+        return num.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    } else if (num < 1000000) {
+        return `${(num / 1000).toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}K`;
+    } else {
+        return `${(num / 1000000).toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}M`;
+    }   
+}
+
 export function formatTimestamp(timestamp: number, fmt = "yyyy-MM-dd HH:mm:ss"): string {
     const o = new Date(timestamp * 1000);
     return format(o, fmt);
