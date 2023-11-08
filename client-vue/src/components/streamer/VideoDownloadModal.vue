@@ -14,7 +14,7 @@
         <template v-if="!loading">
             <article v-for="vod in onlineVods" :key="vod.id" class="video-download-menu-item">
                 <div class="section-image">
-                    <img :src="imageUrl(vod.thumbnail, 320, 240)" />
+                    <img :src="imageUrl(vod.thumbnail, 320, 180)" />
                     <div class="duration">
                         <span>{{ humanDuration(vod.duration) }}</span>
                     </div>
@@ -40,11 +40,11 @@
                         </li>
                         <!--<li>Estimated size: {{ formatBytes(((averageVodBitrate || 6000000) / 10) * parseTwitchDuration(vod.duration)) }}</li>-->
                     </ul>
-                </div>
-                <div class="section-actions">
-                    <d-button size="small" color="success" icon="download" @click="downloadVideo(vod.id.toString())">
-                        {{ t("buttons.download") }}
-                    </d-button>
+                    <div class="section-actions">
+                        <d-button size="small" color="success" icon="download" @click="downloadVideo(vod.id.toString())">
+                            {{ t("buttons.download") }}
+                        </d-button>
+                    </div>
                 </div>
             </article>
         </template>
@@ -196,8 +196,8 @@ function imageUrl(url: string, width: number, height: number) {
         }
     }
     .section-image{
+        aspect-ratio: 16/9;
         max-height: 120px;
-        max-width: 160px;
         img {
             height: 100%;
             border-radius: 5%;
@@ -217,7 +217,6 @@ function imageUrl(url: string, width: number, height: number) {
     }
     .section-actions {
         display: flex;
-        flex-direction: column;
         justify-content: flex-end;
     }
 }

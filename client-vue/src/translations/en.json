@@ -173,7 +173,9 @@
     "upload-config": "Upload config",
     "sync-down": "Sync down",
     "sync-up": "Sync up",
-    "unsubscribe": "Unsubscribe"
+    "unsubscribe": "Unsubscribe",
+    "play": "Play",
+    "vod": "VOD"
   },
   "pages": {
     "favourite-games": "Favourite games",

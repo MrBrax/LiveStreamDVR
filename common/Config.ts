@@ -12,6 +12,8 @@ export type VideoQuality =
     | "140p"
     | "worst"
     | "audio_only";
+
+/*
 export interface SettingField<T> {
     // key: string;
     group: string;
@@ -19,26 +21,26 @@ export interface SettingField<T> {
 
     /**
      * Value type
-     */
+     *
     type: "string" | "number" | "boolean" | "array" | "template";
     // type: T;
 
-    /** Default value */
+    /** Default value *
     default?: T;
 
-    /** Array of choices */
+    /** Array of choices *
     choices?: string[] | Record<string, string>;
 
-    /** Help text to appear next to field in settings */
+    /** Help text to appear next to field in settings *
     help?: string;
 
-    /** Required to save settings? */
+    /** Required to save settings? *
     required?: boolean;
 
-    /** Automatically strip slashes? */
+    /** Automatically strip slashes? *
     stripslash?: boolean;
 
-    /** Send to client? */
+    /** Send to client? *
     secret?: boolean;
 
     deprecated?: boolean | string;
@@ -57,9 +59,76 @@ export interface SettingField<T> {
 
     multiline?: boolean;
 
-    /** highlight the setting on the config page */
+    /** highlight the setting on the config page *
     new?: boolean;
+
+    migrate?: string;
 }
+*/
+
+export interface BaseSettingField {
+    group: string;
+    text: string;
+    help?: string;
+    required?: boolean;
+    secret?: boolean;
+    deprecated?: boolean | string;
+    restart_required?: boolean;
+    guest?: boolean;
+    new?: boolean;
+    migrate?: string;
+}
+
+export interface StringSettingField extends BaseSettingField {
+    type: "string";
+    default?: string;
+    choices?: string[] | Record<string, string>;
+    stripslash?: boolean;
+    pattern?: string;
+    multiline?: boolean;
+}
+
+export interface NumberSettingField extends BaseSettingField {
+    type: "number";
+    default?: number;
+    min?: number;
+    max?: number;
+}
+
+export interface BooleanSettingField extends BaseSettingField {
+    type: "boolean";
+    default?: boolean;
+}
+
+export interface ArraySettingField extends BaseSettingField {
+    type: "array";
+    default?: string;
+    choices: Array<string>;
+}
+
+export interface ObjectSettingField extends BaseSettingField {
+    type: "object";
+    default?: string;
+    choices: Record<string, string>;
+}
+
+export interface TemplateSettingField extends BaseSettingField {
+    type: "template";
+    default?: string;
+    replacements?: Record<
+        string,
+        { display: string; description?: string; deprecated?: boolean }
+    >;
+    context?: string;
+}
+
+export type SettingField =
+    | StringSettingField
+    | NumberSettingField
+    | BooleanSettingField
+    | ArraySettingField
+    | ObjectSettingField
+    | TemplateSettingField;
 
 export interface BaseChannelConfig {
     provider: Providers;

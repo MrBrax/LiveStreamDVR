@@ -69,7 +69,7 @@ export class YouTubeVOD extends BaseVOD {
     public async toJSON(): Promise<YouTubeVODJSON> {
         const generated = (await super.toJSON()) as YouTubeVODJSON;
 
-        generated.version = 2;
+        generated.version = 3;
         generated.type = "youtube";
 
         generated.chapters = this.chapters.map((chapter) => chapter.toJSON());

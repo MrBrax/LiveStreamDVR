@@ -200,6 +200,7 @@ export class Config {
         }
 
         if (config) {
+            // migrate old settings through MigrateOptions
             for (const field of Config.MigrateOptions) {
                 if (config[field.from] !== undefined) {
                     config[field.to] = config[field.from];
@@ -208,6 +209,20 @@ export class Config {
                         LOGLEVEL.INFO,
                         "config.loadConfig",
                         `Migrated setting '${field.from}' to '${field.from}'.`
+                    );
+                }
+            }
+
+            // migrate old settings through migrate field
+            for (const key in config) {
+                const field = Config.getSettingField(key);
+                if (field && field.migrate) {
+                    config[field.migrate] = config[key];
+                    delete config[key];
+                    log(
+                        LOGLEVEL.INFO,
+                        "config.loadConfig",
+                        `Migrated setting '${key}' to '${field.migrate}'.`
                     );
                 }
             }
@@ -291,13 +306,7 @@ export class Config {
         return this.getSettingField(key) !== undefined;
     }
 
-    static getSettingField(
-        key: string
-    ):
-        | SettingField<string>
-        | SettingField<number>
-        | SettingField<boolean>
-        | undefined {
+    static getSettingField(key: string): SettingField | undefined {
         // return this.settingsFields.find(field => field["key"] === key);
         return this.settingsFields[key];
     }
@@ -317,7 +326,11 @@ export class Config {
         } else {
             let newValue: number | string | boolean = value;
 
-            if (setting.stripslash && typeof newValue === "string") {
+            if (
+                "stripslash" in setting &&
+                setting.stripslash &&
+                typeof newValue === "string"
+            ) {
                 newValue = newValue.replace(/\/$/, "");
             }
 
@@ -327,6 +340,27 @@ export class Config {
 
             if (setting.type === "boolean" && typeof newValue === "string") {
                 newValue = newValue === "true" || newValue === "1";
+            }
+
+            if (setting.type == "array") {
+                if (!setting.choices.includes(newValue as string)) {
+                    throw new Error(
+                        `Invalid value for setting '${key}': ${newValue}`
+                    );
+                }
+            }
+
+            if (setting.type == "object") {
+                if (
+                    !Object.keys(setting.choices).includes(
+                        newValue as string
+                    ) &&
+                    !Object.values(setting.choices).includes(newValue as string)
+                ) {
+                    throw new Error(
+                        `Invalid value for setting '${key}': ${newValue}`
+                    );
+                }
             }
 
             if (newValue === "") {

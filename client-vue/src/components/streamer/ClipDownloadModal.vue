@@ -5,38 +5,59 @@
         </d-button>
         <hr />
         <template v-if="!loading">
-            <div v-for="clip in onlineClips" :key="clip.id" class="video-download-menu-item">
-                <h2>
-                    <a :href="clip.url" rel="nofollow" target="_blank">{{ clip.created_at }}</a>
-                </h2>
-                <img :src="imageUrl(clip.thumbnail_url, 320, 240)" /><br />
-                <p>{{ clip.title }}</p>
-                <ul>
-                    <li>{{ humanDuration(clip.duration) }}</li>
-                    <li>{{ formatNumber(clip.view_count, 0) }} views</li>
-                    <!--<li>Estimated size: {{ formatBytes(((averageVodBitrate || 6000000) / 10) * parseTwitchDuration(vod.duration)) }}</li>-->
-                </ul>
-                <br />
-                <d-button color="success" icon="download" size="small" @click="downloadClip(clip)">
-                    {{ t("buttons.download") }}
-                </d-button>
-            </div>
+            <article v-for="clip in onlineClips" :key="clip.id" class="video-download-menu-item">
+                <div class="section-image">
+                    <img :src="imageUrl(clip.thumbnail_url, 320, 180)" />
+                    <div class="duration">
+                        <span>{{ humanDuration(clip.duration) }}</span>
+                    </div>
+                </div>
+                <div class="video-content">
+                    <h2>
+                        <a :href="clip.url" rel="nofollow" target="_blank">{{ clip.title }}</a>
+                    </h2>
+                    <p>
+                        {{ formatNumberShort(clip.view_count, 0) }} views
+                        &bull;
+                            {{ formatDistanceToNow(new Date(clip.created_at)) }} ago
+                        <small>({{ format(new Date(clip.created_at), "yyyy-MM-dd HH:mm:ss") }})</small>
+                    </p>
+                    <p>
+                        by {{ clip.creator_name }}, playing {{ clip.game_id }}
+                    </p>
+                </div>
+                <div class="section-actions">
+                    <d-button color="success" icon="download" size="small" @click="downloadClip(clip)">
+                        {{ t("buttons.download") }}
+                    </d-button>
+                    <a class="button is-success is-small" :href="clip.url" target="_blank" rel="nofollow">
+                        <span class="icon"><fa :icon="['fab', 'twitch']" /></span>
+                        <span>{{ t("buttons.play") }}</span>
+                    </a>
+                    <a v-if="clip.video_id" class="button is-success is-small" :href="`https://twitch.tv/video/${clip.video_id}?t=${clip.vod_offset}`" target="_blank" rel="nofollow">
+                        <span class="icon"><fa :icon="['fab', 'twitch']" /></span>
+                        <span>{{ t("buttons.vod") }}</span>
+                    </a>
+                </div>
+            </article>
         </template>
         <LoadingBox v-else />
     </div>
 </template>
 
 <script lang="ts" setup>
-import { humanDuration, isTwitchChannel, formatNumber } from "@/mixins/newhelpers";
+import { humanDuration, isTwitchChannel, formatNumber, formatNumberShort } from "@/mixins/newhelpers";
 import type { Clip } from "@common/TwitchAPI/Clips";
 import axios from "axios";
 import { ref } from "vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+import { faTwitch } from "@fortawesome/free-brands-svg-icons";
 import { useI18n } from "vue-i18n";
 import type { ApiResponse } from "@common/Api/Api";
 import type { ChannelTypes } from "@/twitchautomator";
-library.add(faSpinner);
+import { formatDistanceToNow, format } from "date-fns";
+library.add(faSpinner, faTwitch);
 
 const props = defineProps<{
     streamer: ChannelTypes;
@@ -117,6 +138,55 @@ function imageUrl(url: string, width: number, height: number) {
     padding: 1em;
     &:not(:last-child) {
         margin-bottom: 1em;
+    }
+    display: flex;
+    gap: 1em;
+    .video-content {
+        flex: 1;
+        h2 {
+            margin-top: 0;
+            margin-bottom: 0.5em;
+            font-family: Poppins, sans-serif;
+            font-size: 1.2em;
+            overflow-wrap: break-word;
+            word-break: break-all;
+        }
+        ul {
+            margin-top: 0;
+            margin-bottom: 0;
+            padding-left: 1em;
+        }
+        p {
+            margin-top: 0;
+            margin-bottom: 0.5em;
+        }
+    }
+    .section-image{
+        aspect-ratio: 16/9;
+        max-height: 120px;
+        img {
+            height: 100%;
+            border-radius: 5%;
+        }
+        position: relative;
+        .duration {
+            position: absolute;
+            bottom: 5px;
+            right: 5px;
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 0.25em 0.5em;
+            border-radius: 10%;
+            font-size: 0.9em;
+            font-weight: bold;
+            color: white;
+        }
+    }
+    .section-actions {
+        display: flex;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        flex-direction: column;
+        gap: 3px;
     }
 }
 </style>

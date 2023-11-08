@@ -7,10 +7,7 @@ import {
 } from "./ReplacementsConsts";
 import { YouTubeCategories } from "./YouTube";
 
-export const settingsFields: Record<
-    string,
-    SettingField<string> | SettingField<number> | SettingField<boolean>
-> = {
+export const settingsFields: Record<string, SettingField> = {
     bin_dir: {
         group: "Binaries",
         text: "Python binary directory",
@@ -90,7 +87,7 @@ export const settingsFields: Record<
     "basic.language": {
         group: "Basic",
         text: "Serverside language",
-        type: "array",
+        type: "object",
         default: "en",
         choices: { en: "English", de: "Deutsch", ko: "한국어" },
     },
@@ -116,7 +113,7 @@ export const settingsFields: Record<
     date_format: {
         group: "Basic",
         text: "Date format",
-        type: "array",
+        type: "object",
         default: "yyyy-MM-dd",
         help: "Date format for various filenames. See https://date-fns.org/v2.29.3/docs/format",
         choices: {
@@ -374,14 +371,14 @@ export const settingsFields: Record<
     "twitchapi.auth_type": {
         group: "Twitch",
         text: "Twitch auth type",
-        type: "array",
+        type: "object",
         default: "app",
         choices: { user: "User", app: "App" },
     },
     "twitchapi.eventsub_type": {
         group: "Twitch",
         text: "Twitch eventsub type",
-        type: "array",
+        type: "object",
         default: "webhook",
         choices: { webhook: "Webhook", websocket: "Websocket" },
     },
@@ -431,7 +428,7 @@ export const settingsFields: Record<
         group: "Video",
         text: "VOD container (not tested)",
         type: "array",
-        choices: ["mp4", "mkv", "mov"],
+        choices: ["mp4", "mkv", "mov"] as string[],
         default: "mp4",
     },
 
@@ -540,7 +537,7 @@ export const settingsFields: Record<
         text: "Method to use when checking for muted vods",
         type: "array",
         default: "streamlink",
-        choices: ["api", "streamlink"],
+        choices: ["api", "streamlink"] as string[],
         help: "Bugged as of 2022-03-29: https://github.com/twitchdev/issues/issues/501",
     },
 
@@ -698,7 +695,8 @@ export const settingsFields: Record<
         group: "Video",
         text: "Vodsplit filename",
         type: "template",
-        default: "{internalName}_{date}_{id}-{chapter_number}._{chapter_title}_({game_name})",
+        default:
+            "{internalName}_{date}_{id}-{chapter_number}._{chapter_title}_({game_name})",
         help: "Vodsplit filename.",
         replacements: VodBasenameChapterFields,
         context: "{template}.mp4",
@@ -731,7 +729,7 @@ export const settingsFields: Record<
         text: "Default exporter",
         type: "array",
         default: "file",
-        choices: ["file", "sftp", "ftp", "rclone", "youtube"],
+        choices: ["file", "sftp", "ftp", "rclone", "youtube"] as string[],
         help: "Default exporter for exporter.",
     },
     "exporter.default.directory": {
@@ -773,7 +771,7 @@ export const settingsFields: Record<
     "exporter.default.category": {
         group: "Exporter",
         text: "Default category",
-        type: "array",
+        type: "object",
         help: "YouTube category.",
         choices: YouTubeCategories,
     },
@@ -782,7 +780,7 @@ export const settingsFields: Record<
         text: "Default privacy",
         type: "array",
         help: "YouTube privacy.",
-        choices: ["public", "unlisted", "private"],
+        choices: ["public", "unlisted", "private"] as string[],
         default: "private",
     },
     "exporter.default.tags": {
@@ -856,7 +854,7 @@ export const settingsFields: Record<
             "h264_qsv",
             "h264_videotoolbox",
             "hevc_nvenc",
-        ],
+        ] as string[],
         help: "Video codec to use for reencoding. If you want to use CUDA, select h264_nvenc or hevc_nvenc and enable Hardware Acceleration.",
     },
 
@@ -893,7 +891,7 @@ export const settingsFields: Record<
             "p5",
             "p6",
             "p7",
-        ],
+        ] as string[],
     },
 
     "reencoder.tune": {
@@ -901,7 +899,7 @@ export const settingsFields: Record<
         text: "Tune",
         type: "array",
         default: "hq",
-        choices: ["hq", "ll", "ull", "lossless"],
+        choices: ["hq", "ll", "ull", "lossless"] as string[],
     },
 
     "reencoder.crf": {
@@ -987,14 +985,14 @@ export const settingsFields: Record<
         group: "Chat burn",
         text: "Chat horizontal position",
         type: "array",
-        choices: ["left", "right"],
+        choices: ["left", "right"] as string[],
         default: "left",
     },
     "chatburn.default.vertical": {
         group: "Chat burn",
         text: "Chat vertical position",
         type: "array",
-        choices: ["top", "bottom"],
+        choices: ["top", "bottom"] as string[],
         default: "top",
     },
     "chatburn.default.preset": {
@@ -1014,7 +1012,7 @@ export const settingsFields: Record<
         group: "Thumbnails",
         text: "Thumbnail format",
         type: "array",
-        choices: ["jpg", "png", "webp"],
+        choices: ["jpg", "png", "webp"] as string[],
         default: "jpg",
     },
-};
+} as const;

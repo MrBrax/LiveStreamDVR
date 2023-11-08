@@ -70,6 +70,8 @@ import { TwitchVODChapter } from "./TwitchVODChapter";
 export class TwitchVOD extends BaseVOD {
     public provider: Providers = "twitch";
 
+    public static JsonVersion = 3;
+
     json?: TwitchVODJSON;
 
     chapters_raw: Array<TwitchVODChapterJSON> = [];
@@ -1229,7 +1231,7 @@ export class TwitchVOD extends BaseVOD {
     public async toJSON(): Promise<TwitchVODJSON> {
         const generated = (await super.toJSON()) as TwitchVODJSON;
 
-        generated.version = 2;
+        generated.version = TwitchVOD.JsonVersion;
         generated.type = "twitch";
 
         generated.chapters = this.chapters.map((chapter) => chapter.toJSON());
@@ -2015,6 +2017,12 @@ export class TwitchVOD extends BaseVOD {
         if (!("version" in json) || json.version < 2) {
             throw new Error(
                 `Invalid VOD JSON version for ${filename}, older versions are no longer supported!`
+            );
+        }
+
+        if (json.version > TwitchVOD.JsonVersion) {
+            throw new Error(
+                `Invalid VOD JSON version for ${filename}, newer versions are not supported!`
             );
         }
 
