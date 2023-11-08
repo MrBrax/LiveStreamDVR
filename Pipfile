@@ -7,7 +7,6 @@ verify_ssl = true
 
 [packages]
 yt-dlp = "*"
-tcd = "*"
 streamlink = "*"
 vcsi = "*"
 

@@ -57,9 +57,11 @@
         </modal-box>
         <modal-box :show="showModal.chatDownload" title="Chat download" @close="showModal.chatDownload = false">
             <div class="buttons is-centered">
+                <!--
                 <d-button class="is-confirm" icon="download" @click="doDownloadChat('tcd')">
                     {{ t("vod.buttons.download-with", ["tcd"]) }}
                 </d-button>
+                -->
                 <d-button class="is-confirm" icon="download" @click="doDownloadChat('td')">
                     {{ t("vod.buttons.download-with", ["TwitchDownloader"]) }}
                 </d-button>

@@ -758,7 +758,7 @@ export class BaseVOD {
             throw new Error("FFmpeg not installed");
         }
 
-        args.push("--mode", "ChatRender");
+        args.push("chatrender");
         args.push("--temp-path", BaseConfigCacheFolder.cache);
         args.push("--ffmpeg-path", ffmpeg_bin);
         args.push(
