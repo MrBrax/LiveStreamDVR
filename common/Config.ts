@@ -115,6 +115,7 @@ export interface ObjectSettingField extends BaseSettingField {
 export interface TemplateSettingField extends BaseSettingField {
     type: "template";
     default?: string;
+    multiline?: boolean;
     replacements?: Record<
         string,
         { display: string; description?: string; deprecated?: boolean }
