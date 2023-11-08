@@ -885,10 +885,6 @@ export class TwitchVOD extends BaseVOD {
     }
 
     public async migrate(): Promise<boolean> {
-        if (!this.json) {
-            throw new Error("No JSON loaded for migration!");
-        }
-
         let migrated = false;
 
         if (this.twitch_vod_id !== undefined && !this.external_vod_id) {
