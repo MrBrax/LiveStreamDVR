@@ -622,6 +622,17 @@ export const settingsFields: Record<string, SettingField> = {
         type: "boolean",
         default: true,
     },
+    "video.chapters.title": {
+        group: "Video",
+        text: "Video chapters title",
+        type: "object",
+        default: "title_and_game",
+        choices: {
+            title_and_game: "Title and game",
+            title: "Title",
+            game: "Game",
+        },
+    },
     create_kodi_nfo: {
         group: "Video",
         text: "Create kodi nfo",

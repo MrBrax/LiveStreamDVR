@@ -1200,14 +1200,26 @@ export class BaseVOD {
 
         if (this.started_at) meta.setDate(this.started_at);
 
+        const titleConfig = Config.getInstance().cfg("video.chapters.title");
+
         this.chapters.forEach((chapter) => {
             const offset = chapter.offset || 0;
             const duration = chapter.duration || 0;
             const start = Math.floor(offset * 1000);
             const end = Math.floor((offset + duration) * 1000);
-            const title = isTwitchVODChapter(chapter)
-                ? `${chapter.title} (${chapter.game_name})`
-                : chapter.title;
+            // const title = isTwitchVODChapter(chapter)
+            //     ? `${chapter.title} (${chapter.game_name})`
+            //     : chapter.title;
+            let title = chapter.title;
+            if (
+                titleConfig == "title_and_game" &&
+                isTwitchVODChapter(chapter)
+            ) {
+                title = `${chapter.title} (${chapter.game_name})`;
+            } else if (titleConfig == "game" && isTwitchVODChapter(chapter)) {
+                title = `${chapter.game_name ?? chapter.title}`;
+            }
+
             try {
                 meta.addChapter(start, end, title, "1/1000", [
                     isTwitchVODChapter(chapter)
