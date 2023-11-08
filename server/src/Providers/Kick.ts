@@ -8,40 +8,6 @@ import type {
 } from "@common/KickAPI/Kick";
 import axios, { isAxiosError } from "axios";
 
-/*
-const axiosInstance = axios.create({
-    baseURL: "https://kick.com/api/v1/",
-    "headers": {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; rv:114.0) Gecko/20100101 Firefox/114.0",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*;q=0.8",
-        "Accept-Language": "en-GB,en;q=0.8,sv-SE;q=0.5,sv;q=0.3",
-        "Content-Encoding": "gzip",
-        "Alt-Used": "kick.com",
-        "Upgrade-Insecure-Requests": "1",
-        "Sec-Fetch-Dest": "document",
-        "Sec-Fetch-Mode": "navigate",
-        "Sec-Fetch-Site": "none",
-        "Sec-Fetch-User": "?1",
-        "Referer": "https://kick.com/",
-        "DNT": "1",
-        "If-Modified-Since": "Thu, 01 Jan 1970 00:00:00 GMT",
-    },
-});
-
-export function getAxiosInstance() {
-    return axiosInstance;
-}
-
-export function hasAxiosInstance() {
-    return axiosInstance !== undefined;
-}
-
-
-export function setApiToken(token: string) {
-    axiosInstance.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-}
-*/
-
 const baseURL = "https://kick.com/api/v2/";
 
 const cookies: Record<string, string> = {};

@@ -9,15 +9,14 @@ import { z } from "zod";
  */
 export function parseJSON<T extends ZodRawShape>(
     json: string,
-    classType: new () => T
+    classType: T
 ): T {
     const obj = JSON.parse(json);
-    const instance = new classType();
 
     // Validate the object against the class type's schema.
-    const schema = z.object(instance);
+    const schema = z.object(classType);
     schema.parse(obj);
 
-    Object.assign(instance, obj);
-    return instance;
+    Object.assign(classType, obj);
+    return classType;
 }

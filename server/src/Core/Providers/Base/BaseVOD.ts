@@ -1,4 +1,3 @@
-import type { ExecReturn } from "@/Providers/Twitch";
 import type { ApiBaseVod } from "@common/Api/Client";
 import type { VODBookmark } from "@common/Bookmark";
 import type { VideoQuality } from "@common/Config";
@@ -15,6 +14,7 @@ import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { debugLog } from "../../../Helpers/Console";
+import type { ExecReturn } from "../../../Helpers/Execute";
 import { startJob } from "../../../Helpers/Execute";
 import { formatBytes } from "../../../Helpers/Format";
 import { xClearTimeout, xTimeout } from "../../../Helpers/Timeout";

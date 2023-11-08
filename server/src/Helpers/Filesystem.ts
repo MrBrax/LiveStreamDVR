@@ -1,6 +1,11 @@
 import fs from "node:fs";
 import path from "node:path";
 
+/**
+ * Calculates the size of a directory in bytes.
+ * @param dir - The path to the directory.
+ * @returns The size of the directory in bytes.
+ */
 export function directorySize(dir: string): number {
     let size = 0;
     for (const file of fs.readdirSync(dir)) {
@@ -49,6 +54,12 @@ export function validateAbsolutePath(dir: string): boolean {
     return path.isAbsolute(dir) && !dir.match(/\0/);
 }
 
+/**
+ * Validates whether a given directory path is a relative path.
+ *
+ * @param dir - The directory path to validate.
+ * @returns A boolean indicating whether the directory path is relative or not.
+ */
 export function validateRelativePath(dir: string): boolean {
     return (
         !path.isAbsolute(dir) &&
@@ -67,6 +78,11 @@ export function validateRelativePath(dir: string): boolean {
     );
 }
 
+/**
+ * Validates a filename to ensure it does not contain any invalid characters.
+ * @param filename - The filename to validate.
+ * @returns True if the filename is valid, false otherwise.
+ */
 export function validateFilename(filename: string): boolean {
     return !/[\\/:*?"<>|\0]/.test(filename);
 }

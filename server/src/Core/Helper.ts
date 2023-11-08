@@ -1,8 +1,8 @@
+import type { ExecReturn } from "@/Helpers/Execute";
 import { execSimple } from "@/Helpers/Execute";
 import { executable_name, is_windows } from "@/Helpers/System";
 import fs from "node:fs";
 import path from "node:path";
-import type { ExecReturn } from "../Providers/Twitch";
 import { BaseConfigDataFolder } from "./BaseConfig";
 import { Config } from "./Config";
 import { LOGLEVEL, log } from "./Log";

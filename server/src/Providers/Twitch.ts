@@ -40,22 +40,6 @@ import fs from "node:fs";
 import path from "node:path";
 import { WebSocket } from "ws";
 
-export interface ExecReturn {
-    stdout: string[];
-    stderr: string[];
-    code: number;
-    bin?: string;
-    args?: string[];
-    what?: string;
-}
-
-export interface RemuxReturn {
-    stdout: string[];
-    stderr: string[];
-    code: number;
-    success: boolean;
-}
-
 interface TwitchAuthAppTokenFile {
     access_token: string;
     expires_at: number;
