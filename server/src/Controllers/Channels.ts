@@ -169,7 +169,9 @@ export function UpdateChannel(
         const channel_config: TwitchChannelConfig = {
             uuid: channel.uuid,
             provider: "twitch",
-            login: channel.login || "",
+            // login: channel.login || "",
+            internalId: channel.internalId,
+            internalName: channel.internalName,
             quality: quality,
             match: match,
             download_chat: download_chat,
@@ -188,6 +190,8 @@ export function UpdateChannel(
             uuid: channel.uuid,
             provider: "youtube",
             channel_id: channel.channel_id || "",
+            internalId: channel.internalId,
+            internalName: channel.internalName,
             quality: quality,
             match: match,
             download_chat: download_chat,
@@ -329,7 +333,9 @@ export async function AddChannel(
         const channel_config: TwitchChannelConfig = {
             uuid: "",
             provider: "twitch",
-            login: formdata.login || "",
+            // login: formdata.login || "",
+            internalId: "",
+            internalName: formdata.login || "",
             quality: formdata.quality
                 ? (formdata.quality.split(" ") as VideoQuality[])
                 : [],
@@ -347,7 +353,7 @@ export async function AddChannel(
             download_vod_at_end_quality: formdata.download_vod_at_end_quality,
         };
 
-        if (!channel_config.login) {
+        if (!channel_config.internalName) {
             res.api(400, {
                 status: "ERROR",
                 message: req.t("route.channels.channel-login-not-specified"),
@@ -363,6 +369,7 @@ export async function AddChannel(
             return;
         }
 
+        // check if quality is valid
         if (
             channel_config.quality.some((q) => !VideoQualityArray.includes(q))
         ) {
@@ -373,12 +380,15 @@ export async function AddChannel(
             return;
         }
 
-        const channel = TwitchChannel.getChannelByLogin(channel_config.login);
+        // check if channel already exists
+        const channel = TwitchChannel.getChannelByLogin(
+            channel_config.internalName
+        );
         if (channel) {
             log(
                 LOGLEVEL.ERROR,
                 "route.channels.add",
-                `Failed to create channel, channel already exists: ${channel_config.login}`
+                `Failed to create channel, channel already exists: ${channel_config.internalName}`
             );
             res.api(400, {
                 status: "ERROR",
@@ -391,7 +401,7 @@ export async function AddChannel(
 
         try {
             api_channel_data = await TwitchChannel.getUserDataByLogin(
-                channel_config.login
+                channel_config.internalName
             );
         } catch (error) {
             log(
@@ -408,9 +418,17 @@ export async function AddChannel(
             return;
         }
 
+        if (!api_channel_data) {
+            res.api(400, {
+                status: "ERROR",
+                message: req.t("route.channels.channel-not-found"),
+            } as ApiErrorResponse);
+            return;
+        }
+
         if (
             api_channel_data &&
-            api_channel_data.login !== channel_config.login
+            api_channel_data.login !== channel_config.internalName
         ) {
             res.api(400, {
                 status: "ERROR",
@@ -420,6 +438,8 @@ export async function AddChannel(
             } as ApiErrorResponse);
             return;
         }
+
+        channel_config.internalId = api_channel_data.id;
 
         try {
             new_channel = await TwitchChannel.create(channel_config);
@@ -446,6 +466,8 @@ export async function AddChannel(
             uuid: "",
             provider: "youtube",
             channel_id: formdata.channel_id || "",
+            internalId: "",
+            internalName: formdata.channel_id || "", // TODO: is this id or username
             quality: formdata.quality
                 ? (formdata.quality.split(" ") as VideoQuality[])
                 : [],
@@ -543,6 +565,8 @@ export async function AddChannel(
             uuid: "",
             provider: "kick",
             slug: formdata.slug || "",
+            internalId: "",
+            internalName: formdata.slug || "",
             quality: formdata.quality
                 ? (formdata.quality.split(" ") as VideoQuality[])
                 : [],
@@ -793,8 +817,9 @@ export async function DownloadVideo(
         }
 
         // make folder name
-        const basefolder = sanitizePath(
-            path.join(channel.getFolder(), basefolderPathTemplate)
+        const basefolder = path.join(
+            channel.getFolder(),
+            sanitizePath(basefolderPathTemplate)
         );
 
         if (!validateAbsolutePath(basefolder)) {
@@ -859,7 +884,7 @@ export async function DownloadVideo(
             );
             res.api(400, {
                 status: "ERROR",
-                message: (error as Error).message,
+                message: `downloadVideo: ${(error as Error).message}`,
             } as ApiErrorResponse);
             return;
         }
@@ -874,7 +899,7 @@ export async function DownloadVideo(
             } catch (error) {
                 res.api(400, {
                     status: "ERROR",
-                    message: (error as Error).message,
+                    message: `createVOD: ${(error as Error).message}`,
                 } as ApiErrorResponse);
                 return;
             }
@@ -1502,7 +1527,9 @@ export async function RenameChannel(
     if (!channel || !channel.internalName) {
         res.api(400, {
             status: "ERROR",
-            message: req.t("route.channels.channel-not-found"),
+            message: req.t("route.channels.channel-uuid-not-found", [
+                req.params.uuid ?? req.params.name,
+            ]),
         } as ApiErrorResponse);
         return;
     }

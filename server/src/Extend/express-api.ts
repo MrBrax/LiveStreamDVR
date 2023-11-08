@@ -23,6 +23,9 @@ export function applyExpressApiFunction(app: express.Express) {
                 "http.api",
                 `API error ${status} returned: ${JSON.stringify(data)}`
             );
+            console.trace(
+                `API error ${status} returned: ${JSON.stringify(data)}`
+            );
         }
     };
 }

@@ -98,6 +98,8 @@ export class YouTubeVOD extends BaseVOD {
             );
         }
 
+        await super.saveJSON(reason);
+
         const generated = await this.toJSON();
 
         log(

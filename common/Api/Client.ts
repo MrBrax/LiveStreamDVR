@@ -215,9 +215,6 @@ export interface ApiBaseChannel {
 
 export interface ApiTwitchChannel extends ApiBaseChannel {
     provider: "twitch";
-    userid: string;
-    display_name: string;
-    login: string;
     quality: VideoQuality[] | undefined;
     vods_list: ApiTwitchVod[];
     profile_image_url: string;

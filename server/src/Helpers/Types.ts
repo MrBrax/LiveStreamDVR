@@ -1,5 +1,5 @@
 import type { BaseChannel } from "@/Core/Providers/Base/BaseChannel";
-import { BaseVOD } from "@/Core/Providers/Base/BaseVOD";
+import type { BaseVOD } from "@/Core/Providers/Base/BaseVOD";
 import type { KickChannel } from "@/Core/Providers/Kick/KickChannel";
 import type { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
 import type { TwitchVOD } from "@/Core/Providers/Twitch/TwitchVOD";

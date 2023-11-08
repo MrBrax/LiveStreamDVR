@@ -66,18 +66,6 @@ export class TwitchChannel extends BaseChannel {
     static channels_cache: Record<string, UserData> = {};
 
     /**
-     * User ID
-     * @deprecated
-     */
-    public userid: string | undefined;
-
-    /**
-     * Login name, used in URLs
-     * @deprecated
-     */
-    public login: string | undefined;
-
-    /**
      * Channel data directly from Twitch
      */
     public channel_data: UserData | undefined;
@@ -270,9 +258,9 @@ export class TwitchChannel extends BaseChannel {
         return {
             ...(await super.toAPI()),
             provider: "twitch",
-            userid: this.userid || "",
-            login: this.login || "",
-            display_name: this.display_name || "",
+            // userid: this.userid || "",
+            // login: this.login || "",
+            // display_name: this.display_name || "",
             profile_image_url: this.profile_image_url || "",
             offline_image_url: this.offline_image_url || "",
             banner_image_url: this.banner_image_url || "",
@@ -799,9 +787,9 @@ export class TwitchChannel extends BaseChannel {
 
         if (channel_data) {
             this.channel_data = channel_data;
-            this.userid = channel_data.id;
-            this.login = channel_data.login;
-            this.display_name = channel_data.display_name;
+            // this.userid = channel_data.id;
+            // this.login = channel_data.login;
+            // this.display_name = channel_data.display_name;
             // this.profile_image_url = channel_data.profile_image_url;
             this.broadcaster_type = channel_data.broadcaster_type;
             // this.description = channel_data.description;
@@ -1014,13 +1002,14 @@ export class TwitchChannel extends BaseChannel {
         log(
             LOGLEVEL.INFO,
             "channel.rename",
-            `Renaming channel ${this.login} to ${new_login}`
+            `Renaming channel ${this.internalName} to ${new_login}`
         );
 
-        if (this.login === new_login) {
+        if (this.internalName === new_login) {
             throw new Error("Cannot rename channel to same name");
         }
-        const old_login = this.login;
+
+        const old_login = this.internalName;
         if (!old_login) {
             throw new Error("Cannot rename channel without login");
         }
@@ -1028,14 +1017,14 @@ export class TwitchChannel extends BaseChannel {
         // update config
         const channelConfigIndex =
             LiveStreamDVR.getInstance().channels_config.findIndex(
-                (c) => c.provider == "twitch" && c.login === old_login
+                (c) => c.provider == "twitch" && c.uuid === this.uuid
             );
         if (channelConfigIndex !== -1) {
-            (
-                LiveStreamDVR.getInstance().channels_config[
-                    channelConfigIndex
-                ] as TwitchChannelConfig
-            ).login = new_login;
+            const c = LiveStreamDVR.getInstance().channels_config[
+                channelConfigIndex
+            ] as TwitchChannelConfig;
+            c.login = new_login;
+            c.internalName = new_login;
             LiveStreamDVR.getInstance().saveChannelsConfig();
         } else {
             throw new Error(`Could not find channel config for ${old_login}`);
@@ -1662,6 +1651,7 @@ export class TwitchChannel extends BaseChannel {
      *
      */
 
+    // TODO: load by uuid?
     public static async loadAbstract(
         channel_id: string
     ): Promise<TwitchChannel> {
@@ -1688,7 +1678,7 @@ export class TwitchChannel extends BaseChannel {
         }
 
         const channel = new this();
-        channel.userid = channel_id;
+        // channel.userid = channel_id;
 
         const channel_data = await this.getUserDataById(channel_id);
         if (!channel_data)
@@ -1699,7 +1689,9 @@ export class TwitchChannel extends BaseChannel {
         const channel_login = channel_data.login;
 
         const channel_config = LiveStreamDVR.getInstance().channels_config.find(
-            (c) => c.provider == "twitch" && c.login === channel_login
+            (c) =>
+                c.provider == "twitch" &&
+                (c.login === channel_login || c.internalName === channel_login)
         );
         if (!channel_config)
             throw new Error(
@@ -1714,8 +1706,20 @@ export class TwitchChannel extends BaseChannel {
             throw new Error(`Channel ${channel_login} has no uuid`);
         }
 
-        channel.login = channel_data.login;
-        channel.display_name = channel_data.display_name;
+        // migrate
+        if (!channel_config.internalName || !channel_config.internalId) {
+            log(
+                LOGLEVEL.WARNING,
+                "tw.channel.loadAbstract",
+                `Channel ${channel_login} has no internalName or internalId in config, migrating`
+            );
+            channel_config.internalName = channel_login;
+            channel_config.internalId = channel_id;
+            LiveStreamDVR.getInstance().saveChannelsConfig();
+        }
+
+        // channel.login = channel_data.login;
+        // channel.display_name = channel_data.display_name;
         // channel.description = channel_data.description;
         // channel.profile_image_url = channel_data.profile_image_url;
         channel.broadcaster_type = channel_data.broadcaster_type;
@@ -1823,28 +1827,35 @@ export class TwitchChannel extends BaseChannel {
         config: TwitchChannelConfig
     ): Promise<TwitchChannel> {
         const exists_config = LiveStreamDVR.getInstance().channels_config.find(
-            (ch) => ch.provider == "twitch" && ch.login === config.login
+            (ch) =>
+                ch.provider == "twitch" &&
+                (ch.login === config.login ||
+                    ch.internalName === config.login ||
+                    ch.internalName === config.internalName)
         );
         if (exists_config)
-            throw new Error(`Channel ${config.login} already exists in config`);
+            throw new Error(
+                `Channel ${config.internalName} already exists in config`
+            );
 
-        // const exists_channel = TwitchChannel.channels.find(ch => ch.login === config.login);
         const exists_channel = LiveStreamDVR.getInstance()
             .getChannels()
             .find<TwitchChannel>(
                 (channel): channel is TwitchChannel =>
                     isTwitchChannel(channel) &&
-                    channel.internalName === config.login
+                    channel.internalName === config.internalName
             );
         if (exists_channel)
             throw new Error(
-                `Channel ${config.login} already exists in channels`
+                `Channel ${config.internalName} already exists in channels`
             );
 
-        const data = await TwitchChannel.getUserDataByLogin(config.login);
+        const data = await TwitchChannel.getUserDataByLogin(
+            config.internalName
+        );
         if (!data)
             throw new Error(
-                `Could not get channel data for channel login: ${config.login}`
+                `Could not get channel data for channel login: ${config.internalName}`
             );
 
         config.uuid = randomUUID();
@@ -1852,9 +1863,11 @@ export class TwitchChannel extends BaseChannel {
         LiveStreamDVR.getInstance().channels_config.push(config);
         LiveStreamDVR.getInstance().saveChannelsConfig();
 
-        const channel = await TwitchChannel.loadFromLogin(config.login);
-        if (!channel || !channel.userid)
-            throw new Error(`Channel ${config.login} could not be loaded`);
+        const channel = await TwitchChannel.loadFromLogin(config.internalName);
+        if (!channel || !channel.internalName)
+            throw new Error(
+                `Channel ${config.internalName} could not be loaded`
+            );
 
         if (
             Config.getInstance().cfg<string>("app_url", "") !== "" &&
@@ -1874,10 +1887,10 @@ export class TwitchChannel extends BaseChannel {
                 LiveStreamDVR.getInstance().channels_config =
                     LiveStreamDVR.getInstance().channels_config.filter(
                         (ch) =>
-                            ch.provider == "twitch" && ch.login !== config.login
+                            ch.provider == "twitch" &&
+                            ch.internalName !== config.internalName
                     ); // remove channel from config
                 LiveStreamDVR.getInstance().saveChannelsConfig();
-                // throw new Error(`Failed to subscribe to channel ${channel.login}: ${(error as Error).message}`, { cause: error });
                 throw error; // rethrow error
             }
         } else if (Config.getInstance().cfg("app_url") == "debug") {
@@ -1900,7 +1913,9 @@ export class TwitchChannel extends BaseChannel {
             );
             LiveStreamDVR.getInstance().channels_config =
                 LiveStreamDVR.getInstance().channels_config.filter(
-                    (ch) => ch.provider == "twitch" && ch.login !== config.login
+                    (ch) =>
+                        ch.provider == "twitch" &&
+                        ch.internalName !== config.internalName
                 ); // remove channel from config
             LiveStreamDVR.getInstance().saveChannelsConfig();
             throw new Error(
@@ -1925,58 +1940,6 @@ export class TwitchChannel extends BaseChannel {
     }
 
     /**
-     * Load channel config into memory, not the channels themselves.
-     */
-    /*
-    public static loadChannelsConfig(): boolean {
-
-        if (!fs.existsSync(BaseConfigPath.channel)) {
-            return false;
-        }
-
-        logAdvanced(LOGLEVEL.INFO, "channel", "Loading channel configs...");
-
-        const data: ChannelConfig[] = JSON.parse(fs.readFileSync(BaseConfigPath.channel, "utf8"));
-
-        let needsSave = false;
-        for (const channel of data) {
-            if (!("quality" in channel) || !channel.quality) {
-                logAdvanced(LOGLEVEL.WARNING, "channel", `Channel ${channel.login} has no quality set, setting to default`);
-                channel.quality = ["best"];
-                needsSave = true;
-            }
-        }
-
-        this.channels_config = data;
-
-        logAdvanced(LOGLEVEL.SUCCESS, "channel", `Loaded ${this.channels_config.length} channel configs!`);
-
-        if (needsSave) {
-            this.saveChannelsConfig();
-        }
-
-        if (Config.getInstance().cfg("channel_folders")) {
-            const folders = fs.readdirSync(BaseConfigDataFolder.vod);
-            for (const folder of folders) {
-                if (folder == ".gitkeep") continue;
-                if (!this.channels_config.find(ch => ch.login === folder)) {
-                    logAdvanced(LOGLEVEL.WARNING, "channel", `Channel folder ${folder} is not in channel config, left over?`);
-                }
-            }
-        }
-
-        return true;
-
-    }
-    */
-
-    // public static saveChannelsConfig(): boolean {
-    //     logAdvanced(LOGLEVEL.INFO, "channel", "Saving channel config");
-    //     fs.writeFileSync(BaseConfigPath.channel, JSON.stringify(this.channels_config, null, 4));
-    //     return fs.existsSync(BaseConfigPath.channel) && fs.readFileSync(BaseConfigPath.channel, "utf8") === JSON.stringify(this.channels_config, null, 4);
-    // }
-
-    /**
      * Load channel cache into memory, like usernames and id's.
      * @test disable
      */
@@ -1994,46 +1957,6 @@ export class TwitchChannel extends BaseChannel {
         );
         return true;
     }
-
-    /**
-     * Load channels into memory
-     *
-     * @returns Amount of loaded channels
-     */
-    /*
-    public static async loadChannels(): Promise<number> {
-        logAdvanced(LOGLEVEL.INFO, "channel", "Loading channels...");
-        if (this.channels_config.length > 0) {
-            for (const channel of this.channels_config) {
-
-                let ch: TwitchChannel;
-
-                try {
-                    ch = await TwitchChannel.loadFromLogin(channel.login);
-                } catch (th) {
-                    logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be loaded: ${th}`);
-                    continue;
-                    // break;
-                }
-
-                if (ch) {
-                    this.channels.push(ch);
-                    ch.postLoad();
-                    ch.vods_list.forEach(vod => vod.postLoad());
-                    logAdvanced(LOGLEVEL.SUCCESS, "config", `Loaded channel ${channel.login} with ${ch.vods_list?.length} vods`);
-                    if (ch.no_capture) {
-                        logAdvanced(LOGLEVEL.WARNING, "config", `Channel ${channel.login} is configured to not capture streams.`);
-                    }
-                } else {
-                    logAdvanced(LOGLEVEL.FATAL, "config", `Channel ${channel.login} could not be added, please check logs.`);
-                    break;
-                }
-            }
-        }
-        logAdvanced(LOGLEVEL.SUCCESS, "channel", `Loaded ${this.channels.length} channels!`);
-        return this.channels.length;
-    }
-    */
 
     public static getChannels(): TwitchChannel[] {
         // return this.channels;

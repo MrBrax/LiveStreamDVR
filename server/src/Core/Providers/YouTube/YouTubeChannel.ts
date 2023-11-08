@@ -74,10 +74,10 @@ export class YouTubeChannel extends BaseChannel {
                 `Channel ${config.channel_id} already exists in channels`
             );
 
-        const data = await YouTubeChannel.getUserDataById(config.channel_id);
+        const data = await YouTubeChannel.getUserDataById(config.internalId);
         if (!data)
             throw new Error(
-                `Could not get channel data for channel login: ${config.channel_id}`
+                `Could not get channel data for channel login: ${config.internalId}`
             );
 
         config.uuid = randomUUID();
@@ -85,9 +85,9 @@ export class YouTubeChannel extends BaseChannel {
         LiveStreamDVR.getInstance().channels_config.push(config);
         LiveStreamDVR.getInstance().saveChannelsConfig();
 
-        const channel = await YouTubeChannel.loadFromId(config.channel_id);
+        const channel = await YouTubeChannel.loadFromId(config.internalId);
         if (!channel || !channel.channel_id)
-            throw new Error(`Channel ${config.channel_id} could not be loaded`);
+            throw new Error(`Channel ${config.internalId} could not be loaded`);
 
         if (
             Config.getInstance().cfg<string>("app_url", "") !== "" &&
@@ -214,11 +214,8 @@ export class YouTubeChannel extends BaseChannel {
         channel.channel_data = channel_data;
         channel.config = channel_config;
 
-        // channel.login = channel_data.login;
-        channel.display_name = channel_data.title || "";
-        // channel.description = channel_data.description || "";
-        // channel.profile_image_url = channel_data.profile_image_url;
-        // channel.broadcaster_type = channel_data.broadcaster_type;
+        // channel.display_name = channel_data.title || "";
+
         channel.applyConfig(channel_config);
 
         if (

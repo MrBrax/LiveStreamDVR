@@ -1279,6 +1279,8 @@ export class TwitchVOD extends BaseVOD {
             return false;
         }
 
+        await super.saveJSON(reason);
+
         const generated = await this.toJSON();
 
         log(

@@ -40,7 +40,7 @@ export class BaseChannel {
      * Display name used in chats and profile pages.
      * @deprecated
      */
-    public display_name?: string;
+    // public display_name?: string;
     // public description?: string;
 
     /** @deprecated */

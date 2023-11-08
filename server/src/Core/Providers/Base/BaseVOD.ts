@@ -576,7 +576,14 @@ export class BaseVOD {
     }
 
     public async saveJSON(reason = ""): Promise<boolean> {
-        throw new Error("Not implemented");
+        fs.writeFileSync(
+            path.join(
+                BaseConfigDataFolder.backup,
+                `${this.uuid}-${Date.now()}-${reason}.json`
+            ),
+            JSON.stringify(this.json, null, 4)
+        );
+        return await Promise.resolve(true);
     }
 
     public async migrate(): Promise<boolean> {
