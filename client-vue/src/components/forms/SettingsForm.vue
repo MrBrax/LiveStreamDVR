@@ -68,33 +68,46 @@
                             v-model="formData.config[key]"
                             class="input"
                             :name="key"
-                            :data-is-array="data.choices && Array.isArray(data.choices)"
+                            :data-is-array="true"
                         >
-                            <template v-if="data.choices && Array.isArray(data.choices)">
-                                <option
-                                    v-for="(item, ix) in data.choices"
-                                    :key="ix"
-                                    :selected="
-                                        (formData.config[key] !== undefined && formData.config[key] === item) ||
-                                        (formData.config[key] === undefined && item === data.default)
-                                    "
-                                >
-                                    {{ item }}
-                                </option>
-                            </template>
-                            <template v-else>
-                                <option
-                                    v-for="(item, ix) in data.choices"
-                                    :key="ix"
-                                    :value="ix"
-                                    :selected="
-                                        (formData.config[key] !== undefined && formData.config[key] === item) ||
-                                        (formData.config[key] === undefined && ix === data.default)
-                                    "
-                                >
-                                    {{ item }}
-                                </option>
-                            </template>
+                            <option
+                                v-for="(item, ix) in data.choices"
+                                :key="ix"
+                                :selected="
+                                    (formData.config[key] !== undefined && formData.config[key] === item) ||
+                                    (formData.config[key] === undefined && item === data.default)
+                                "
+                            >
+                                {{ item }}
+                            </option>                           
+                        </select>
+                        <span v-else class="is-error">No choices defined</span>
+                    </div>
+                </div>
+
+                 <!-- object -->
+                 <div v-if="data.type == 'object'" class="control">
+                    <!--<input class="input" :name="key" :id="key" :value="settings[key]" />-->
+                    <div class="select">
+                        <select
+                            v-if="data.choices"
+                            :id="`input_${key}`"
+                            v-model="formData.config[key]"
+                            class="input"
+                            :name="key"
+                            :data-is-array="false"
+                        >
+                            <option
+                                v-for="(item, ix) in data.choices"
+                                :key="ix"
+                                :value="ix"
+                                :selected="
+                                    (formData.config[key] !== undefined && formData.config[key] === item) ||
+                                    (formData.config[key] === undefined && ix === data.default)
+                                "
+                            >
+                                {{ item }}
+                            </option>
                         </select>
                         <span v-else class="is-error">No choices defined</span>
                     </div>
