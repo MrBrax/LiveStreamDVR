@@ -15,7 +15,7 @@
                 <li>
                     <strong>{{ t("vod.video-info.created") }}:</strong>
                     <template v-if="vod.created_at">
-                        {{ formatDate(vod.created_at, "yyyy-MM-dd HH:mm:ss") }}
+                        {{ " " + formatDate(vod.created_at, "yyyy-MM-dd HH:mm:ss") }}
                     </template>
                     <span v-else class="text-is-error">No created_at</span>
                 </li>
@@ -41,9 +41,9 @@
                     <span v-else class="text-is-error">No capture_started2</span>
                 </li>
                 <li>
-                    <strong>{{ t("vod.video-info.stream-end") }}:</strong>
+                    <strong>{{ t("vod.video-info.stream-end") }}:</strong> 
                     <template v-if="vod.ended_at">
-                        {{ formatDate(vod.ended_at, "yyyy-MM-dd HH:mm:ss") }}
+                        {{ " " + formatDate(vod.ended_at, "yyyy-MM-dd HH:mm:ss") }}
                     </template>
                     <span v-else class="text-is-error">No ended_at</span>
                 </li>
@@ -374,8 +374,11 @@ function youtubePlaylistLink(playlist_id: string): string {
     gap: 1em;
 
     h4 {
-        font-size: 110%;
-        margin: 0;
+        font-family: Poppins;
+        font-weight: 600;
+        text-transform: uppercase;
+        font-size: 1.2em;
+        margin: 0 0 0.1em 0;
         padding: 0;
     }
 

@@ -17,7 +17,7 @@
         <vod-item-title :vod="vod" :minimized="minimized" @toggle-minimize="emit('toggleMinimize')" />
 
         <div v-if="!minimized" class="video-content">
-            <vod-item-general :vod="vod" @show-modal="showModalEv($event as any)" />
+            <vod-item-general :vod="vod" @show-modal="showModalEv($event as any)" :show-advanced="showAdvanced" />
 
             <vod-item-viewers :vod="vod" />
 
