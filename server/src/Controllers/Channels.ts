@@ -22,6 +22,7 @@ import {
 } from "@/Helpers/Filesystem";
 import { generateStreamerList } from "@/Helpers/StreamerList";
 import { isError, isTwitchChannel, isYouTubeChannel } from "@/Helpers/Types";
+import { VideoQuality } from "@/Zod/Base";
 import type {
     ApiChannelResponse,
     ApiChannelsResponse,
@@ -32,7 +33,6 @@ import type {
 import type {
     KickChannelConfig,
     TwitchChannelConfig,
-    VideoQuality,
     YouTubeChannelConfig,
 } from "@common/Config";
 import type { Providers } from "@common/Defs";
@@ -46,6 +46,7 @@ import type express from "express";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import { z } from "zod";
 import { TwitchHelper } from "../Providers/Twitch";
 import type { TwitchVODChapterJSON } from "../Storage/JSON";
 
@@ -135,6 +136,7 @@ export function UpdateChannel(
         return;
     }
 
+    /*
     const formdata: {
         quality: string;
         match: string;
@@ -164,6 +166,56 @@ export function UpdateChannel(
     const max_vods = formdata.max_vods;
     const download_vod_at_end = formdata.download_vod_at_end;
     const download_vod_at_end_quality = formdata.download_vod_at_end_quality;
+    */
+
+    const formparser = z.object({
+        quality: z.preprocess((val) => {
+            if (typeof val === "string") {
+                return val.split(" ") as z.infer<typeof VideoQuality>[]; // TODO: validate
+            }
+            return val;
+        }, z.array(VideoQuality)),
+        match: z.preprocess((val) => {
+            if (typeof val === "string") {
+                return val.split(",").map((m) => m.trim());
+            }
+            return val;
+        }, z.array(z.string())),
+        download_chat: z.boolean(),
+        burn_chat: z.boolean(),
+        no_capture: z.boolean(),
+        live_chat: z.boolean(),
+        no_cleanup: z.boolean(),
+        max_storage: z.number(),
+        max_vods: z.number(),
+        download_vod_at_end: z.boolean(),
+        download_vod_at_end_quality: VideoQuality,
+    });
+
+    const parsedbody = formparser.safeParse(req.body);
+
+    if (!parsedbody.success) {
+        res.api<ApiErrorResponse>(400, {
+            status: "ERROR",
+            message: parsedbody.error.message,
+            zodErrors: parsedbody.error,
+        });
+        return;
+    }
+
+    const {
+        quality,
+        match,
+        download_chat,
+        burn_chat,
+        no_capture,
+        live_chat,
+        no_cleanup,
+        max_storage,
+        max_vods,
+        download_vod_at_end,
+        download_vod_at_end_quality,
+    } = parsedbody.data;
 
     if (channel instanceof TwitchChannel) {
         const channel_config: TwitchChannelConfig = {
@@ -303,13 +355,14 @@ export async function AddChannel(
     const provider = req.body.provider as Providers;
 
     if (!provider) {
-        res.api(400, {
+        res.api<ApiErrorResponse>(400, {
             status: "ERROR",
             message: req.t("route.channels.provider-not-found"),
-        } as ApiErrorResponse);
+        });
         return;
     }
 
+    /*
     const formdata: {
         login?: string;
         channel_id?: string;
@@ -326,22 +379,68 @@ export async function AddChannel(
         download_vod_at_end: boolean;
         download_vod_at_end_quality: VideoQuality;
     } = req.body;
+    */
+
+    // internalId an internalName are either or
+
+    const formparser = z.object({
+        internalId: z.string().optional(),
+        internalName: z.string().optional(),
+        quality: z.preprocess((val) => {
+            if (typeof val === "string") {
+                return val.split(" ") as z.infer<typeof VideoQuality>[]; // TODO: validate
+            }
+            return val;
+        }, z.array(VideoQuality)),
+        match: z.preprocess((val) => {
+            if (typeof val === "string") {
+                return val.split(",").map((m) => m.trim());
+            }
+            return val;
+        }, z.array(z.string())),
+        download_chat: z.boolean(),
+        burn_chat: z.boolean(),
+        no_capture: z.boolean(),
+        live_chat: z.boolean(),
+        no_cleanup: z.boolean(),
+        max_storage: z.number(),
+        max_vods: z.number(),
+        download_vod_at_end: z.boolean(),
+        download_vod_at_end_quality: VideoQuality,
+    });
+
+    const parsedbody = formparser.safeParse(req.body);
+
+    if (!parsedbody.success) {
+        res.api<ApiErrorResponse>(400, {
+            status: "ERROR",
+            message: parsedbody.error.message,
+            zodErrors: parsedbody.error,
+        });
+        return;
+    }
+
+    const formdata = parsedbody.data;
 
     let new_channel;
 
     if (provider == "twitch") {
+        if (!formdata.internalName) {
+            res.api(400, {
+                status: "ERROR",
+                message: req.t("route.channels.channel-login-not-specified"),
+            } as ApiErrorResponse);
+            return;
+        }
+
         const channel_config: TwitchChannelConfig = {
             uuid: "",
             provider: "twitch",
             // login: formdata.login || "",
             internalId: "",
-            internalName: formdata.login || "",
-            quality: formdata.quality
-                ? (formdata.quality.split(" ") as VideoQuality[])
-                : [],
-            match: formdata.match
-                ? formdata.match.split(",").map((m) => m.trim())
-                : [],
+            internalName: formdata.internalName,
+            quality: formdata.quality,
+            match: formdata.match,
             download_chat: formdata.download_chat,
             burn_chat: formdata.burn_chat,
             no_capture: formdata.no_capture,
@@ -352,14 +451,6 @@ export async function AddChannel(
             download_vod_at_end: formdata.download_vod_at_end,
             download_vod_at_end_quality: formdata.download_vod_at_end_quality,
         };
-
-        if (!channel_config.internalName) {
-            res.api(400, {
-                status: "ERROR",
-                message: req.t("route.channels.channel-login-not-specified"),
-            } as ApiErrorResponse);
-            return;
-        }
 
         if (channel_config.quality.length === 0) {
             res.api(400, {
@@ -462,18 +553,22 @@ export async function AddChannel(
             `Created channel: ${new_channel.internalName}`
         );
     } else if (provider == "youtube") {
+        if (!formdata.internalId) {
+            res.api(400, {
+                status: "ERROR",
+                message: req.t("route.channels.channel-id-not-specified"),
+            } as ApiErrorResponse);
+            return;
+        }
+
         const channel_config: YouTubeChannelConfig = {
             uuid: "",
             provider: "youtube",
-            channel_id: formdata.channel_id || "",
-            internalId: "",
-            internalName: formdata.channel_id || "", // TODO: is this id or username
-            quality: formdata.quality
-                ? (formdata.quality.split(" ") as VideoQuality[])
-                : [],
-            match: formdata.match
-                ? formdata.match.split(",").map((m) => m.trim())
-                : [],
+            // channel_id: formdata.channel_id || "",
+            internalId: formdata.internalId,
+            internalName: formdata.internalName || "",
+            quality: formdata.quality,
+            match: formdata.match,
             download_chat: formdata.download_chat,
             burn_chat: formdata.burn_chat,
             no_capture: formdata.no_capture,
@@ -485,22 +580,14 @@ export async function AddChannel(
             download_vod_at_end_quality: formdata.download_vod_at_end_quality,
         };
 
-        if (!channel_config.channel_id) {
-            res.api(400, {
-                status: "ERROR",
-                message: req.t("route.channels.channel-id-not-specified"),
-            } as ApiErrorResponse);
-            return;
-        }
-
         const channel = YouTubeChannel.getChannelById(
-            channel_config.channel_id
+            channel_config.internalId
         );
         if (channel) {
             log(
                 LOGLEVEL.ERROR,
                 "route.channels.add",
-                `Failed to create channel, channel already exists: ${channel_config.channel_id}`
+                `Failed to create channel, channel already exists: ${channel_config.internalId}`
             );
             res.api(400, {
                 status: "ERROR",
@@ -513,7 +600,7 @@ export async function AddChannel(
 
         try {
             api_channel_data = await YouTubeChannel.getUserDataById(
-                channel_config.channel_id
+                channel_config.internalId
             );
         } catch (error) {
             log(
@@ -561,18 +648,22 @@ export async function AddChannel(
             `Created channel: ${new_channel.displayName}`
         );
     } else if (provider == "kick") {
+        if (!formdata.internalName) {
+            res.api(400, {
+                status: "ERROR",
+                message: req.t("route.channels.channel-slug-not-specified"),
+            } as ApiErrorResponse);
+            return;
+        }
+
         const channel_config: KickChannelConfig = {
             uuid: "",
             provider: "kick",
-            slug: formdata.slug || "",
+            // slug: formdata.slug || "",
             internalId: "",
-            internalName: formdata.slug || "",
-            quality: formdata.quality
-                ? (formdata.quality.split(" ") as VideoQuality[])
-                : [],
-            match: formdata.match
-                ? formdata.match.split(",").map((m) => m.trim())
-                : [],
+            internalName: formdata.internalName,
+            quality: formdata.quality,
+            match: formdata.match,
             download_chat: formdata.download_chat,
             burn_chat: formdata.burn_chat,
             no_capture: formdata.no_capture,
@@ -584,20 +675,14 @@ export async function AddChannel(
             download_vod_at_end_quality: formdata.download_vod_at_end_quality,
         };
 
-        if (!channel_config.slug) {
-            res.api(400, {
-                status: "ERROR",
-                message: req.t("route.channels.channel-slug-not-specified"),
-            } as ApiErrorResponse);
-            return;
-        }
-
-        const channel = KickChannel.getChannelBySlug(channel_config.slug);
+        const channel = KickChannel.getChannelBySlug(
+            channel_config.internalName
+        );
         if (channel) {
             log(
                 LOGLEVEL.ERROR,
                 "route.channels.add",
-                `Failed to create channel, channel already exists: ${channel_config.slug}`
+                `Failed to create channel, channel already exists: ${channel_config.internalName}`
             );
             res.api(400, {
                 status: "ERROR",
@@ -610,7 +695,7 @@ export async function AddChannel(
 
         try {
             api_channel_data = await KickChannel.getUserDataBySlug(
-                channel_config.slug
+                channel_config.internalName
             );
         } catch (error) {
             log(
@@ -686,7 +771,7 @@ export async function DownloadVideo(
     const quality =
         req.query.quality &&
         VideoQualityArray.includes(req.query.quality as string)
-            ? (req.query.quality as VideoQuality)
+            ? (req.query.quality as z.infer<typeof VideoQuality>)
             : "best";
 
     const template = (

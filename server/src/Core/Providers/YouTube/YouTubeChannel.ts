@@ -750,7 +750,9 @@ export class YouTubeChannel extends BaseChannel {
     }
 
     get url(): string {
-        return `https://www.youtube.com/c/${this.internalName}`;
+        return `https://www.youtube.com/${
+            this.internalName ? this.internalName : "/c/" + this.internalId
+        }`;
     }
 
     get description(): string {

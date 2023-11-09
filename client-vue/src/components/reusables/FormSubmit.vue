@@ -7,7 +7,17 @@
             <span class="icon">
                 <font-awesome-icon :icon="formStatusIcon" :spin="formStatus == 'LOADING'" />
             </span>
-            {{ computedText }}
+            <template v-if="zodErrors">
+                <ul>
+                    <li v-for="error in zodErrors.issues" :key="error.path.toString()">
+                        {{ error.path.toString() }}:
+                        {{ error.message }}
+                    </li>
+                </ul>
+            </template>
+            <template v-else>
+                {{ computedText }}
+            </template>
         </div>
     </div>
 </template>
@@ -18,11 +28,13 @@ import { library } from "@fortawesome/fontawesome-svg-core";
 import { faCheck, faExclamationTriangle, faFile, faSpinner } from "@fortawesome/free-solid-svg-icons";
 import type { FormStatus } from "@/twitchautomator";
 import { useI18n } from "vue-i18n";
+import type { ZodError,  } from "zod";
 library.add(faCheck, faExclamationTriangle, faFile, faSpinner);
 
 const props = defineProps<{
     formStatusText: string;
     formStatus: FormStatus;
+    zodErrors?: ZodError;
 }>();
 
 const { t } = useI18n();

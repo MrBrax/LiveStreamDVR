@@ -149,7 +149,7 @@
                 </p>
             </div>
 
-            <FormSubmit :form-status="formStatus" :form-status-text="formStatusText">
+            <FormSubmit :form-status="formStatus" :form-status-text="formStatusText" :zod-errors="zodErrors">
                 <d-button color="success" type="submit" icon="save">
                     {{ t("buttons.save") }}
                 </d-button>
@@ -224,7 +224,7 @@ import FormSubmit from "@/components/reusables/FormSubmit.vue";
 import { formatDate } from "@/mixins/newhelpers";
 import { useStore } from "@/store";
 import type { FormStatus } from "@/twitchautomator";
-import type { ApiResponse } from "@common/Api/Api";
+import type { ApiResponse, ApiErrorResponse } from "@common/Api/Api";
 import type { ApiChannelConfig } from "@common/Api/Client";
 import { VideoQualityArray } from "@common/Defs";
 import type { HistoryEntry, HistoryEntryOnline } from "@common/History";
@@ -233,6 +233,7 @@ import { faList, faPencil, faSave, faTrash, faVideoSlash } from "@fortawesome/fr
 import axios, { AxiosError } from "axios";
 import { computed, onMounted, ref, watch } from "vue";
 import { useI18n } from "vue-i18n";
+import type { ZodError } from "zod";
 library.add(faSave, faList, faTrash, faVideoSlash, faPencil);
 
 // props
@@ -250,6 +251,7 @@ const { t } = useI18n();
 // data
 const formStatusText = ref<string>("Ready");
 const formStatus = ref<FormStatus>("IDLE");
+const zodErrors = ref<ZodError>();
 const formData = ref({
     // ref or reactive?
     quality: "",
@@ -332,10 +334,13 @@ function submitForm(event: Event) {
             }
         })
         .catch((err: Error | AxiosError) => {
-            if (axios.isAxiosError(err) && err.response) {
+            if (axios.isAxiosError<ApiErrorResponse>(err) && err.response) {
                 console.error("channel update form error", err.response);
                 formStatusText.value = err.response.data.message;
                 formStatus.value = err.response.data.status;
+                if (err.response.data.zodErrors) {
+                    zodErrors.value = err.response.data.zodErrors;
+                }
             } else {
                 console.error("channel update form error", err);
                 alert(`Error: ${err.message}`);

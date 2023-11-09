@@ -227,7 +227,8 @@
       "subscriptions-warning": "Remember to delete all subscriptions before you stop using this application. Old subscriptions will not be deleted automatically, and will continue to send requests to your server.",
       "slug": "Slug",
       "slug_help": "The channel slug (username in url)",
-      "internal-id": "Internal ID"
+      "internal-id": "Internal ID",
+      "youtube-url-help": "As of now, the URL to the channel is the most convenient way of getting the ID. If it correctly identified the channel, the ID field below will populate automatically."
     },
     "config": {
       "validate-external-url": "Validate external URL"

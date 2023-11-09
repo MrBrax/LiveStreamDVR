@@ -134,7 +134,11 @@ export type SettingField =
 export interface BaseChannelConfig {
     provider: Providers;
     uuid: string;
+
+    /** The unique ID of the channel. Is usually a number, but can be a string for some providers. */
     internalId: string;
+
+    /** The username or login of the channel. Some providers use this instead of the internal ID. */
     internalName: string;
     quality: VideoQuality[];
     match: string[];
@@ -167,7 +171,7 @@ export interface KickChannelConfig extends BaseChannelConfig {
     provider: "kick";
 
     /** @deprecated */
-    slug: string;
+    slug?: string;
 }
 
 export type ChannelConfig =
