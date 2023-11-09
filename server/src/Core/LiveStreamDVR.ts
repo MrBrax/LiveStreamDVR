@@ -255,11 +255,12 @@ export class LiveStreamDVR {
                 );
                 needsSave = true;
             }
-            if (!channel.internalName) {
+            if (!channel.internalName || !channel.internalId) {
                 if (channel.provider == "twitch") {
                     channel.internalName = channel.login || "";
                 } else if (channel.provider == "youtube") {
                     channel.internalName = channel.channel_id || "";
+                    channel.internalId = channel.channel_id || "";
                 } else if (channel.provider == "kick") {
                     channel.internalName = channel.slug || "";
                 } else {
