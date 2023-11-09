@@ -41,6 +41,7 @@
                         <!--<li>Estimated size: {{ formatBytes(((averageVodBitrate || 6000000) / 10) * parseTwitchDuration(vod.duration)) }}</li>-->
                     </ul>
                     <div class="section-actions">
+                        <d-select v-if="isTwitchChannel(streamer)" v-model="quality" :options="VideoQualityArray" />
                         <d-button size="small" color="success" icon="download" @click="downloadVideo(vod.id.toString())">
                             {{ t("buttons.download") }}
                         </d-button>
@@ -54,6 +55,7 @@
 
 <script lang="ts" setup>
 import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
+import { VideoQualityArray } from "@common/Defs";
 import { isTwitchChannel, isYouTubeChannel, humanDuration, formatNumber, formatNumberShort } from "@/mixins/newhelpers";
 import type { ProxyVideo } from "@common/Proxies/Video";
 import axios from "axios";
@@ -74,6 +76,7 @@ const { t } = useI18n();
 
 const onlineVods = ref<ProxyVideo[]>([]);
 const loading = ref(false);
+const quality = ref<string>("best");
 
 // videos
 async function fetchTwitchVods() {
@@ -140,7 +143,7 @@ async function downloadVideo(id: string) {
     let response;
 
     try {
-        response = await axios.get<ApiResponse>(`/api/v0/channels/${props.streamer.uuid}/download/${id}`);
+        response = await axios.get<ApiResponse>(`/api/v0/channels/${props.streamer.uuid}/download/${id}?quality=${quality.value}`);
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error("downloadVideo error", error.response);
