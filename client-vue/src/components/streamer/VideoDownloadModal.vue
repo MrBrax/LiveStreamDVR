@@ -41,7 +41,9 @@
                         <!--<li>Estimated size: {{ formatBytes(((averageVodBitrate || 6000000) / 10) * parseTwitchDuration(vod.duration)) }}</li>-->
                     </ul>
                     <div class="section-actions">
-                        <d-select v-if="isTwitchChannel(streamer)" v-model="quality" :options="VideoQualityArray" />
+                        <div class="select is-small">
+                            <d-select v-if="isTwitchChannel(streamer)" v-model="quality" :options="VideoQualityArray" />
+                        </div>
                         <d-button size="small" color="success" icon="download" @click="downloadVideo(vod.id.toString())">
                             {{ t("buttons.download") }}
                         </d-button>

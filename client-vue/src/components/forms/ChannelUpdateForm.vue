@@ -138,11 +138,7 @@
             <div v-if="formData.download_vod_at_end" class="field">
                 <label class="label">{{ t("forms.channel.download_vod_at_end_quality") }}</label>
                 <div class="select">
-                    <select v-model="formData.download_vod_at_end_quality" name="download_vod_at_end_quality">
-                        <option v-for="quality in VideoQualityArray" :key="quality" :value="quality">
-                            {{ quality }}
-                        </option>
-                    </select>
+                    <d-select v-model="formData.download_vod_at_end_quality" name="download_vod_at_end_quality" :options="VideoQualityArray" />
                 </div>
                 <p class="input-help">
                     {{ t("forms.channel.download_vod_at_end_quality_help") }}

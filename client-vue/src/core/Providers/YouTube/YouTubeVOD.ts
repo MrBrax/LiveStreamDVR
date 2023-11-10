@@ -16,7 +16,7 @@ export default class YouTubeVOD extends BaseVOD {
 
     public static makeFromApiResponse(apiResponse: ApiYouTubeVod): YouTubeVOD {
 
-        const baseVod = BaseVOD.makeFromApiResponse(apiResponse);
+        const { provider, ...baseVod } = BaseVOD.makeFromApiResponse(apiResponse); // remove provider from baseVod to avoid overwriting it
         const vod = new YouTubeVOD();
         Object.assign(vod, baseVod);
 

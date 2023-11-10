@@ -3,11 +3,7 @@
         <div class="field">
             <label class="label">{{ t("forms.channel.provider") }}</label>
             <div class="select">
-                <select v-model="formData.provider" class="select" name="provider">
-                    <option value="twitch">Twitch</option>
-                    <option value="youtube">YouTube</option>
-                    <option value="kick">Kick</option>
-                </select>
+                <d-select v-model="formData.provider" name="provider" :options="providers" />
             </div>
             <p class="input-help">YouTube will not work properly until they add webhooks for livestreams. It works with manual recordings and videos.</p>
         </div>
@@ -187,11 +183,7 @@
         <div v-if="formData.download_vod_at_end" class="field">
             <label class="label">{{ t("forms.channel.download_vod_at_end_quality") }}</label>
             <div class="select">
-                <select v-model="formData.download_vod_at_end_quality" name="download_vod_at_end_quality">
-                    <option v-for="quality in VideoQualityArray" :key="quality" :value="quality">
-                        {{ quality }}
-                    </option>
-                </select>
+                <d-select v-model="formData.download_vod_at_end_quality" name="download_vod_at_end_quality" :options="VideoQualityArray" />
             </div>
             <p class="input-help">
                 {{ t("forms.channel.download_vod_at_end_quality_help") }}
@@ -218,10 +210,11 @@
 
 <script lang="ts" setup>
 import FormSubmit from "@/components/reusables/FormSubmit.vue";
-import { computed, ref } from "vue";
+import { computed, provide, ref } from "vue";
 import { VideoQualityArray } from "../../../../common/Defs";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
+import { faTwitch } from "@fortawesome/free-brands-svg-icons";
 import axios, { AxiosError } from "axios";
 import type { UserData } from "@common/User";
 import type { ApiResponse, ApiErrorResponse, IApiResponse } from "@common/Api/Api";
@@ -229,7 +222,7 @@ import { useI18n } from "vue-i18n";
 import type { FormStatus } from "@/twitchautomator";
 import type { KickUser } from "@common/KickAPI/Kick";
 import type { ZodError } from "zod";
-library.add(faUserPlus);
+library.add(faUserPlus, faTwitch);
 
 // emit
 const emit = defineEmits(["formSuccess"]);
@@ -265,6 +258,12 @@ const userExists = ref<boolean>();
 const channelUrl = ref<string>("");
 const fetchingUrl = ref<boolean>(false);
 const login = ref<HTMLInputElement | null>();
+
+const providers = [
+    { value: "twitch", label: "Twitch", icon: "fab fa-twitch" },
+    { value: "youtube", label: "YouTube" },
+    { value: "kick", label: "Kick" },
+];
 
 // computed
 const qualityWarning = computed((): boolean => {

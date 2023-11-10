@@ -154,7 +154,7 @@
                 </template>
             </ul>
         </article>
-
+        
         <!-- Twitch VOD -->
         <article v-if="vod.provider == 'twitch'" class="info-column">
             <h4>Twitch VOD</h4>

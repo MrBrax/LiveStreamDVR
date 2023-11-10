@@ -30,8 +30,7 @@ export default class TwitchVOD extends BaseVOD {
 
     public static makeFromApiResponse(apiResponse: ApiTwitchVod): TwitchVOD {
 
-        const baseVod = BaseVOD.makeFromApiResponse(apiResponse);
-
+        const { provider, ...baseVod } = BaseVOD.makeFromApiResponse(apiResponse); // remove provider from baseVod to avoid overwriting it
         const vod = new TwitchVOD();
         Object.assign(vod, baseVod);
 
