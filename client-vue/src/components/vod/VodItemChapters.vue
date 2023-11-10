@@ -189,7 +189,7 @@ import { useStore } from "@/store";
 import type { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
 import axios from "axios";
 import { computed, onMounted, ref } from "vue";
-import DurationDisplay from "@/components/DurationDisplay.vue";
+import DurationDisplay from "@/components/reusables/DurationDisplay.vue";
 import { useI18n } from "vue-i18n";
 import { formatDate, formatNumber, humanDuration, twitchDuration } from "@/mixins/newhelpers";
 import type { ChapterTypes, VODTypes } from "@/twitchautomator";

@@ -97,13 +97,13 @@
 
 <script lang="ts" setup>
 import { computed, onMounted, ref, watch } from "vue";
-import VodItem from "@/components/VodItem.vue";
+import VodItem from "@/components/vod/VodItem.vue";
 import ModalBox from "@/components/ModalBox.vue";
 import StreamerItemClips from "./StreamerItemClips.vue";
 import StreamerItemLocalVideos from "./StreamerItemLocalVideos.vue";
 import StreamerItemTools from "./StreamerItemTools.vue";
-import VideoDownloadModal from "./streamer/VideoDownloadModal.vue";
-import ClipDownloadModal from "./streamer/ClipDownloadModal.vue";
+import VideoDownloadModal from "../streamer/VideoDownloadModal.vue";
+import ClipDownloadModal from "../streamer/ClipDownloadModal.vue";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faVideo, faPlayCircle, faVideoSlash, faDownload, faSync, faPencil, faFolderOpen, faTrash } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
@@ -244,7 +244,7 @@ function toggleLimitVods() {
 </script>
 
 <style lang="scss" scoped>
-@import "../assets/_variables";
+@import "../../assets/_variables";
 
 .streamer-title {
     font-size: 110%;

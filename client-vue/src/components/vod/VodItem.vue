@@ -189,7 +189,7 @@ import {
     faKey,
 } from "@fortawesome/free-solid-svg-icons";
 import { useStore } from "@/store";
-import ModalBox from "./ModalBox.vue";
+import ModalBox from "../ModalBox.vue";
 import VodItemSegments from "./VodItemSegments.vue";
 import VodItemBookmarks from "./VodItemBookmarks.vue";
 import VodItemChapters from "./VodItemChapters.vue";
@@ -197,10 +197,10 @@ import VodItemViewers from "./VodItemViewers.vue";
 import VodItemGeneral from "./VodItemGeneral.vue";
 import VodItemStatus from "./VodItemStatus.vue";
 import VodItemTitle from "./VodItemTitle.vue";
-import RenderModal from "./vod/RenderModal.vue";
-import ExportModal from "./vod/ExportModal.vue";
-import EditModal from "./vod/EditModal.vue";
-import { VideoQualityArray } from "../../../common/Defs";
+import RenderModal from "../vod/RenderModal.vue";
+import ExportModal from "../vod/ExportModal.vue";
+import EditModal from "../vod/EditModal.vue";
+import { VideoQualityArray } from "@common/Defs";
 import type { ApiResponse, ApiSettingsResponse } from "@common/Api/Api";
 import { formatString } from "@common/Format";
 import { format } from "date-fns";
@@ -508,7 +508,7 @@ function showModalEv(modal: keyof typeof showModal.value): void {
 </script>
 
 <style lang="scss" scoped>
-@import "../assets/_variables";
+@import "../../assets/_variables";
 
 .video {
     margin-bottom: 1em;

@@ -4,7 +4,7 @@
             <div v-if="store.config" class="top-menu-item title" :class="{ fancy: store.clientCfg('animationsEnabled') }">
                 <router-link to="/dashboard" class="link" aria-label="Go to dashboard">
                     <div class="bg" />
-                    <img src="../assets/logo.png" class="favicon" width="24" height="24" :alt="store.cfg('app_name', 'TA') ?? 'TA'" aria-hidden="true" />
+                    <img src="../../assets/logo.png" class="favicon" width="24" height="24" :alt="store.cfg('app_name', 'TA') ?? 'TA'" aria-hidden="true" />
                     <h1 class="title" :title="verboseVersion">
                         <span>{{ store.app_name }}</span>
                         <template v-if="isDevelopmentBranch">
@@ -86,7 +86,7 @@
 
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted, ref } from "vue";
-import pack from "../../package.json";
+import pack from "../../../package.json";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faGithub } from "@fortawesome/free-brands-svg-icons";
@@ -244,7 +244,7 @@ function copyDebugStuff(e: Event) {
 </script>
 
 <style lang="scss" scoped>
-@import "../assets/_variables";
+@import "../../assets/_variables";
 
 .side-menu {
     position: fixed;
@@ -359,7 +359,7 @@ function copyDebugStuff(e: Event) {
             position: relative;
             overflow: hidden;
             .bg {
-                background-image: url(../assets/3D_TV_static.gif);
+                background-image: url(../../assets/3D_TV_static.gif);
                 background-size: cover;
                 opacity: 0;
                 transition: opacity 0.5s ease-in-out;

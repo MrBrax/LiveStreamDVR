@@ -115,7 +115,7 @@
 <script lang="ts" setup>
 import { useStore } from "@/store";
 import type { ApiResponse } from "@common/Api/Api";
-import { MuteStatus } from "../../../common/Defs";
+import { MuteStatus } from "@common/Defs";
 import axios from "axios";
 import { computed } from "vue";
 import { useI18n } from "vue-i18n";

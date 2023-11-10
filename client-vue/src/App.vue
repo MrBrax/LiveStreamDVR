@@ -54,7 +54,7 @@
 </template>
 
 <script lang="ts" setup>
-import SideMenu from "@/components/SideMenu.vue";
+import SideMenu from "@/components/menu/SideMenu.vue";
 import type { ApiAuthResponse } from "@common/Api/Api";
 import type { ApiLogLine } from "@common/Api/Client";
 import type {

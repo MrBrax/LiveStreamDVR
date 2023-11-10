@@ -172,8 +172,8 @@
 // import { ref } from "vue";
 import { useStore } from "@/store";
 import type TwitchVOD from "@/core/Providers/Twitch/TwitchVOD";
-import { MuteStatus, TwitchVodAge } from "../../../common/Defs";
-import DurationDisplay from "./DurationDisplay.vue";
+import { MuteStatus, TwitchVodAge } from "@common/Defs";
+import DurationDisplay from "../reusables/DurationDisplay.vue";
 import { isTwitchVOD } from "@/mixins/newhelpers";
 import { formatDate, formatBytes, humanDuration, niceDuration, humanDate } from "@/mixins/newhelpers";
 

@@ -1,5 +1,5 @@
 import { mount } from "@vue/test-utils";
-import DurationDisplay from "@/components/DurationDisplay.vue";
+import DurationDisplay from "./DurationDisplay.vue";
 import { describe, it, expect } from "vitest";
 
 describe("DurationDisplay", () => {

@@ -96,7 +96,7 @@
 <script lang="ts" setup>
 import { computed, ref } from "vue";
 
-import DurationDisplay from "@/components/DurationDisplay.vue";
+import DurationDisplay from "@/components/reusables/DurationDisplay.vue";
 import SideMenuStreamerVod from "./SideMenuStreamerVod.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
@@ -121,7 +121,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import { faHourglass } from "@fortawesome/free-regular-svg-icons";
 import { useStore } from "@/store";
-import { nonGameCategories } from "../../../common/Defs";
+import { nonGameCategories } from "@common/Defs";
 import { isTwitchChannel } from "@/mixins/newhelpers";
 import { useRoute } from "vue-router";
 import { formatLogicalDate } from "@/mixins/newhelpers";
@@ -192,7 +192,7 @@ function toggleExpand() {
 </script>
 
 <style lang="scss" scoped>
-@import "../assets/_variables";
+@import "../../assets/_variables";
 
 .top-menu-item {
     font-size: 1.2em;

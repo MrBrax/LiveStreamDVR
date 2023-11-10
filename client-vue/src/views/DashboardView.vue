@@ -63,7 +63,7 @@
 </template>
 
 <script lang="ts" setup>
-import Streamer from "@/components/StreamerItem.vue";
+import Streamer from "@/components/streamer/StreamerItem.vue";
 import { useStore } from "@/store";
 import LogViewer from "@/components/LogViewer.vue";
 import { useI18n } from "vue-i18n";

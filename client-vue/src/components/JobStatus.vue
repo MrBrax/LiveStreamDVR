@@ -35,7 +35,7 @@
 </template>
 
 <script lang="ts" setup>
-import DurationDisplay from "@/components/DurationDisplay.vue";
+import DurationDisplay from "@/components/reusables/DurationDisplay.vue";
 import { useStore } from "@/store";
 import { JobStatus } from "@common/Defs";
 import { library } from "@fortawesome/fontawesome-svg-core";
