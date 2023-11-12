@@ -1081,8 +1081,9 @@ export class BaseAutomator {
         await this.vod.saveJSON("stream capture end");
 
         const duration = this.vod.getDurationLive();
-        if (duration && duration > 86400 - 60 * 10) {
-            // 24 hours - 10 minutes
+        if (duration && duration > 86400 - 60 * 20) {
+            // 24 hours - 20 minutes
+            this.is24HourStream = true;
             log(
                 LOGLEVEL.WARNING,
                 "automator.download",
@@ -1827,11 +1828,16 @@ export class BaseAutomator {
         });
     }
 
+    is24HourStream = false;
+
     /**
      * Fallback capture for when you really really want to capture a VOD even if it's a duplicate or whatever
      */
     public fallbackCapture(): Promise<boolean> {
-        if (!Config.getInstance().cfg("capture.fallbackcapture")) {
+        if (
+            !Config.getInstance().cfg("capture.fallbackcapture") &&
+            !this.is24HourStream
+        ) {
             return Promise.reject(new Error("Fallback capture disabled"));
         }
 
