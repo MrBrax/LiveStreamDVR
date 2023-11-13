@@ -353,6 +353,13 @@ export const settingsFields: Record<string, SettingField> = {
         type: "string",
     },
 
+    "capture.autosplit-enabled": {
+        group: "Capture",
+        text: "Enable video autosplit",
+        type: "boolean",
+        default: false,
+    },
+
     // sub_lease: { group: "Advanced", text: "Subscription lease", type: "number", default: 604800 },
     api_client_id: {
         group: "Twitch",

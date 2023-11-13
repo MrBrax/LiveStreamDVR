@@ -584,6 +584,7 @@ export class BaseAutomator {
         // download chat and optionally burn it
         // TODO: call this when a non-captured stream ends too
         if (this.channel && this.vod) {
+            // download chat
             if (
                 this.vod instanceof TwitchVOD &&
                 this.channel.download_chat &&
@@ -613,6 +614,7 @@ export class BaseAutomator {
                 }
             }
 
+            // run auto exporter
             if (Config.getInstance().cfg("exporter.auto.enabled")) {
                 const options: ExporterOptions = {
                     vod: this.vod.uuid,
@@ -736,6 +738,24 @@ export class BaseAutomator {
                         LOGLEVEL.ERROR,
                         "automator.onEndDownload",
                         `Failed to reencode ${this.vod.basename}: ${
+                            (error as Error).message
+                        }`
+                    );
+                }
+            }
+
+            // run auto splitter
+            if (
+                isTwitchVOD(this.vod) &&
+                Config.getInstance().cfg("capture.autosplit-enabled")
+            ) {
+                try {
+                    await this.vod.splitSegmentVideoByChapters();
+                } catch (error) {
+                    log(
+                        LOGLEVEL.ERROR,
+                        "automator.onEndDownload",
+                        `Failed to split ${this.vod.basename}: ${
                             (error as Error).message
                         }`
                     );
