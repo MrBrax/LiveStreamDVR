@@ -76,3 +76,23 @@ echo "{\"client_version\":\"$client_version\",\"server_version\":\"$server_versi
 echo "$release_name" > "./release_name.txt"
 
 echo -e "This release was created automatically by the build script.\n\nIt includes the following versions:\n\n* Client: $client_version\n* Server: $server_version\n* twitch-chat-dumper: $dumper_version\n* twitch-vod-chat: $vodchat_version\n\n## Changelog\n\n" > "./release_notes.md"
+
+# upload to github
+if [ "$prerelease" = true ]; then
+    gh release create ${release_name} \
+    "./release/${release_name}.zip" \
+    -t "${release_name}" \
+    --notes-file "./release_notes.md" \
+    --prerelease \
+    -R "mrbrax/LiveStreamDVR" \
+    --draft
+else
+    gh release create ${release_name} \
+    "./release/${release_name}.zip" \
+    -t "${release_name}" \
+    --notes-file "./release_notes.md" \
+    -R "mrbrax/LiveStreamDVR" \
+    --draft
+fi
+
+echo "Release created"
