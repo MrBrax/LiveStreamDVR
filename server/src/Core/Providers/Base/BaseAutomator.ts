@@ -1,3 +1,13 @@
+import type { Exporter } from "@/Controllers/Exporter";
+import { GetExporter } from "@/Controllers/Exporter";
+import { progressOutput } from "@/Helpers/Console";
+import { execSimple, startJob } from "@/Helpers/Execute";
+import { formatBytes } from "@/Helpers/Format";
+import { Sleep } from "@/Helpers/Sleep";
+import { xClearInterval, xInterval } from "@/Helpers/Timeout";
+import { isTwitchVOD, isTwitchVODChapter } from "@/Helpers/Types";
+import type { RemuxReturn } from "@/Helpers/Video";
+import { remuxFile } from "@/Helpers/Video";
 import type { TwitchVODChapterJSON } from "@/Storage/JSON";
 import type { VideoQuality } from "@common/Config";
 import type { NotificationCategory } from "@common/Defs";
@@ -21,16 +31,6 @@ import fs from "node:fs";
 import type { IncomingHttpHeaders } from "node:http";
 import path from "node:path";
 import sanitize from "sanitize-filename";
-import type { Exporter } from "../../../Controllers/Exporter";
-import { GetExporter } from "../../../Controllers/Exporter";
-import { progressOutput } from "../../../Helpers/Console";
-import { execSimple, startJob } from "../../../Helpers/Execute";
-import { formatBytes } from "../../../Helpers/Format";
-import { Sleep } from "../../../Helpers/Sleep";
-import { xClearInterval, xInterval } from "../../../Helpers/Timeout";
-import { isTwitchVOD, isTwitchVODChapter } from "../../../Helpers/Types";
-import { remuxFile } from "../../../Helpers/Video";
-import type { RemuxReturn } from "../../../Providers/Twitch";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
 import { Config } from "../../Config";
@@ -125,6 +125,7 @@ export class BaseAutomator {
                 : "",
             title: this.getTitle(),
             game_name: this.getGameName(),
+            game_id: this.getGameID(),
         };
 
         return sanitize(
@@ -175,6 +176,7 @@ export class BaseAutomator {
                 : "",
             title: this.getTitle(),
             game_name: this.getGameName(),
+            game_id: this.getGameID(),
         };
 
         return sanitize(
@@ -239,6 +241,18 @@ export class BaseAutomator {
             );
             if (data && data.game_name) {
                 return data.game_name || "";
+            }
+        }
+        return "";
+    }
+
+    public getGameID(): string {
+        if (KeyValue.getInstance().has(`${this.getLogin()}.chapterdata`)) {
+            const data = KeyValue.getInstance().getObject<TwitchVODChapterJSON>(
+                `${this.getLogin()}.chapterdata`
+            );
+            if (data && data.game_id) {
+                return data.game_id || "";
             }
         }
         return "";
@@ -570,10 +584,11 @@ export class BaseAutomator {
         // download chat and optionally burn it
         // TODO: call this when a non-captured stream ends too
         if (this.channel && this.vod) {
+            // download chat
             if (
                 this.vod instanceof TwitchVOD &&
                 this.channel.download_chat &&
-                this.vod.twitch_vod_id
+                this.vod.external_vod_id
             ) {
                 log(
                     LOGLEVEL.INFO,
@@ -599,6 +614,7 @@ export class BaseAutomator {
                 }
             }
 
+            // run auto exporter
             if (Config.getInstance().cfg("exporter.auto.enabled")) {
                 const options: ExporterOptions = {
                     vod: this.vod.uuid,
@@ -722,6 +738,24 @@ export class BaseAutomator {
                         LOGLEVEL.ERROR,
                         "automator.onEndDownload",
                         `Failed to reencode ${this.vod.basename}: ${
+                            (error as Error).message
+                        }`
+                    );
+                }
+            }
+
+            // run auto splitter
+            if (
+                isTwitchVOD(this.vod) &&
+                Config.getInstance().cfg("capture.autosplit-enabled")
+            ) {
+                try {
+                    await this.vod.splitSegmentVideoByChapters();
+                } catch (error) {
+                    log(
+                        LOGLEVEL.ERROR,
+                        "automator.onEndDownload",
+                        `Failed to split ${this.vod.basename}: ${
                             (error as Error).message
                         }`
                     );
@@ -1067,8 +1101,9 @@ export class BaseAutomator {
         await this.vod.saveJSON("stream capture end");
 
         const duration = this.vod.getDurationLive();
-        if (duration && duration > 86400 - 60 * 10) {
-            // 24 hours - 10 minutes
+        if (duration && duration > 86400 - 60 * 20) {
+            // 24 hours - 20 minutes
+            this.is24HourStream = true;
             log(
                 LOGLEVEL.WARNING,
                 "automator.download",
@@ -1813,11 +1848,16 @@ export class BaseAutomator {
         });
     }
 
+    is24HourStream = false;
+
     /**
      * Fallback capture for when you really really want to capture a VOD even if it's a duplicate or whatever
      */
     public fallbackCapture(): Promise<boolean> {
-        if (!Config.getInstance().cfg("capture.fallbackcapture")) {
+        if (
+            !Config.getInstance().cfg("capture.fallbackcapture") &&
+            !this.is24HourStream
+        ) {
             return Promise.reject(new Error("Fallback capture disabled"));
         }
 

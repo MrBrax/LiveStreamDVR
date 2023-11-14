@@ -5,6 +5,7 @@ import { LOGLEVEL, log } from "@/Core/Log";
 import { TwitchVOD } from "@/Core/Providers/Twitch/TwitchVOD";
 import { TwitchVODChapter } from "@/Core/Providers/Twitch/TwitchVODChapter";
 import { formatDuration } from "@/Helpers/Format";
+import { isTwitchVOD } from "@/Helpers/Types";
 import { cutFile } from "@/Helpers/Video";
 import type {
     ApiErrorResponse,
@@ -584,8 +585,8 @@ export async function MatchVod(
     res.send({
         status: "OK",
         message: `Vod matched to ${
-            vod.twitch_vod_id
-        }, duration ${formatDuration(vod.twitch_vod_duration || 0)}`,
+            vod.external_vod_id
+        }, duration ${formatDuration(vod.external_vod_duration || 0)}`,
     } as ApiResponse);
 }
 
@@ -939,6 +940,7 @@ export async function RenameVod(
             : "",
         title: vod.stream_title || "",
         game_name: vod.game_name || "",
+        game_id: vod.game_id || "",
     };
 
     const basename = sanitize(
@@ -1006,6 +1008,47 @@ export async function RefreshVodMetadata(
         vod.saveJSON("refresh metadata");
         return;
     }
+
+    return;
+}
+
+export async function SplitVodByChapters(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
+    const uuid = req.params.uuid;
+    const vod = LiveStreamDVR.getInstance().getVodByUUID(uuid);
+
+    if (!vod) {
+        res.api(400, {
+            status: "ERROR",
+            message: "Vod not found",
+        });
+        return;
+    }
+
+    if (!isTwitchVOD(vod)) {
+        res.api(400, {
+            status: "ERROR",
+            message: "Vod not compatible",
+        });
+        return;
+    }
+
+    try {
+        await vod.splitSegmentVideoByChapters();
+    } catch (error) {
+        res.api(400, {
+            status: "ERROR",
+            message: (error as Error).message,
+        });
+        return;
+    }
+
+    res.send({
+        status: "OK",
+        message: "Vod split by chapters",
+    });
 
     return;
 }

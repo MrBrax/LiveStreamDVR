@@ -5,16 +5,18 @@
 
     <!-- Exporter -->
     <div class="field">
-        <label class="label">{{ t("vod.export.export-type") }}</label>
+        <label class="label" for="exporter">
+            {{ t("vod.export.export-type") }}
+        </label>
         <div class="control">
             <div class="select">
-                <select v-model="exporter">
-                    <option value="file">File</option>
-                    <option value="youtube">YouTube</option>
-                    <option value="sftp">SFTP</option>
-                    <option value="ftp">FTP</option>
-                    <option value="rclone">RClone</option>
-                </select>
+                <d-select id="exporter" v-model="exporter" :options="[
+                    { value: 'file', label: 'File' },
+                    { value: 'youtube', label: 'YouTube' },
+                    { value: 'sftp', label: 'SFTP' },
+                    { value: 'ftp', label: 'FTP' },
+                    { value: 'rclone', label: 'RClone' },
+                ]" />
             </div>
         </div>
         <p v-if="exporter == 'youtube'">
@@ -38,23 +40,27 @@
 
     <!-- File -->
     <div class="field">
-        <label class="label">{{ t("vod.export.file-source") }}</label>
+        <label class="label" for="file_source">
+            {{ t("vod.export.file-source") }}
+        </label>
         <div class="control">
             <div class="select">
-                <select v-model="exportVodSettings.file_source">
-                    <option value="segment">First captured segment</option>
-                    <option value="downloaded" :disabled="!vod?.is_vod_downloaded">Downloaded</option>
-                    <option value="burned" :disabled="!vod?.is_chat_burned">Burned</option>
-                </select>
+                <d-select id="file_source" v-model="exportVodSettings.file_source" :options="[
+                    { value: 'segment', label: 'First captured segment' },
+                    { value: 'downloaded', label: 'Downloaded', disabled: !vod?.is_vod_downloaded },
+                    { value: 'burned', label: 'Burned', disabled: !vod?.is_chat_burned },
+                ]" />
             </div>
         </div>
     </div>
 
     <!-- Title / Filename -->
     <div class="field">
-        <label class="label">{{ t("vod.export.title-template") }}</label>
+        <label class="label" for="title_template">
+            {{ t("vod.export.title-template") }}
+        </label>
         <div class="control">
-            <input v-model="exportVodSettings.title_template" class="input" type="text" />
+            <input id="title_template" v-model="exportVodSettings.title_template" class="input" type="text" />
             <ul class="template-replacements">
                 <li v-for="(v, k) in ExporterFilenameFields" :key="k">
                     {{ k }}
@@ -91,11 +97,7 @@
         <label class="label">{{ t("vod.export.remote") }}</label>
         <div class="control has-addon">
             <div class="select">
-                <select v-model="exportVodSettings.remote">
-                    <option v-for="remote in rcloneRemotes" :key="remote" :value="remote">
-                        {{ remote }}
-                    </option>
-                </select>
+                <d-select v-model="exportVodSettings.remote" :options="rcloneRemotes" :disabled="LoadingRemotes" />
             </div>
             <button class="button is-confirm" :title="t('vod.export.get-remotes')" @click="getRemotes">
                 <span class="icon">
@@ -248,7 +250,7 @@ const { t } = useI18n();
 
 const exportVodSettings = ref<ExporterOptions>({
     // exporter: "file",
-    title_template: "[{login}] {title} ({date})",
+    title_template: "[{internalName}] {title} ({date})",
     directory: "",
     host: "",
     username: "",

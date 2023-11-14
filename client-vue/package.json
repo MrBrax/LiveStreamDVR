@@ -1,6 +1,6 @@
 {
   "name": "livestreamdvr-client",
-  "version": "2.3.5",
+  "version": "2.4.0",
   "private": true,
   "homepage": "https://github.com/MrBrax/LiveStreamDVR",
   "scripts": {
@@ -9,7 +9,7 @@
     "preview": "vite preview",
     "build-only": "vite build",
     "type-check": "vue-tsc --noEmit -p tsconfig.app.json --composite false",
-    "test": "vitest",
+    "test": "vitest --environment jsdom",
     "generate-licenses": "yarn licenses generate-disclaimer > LICENSES.txt",
     "lint": "eslint --ext .ts,.vue src",
     "format": "prettier --write \"src/**/*.{js,ts,vue}\""
@@ -29,21 +29,22 @@
     "core-js": "^3.31.1",
     "date-fns": "^2.30.0",
     "normalize.css": "^8.0.1",
-    "pinia": "^2.1.4",
-    "vue": "^3.3.4",
+    "pinia": "^2.1.7",
+    "vue": "^3.3.7",
     "vue-chartjs": "^5.2.0",
     "vue-i18n": "beta",
     "vue-observe-visibility": "next",
-    "vue-router": "^4.2.4"
+    "vue-router": "^4.2.5"
   },
   "devDependencies": {
     "@tsconfig/node18": "^18.2.0",
     "@types/node": "^20.4.2",
     "@typescript-eslint/eslint-plugin": "^6.1.0",
     "@typescript-eslint/parser": "^6.1.0",
-    "@vitejs/plugin-vue": "^4.2.3",
+    "@vitejs/plugin-vue": "^4.4.0",
     "@vue/eslint-config-prettier": "^8.0.0",
     "@vue/eslint-config-typescript": "^11.0.3",
+    "@vue/server-renderer": "^3.3.7",
     "@vue/test-utils": "^2.4.1",
     "@vue/tsconfig": "^0.4.0",
     "c8": "^8.0.0",
@@ -56,15 +57,16 @@
     "git-describe": "^4.1.1",
     "jsdom": "^22.1.0",
     "npm-run-all": "^4.1.5",
-    "prettier": "^3.0.0",
+    "prettier": "^3.0.3",
     "sass": "^1.64.0",
-    "typescript": "^5.1.6",
-    "vite": "^4.4.6",
+    "typescript": "^5.2.2",
+    "vite": "^4.5.0",
     "vite-plugin-pwa": "^0.16.4",
-    "vitest": "^0.33.0",
-    "vue-tsc": "^1.8.5"
+    "vitest": "^0.34.6",
+    "vue-tsc": "^1.8.22",
+    "zod": "^3.22.4"
   },
-  "packageManager": "yarn@3.6.4",
+  "packageManager": "yarn@4.0.1",
   "engines": {
     "node": ">=18"
   }

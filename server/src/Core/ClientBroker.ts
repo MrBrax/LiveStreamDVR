@@ -276,15 +276,30 @@ export class ClientBroker {
         ws.send(JSON.stringify({ action: "connected" }));
     }
 
-    static broadcast(data: unknown) {
+    static broadcast(broadcastData: unknown) {
         if (LiveStreamDVR.shutting_down) return;
 
-        const d = JSON.stringify(data);
+        // const jsonData = JSON.stringify(data);
+        let jsonData: any;
+
+        try {
+            jsonData = JSON.stringify(broadcastData);
+        } catch (error) {
+            console.error(
+                chalk.bgRed.whiteBright(
+                    `Error stringifying data: ${(error as Error).message}`
+                )
+            );
+            return;
+        }
+
         if (!this.wss) {
             console.error(
                 chalk.bgRed.whiteBright(
                     `No WebSocket server attached to broker for data: ${
-                        d.length > 64 ? d.substring(0, 64) + "..." : d
+                        jsonData.length > 64
+                            ? jsonData.substring(0, 64) + "..."
+                            : jsonData
                     }`
                 )
             );
@@ -295,7 +310,9 @@ export class ClientBroker {
             debugLog(
                 chalk.grey(
                     `No clients connected to broker for data: ${
-                        d.length > 64 ? d.substring(0, 64) + "..." : d
+                        jsonData.length > 64
+                            ? jsonData.substring(0, 64) + "..."
+                            : jsonData
                     }`
                 )
             );
@@ -315,12 +332,14 @@ export class ClientBroker {
         debugLog(
             chalk.blueBright(
                 `Broadcasting data to ${this.wss.clients.size} clients: ${
-                    d.length > 64 ? d.substring(0, 64) + "..." : d
+                    jsonData.length > 64
+                        ? jsonData.substring(0, 64) + "..."
+                        : jsonData
                 }`
             )
         );
         this.wss.clients.forEach((client) => {
-            client.send(d);
+            client.send(jsonData);
         });
     }
 

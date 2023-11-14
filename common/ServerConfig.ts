@@ -2,14 +2,12 @@ import type { SettingField } from "./Config";
 import {
     ClipBasenameFields,
     ExporterFilenameFields,
+    VodBasenameChapterFields,
     VodBasenameFields,
 } from "./ReplacementsConsts";
 import { YouTubeCategories } from "./YouTube";
 
-export const settingsFields: Record<
-    string,
-    SettingField<string> | SettingField<number> | SettingField<boolean>
-> = {
+export const settingsFields: Record<string, SettingField> = {
     bin_dir: {
         group: "Binaries",
         text: "Python binary directory",
@@ -89,7 +87,7 @@ export const settingsFields: Record<
     "basic.language": {
         group: "Basic",
         text: "Serverside language",
-        type: "array",
+        type: "object",
         default: "en",
         choices: { en: "English", de: "Deutsch", ko: "한국어" },
     },
@@ -115,7 +113,7 @@ export const settingsFields: Record<
     date_format: {
         group: "Basic",
         text: "Date format",
-        type: "array",
+        type: "object",
         default: "yyyy-MM-dd",
         help: "Date format for various filenames. See https://date-fns.org/v2.29.3/docs/format",
         choices: {
@@ -355,6 +353,13 @@ export const settingsFields: Record<
         type: "string",
     },
 
+    "capture.autosplit-enabled": {
+        group: "Capture",
+        text: "Enable video autosplit",
+        type: "boolean",
+        default: false,
+    },
+
     // sub_lease: { group: "Advanced", text: "Subscription lease", type: "number", default: 604800 },
     api_client_id: {
         group: "Twitch",
@@ -373,14 +378,14 @@ export const settingsFields: Record<
     "twitchapi.auth_type": {
         group: "Twitch",
         text: "Twitch auth type",
-        type: "array",
+        type: "object",
         default: "app",
         choices: { user: "User", app: "App" },
     },
     "twitchapi.eventsub_type": {
         group: "Twitch",
         text: "Twitch eventsub type",
-        type: "array",
+        type: "object",
         default: "webhook",
         choices: { webhook: "Webhook", websocket: "Websocket" },
     },
@@ -389,6 +394,19 @@ export const settingsFields: Record<
         text: "Unsubscribe from all eventsubs on websocket start",
         type: "boolean",
         default: false,
+    },
+    "twitch.voddownload.auth_enabled": {
+        group: "Twitch",
+        text: "Enable VOD download auth with oauth_config.txt",
+        type: "boolean",
+        default: false,
+    },
+    "twitchapi.enable_gql": {
+        group: "Twitch",
+        text: "Enable GQL",
+        type: "boolean",
+        default: false,
+        help: "End-users are not supposed to use GQL, use at your own risk.",
     },
 
     "youtube.client_id": {
@@ -417,7 +435,7 @@ export const settingsFields: Record<
         group: "Video",
         text: "VOD container (not tested)",
         type: "array",
-        choices: ["mp4", "mkv", "mov"],
+        choices: ["mp4", "mkv", "mov"] as string[],
         default: "mp4",
     },
 
@@ -526,7 +544,7 @@ export const settingsFields: Record<
         text: "Method to use when checking for muted vods",
         type: "array",
         default: "streamlink",
-        choices: ["api", "streamlink"],
+        choices: ["api", "streamlink"] as string[],
         help: "Bugged as of 2022-03-29: https://github.com/twitchdev/issues/issues/501",
     },
 
@@ -611,6 +629,17 @@ export const settingsFields: Record<
         type: "boolean",
         default: true,
     },
+    "video.chapters.title": {
+        group: "Video",
+        text: "Video chapters title",
+        type: "object",
+        default: "title_and_game",
+        choices: {
+            title_and_game: "Title and game",
+            title: "Title",
+            game: "Game",
+        },
+    },
     create_kodi_nfo: {
         group: "Video",
         text: "Create kodi nfo",
@@ -654,7 +683,7 @@ export const settingsFields: Record<
         group: "Video",
         text: "Vod filename",
         type: "template",
-        default: "{login}_{date}_{id}",
+        default: "{internalName}_{date}_{id}",
         help: "Vod filename.",
         replacements: VodBasenameFields,
         context: "{template}.json, {template}.mp4",
@@ -664,10 +693,31 @@ export const settingsFields: Record<
         group: "Video",
         text: "Vod folder name",
         type: "template",
-        default: "{login}_{date}_{id}",
+        default: "{internalName}_{date}_{id}",
         help: "Vod folder filename.",
         replacements: VodBasenameFields,
-        context: "/vods/{login}/{template}/",
+        context: "/vods/{internalName}/{template}/",
+    },
+
+    "template.vodsplit.folder": {
+        group: "Video",
+        text: "Vodsplit folder name",
+        type: "template",
+        default: "{internalName}_{date}_{id}",
+        help: "Vodsplit folder filename. If same as Vod folder name, it will be placed in the same folder.",
+        replacements: VodBasenameChapterFields,
+        context: "/vods/{internalName}/{template}/",
+    },
+
+    "template.vodsplit.filename": {
+        group: "Video",
+        text: "Vodsplit filename",
+        type: "template",
+        default:
+            "{internalName}_{date}_{id}-{chapter_number}._{chapter_title}_({game_name})",
+        help: "Vodsplit filename.",
+        replacements: VodBasenameChapterFields,
+        context: "{template}.mp4",
     },
 
     min_chapter_duration: {
@@ -697,7 +747,7 @@ export const settingsFields: Record<
         text: "Default exporter",
         type: "array",
         default: "file",
-        choices: ["file", "sftp", "ftp", "rclone", "youtube"],
+        choices: ["file", "sftp", "ftp", "rclone", "youtube"] as string[],
         help: "Default exporter for exporter.",
     },
     "exporter.default.directory": {
@@ -739,7 +789,7 @@ export const settingsFields: Record<
     "exporter.default.category": {
         group: "Exporter",
         text: "Default category",
-        type: "array",
+        type: "object",
         help: "YouTube category.",
         choices: YouTubeCategories,
     },
@@ -748,7 +798,7 @@ export const settingsFields: Record<
         text: "Default privacy",
         type: "array",
         help: "YouTube privacy.",
-        choices: ["public", "unlisted", "private"],
+        choices: ["public", "unlisted", "private"] as string[],
         default: "private",
     },
     "exporter.default.tags": {
@@ -822,7 +872,7 @@ export const settingsFields: Record<
             "h264_qsv",
             "h264_videotoolbox",
             "hevc_nvenc",
-        ],
+        ] as string[],
         help: "Video codec to use for reencoding. If you want to use CUDA, select h264_nvenc or hevc_nvenc and enable Hardware Acceleration.",
     },
 
@@ -859,7 +909,7 @@ export const settingsFields: Record<
             "p5",
             "p6",
             "p7",
-        ],
+        ] as string[],
     },
 
     "reencoder.tune": {
@@ -867,7 +917,7 @@ export const settingsFields: Record<
         text: "Tune",
         type: "array",
         default: "hq",
-        choices: ["hq", "ll", "ull", "lossless"],
+        choices: ["hq", "ll", "ull", "lossless"] as string[],
     },
 
     "reencoder.crf": {
@@ -953,14 +1003,14 @@ export const settingsFields: Record<
         group: "Chat burn",
         text: "Chat horizontal position",
         type: "array",
-        choices: ["left", "right"],
+        choices: ["left", "right"] as string[],
         default: "left",
     },
     "chatburn.default.vertical": {
         group: "Chat burn",
         text: "Chat vertical position",
         type: "array",
-        choices: ["top", "bottom"],
+        choices: ["top", "bottom"] as string[],
         default: "top",
     },
     "chatburn.default.preset": {
@@ -980,7 +1030,7 @@ export const settingsFields: Record<
         group: "Thumbnails",
         text: "Thumbnail format",
         type: "array",
-        choices: ["jpg", "png", "webp"],
+        choices: ["jpg", "png", "webp"] as string[],
         default: "jpg",
     },
-};
+} as const;

@@ -206,7 +206,7 @@ import ToolsVodDownloadForm from "@/components/forms/ToolsVodDownloadForm.vue";
 import ToolsChatDownloadForm from "@/components/forms/ToolsChatDownloadForm.vue";
 import ToolsChatDumpForm from "@/components/forms/ToolsChatDumpForm.vue";
 import ToolsClipDownloadForm from "../components/forms/ToolsClipDownloadForm.vue";
-import DurationDisplay from "@/components/DurationDisplay.vue";
+import DurationDisplay from "@/components/reusables/DurationDisplay.vue";
 
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faHeart, faStop, faSkull, faTrash, faPowerOff } from "@fortawesome/free-solid-svg-icons";

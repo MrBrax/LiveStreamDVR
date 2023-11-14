@@ -1,1 +1,1 @@
-pip install --user --upgrade streamlink yt-dlp tcd
+pip install --user --upgrade streamlink yt-dlp vcsi

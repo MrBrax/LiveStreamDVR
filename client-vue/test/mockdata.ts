@@ -53,9 +53,9 @@ export const TwitchChannelData: UserData = {
 
 export const MockApiChannelData: ApiTwitchChannel = {
     uuid: "uuid",
-    userid: "123", // deprecated
-    display_name: "Test", // deprecated
-    login: "test", // deprecated
+    // userid: "123", // deprecated
+    // display_name: "Test", // deprecated
+    // login: "test", // deprecated
     description: "test",
     quality: [],
     vods_raw: [],

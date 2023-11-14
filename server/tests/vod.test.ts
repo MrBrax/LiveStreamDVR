@@ -30,9 +30,9 @@ beforeAll(async () => {
     LiveStreamDVR.getInstance().clearChannels();
 
     const mock_channel = new TwitchChannel();
-    mock_channel.userid = "1";
-    mock_channel.login = "testuser";
-    mock_channel.display_name = "TestUser";
+    // mock_channel.userid = "1";
+    // mock_channel.login = "testuser";
+    // mock_channel.display_name = "TestUser";
     mock_channel.channel_data = {
         login: "testuser",
         _updated: 1,

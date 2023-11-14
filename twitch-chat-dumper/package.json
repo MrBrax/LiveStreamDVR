@@ -1,6 +1,6 @@
 {
   "name": "twitch-chat-dumper",
-  "version": "1.0.0",
+  "version": "1.1.1",
   "main": "index.js",
   "license": "MIT",
   "scripts": {
@@ -12,20 +12,20 @@
   },
   "dependencies": {
     "chalk": "4",
-    "date-fns": "^2.29.3",
+    "date-fns": "^2.30.0",
     "minimist": "^1.2.7",
     "ws": "^8.10.0"
   },
   "devDependencies": {
-    "@types/jest": "^29.2.0",
+    "@types/jest": "^29.5.7",
     "@types/minimist": "^1.2.2",
     "@types/node": "^18.11.5",
     "@types/ws": "^8.5.3",
     "esbuild": "^0.17.19",
-    "jest": "^29.2.1",
-    "ts-jest": "^29.0.3",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.1",
     "ts-node": "^10.9.1",
-    "typescript": "^4.8.4"
+    "typescript": "^5.2.2"
   },
-  "packageManager": "yarn@3.6.0"
+  "packageManager": "yarn@4.0.1"
 }

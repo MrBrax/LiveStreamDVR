@@ -1,3 +1,4 @@
+import type { ApiKickChannel } from "@common/Api/Client";
 import type { KickChannelConfig } from "@common/Config";
 import type { Providers } from "@common/Defs";
 import type {
@@ -91,26 +92,30 @@ export class KickChannel extends BaseChannel {
         config: KickChannelConfig
     ): Promise<KickChannel> {
         const exists_config = LiveStreamDVR.getInstance().channels_config.find(
-            (ch) => ch.provider == "kick" && ch.slug === config.slug
+            (ch) =>
+                ch.provider == "kick" && ch.internalName === config.internalName
         );
         if (exists_config)
-            throw new Error(`Channel ${config.slug} already exists in config`);
+            throw new Error(
+                `Channel ${config.internalName} already exists in config`
+            );
 
         const exists_channel = LiveStreamDVR.getInstance()
             .getChannels()
             .find<KickChannel>(
                 (channel): channel is KickChannel =>
-                    isKickChannel(channel) && channel.slug === config.slug
+                    isKickChannel(channel) &&
+                    channel.internalName === config.internalName
             );
         if (exists_channel)
             throw new Error(
-                `Channel ${config.slug} already exists in channels`
+                `Channel ${config.internalName} already exists in channels`
             );
 
-        const data = await KickChannel.getUserDataBySlug(config.slug);
+        const data = await KickChannel.getUserDataBySlug(config.internalName);
         if (!data)
             throw new Error(
-                `Could not get channel data for channel slug: ${config.slug}`
+                `Could not get channel data for channel slug: ${config.internalName}`
             );
 
         config.uuid = randomUUID();
@@ -118,9 +123,11 @@ export class KickChannel extends BaseChannel {
         LiveStreamDVR.getInstance().channels_config.push(config);
         LiveStreamDVR.getInstance().saveChannelsConfig();
 
-        const channel = await KickChannel.loadFromSlug(config.slug);
-        if (!channel || !channel.slug)
-            throw new Error(`Channel ${config.slug} could not be loaded`);
+        const channel = await KickChannel.loadFromSlug(config.internalName);
+        if (!channel || !channel.internalName)
+            throw new Error(
+                `Channel ${config.internalName} could not be loaded`
+            );
 
         /*
         if (
@@ -244,7 +251,9 @@ export class KickChannel extends BaseChannel {
         const channel_slug = channel_data.slug;
 
         const channel_config = LiveStreamDVR.getInstance().channels_config.find(
-            (c) => c.provider == "kick" && c.slug === channel_slug
+            (c) =>
+                c.provider == "kick" &&
+                (c.slug === channel_slug || c.internalName === channel_slug)
         );
         if (!channel_config)
             throw new Error(
@@ -314,5 +323,12 @@ export class KickChannel extends BaseChannel {
         // }
 
         return channel;
+    }
+
+    public override async toAPI(): Promise<ApiKickChannel> {
+        return {
+            ...(await super.toAPI()),
+            provider: "kick",
+        };
     }
 }

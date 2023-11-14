@@ -619,8 +619,24 @@ export class TwitchAutomator extends BaseAutomator {
                     log(
                         LOGLEVEL.INFO,
                         "automator.updateGame",
-                        `Channel ${this.getLogin()} status is online but not capturing, starting capture from chapter update.`
+                        `Channel ${this.getLogin()} status is online but not capturing, checking if we can start downloading.`
                     );
+
+                    /**
+                     * After a stream ends, the streamer can still change the stream title or game.
+                     * This will trigger an updateGame event, but we don't want to start downloading again if the stream is not live.
+                     * @TODO: check for false positives
+                     */
+                    if (!(await this.channel?.isLiveApi())) {
+                        log(
+                            LOGLEVEL.WARNING,
+                            "automator.updateGame",
+                            `Channel ${this.getLogin()} is not live, won't start downloading. ` +
+                                `This might be caused by the streamer changing the stream title or game after ending the stream.`
+                        );
+                        return false;
+                    }
+
                     this.download();
                 }
             }

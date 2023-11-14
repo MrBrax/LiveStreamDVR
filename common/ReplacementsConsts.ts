@@ -1,7 +1,7 @@
-import type { ClipBasenameTemplate, ExporterFilenameTemplate, TemplateField, VodBasenameTemplate } from "./Replacements";
+import type { ClipBasenameTemplate, ExporterFilenameTemplate, TemplateField, VodBasenameTemplate, VodBasenameWithChapterTemplate } from "./Replacements";
 
 export const VodBasenameFields: Record<keyof VodBasenameTemplate, TemplateField> = {
-    login: { display: "MooseStreamer", deprecated: true },
+    // login: { display: "MooseStreamer", deprecated: true },
     internalName: { display: "moosestreamer" },
     displayName: { display: "MooseStreamer", },
     date: { display: "2022-12-31T12_05_04Z" },
@@ -15,10 +15,21 @@ export const VodBasenameFields: Record<keyof VodBasenameTemplate, TemplateField>
     id: { display: "123456789" },
     season: { display: "202212" },
     absolute_season: { display: "5" },
+    absolute_episode: { display: "3" },
     episode: { display: "3" },
     title: { display: "Moose crosses river HOT NEW CONTENT COME LOOK" },
     game_name: { display: "Moose Simulator 2022" },
+    game_id: { display: "123456789" },
 };
+
+export const VodBasenameChapterFields: Record<keyof VodBasenameWithChapterTemplate, TemplateField> = {
+    ...VodBasenameFields, // extends VodBasenameTemplate
+    chapter_number: { display: "1" },
+    chapter_title: { display: "Moose crosses river" },
+    chapter_game_name: { display: "Moose Simulator 2022" },
+    chapter_game_id: { display: "123456789" },
+};
+
 
 export const ClipBasenameFields: Record<keyof ClipBasenameTemplate, TemplateField> = {
     id: { display: "MinimalMooseOtterCatcher1234" },

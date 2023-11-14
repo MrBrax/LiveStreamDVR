@@ -3,11 +3,7 @@
         <div class="field">
             <label class="label">{{ t("forms.channel.provider") }}</label>
             <div class="select">
-                <select v-model="formData.provider" class="select" name="provider">
-                    <option value="twitch">Twitch</option>
-                    <option value="youtube">YouTube</option>
-                    <option value="kick">Kick</option>
-                </select>
+                <d-select v-model="formData.provider" name="provider" :options="providers" />
             </div>
             <p class="input-help">YouTube will not work properly until they add webhooks for livestreams. It works with manual recordings and videos.</p>
         </div>
@@ -16,8 +12,8 @@
         <div v-if="formData.provider == 'twitch'" class="field">
             <label class="label">{{ t("forms.channel.login") }} <span class="required">*</span></label>
             <div class="control has-addon">
-                <input ref="login" v-model="formData.login" class="input" type="text" name="login" required pattern="^[a-z0-9_]{3,25}$" @keyup="checkLogin" />
-                <d-button type="button" color="success" icon="sync" :disabled="!formData.login" @click="fetchLogin">
+                <input ref="login" v-model="formData.internalName" class="input" type="text" name="login" required pattern="^[a-z0-9_]{3,25}$" @keyup="checkTwitchLogin" />
+                <d-button type="button" color="success" icon="sync" :disabled="!formData.internalName" @click="fetchTwitchLogin">
                     {{ t("forms.channel.check") }}
                 </d-button>
             </div>
@@ -31,17 +27,20 @@
             <label class="label">{{ t("forms.channel.url") }}</label>
             <div class="control has-addon">
                 <input v-model="channelUrl" class="input" type="text" :disabled="fetchingUrl" />
-                <d-button type="button" color="success" icon="sync" :loading="fetchingUrl" @click="getChannelId">
+                <d-button type="button" color="success" icon="sync" :loading="fetchingUrl" @click="getYouTubeChannelId">
                     {{ t("buttons.fetch") }}
                 </d-button>
             </div>
+            <p class="input-help">
+                {{ t("forms.channel.youtube-url-help") }}
+            </p>
         </div>
 
         <!-- youtube channel id -->
         <div v-if="formData.provider == 'youtube'" class="field">
             <label class="label">{{ t("forms.channel.id") }} <span class="required">*</span></label>
             <div class="control has-addon">
-                <input ref="channel_id" v-model="formData.channel_id" class="input" type="text" name="channel_id" required :disabled="fetchingUrl" />
+                <input ref="channel_id" v-model="formData.internalId" class="input" type="text" name="channel_id" required :disabled="fetchingUrl" />
                 <!--
                 <button class="button is-confirm" type="button" @click="fetchLogin" :disabled="!formData.login">
                     <span class="icon"><font-awesome-icon icon="sync" /></span>
@@ -58,8 +57,8 @@
         <div v-if="formData.provider == 'kick'" class="field">
             <label class="label">{{ t("forms.channel.slug") }} <span class="required">*</span></label>
             <div class="control has-addon">
-                <input ref="slug" v-model="formData.slug" class="input" type="text" name="slug" required />
-                <button class="button is-confirm" type="button" :disabled="!formData.slug" @click="fetchKickSlug">
+                <input ref="slug" v-model="formData.internalName" class="input" type="text" name="slug" required />
+                <button class="button is-confirm" type="button" :disabled="!formData.internalName" @click="fetchKickSlug">
                     <span class="icon"><font-awesome-icon icon="sync" /></span>
                     <span>{{ t("forms.channel.check") }}</span>
                 </button>
@@ -86,7 +85,7 @@
 
         <div v-if="userExists === false" class="field">
             <div class="text-is-error">
-                {{ t("forms.channel.login-does-not-exist", [formData.login]) }}
+                {{ t("forms.channel.login-does-not-exist", [formData.internalName]) }}
             </div>
         </div>
 
@@ -184,11 +183,7 @@
         <div v-if="formData.download_vod_at_end" class="field">
             <label class="label">{{ t("forms.channel.download_vod_at_end_quality") }}</label>
             <div class="select">
-                <select v-model="formData.download_vod_at_end_quality" name="download_vod_at_end_quality">
-                    <option v-for="quality in VideoQualityArray" :key="quality" :value="quality">
-                        {{ quality }}
-                    </option>
-                </select>
+                <d-select v-model="formData.download_vod_at_end_quality" name="download_vod_at_end_quality" :options="VideoQualityArray" />
             </div>
             <p class="input-help">
                 {{ t("forms.channel.download_vod_at_end_quality_help") }}
@@ -203,7 +198,7 @@
             <p>{{ t("forms.channel.subscriptions-warning") }}</p>
         </div>
 
-        <FormSubmit :form-status="formStatus" :form-status-text="formStatusText">
+        <FormSubmit :form-status="formStatus" :form-status-text="formStatusText" :zod-errors="zodErrors">
             <div class="control">
                 <d-button type="submit" color="success" icon="user-plus">
                     {{ t("forms.channel.add-channel") }}
@@ -215,17 +210,19 @@
 
 <script lang="ts" setup>
 import FormSubmit from "@/components/reusables/FormSubmit.vue";
-import { computed, ref } from "vue";
+import { computed, provide, ref } from "vue";
 import { VideoQualityArray } from "../../../../common/Defs";
 import { library } from "@fortawesome/fontawesome-svg-core";
 import { faUserPlus } from "@fortawesome/free-solid-svg-icons";
+import { faTwitch } from "@fortawesome/free-brands-svg-icons";
 import axios, { AxiosError } from "axios";
 import type { UserData } from "@common/User";
 import type { ApiResponse, ApiErrorResponse, IApiResponse } from "@common/Api/Api";
 import { useI18n } from "vue-i18n";
 import type { FormStatus } from "@/twitchautomator";
 import type { KickUser } from "@common/KickAPI/Kick";
-library.add(faUserPlus);
+import type { ZodError } from "zod";
+library.add(faUserPlus, faTwitch);
 
 // emit
 const emit = defineEmits(["formSuccess"]);
@@ -236,11 +233,14 @@ const { t } = useI18n();
 // data
 const formStatusText = ref<string>("Ready");
 const formStatus = ref<FormStatus>("IDLE");
+const zodErrors = ref<ZodError>();
 const formData = ref({
     provider: "twitch",
-    login: "",
-    channel_id: "",
-    slug: "",
+    // login: "",
+    // channel_id: "",
+    // slug: "",
+    internalId: "",
+    internalName: "",
     quality: "",
     match: "",
     download_chat: false,
@@ -258,6 +258,12 @@ const userExists = ref<boolean>();
 const channelUrl = ref<string>("");
 const fetchingUrl = ref<boolean>(false);
 const login = ref<HTMLInputElement | null>();
+
+const providers = [
+    { value: "twitch", label: "Twitch", icon: "fab fa-twitch" },
+    { value: "youtube", label: "YouTube" },
+    { value: "kick", label: "Kick" },
+];
 
 // computed
 const qualityWarning = computed((): boolean => {
@@ -287,6 +293,9 @@ function submitForm(event: Event) {
             if (axios.isAxiosError<ApiErrorResponse>(err) && err.response) {
                 formStatusText.value = err.response.data.message;
                 formStatus.value = err.response.data.status;
+                if (err.response.data.zodErrors) {
+                    zodErrors.value = err.response.data.zodErrors;
+                }
             }
         });
 
@@ -297,9 +306,11 @@ function submitForm(event: Event) {
 function resetForm() {
     formData.value = {
         provider: "twitch",
-        login: "",
-        channel_id: "",
-        slug: "",
+        // login: "",
+        // channel_id: "",
+        // slug: "",
+        internalId: "",
+        internalName: "",
         quality: "",
         match: "",
         download_chat: false,
@@ -314,10 +325,10 @@ function resetForm() {
     };
 }
 
-function checkLogin() {
-    const match = formData.value.login.match(/^https?:\/\/www.twitch.tv\/(\w+)/);
+function checkTwitchLogin() {
+    const match = formData.value.internalName.match(/^https?:\/\/www.twitch.tv\/(\w+)/);
     if (match) {
-        formData.value.login = match[1];
+        formData.value.internalName = match[1];
     }
     userExists.value = undefined;
 }
@@ -340,9 +351,9 @@ validateQuality() {
     }
 },
 */
-function fetchLogin() {
+function fetchTwitchLogin() {
     axios
-        .get<IApiResponse<UserData>>(`/api/v0/twitchapi/user/${formData.value.login}`)
+        .get<IApiResponse<UserData>>(`/api/v0/twitchapi/user/${formData.value.internalName}`)
         .then((response) => {
             const json = response.data;
             const field = login.value;
@@ -351,9 +362,9 @@ function fetchLogin() {
             }
             if (json.status == "OK") {
                 channelData.value = json.data;
-                if (channelData.value && channelData.value.login !== formData.value.login) {
+                if (channelData.value && channelData.value.login !== formData.value.internalName) {
                     alert(t("messages.login-mismatch-fixing"));
-                    formData.value.login = channelData.value.login;
+                    formData.value.internalName = channelData.value.login;
                 }
                 field.setCustomValidity("");
                 field.reportValidity();
@@ -378,14 +389,14 @@ function fetchLogin() {
         });
 }
 
-function getChannelId() {
+function getYouTubeChannelId() {
     fetchingUrl.value = true;
     axios
         .post<ApiResponse>("/api/v0/youtubeapi/channelid", { url: channelUrl.value })
         .then((response) => {
             const json = response.data;
             if (json.status == "OK") {
-                formData.value.channel_id = json.data;
+                formData.value.internalId = json.data;
             }
             console.log("channel id", json);
         })
@@ -399,7 +410,7 @@ function getChannelId() {
 
 function fetchKickSlug() {
     axios
-        .get<IApiResponse<KickUser>>(`/api/v0/kickapi/users/${formData.value.slug}`)
+        .get<IApiResponse<KickUser>>(`/api/v0/kickapi/users/${formData.value.internalName}`)
         .then((response) => {
             const json = response.data;
             if (json.status == "OK") {

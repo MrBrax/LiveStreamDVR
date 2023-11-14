@@ -54,7 +54,7 @@
 </template>
 
 <script lang="ts" setup>
-import SideMenu from "@/components/SideMenu.vue";
+import SideMenu from "@/components/menu/SideMenu.vue";
 import type { ApiAuthResponse } from "@common/Api/Api";
 import type { ApiLogLine } from "@common/Api/Client";
 import type {
@@ -395,7 +395,7 @@ function handleWebsocketMessage(action: WebhookAction, data: any) {
             // merge log lines
             const newLines: WinstonLogLine[] = data;
 
-            if (newLines.some((line) => line.metadata.timestamp && parseISO(line.metadata.timestamp).getDay() != new Date().getDay())) {
+            if (newLines.some((line) => line.metadata?.timestamp && parseISO(line.metadata.timestamp).getDay() != new Date().getDay())) {
                 // new day, clear log
                 store.clearLog();
                 store.addLog(newLines);

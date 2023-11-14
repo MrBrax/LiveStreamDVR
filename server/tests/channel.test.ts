@@ -1,50 +1,68 @@
-import { TwitchChannel } from "../src/Core/Providers/Twitch/TwitchChannel";
-import { Config } from "../src/Core/Config";
-import { TwitchVOD } from "../src/Core/Providers/Twitch/TwitchVOD";
-import fs from "node:fs";
-import { BaseVODSegment } from "../src/Core/Providers/Base/BaseVODSegment";
 import { randomUUID } from "node:crypto";
+import fs from "node:fs";
+import { Config } from "../src/Core/Config";
 import { LiveStreamDVR } from "../src/Core/LiveStreamDVR";
+import { BaseVODSegment } from "../src/Core/Providers/Base/BaseVODSegment";
+import { TwitchChannel } from "../src/Core/Providers/Twitch/TwitchChannel";
+import { TwitchVOD } from "../src/Core/Providers/Twitch/TwitchVOD";
 import "./environment";
 
 // jest.mock("TwitchVOD");
 // const mockTwitchVOD = jest.mocked(TwitchVOD, true);
 
 beforeAll(async () => {
-    const channels_config = JSON.parse(fs.readFileSync("./tests/mockdata/channels.json", "utf8"));
+    const channels_config = JSON.parse(
+        fs.readFileSync("./tests/mockdata/channels.json", "utf8")
+    );
     LiveStreamDVR.getInstance().channels_config = channels_config;
     LiveStreamDVR.getInstance().clearChannels();
 
     const mock_channel = new TwitchChannel();
-    mock_channel.login = "testuser";
+    mock_channel.channel_data = {
+        login: "testuser",
+        _updated: 1,
+        cache_offline_image: "",
+        profile_image_url: "",
+        offline_image_url: "",
+        created_at: "",
+        id: "1",
+        avatar_cache: "",
+        avatar_thumb: "",
+        broadcaster_type: "partner",
+        display_name: "TestUser",
+        type: "",
+        description: "",
+        view_count: 0,
+    };
     LiveStreamDVR.getInstance().addChannel(mock_channel);
 
     // mock twitchvod delete function
     // mockTwitchVOD.delete.mockImplementation(async (vod_id) => {
-
 });
 
 describe("Channel", () => {
-
     it("cleanup", async () => {
-        const channel = LiveStreamDVR.getInstance().getChannels()[0] as TwitchChannel;
+        const channel =
+            LiveStreamDVR.getInstance().getChannels()[0] as TwitchChannel;
 
         const spies = [];
 
         for (let i = 0; i < 10; i++) {
             const vod = new TwitchVOD();
             vod.uuid = randomUUID();
-            vod.basename = `testvod_${i+1}`;
+            vod.basename = `testvod_${i + 1}`;
             const seg = new BaseVODSegment();
-            seg.basename = `testvod_${i+1}.mp4`;
+            seg.basename = `testvod_${i + 1}.mp4`;
             seg.filesize = 1024 * 1024 * 1024 * 20;
             vod.segments = [seg];
             vod.total_size = seg.filesize;
             vod.is_finalized = true;
-            spies.push(jest.spyOn(vod, "delete").mockImplementation(async () => {
-                console.log("delete", vod.basename);
-                return await Promise.resolve(true);
-            }));
+            spies.push(
+                jest.spyOn(vod, "delete").mockImplementation(async () => {
+                    console.log("delete", vod.basename);
+                    return await Promise.resolve(true);
+                })
+            );
             channel.vods_list.push(vod);
             // console.log("add", vod.basename, Helper.formatBytes(seg.filesize));
         }
@@ -117,7 +135,9 @@ describe("Channel", () => {
         const candidates_8 = channel.roundupCleanupVodCandidates();
         expect(candidates_8.length).toBe(8);
 
-        const last_uuid = channel.vods_list ? channel.vods_list.at(-1)?.uuid : "";
+        const last_uuid = channel.vods_list
+            ? channel.vods_list.at(-1)?.uuid
+            : "";
 
         // 1 vod per streamer but ignore newest vod (delete 8 vods)
         Config.getInstance().setConfig("vods_to_keep", 1);
@@ -151,5 +171,4 @@ describe("Channel", () => {
         // expect(vodsDeleted).toBe(10);
         // console.log("vodsDeleted", vodsDeleted);
     });
-
 });

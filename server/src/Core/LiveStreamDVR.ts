@@ -6,8 +6,6 @@ import fs from "node:fs";
 import type { Server } from "node:http";
 // import { version } from "node:os";
 import type { BaseVODChapter } from "@/Core/Providers/Base/BaseVODChapter";
-import type { KickChannel } from "@/Core/Providers/Kick/KickChannel";
-import type { KickVOD } from "@/Core/Providers/Kick/KickVOD";
 import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
 import { TwitchGame } from "@/Core/Providers/Twitch/TwitchGame";
 import type { TwitchVOD } from "@/Core/Providers/Twitch/TwitchVOD";
@@ -51,6 +49,8 @@ import { Helper } from "./Helper";
 import { Job } from "./Job";
 import { KeyValue } from "./KeyValue";
 import { LOGLEVEL, log } from "./Log";
+import type { KickChannel } from "./Providers/Kick/KickChannel";
+import type { KickVOD } from "./Providers/Kick/KickVOD";
 import { Scheduler } from "./Scheduler";
 import { Webhook } from "./Webhook";
 
@@ -255,6 +255,18 @@ export class LiveStreamDVR {
                 );
                 needsSave = true;
             }
+            if (!channel.internalName || !channel.internalId) {
+                if (channel.provider == "twitch") {
+                    channel.internalName = channel.login || "";
+                } else if (channel.provider == "youtube") {
+                    channel.internalName = channel.channel_id || "";
+                    channel.internalId = channel.channel_id || "";
+                } else if (channel.provider == "kick") {
+                    channel.internalName = channel.slug || "";
+                } else {
+                    // throw new Error(`Channel ${channel.uuid} does not have an internalName`);
+                }
+            }
         }
 
         this.channels_config = data;
@@ -269,13 +281,16 @@ export class LiveStreamDVR {
             this.saveChannelsConfig();
         }
 
+        // TODO: is this needed any longer?
         if (Config.getInstance().cfg("channel_folders")) {
             const folders = fs.readdirSync(BaseConfigDataFolder.vod);
             for (const folder of folders) {
                 if (folder == ".gitkeep") continue;
                 if (
                     !this.channels_config.find(
-                        (ch) => ch.provider == "twitch" && ch.login === folder
+                        (ch) =>
+                            ch.provider == "twitch" &&
+                            (ch.login === folder || ch.internalName === folder)
                     )
                 ) {
                     log(
@@ -309,12 +324,16 @@ export class LiveStreamDVR {
                     let ch: TwitchChannel;
 
                     try {
-                        ch = await TwitchChannel.loadFromLogin(channel.login);
+                        ch = await TwitchChannel.loadFromLogin(
+                            channel.internalName
+                        );
                     } catch (th) {
                         log(
                             LOGLEVEL.FATAL,
                             "dvr.load.tw",
-                            `TW Channel ${channel.login} could not be loaded: ${th}`
+                            `TW Channel ${
+                                channel.internalName || channel.login
+                            } could not be loaded: ${th}`
                         );
                         console.error(th);
                         continue;
@@ -328,22 +347,26 @@ export class LiveStreamDVR {
                         log(
                             LOGLEVEL.SUCCESS,
                             "dvr.load.tw",
-                            `Loaded channel ${channel.login} with ${
-                                ch.getVods().length
-                            } vods`
+                            `Loaded channel ${
+                                channel.internalName || channel.login
+                            } with ${ch.getVods().length} vods`
                         );
                         if (ch.no_capture) {
                             log(
                                 LOGLEVEL.WARNING,
                                 "dvr.load.tw",
-                                `Channel ${channel.login} is configured to not capture streams.`
+                                `Channel ${
+                                    channel.internalName || channel.login
+                                } is configured to not capture streams.`
                             );
                         }
                     } else {
                         log(
                             LOGLEVEL.FATAL,
                             "dvr.load.tw",
-                            `Channel ${channel.login} could not be added, please check logs.`
+                            `Channel ${
+                                channel.internalName || channel.login
+                            } could not be added, please check logs.`
                         );
                         break;
                     }
@@ -352,13 +375,13 @@ export class LiveStreamDVR {
 
                     try {
                         ch = await YouTubeChannel.loadFromId(
-                            channel.channel_id
+                            channel.internalId
                         );
                     } catch (th) {
                         log(
                             LOGLEVEL.FATAL,
                             "dvr.load.yt",
-                            `YT Channel ${channel.channel_id} could not be loaded: ${th}`
+                            `YT Channel ${channel.internalName} could not be loaded: ${th}`
                         );
                         console.error(th);
                         continue;

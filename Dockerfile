@@ -77,7 +77,7 @@ RUN cd /usr/local/share/twitchautomator/twitch-chat-dumper \
 # vod player
 COPY --chown=node:node --chmod=775 ./twitch-vod-chat /usr/local/share/twitchautomator/twitch-vod-chat
 RUN cd /usr/local/share/twitchautomator/twitch-vod-chat \
-    && yarn \
+    && yarn install --immutable \
     && yarn build --base=/vodplayer \
     && yarn buildlib \
     && rm -rf node_modules \

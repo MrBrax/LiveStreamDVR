@@ -1,4 +1,3 @@
-import type { ExecReturn } from "@/Providers/Twitch";
 import type { ApiBaseVod } from "@common/Api/Client";
 import type { VODBookmark } from "@common/Bookmark";
 import type { VideoQuality } from "@common/Config";
@@ -15,6 +14,7 @@ import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { debugLog } from "../../../Helpers/Console";
+import type { ExecReturn } from "../../../Helpers/Execute";
 import { startJob } from "../../../Helpers/Execute";
 import { formatBytes } from "../../../Helpers/Format";
 import { xClearTimeout, xTimeout } from "../../../Helpers/Timeout";
@@ -93,6 +93,12 @@ export class BaseVOD {
     stream_number?: number;
     stream_absolute_season?: number;
     stream_absolute_number?: number;
+
+    external_vod_id?: string;
+    external_vod_title?: string;
+    external_vod_duration?: number;
+    external_vod_exists?: boolean;
+    external_vod_date?: Date;
 
     comment?: string;
 
@@ -347,7 +353,7 @@ export class BaseVOD {
             `${this.basename}-ffmpeg-chapters.txt`,
             `${this.basename}.chapters.vtt`,
             `${this.basename}.nfo`,
-            `${this.basename}-contact-sheet.png`,
+            `${this.basename}-contact_sheet.png`,
         ];
 
         if (this.segments_raw) {
@@ -391,10 +397,198 @@ export class BaseVOD {
     }
 
     public async toAPI(): Promise<ApiBaseVod> {
-        throw new Error("Not implemented");
+        return await Promise.resolve({
+            provider: this.provider,
+            uuid: this.uuid,
+            channel_uuid: this.channel_uuid || "",
+            basename: this.basename || "",
+
+            stream_title: this.stream_title || "",
+
+            capture_id: this.capture_id,
+
+            segments: this.segments.map((s) => s.toAPI()),
+            segments_raw: this.segments_raw,
+
+            created_at: this.created_at ? this.created_at.toISOString() : "",
+            saved_at: this.saved_at ? this.saved_at.toISOString() : "",
+            started_at: this.started_at ? this.started_at.toISOString() : "",
+            ended_at: this.ended_at ? this.ended_at.toISOString() : undefined,
+            capture_started: this.capture_started
+                ? this.capture_started.toISOString()
+                : undefined,
+            capture_started2: this.capture_started2
+                ? this.capture_started2.toISOString()
+                : undefined,
+            conversion_started: this.conversion_started
+                ? this.conversion_started.toISOString()
+                : undefined,
+
+            external_vod_id: this.external_vod_id,
+            external_vod_duration: this.external_vod_duration,
+            external_vod_title: this.external_vod_title,
+            external_vod_date: this.external_vod_date
+                ? this.external_vod_date.toISOString()
+                : undefined,
+            external_vod_exists: this.external_vod_exists,
+
+            is_converted: this.is_converted,
+            is_capturing: this.is_capturing,
+            is_converting: this.is_converting,
+            is_finalized: this.is_finalized,
+
+            is_chat_downloaded: this.is_chat_downloaded,
+            is_vod_downloaded: this.is_vod_downloaded,
+            is_chat_rendered: this.is_chat_rendered,
+            is_chat_burned: this.is_chat_burned,
+            is_lossless_cut_generated: this.is_lossless_cut_generated,
+            is_chatdump_captured: this.is_chatdump_captured,
+            is_capture_paused: this.is_capture_paused,
+
+            path_chat: this.path_chat,
+            path_downloaded_vod: this.path_downloaded_vod,
+            path_losslesscut: this.path_losslesscut,
+            path_chatrender: this.path_chatrender,
+            path_chatburn: this.path_chatburn,
+            path_chatdump: this.path_chatdump,
+            path_chatmask: this.path_chatmask,
+            // path_adbreak: this.path_adbreak,
+            path_playlist: this.path_playlist,
+
+            duration_live: this.getDurationLive(),
+            duration: this.duration || 0,
+
+            video_metadata: this.video_metadata,
+
+            total_size: this.total_size,
+
+            webpath: this.webpath,
+
+            stream_number: this.stream_number,
+            stream_season: this.stream_season,
+            stream_absolute_season: this.stream_absolute_season,
+            stream_absolute_number: this.stream_absolute_number,
+
+            comment: this.comment,
+
+            prevent_deletion: this.prevent_deletion,
+
+            failed: this.failed,
+
+            bookmarks: this.bookmarks,
+
+            cloud_storage: this.cloud_storage,
+
+            export_data: this.exportData,
+
+            chapters: this.chapters.map((c) => c.toAPI()),
+
+            viewers: this.viewers.map((v) => {
+                return {
+                    timestamp: v.timestamp.toISOString(),
+                    amount: v.amount,
+                };
+            }),
+            stream_pauses: this.stream_pauses.map((v) => {
+                return {
+                    start: v.start.toISOString(),
+                    end: v.end.toISOString(),
+                };
+            }),
+
+            api_getDuration: await this.getDuration(true),
+            api_getRecordingSize: this.getRecordingSize(),
+            api_getDurationLive: this.getDurationLive(),
+            api_getConvertingStatus: await this.getConvertingStatus(),
+            api_getCapturingStatus: await this.getCapturingStatus(),
+        });
+    }
+
+    public async toJSON(): Promise<VODJSON> {
+        const generated: VODJSON =
+            this.json && Object.keys(this.json).length > 0
+                ? JSON.parse(JSON.stringify(this.json))
+                : {};
+
+        generated.type = this.provider;
+
+        generated.uuid = this.uuid;
+
+        generated.capture_id = this.capture_id;
+
+        generated.stream_resolution = this.stream_resolution ?? undefined;
+
+        if (this.channel_uuid) generated.channel_uuid = this.channel_uuid;
+
+        generated.is_capturing = this.is_capturing;
+        generated.is_converting = this.is_converting;
+        generated.is_finalized = this.is_finalized;
+
+        generated.duration = this.duration ?? undefined;
+        generated.video_metadata = this.video_metadata;
+        generated.saved_at = new Date().toISOString();
+
+        if (this.created_at)
+            generated.created_at = this.created_at.toISOString();
+        if (this.capture_started)
+            generated.capture_started = this.capture_started.toISOString();
+        if (this.capture_started2)
+            generated.capture_started2 = this.capture_started2.toISOString();
+        if (this.conversion_started)
+            generated.conversion_started =
+                this.conversion_started.toISOString();
+        if (this.started_at)
+            generated.started_at = this.started_at.toISOString();
+        if (this.ended_at) generated.ended_at = this.ended_at.toISOString();
+
+        generated.not_started = this.not_started;
+
+        generated.stream_number = this.stream_number;
+        generated.stream_season = this.stream_season;
+        generated.stream_absolute_season = this.stream_absolute_season;
+        generated.stream_absolute_number = this.stream_absolute_number;
+
+        generated.comment = this.comment;
+        generated.prevent_deletion = this.prevent_deletion;
+        generated.failed = this.failed;
+        generated.bookmarks = this.bookmarks;
+        generated.cloud_storage = this.cloud_storage;
+        generated.export_data = this.exportData;
+
+        generated.viewers = this.viewers.map((viewer) => ({
+            timestamp: viewer.timestamp.toJSON(),
+            amount: viewer.amount,
+        }));
+
+        generated.stream_pauses = this.stream_pauses.flatMap((pause) => {
+            return pause.start && pause.end
+                ? [{ start: pause.start.toJSON(), end: pause.end.toJSON() }]
+                : [];
+        });
+
+        generated.external_vod_exists = this.external_vod_exists;
+        generated.external_vod_id = this.external_vod_id;
+        generated.external_vod_duration = this.external_vod_duration;
+        generated.external_vod_title = this.external_vod_title;
+        generated.external_vod_date = this.external_vod_date?.toISOString();
+
+        return await Promise.resolve(generated);
     }
 
     public async saveJSON(reason = ""): Promise<boolean> {
+        if (this.json) {
+            fs.writeFileSync(
+                path.join(
+                    BaseConfigDataFolder.backup,
+                    `${this.uuid}-${Date.now()}-${reason}.json`
+                ),
+                JSON.stringify(this.json, null, 4)
+            );
+        }
+        return await Promise.resolve(true);
+    }
+
+    public async migrate(): Promise<boolean> {
         throw new Error("Not implemented");
     }
 
@@ -564,7 +758,7 @@ export class BaseVOD {
             throw new Error("FFmpeg not installed");
         }
 
-        args.push("--mode", "ChatRender");
+        args.push("chatrender");
         args.push("--temp-path", BaseConfigCacheFolder.cache);
         args.push("--ffmpeg-path", ffmpeg_bin);
         args.push(
@@ -611,26 +805,26 @@ export class BaseVOD {
                 throw new Error("Could not start job");
             }
 
-            job.on("stdout", (data: string) => {
-                if (data.includes("Fetching ")) {
+            job.on("stdout", (stdData: string) => {
+                if (stdData.includes("Fetching ")) {
                     log(
                         LOGLEVEL.INFO,
                         "vod.renderChat",
-                        `Chat render fetching: ${data}`
+                        `Chat render fetching: ${stdData}`
                     );
-                } else if (data.includes("Rendering Comments")) {
+                } else if (stdData.includes("Rendering Comments")) {
                     log(
                         LOGLEVEL.INFO,
                         "vod.renderChat",
                         "Comments now rendering!"
                     );
-                } else if (data.trim() == "[STATUS] - Rendering Video 0%") {
+                } else if (stdData.trim() == "[STATUS] - Rendering Video 0%") {
                     log(
                         LOGLEVEL.INFO,
                         "vod.renderChat",
                         "Chat history now rendering!"
                     );
-                } else if (data.includes("FINISHED")) {
+                } else if (stdData.includes("FINISHED")) {
                     log(
                         LOGLEVEL.INFO,
                         "vod.renderChat",
@@ -1000,20 +1194,32 @@ export class BaseVOD {
             this.getChannel().displayName
         );
 
-        if (isTwitchVOD(this)) {
-            meta.setTitle(this.twitch_vod_title ?? this.chapters[0].title);
-        }
+        // if (isTwitchVOD(this)) {
+        meta.setTitle(this.external_vod_title ?? this.chapters[0].title);
+        // }
 
         if (this.started_at) meta.setDate(this.started_at);
+
+        const titleConfig = Config.getInstance().cfg("video.chapters.title");
 
         this.chapters.forEach((chapter) => {
             const offset = chapter.offset || 0;
             const duration = chapter.duration || 0;
             const start = Math.floor(offset * 1000);
             const end = Math.floor((offset + duration) * 1000);
-            const title = isTwitchVODChapter(chapter)
-                ? `${chapter.title} (${chapter.game_name})`
-                : chapter.title;
+            // const title = isTwitchVODChapter(chapter)
+            //     ? `${chapter.title} (${chapter.game_name})`
+            //     : chapter.title;
+            let title = chapter.title;
+            if (
+                titleConfig == "title_and_game" &&
+                isTwitchVODChapter(chapter)
+            ) {
+                title = `${chapter.title} (${chapter.game_name})`;
+            } else if (titleConfig == "game" && isTwitchVODChapter(chapter)) {
+                title = `${chapter.game_name ?? chapter.title}`;
+            }
+
             try {
                 meta.addChapter(start, end, title, "1/1000", [
                     isTwitchVODChapter(chapter)
@@ -1817,6 +2023,14 @@ export class BaseVOD {
                         : [];
                 });
         }
+
+        this.external_vod_id = this.json.external_vod_id;
+        this.external_vod_title = this.json.external_vod_title;
+        this.external_vod_date = this.json.external_vod_date
+            ? parseJSON(this.json.external_vod_date)
+            : undefined;
+        this.external_vod_duration = this.json.external_vod_duration;
+        this.external_vod_exists = this.json.external_vod_exists ?? false;
     }
     public setupProvider(): void {
         return;
@@ -2136,6 +2350,17 @@ export class BaseVOD {
             );
             this.issueFixCount = 0;
             return true;
+        }
+
+        if (await this.migrate()) {
+            log(
+                LOGLEVEL.INFO,
+                "vod.fixIssues",
+                `VOD ${this.basename} has been migrated`
+            );
+            this.issueFixCount++;
+            this.saveJSON("fix migrate");
+            return false;
         }
 
         // fix illegal characters
@@ -2701,6 +2926,10 @@ export class BaseVOD {
     // getter for game_name
     public get game_name(): string {
         return ""; // base vod does not have game_name
+    }
+
+    public get game_id(): string {
+        return ""; // base vod does not have game_id
     }
 
     public calculateBookmarks(): boolean {

@@ -1,10 +1,10 @@
-import { AppRoot, BaseConfigDataFolder } from "@/Core/BaseConfig";
-import path from "node:path";
-import fs from "node:fs";
-import type { ExecReturn } from "../Providers/Twitch";
+import { AppRoot } from "@/Core/BaseConfig";
 import { Helper } from "@/Core/Helper";
 import type { BinaryStatus } from "@common/Api/About";
 import { compareVersions } from "compare-versions";
+import fs from "node:fs";
+import path from "node:path";
+import type { ExecReturn } from "./Execute";
 import { execSimple } from "./Execute";
 
 interface BinaryDef {
@@ -48,15 +48,15 @@ export function DVRBinaries(): Record<string, BinaryDef> {
 
 export function DVRPipPackages(): Record<string, BinaryDef> {
     return {
-        tcd: {
-            binary: Helper.path_tcd(),
-            version_args: [
-                "--version",
-                "--settings-file",
-                path.join(BaseConfigDataFolder.config, "tcd_settings.json"),
-            ],
-            version_regex: /^Twitch Chat Downloader\s+([0-9.]+)$/m,
-        },
+        // tcd: {
+        //     binary: Helper.path_tcd(),
+        //     version_args: [
+        //         "--version",
+        //         "--settings-file",
+        //         path.join(BaseConfigDataFolder.config, "tcd_settings.json"),
+        //     ],
+        //     version_regex: /^Twitch Chat Downloader\s+([0-9.]+)$/m,
+        // },
         streamlink: {
             binary: Helper.path_streamlink(),
             version_args: ["--version"],

@@ -97,7 +97,6 @@ If you want the public webapp to have a custom base folder, you must provide `BA
 ### pip packages
 - [streamlink](https://github.com/streamlink/streamlink) (required)
 - [yt-dlp](https://github.com/yt-dlp/yt-dlp) (not used at the moment)
-- [tcd](https://github.com/PetterKraabol/Twitch-Chat-Downloader) (optional)
 - [vcsi](https://github.com/amietn/vcsi) (optional)
 
 ### Steps

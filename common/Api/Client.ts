@@ -92,10 +92,17 @@ export interface ApiBaseVod {
     video_metadata?: VideoMetadata | AudioMetadata;
     webpath: string;
 
+    stream_title: string;
     stream_number?: number;
     stream_season?: string;
     stream_absolute_season?: number;
     stream_absolute_number?: number;
+
+    external_vod_id?: string;
+    external_vod_title?: string;
+    external_vod_duration?: number;
+    external_vod_exists?: boolean;
+    external_vod_date?: string;
 
     comment?: string;
     prevent_deletion: boolean;
@@ -104,6 +111,10 @@ export interface ApiBaseVod {
     cloud_storage?: boolean;
 
     api_getRecordingSize: number | false;
+    api_getDuration: number | null;
+    api_getCapturingStatus: JobStatus;
+    api_getConvertingStatus: JobStatus;
+    api_getDurationLive: number | false;
 
     export_data?: ExportData;
 
@@ -115,28 +126,24 @@ export interface ApiBaseVod {
 
 export interface ApiTwitchVod extends ApiBaseVod {
     provider: "twitch";
-    stream_title: string;
     stream_resolution?: VideoQuality;
 
-    twitch_vod_duration?: number;
+    // twitch_vod_duration?: number;
     twitch_vod_muted?: MuteStatus;
     twitch_vod_status?: ExistStatus;
-    twitch_vod_id?: string;
-    twitch_vod_date?: string;
-    twitch_vod_title?: string;
+    // twitch_vod_id?: string;
+    // twitch_vod_date?: string;
+    // twitch_vod_title?: string;
 
     twitch_vod_neversaved?: boolean;
-    twitch_vod_exists?: boolean;
+    // twitch_vod_exists?: boolean;
     twitch_vod_attempted?: boolean;
 
     api_hasFavouriteGame: boolean;
     api_getUniqueGames: ApiGame[];
     api_getWebhookDuration?: string;
-    api_getDuration: number | null;
-    api_getCapturingStatus: JobStatus;
-    api_getConvertingStatus: JobStatus;
+
     api_getChatDumpStatus: JobStatus;
-    api_getDurationLive: number | false;
 
     // game_offset: number;
 
@@ -170,8 +177,8 @@ export type ApiSettingsField = {
 };
 
 export interface ApiBaseChannel {
-    uuid: string;
     provider: Providers;
+    uuid: string;
     description: string;
     vods_raw: string[];
     vods_size: number;
@@ -197,7 +204,6 @@ export interface ApiBaseChannel {
     current_stream_number?: number;
     current_season?: string;
     current_absolute_season?: number;
-    saves_vods: boolean;
 
     displayName: string;
     internalName: string;
@@ -209,9 +215,6 @@ export interface ApiBaseChannel {
 
 export interface ApiTwitchChannel extends ApiBaseChannel {
     provider: "twitch";
-    userid: string;
-    display_name: string;
-    login: string;
     quality: VideoQuality[] | undefined;
     vods_list: ApiTwitchVod[];
     profile_image_url: string;
@@ -230,6 +233,8 @@ export interface ApiTwitchChannel extends ApiBaseChannel {
     api_getSubscriptionStatus: boolean;
 
     chapter_data?: TwitchVODChapterJSON;
+
+    saves_vods: boolean;
 }
 
 export interface ApiYouTubeChannel extends ApiBaseChannel {
@@ -256,8 +261,12 @@ export interface ApiYouTubeChannel extends ApiBaseChannel {
     chapter_data?: BaseVODChapterJSON;
 }
 
-export type ApiChannels = ApiTwitchChannel | ApiYouTubeChannel;
-export type ApiVods = ApiTwitchVod | ApiYouTubeVod;
+export interface ApiKickChannel extends ApiBaseChannel {
+    provider: "kick";
+}
+
+export type ApiChannels = ApiTwitchChannel | ApiYouTubeChannel | ApiKickChannel;
+export type ApiVods = ApiTwitchVod | ApiYouTubeVod | ApiKickVod;
 
 export type ApiSubscription = {
     type: string;

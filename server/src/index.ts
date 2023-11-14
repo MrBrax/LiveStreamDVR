@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 import chalk from "chalk";
 import dotenv from "dotenv";
-import session from "express-session";
 import minimist from "minimist";
 import morgan from "morgan";
 import fs from "node:fs";

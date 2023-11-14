@@ -2,10 +2,10 @@ import { BaseConfigCacheFolder } from "@/Core/BaseConfig";
 import { Config } from "@/Core/Config";
 import { Helper } from "@/Core/Helper";
 import { LOGLEVEL, log } from "@/Core/Log";
-import type { ExecReturn } from "@/Providers/Twitch";
 import { createHash } from "crypto";
 import fs from "node:fs";
 import path from "node:path";
+import type { ExecReturn } from "./Execute";
 import { execSimple } from "./Execute";
 
 export async function imageThumbnail(

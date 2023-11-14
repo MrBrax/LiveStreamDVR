@@ -1,5 +1,5 @@
 export interface VodBasenameTemplate extends Record<string, string> {
-    login: string;
+    // login: string;
     internalName: string;
     displayName: string;
     date: string;
@@ -17,6 +17,14 @@ export interface VodBasenameTemplate extends Record<string, string> {
     absolute_episode: string;
     title: string;
     game_name: string;
+    game_id: string;
+}
+
+export interface VodBasenameWithChapterTemplate extends VodBasenameTemplate {
+    chapter_number: string;
+    chapter_title: string;
+    chapter_game_name: string;
+    chapter_game_id: string;
 }
 
 export interface ExporterFilenameTemplate extends Record<string, string> {

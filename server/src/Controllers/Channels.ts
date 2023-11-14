@@ -14,8 +14,15 @@ import { YouTubeChannel } from "@/Core/Providers/YouTube/YouTubeChannel";
 import { YouTubeVOD } from "@/Core/Providers/YouTube/YouTubeVOD";
 import { Webhook } from "@/Core/Webhook";
 import { debugLog } from "@/Helpers/Console";
+import {
+    sanitizePath,
+    validateAbsolutePath,
+    validateFilename,
+    validateRelativePath,
+} from "@/Helpers/Filesystem";
 import { generateStreamerList } from "@/Helpers/StreamerList";
 import { isError, isTwitchChannel, isYouTubeChannel } from "@/Helpers/Types";
+import { VideoQuality } from "@/Zod/Base";
 import type {
     ApiChannelResponse,
     ApiChannelsResponse,
@@ -26,7 +33,6 @@ import type {
 import type {
     KickChannelConfig,
     TwitchChannelConfig,
-    VideoQuality,
     YouTubeChannelConfig,
 } from "@common/Config";
 import type { Providers } from "@common/Defs";
@@ -35,12 +41,12 @@ import { formatString } from "@common/Format";
 import type { ProxyVideo } from "@common/Proxies/Video";
 import type { VodBasenameTemplate } from "@common/Replacements";
 import type { EventSubStreamOnline } from "@common/TwitchAPI/EventSub/StreamOnline";
-import { format, isValid, parseJSON } from "date-fns";
+import { addSeconds, format, isValid, parseJSON } from "date-fns";
 import type express from "express";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import sanitize from "sanitize-filename";
+import { z } from "zod";
 import { TwitchHelper } from "../Providers/Twitch";
 import type { TwitchVODChapterJSON } from "../Storage/JSON";
 
@@ -100,8 +106,18 @@ export async function GetChannel(
         return;
     }
 
+    /*
+    if (isBaseChannel(channel)) {
+        res.api<ApiErrorResponse>(400, {
+            status: "ERROR",
+            message: "Channel is not supported",
+        });
+        return;
+    }
+    */
+
     res.api<ApiChannelResponse>(200, {
-        data: await channel.toAPI(),
+        data: (await channel.toAPI()) as any, // screw typescript
         status: "OK",
     });
 }
@@ -120,6 +136,7 @@ export function UpdateChannel(
         return;
     }
 
+    /*
     const formdata: {
         quality: string;
         match: string;
@@ -149,12 +166,64 @@ export function UpdateChannel(
     const max_vods = formdata.max_vods;
     const download_vod_at_end = formdata.download_vod_at_end;
     const download_vod_at_end_quality = formdata.download_vod_at_end_quality;
+    */
+
+    const formparser = z.object({
+        quality: z.preprocess((val) => {
+            if (typeof val === "string") {
+                return val.split(" ") as z.infer<typeof VideoQuality>[]; // TODO: validate
+            }
+            return val;
+        }, z.array(VideoQuality)),
+        match: z.preprocess((val) => {
+            if (typeof val === "string") {
+                return val.split(",").map((m) => m.trim());
+            }
+            return val;
+        }, z.array(z.string())),
+        download_chat: z.boolean(),
+        burn_chat: z.boolean(),
+        no_capture: z.boolean(),
+        live_chat: z.boolean(),
+        no_cleanup: z.boolean(),
+        max_storage: z.number(),
+        max_vods: z.number(),
+        download_vod_at_end: z.boolean(),
+        download_vod_at_end_quality: VideoQuality,
+    });
+
+    const parsedbody = formparser.safeParse(req.body);
+
+    if (!parsedbody.success) {
+        res.api<ApiErrorResponse>(400, {
+            status: "ERROR",
+            message: parsedbody.error.message,
+            zodErrors: parsedbody.error,
+        });
+        return;
+    }
+
+    const {
+        quality,
+        match,
+        download_chat,
+        burn_chat,
+        no_capture,
+        live_chat,
+        no_cleanup,
+        max_storage,
+        max_vods,
+        download_vod_at_end,
+        download_vod_at_end_quality,
+    } = parsedbody.data;
 
     if (channel instanceof TwitchChannel) {
         const channel_config: TwitchChannelConfig = {
             uuid: channel.uuid,
             provider: "twitch",
-            login: channel.login || "",
+            // login: channel.login || "",
+            internalId: channel.internalId,
+            internalName: channel.internalName,
             quality: quality,
             match: match,
             download_chat: download_chat,
@@ -173,6 +242,8 @@ export function UpdateChannel(
             uuid: channel.uuid,
             provider: "youtube",
             channel_id: channel.channel_id || "",
+            internalId: channel.internalId,
+            internalName: channel.internalName,
             quality: quality,
             match: match,
             download_chat: download_chat,
@@ -284,13 +355,14 @@ export async function AddChannel(
     const provider = req.body.provider as Providers;
 
     if (!provider) {
-        res.api(400, {
+        res.api<ApiErrorResponse>(400, {
             status: "ERROR",
             message: req.t("route.channels.provider-not-found"),
-        } as ApiErrorResponse);
+        });
         return;
     }
 
+    /*
     const formdata: {
         login?: string;
         channel_id?: string;
@@ -307,20 +379,68 @@ export async function AddChannel(
         download_vod_at_end: boolean;
         download_vod_at_end_quality: VideoQuality;
     } = req.body;
+    */
+
+    // internalId an internalName are either or
+
+    const formparser = z.object({
+        internalId: z.string().optional(),
+        internalName: z.string().optional(),
+        quality: z.preprocess((val) => {
+            if (typeof val === "string") {
+                return val.split(" ") as z.infer<typeof VideoQuality>[]; // TODO: validate
+            }
+            return val;
+        }, z.array(VideoQuality)),
+        match: z.preprocess((val) => {
+            if (typeof val === "string") {
+                return val.split(",").map((m) => m.trim());
+            }
+            return val;
+        }, z.array(z.string())),
+        download_chat: z.boolean(),
+        burn_chat: z.boolean(),
+        no_capture: z.boolean(),
+        live_chat: z.boolean(),
+        no_cleanup: z.boolean(),
+        max_storage: z.number(),
+        max_vods: z.number(),
+        download_vod_at_end: z.boolean(),
+        download_vod_at_end_quality: VideoQuality,
+    });
+
+    const parsedbody = formparser.safeParse(req.body);
+
+    if (!parsedbody.success) {
+        res.api<ApiErrorResponse>(400, {
+            status: "ERROR",
+            message: parsedbody.error.message,
+            zodErrors: parsedbody.error,
+        });
+        return;
+    }
+
+    const formdata = parsedbody.data;
 
     let new_channel;
 
     if (provider == "twitch") {
+        if (!formdata.internalName) {
+            res.api(400, {
+                status: "ERROR",
+                message: req.t("route.channels.channel-login-not-specified"),
+            } as ApiErrorResponse);
+            return;
+        }
+
         const channel_config: TwitchChannelConfig = {
             uuid: "",
             provider: "twitch",
-            login: formdata.login || "",
-            quality: formdata.quality
-                ? (formdata.quality.split(" ") as VideoQuality[])
-                : [],
-            match: formdata.match
-                ? formdata.match.split(",").map((m) => m.trim())
-                : [],
+            // login: formdata.login || "",
+            internalId: "",
+            internalName: formdata.internalName,
+            quality: formdata.quality,
+            match: formdata.match,
             download_chat: formdata.download_chat,
             burn_chat: formdata.burn_chat,
             no_capture: formdata.no_capture,
@@ -332,14 +452,6 @@ export async function AddChannel(
             download_vod_at_end_quality: formdata.download_vod_at_end_quality,
         };
 
-        if (!channel_config.login) {
-            res.api(400, {
-                status: "ERROR",
-                message: req.t("route.channels.channel-login-not-specified"),
-            } as ApiErrorResponse);
-            return;
-        }
-
         if (channel_config.quality.length === 0) {
             res.api(400, {
                 status: "ERROR",
@@ -348,6 +460,7 @@ export async function AddChannel(
             return;
         }
 
+        // check if quality is valid
         if (
             channel_config.quality.some((q) => !VideoQualityArray.includes(q))
         ) {
@@ -358,12 +471,15 @@ export async function AddChannel(
             return;
         }
 
-        const channel = TwitchChannel.getChannelByLogin(channel_config.login);
+        // check if channel already exists
+        const channel = TwitchChannel.getChannelByLogin(
+            channel_config.internalName
+        );
         if (channel) {
             log(
                 LOGLEVEL.ERROR,
                 "route.channels.add",
-                `Failed to create channel, channel already exists: ${channel_config.login}`
+                `Failed to create channel, channel already exists: ${channel_config.internalName}`
             );
             res.api(400, {
                 status: "ERROR",
@@ -376,7 +492,7 @@ export async function AddChannel(
 
         try {
             api_channel_data = await TwitchChannel.getUserDataByLogin(
-                channel_config.login
+                channel_config.internalName
             );
         } catch (error) {
             log(
@@ -393,9 +509,17 @@ export async function AddChannel(
             return;
         }
 
+        if (!api_channel_data) {
+            res.api(400, {
+                status: "ERROR",
+                message: req.t("route.channels.channel-not-found"),
+            } as ApiErrorResponse);
+            return;
+        }
+
         if (
             api_channel_data &&
-            api_channel_data.login !== channel_config.login
+            api_channel_data.login !== channel_config.internalName
         ) {
             res.api(400, {
                 status: "ERROR",
@@ -405,6 +529,8 @@ export async function AddChannel(
             } as ApiErrorResponse);
             return;
         }
+
+        channel_config.internalId = api_channel_data.id;
 
         try {
             new_channel = await TwitchChannel.create(channel_config);
@@ -427,16 +553,22 @@ export async function AddChannel(
             `Created channel: ${new_channel.internalName}`
         );
     } else if (provider == "youtube") {
+        if (!formdata.internalId) {
+            res.api(400, {
+                status: "ERROR",
+                message: req.t("route.channels.channel-id-not-specified"),
+            } as ApiErrorResponse);
+            return;
+        }
+
         const channel_config: YouTubeChannelConfig = {
             uuid: "",
             provider: "youtube",
-            channel_id: formdata.channel_id || "",
-            quality: formdata.quality
-                ? (formdata.quality.split(" ") as VideoQuality[])
-                : [],
-            match: formdata.match
-                ? formdata.match.split(",").map((m) => m.trim())
-                : [],
+            // channel_id: formdata.channel_id || "",
+            internalId: formdata.internalId,
+            internalName: formdata.internalName || "",
+            quality: formdata.quality,
+            match: formdata.match,
             download_chat: formdata.download_chat,
             burn_chat: formdata.burn_chat,
             no_capture: formdata.no_capture,
@@ -448,22 +580,14 @@ export async function AddChannel(
             download_vod_at_end_quality: formdata.download_vod_at_end_quality,
         };
 
-        if (!channel_config.channel_id) {
-            res.api(400, {
-                status: "ERROR",
-                message: req.t("route.channels.channel-id-not-specified"),
-            } as ApiErrorResponse);
-            return;
-        }
-
         const channel = YouTubeChannel.getChannelById(
-            channel_config.channel_id
+            channel_config.internalId
         );
         if (channel) {
             log(
                 LOGLEVEL.ERROR,
                 "route.channels.add",
-                `Failed to create channel, channel already exists: ${channel_config.channel_id}`
+                `Failed to create channel, channel already exists: ${channel_config.internalId}`
             );
             res.api(400, {
                 status: "ERROR",
@@ -476,7 +600,7 @@ export async function AddChannel(
 
         try {
             api_channel_data = await YouTubeChannel.getUserDataById(
-                channel_config.channel_id
+                channel_config.internalId
             );
         } catch (error) {
             log(
@@ -524,16 +648,22 @@ export async function AddChannel(
             `Created channel: ${new_channel.displayName}`
         );
     } else if (provider == "kick") {
+        if (!formdata.internalName) {
+            res.api(400, {
+                status: "ERROR",
+                message: req.t("route.channels.channel-slug-not-specified"),
+            } as ApiErrorResponse);
+            return;
+        }
+
         const channel_config: KickChannelConfig = {
             uuid: "",
             provider: "kick",
-            slug: formdata.slug || "",
-            quality: formdata.quality
-                ? (formdata.quality.split(" ") as VideoQuality[])
-                : [],
-            match: formdata.match
-                ? formdata.match.split(",").map((m) => m.trim())
-                : [],
+            // slug: formdata.slug || "",
+            internalId: "",
+            internalName: formdata.internalName,
+            quality: formdata.quality,
+            match: formdata.match,
             download_chat: formdata.download_chat,
             burn_chat: formdata.burn_chat,
             no_capture: formdata.no_capture,
@@ -545,20 +675,14 @@ export async function AddChannel(
             download_vod_at_end_quality: formdata.download_vod_at_end_quality,
         };
 
-        if (!channel_config.slug) {
-            res.api(400, {
-                status: "ERROR",
-                message: req.t("route.channels.channel-slug-not-specified"),
-            } as ApiErrorResponse);
-            return;
-        }
-
-        const channel = KickChannel.getChannelBySlug(channel_config.slug);
+        const channel = KickChannel.getChannelBySlug(
+            channel_config.internalName
+        );
         if (channel) {
             log(
                 LOGLEVEL.ERROR,
                 "route.channels.add",
-                `Failed to create channel, channel already exists: ${channel_config.slug}`
+                `Failed to create channel, channel already exists: ${channel_config.internalName}`
             );
             res.api(400, {
                 status: "ERROR",
@@ -571,7 +695,7 @@ export async function AddChannel(
 
         try {
             api_channel_data = await KickChannel.getUserDataBySlug(
-                channel_config.slug
+                channel_config.internalName
             );
         } catch (error) {
             log(
@@ -647,10 +771,14 @@ export async function DownloadVideo(
     const quality =
         req.query.quality &&
         VideoQualityArray.includes(req.query.quality as string)
-            ? (req.query.quality as VideoQuality)
+            ? (req.query.quality as z.infer<typeof VideoQuality>)
             : "best";
 
-    const template = (video: ProxyVideo, what: string) => {
+    const template = (
+        video: ProxyVideo,
+        extraData: Record<string, any>,
+        what: string
+    ) => {
         if (!video) return "";
 
         const date = parseJSON(video.created_at);
@@ -664,7 +792,7 @@ export async function DownloadVideo(
         }
 
         const variables: VodBasenameTemplate = {
-            login: channel.internalName || "",
+            // login: channel.internalName || "",
             internalName: channel.internalName,
             displayName: channel.displayName,
             date: video.created_at?.replaceAll(":", "_"),
@@ -684,15 +812,15 @@ export async function DownloadVideo(
             // episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
             episode: "0", // episode won't work with random downloads
             title: video.title || "",
-            game_name: "", // not exposed by twitch api
+            game_name: extraData.game_name || "",
+            game_id: extraData.game_id || "",
         };
 
-        return sanitize(
-            formatString(Config.getInstance().cfg(what), variables)
-        );
+        return formatString(Config.getInstance().cfg(what), variables);
     };
 
     if (isTwitchChannel(channel)) {
+        // check if vod is already downloaded
         if (TwitchVOD.getVodByProviderId(video_id)) {
             res.api(400, {
                 status: "ERROR",
@@ -701,6 +829,7 @@ export async function DownloadVideo(
             return;
         }
 
+        // fetch vod info online
         let video: ProxyVideo | false;
         try {
             video = await TwitchVOD.getVideoProxy(video_id);
@@ -723,37 +852,72 @@ export async function DownloadVideo(
             return;
         }
 
-        // const basename = `${channel.login}_${replaceAll(video.created_at, ":", "-")}_${video.stream_id}`;
+        // fetch supplementary data
+        let videoGqlData;
+        try {
+            videoGqlData = await TwitchVOD.getGqlVideoInfo(video_id);
+        } catch (error) {
+            log(
+                LOGLEVEL.ERROR,
+                "route.channels.download",
+                `Failed to fetch video data: ${(error as Error).message}`
+            );
+        }
 
-        /*
-
-        const variables: VodBasenameTemplate = {
-            login: channel.login,
-            date: video.created_at.replaceAll(":", "_"),
-            year: isValid(date) ? format(date, "yyyy") : "",
-            year_short: isValid(date) ? format(date, "yy") : "",
-            month: isValid(date) ? format(date, "MM") : "",
-            day: isValid(date) ? format(date, "dd") : "",
-            hour: isValid(date) ? format(date, "HH") : "",
-            minute: isValid(date) ? format(date, "mm") : "",
-            second: isValid(date) ? format(date, "ss") : "",
-            id: video.stream_id?.toString() || randomUUID(), // bad solution
-            season: channel.current_season,
-            absolute_season: channel.current_absolute_season ? channel.current_absolute_season.toString().padStart(2, "0") : "",
-            // episode: this.vod_episode ? this.vod_episode.toString().padStart(2, "0") : "",
-            episode: "0", // episode won't work with random downloads
-        };
-
-        const basename = sanitize(formatString(Config.getInstance().cfg("filename_vod"), variables));
-        const basefolder = "";
-        */
-
-        const basename = template(video, "filename_vod");
-        const basefolder = path.join(
-            channel.getFolder(),
-            template(video, "filename_vod_folder")
+        // make filename
+        const basename = template(
+            video,
+            {
+                game_name: videoGqlData?.game?.displayName || "",
+                game_id: videoGqlData?.game?.id || "",
+            },
+            "filename_vod"
         );
 
+        if (!validateFilename(basename)) {
+            res.api(400, {
+                status: "ERROR",
+                message: req.t("message.invalid-filesystem-entry", [basename]),
+            } as ApiErrorResponse);
+            return;
+        }
+
+        const basefolderPathTemplate = template(
+            video,
+            {
+                game_name: videoGqlData?.game?.displayName || "",
+                game_id: videoGqlData?.game?.id || "",
+            },
+            "filename_vod_folder"
+        );
+
+        if (!validateRelativePath(basefolderPathTemplate)) {
+            res.api(400, {
+                status: "ERROR",
+                message: req.t("message.invalid-filesystem-entry", [
+                    basefolderPathTemplate,
+                ]),
+            } as ApiErrorResponse);
+            return;
+        }
+
+        // make folder name
+        const basefolder = path.join(
+            channel.getFolder(),
+            sanitizePath(basefolderPathTemplate)
+        );
+
+        if (!validateAbsolutePath(basefolder)) {
+            res.api(400, {
+                status: "ERROR",
+                message: req.t("message.invalid-filesystem-entry", [
+                    basefolder,
+                ]),
+            } as ApiErrorResponse);
+            return;
+        }
+
+        // make filepath
         const filepath = path.join(
             basefolder,
             `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`
@@ -769,6 +933,7 @@ export async function DownloadVideo(
             return;
         }
 
+        // create folder if it doesn't exist
         try {
             fs.mkdirSync(path.dirname(filepath), { recursive: true });
         } catch (error) {
@@ -788,6 +953,8 @@ export async function DownloadVideo(
             }
         }
 
+        // download video
+
         let status = false;
 
         try {
@@ -802,14 +969,14 @@ export async function DownloadVideo(
             );
             res.api(400, {
                 status: "ERROR",
-                message: (error as Error).message,
+                message: `downloadVideo: ${(error as Error).message}`,
             } as ApiErrorResponse);
             return;
         }
 
         if (status) {
-            let vod;
-
+            // create vod object
+            let vod: TwitchVOD;
             try {
                 vod = await channel.createVOD(
                     path.join(basefolder, `${basename}.json`)
@@ -817,26 +984,71 @@ export async function DownloadVideo(
             } catch (error) {
                 res.api(400, {
                     status: "ERROR",
-                    message: (error as Error).message,
+                    message: `createVOD: ${(error as Error).message}`,
                 } as ApiErrorResponse);
                 return;
             }
 
-            // vod.meta = video;
-            // vod.streamer_name = channel.display_name || channel.login;
-            // vod.streamer_login = channel.login;
-            // vod.streamer_id = channel.userid || "";
+            // substitute started at with created at
             vod.started_at = parseJSON(video.created_at);
 
             if (video.stream_id) vod.capture_id = video.stream_id;
 
-            // const duration = TwitchHelper.parseTwitchDuration(video.duration);
+            // calculate ended at from started at and duration
             vod.ended_at = new Date(
                 vod.started_at.getTime() + video.duration * 1000
             );
             await vod.saveJSON("manual creation");
 
+            // add segment to vod
             vod.addSegment(path.basename(filepath));
+
+            // fetch supplementary chapter data
+            let chapterData;
+
+            try {
+                chapterData = await TwitchVOD.getGqlVideoChapters(video_id);
+            } catch (error) {
+                log(
+                    LOGLEVEL.ERROR,
+                    "route.channels.download",
+                    `Failed to fetch chapter data: ${(error as Error).message}`
+                );
+            }
+
+            if (chapterData && chapterData.length > 0) {
+                const chapters: TwitchVODChapterJSON[] = [];
+                for (const c of chapterData) {
+                    if (!vod.started_at) continue;
+                    const start_time = addSeconds(
+                        vod.started_at,
+                        c.positionMilliseconds / 1000
+                    );
+                    chapters.push({
+                        title: c.description,
+                        game_id: c.details.game.id,
+                        game_name: c.details.game.displayName,
+                        started_at: start_time.toJSON(),
+                        is_mature: false,
+                        online: true,
+                    });
+                }
+
+                await vod.parseChapters(chapters);
+            } else if (videoGqlData) {
+                const chapters: TwitchVODChapterJSON[] = [];
+                chapters.push({
+                    title: videoGqlData.title,
+                    game_id: videoGqlData.game.id,
+                    game_name: videoGqlData.game.displayName,
+                    started_at: vod.started_at.toJSON(),
+                    is_mature: false,
+                    online: true,
+                });
+
+                await vod.parseChapters(chapters);
+            }
+
             await vod.finalize();
             await vod.saveJSON("manual finalize");
 
@@ -882,10 +1094,10 @@ export async function DownloadVideo(
 
         debugLog("video", video);
 
-        const basename = template(video, "filename_vod");
+        const basename = template(video, {}, "filename_vod");
         const basefolder = path.join(
             channel.getFolder(),
-            template(video, "filename_vod_folder")
+            template(video, {}, "filename_vod_folder")
         );
 
         const filepath = path.join(
@@ -1400,7 +1612,9 @@ export async function RenameChannel(
     if (!channel || !channel.internalName) {
         res.api(400, {
             status: "ERROR",
-            message: req.t("route.channels.channel-not-found"),
+            message: req.t("route.channels.channel-uuid-not-found", [
+                req.params.uuid ?? req.params.name,
+            ]),
         } as ApiErrorResponse);
         return;
     }
@@ -1665,5 +1879,44 @@ export async function ExportAllVods(
     res.api(failedVods > 0 ? 500 : 200, {
         status: "OK",
         message: `Exported ${completedVods} VODs, ${failedVods} failed`,
+    });
+}
+
+export async function MatchAllProviderVods(
+    req: express.Request,
+    res: express.Response
+): Promise<void> {
+    const channel = getChannelFromRequest(req);
+    const force = req.query.force === "true";
+
+    if (!channel || !channel.internalName) {
+        res.api(400, {
+            status: "ERROR",
+            message: req.t("route.channels.channel-not-found"),
+        });
+        return;
+    }
+
+    if (!isTwitchChannel(channel)) {
+        res.api(400, {
+            status: "ERROR",
+            message: req.t("route.channels.channel-is-not-a-twitch-channel"),
+        });
+        return;
+    }
+
+    try {
+        await channel.matchAllProviderVods(force);
+    } catch (error) {
+        res.api(500, {
+            status: "ERROR",
+            message: (error as Error).message,
+        });
+        return;
+    }
+
+    res.api(200, {
+        status: "OK",
+        message: "Matched vods",
     });
 }

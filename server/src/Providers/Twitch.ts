@@ -16,9 +16,15 @@ import type {
     TwitchAuthUserTokenResponse,
 } from "@common/TwitchAPI/Auth";
 import type {
+    ChatBadge,
+    ChatBadgesResponse,
+    GlobalChatBadgesResponse,
+} from "@common/TwitchAPI/Badges";
+import type {
     EventSubWebsocketMessage,
     EventSubWebsocketNotificationMessage,
 } from "@common/TwitchAPI/EventSub/Websocket";
+import type { GqlResponse } from "@common/TwitchAPI/GQL/Shared";
 import type {
     ErrorResponse,
     EventSubTypes,
@@ -33,22 +39,6 @@ import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { WebSocket } from "ws";
-
-export interface ExecReturn {
-    stdout: string[];
-    stderr: string[];
-    code: number;
-    bin?: string;
-    args?: string[];
-    what?: string;
-}
-
-export interface RemuxReturn {
-    stdout: string[];
-    stderr: string[];
-    code: number;
-    success: boolean;
-}
 
 interface TwitchAuthAppTokenFile {
     access_token: string;
@@ -489,6 +479,81 @@ export class TwitchHelper {
         this.updateAxiosToken();
 
         return true;
+    }
+
+    static async getGlobalChatBadges(): Promise<ChatBadge[] | false> {
+        if (!TwitchHelper.hasAxios()) {
+            throw new Error("Axios is not initialized");
+        }
+
+        let response;
+
+        try {
+            response = await TwitchHelper.getRequest<GlobalChatBadgesResponse>(
+                "/helix/chat/badges/global"
+            );
+        } catch (e) {
+            log(
+                LOGLEVEL.ERROR,
+                "tw.helper.getGlobalChatBadges",
+                `Error getting global chat badges: ${e}`
+            );
+            return false;
+        }
+
+        const json = response.data;
+
+        if (!json || !json.data) {
+            log(
+                LOGLEVEL.ERROR,
+                "tw.helper.getGlobalChatBadges",
+                `Error getting global chat badges: ${json}`
+            );
+            return false;
+        }
+
+        return json.data;
+    }
+
+    static async getChannelChatBadges(
+        broadcaster_id: string
+    ): Promise<ChatBadge[] | false> {
+        if (!TwitchHelper.hasAxios()) {
+            throw new Error("Axios is not initialized");
+        }
+
+        let response;
+
+        try {
+            response = await TwitchHelper.getRequest<ChatBadgesResponse>(
+                "/helix/chat/badges",
+                {
+                    params: {
+                        broadcaster_id,
+                    },
+                }
+            );
+        } catch (e) {
+            log(
+                LOGLEVEL.ERROR,
+                "tw.helper.getChannelChatBadges",
+                `Error getting channel chat badges: ${e}`
+            );
+            return false;
+        }
+
+        const json = response.data;
+
+        if (!json || !json.data) {
+            log(
+                LOGLEVEL.ERROR,
+                "tw.helper.getChannelChatBadges",
+                `Error getting channel chat badges: ${json}`
+            );
+            return false;
+        }
+
+        return json.data;
     }
 
     /**
@@ -1026,6 +1091,58 @@ export class TwitchHelper {
         }
 
         return response;
+    }
+
+    public static async gqlRequest<T extends GqlResponse>(
+        query: object
+        // variables?: Record<string, unknown>
+    ): Promise<T> {
+        if (!Config.getInstance().cfg("twitchapi.enable_gql")) {
+            throw new Error("GQL requests are disabled. Check your config.");
+        }
+
+        log(
+            LOGLEVEL.DEBUG,
+            "tw.helper.gqlRequest",
+            `Requesting GQL query ${JSON.stringify(query)})}`
+        );
+
+        let response;
+        try {
+            response = await axios.post<T>(
+                "https://gql.twitch.tv/gql",
+                // {
+                query,
+                //     variables,
+                // },
+                {
+                    headers: {
+                        "Client-Id": "kd1unb4b3q4t58fwlpcbzcbnm76a8fp",
+                    },
+                }
+            );
+        } catch (error) {
+            if (axios.isAxiosError(error)) {
+                log(
+                    LOGLEVEL.ERROR,
+                    "tw.helper",
+                    `Error during gql request: ${
+                        error.response?.data?.message || error
+                    }`,
+                    error
+                );
+                console.error(error);
+            }
+            throw error;
+        }
+
+        log(
+            LOGLEVEL.DEBUG,
+            "tw.helper.gqlRequest",
+            `GQL response: ${JSON.stringify(response.data)}`
+        );
+
+        return response.data;
     }
 
     public static async setupWebsocket() {

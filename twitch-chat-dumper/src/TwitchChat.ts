@@ -4,6 +4,7 @@ import { EventEmitter } from "node:events";
 import fs from "node:fs";
 import { WebSocket } from "ws";
 import { TwitchComment, TwitchCommentDumpTD, TwitchCommentMessageFragment, TwitchCommentEmoticons, TwitchCommentUserBadge } from "../../common/Comments";
+import { isValid, parseJSON } from "date-fns";
 
 function getNiceDuration(duration: number) {
     // format 1d 2h 3m 4s
@@ -53,6 +54,7 @@ interface Tags {
     id?: string;
     mod?: "1" | "0"; // number
     "room-id"?: string;
+    "returning-chatter"?: "1" | "0";
     subscriber?: "1" | "0";
     turbo?: "1" | "0";
     "tmi-sent-ts"?: string;
@@ -163,8 +165,22 @@ export class TwitchChat extends EventEmitter {
         super();
         this.channel_login = channel_login;
         if (channel_id) this.channel_id = channel_id;
-        if (start_date) this.startDate = new Date(start_date);
+        if (start_date) {
+            TwitchChat.validateDate(start_date);
+            this.startDate = parseJSON(start_date);
+        }
         // this.connect();
+    }
+
+    private static validateDate(date: string) {
+        const parsedDate = parseJSON(date);
+        if (!isValid(parsedDate)) {
+            throw new Error(`Invalid date ${date}`);
+        }
+        console.log(`Date ${date} is valid, parsed to ${parsedDate}. Current date is ${JSON.stringify(new Date())}`);
+        if (parsedDate.getTime() - 60 > Date.now() ) {
+            throw new Error(`Date ${date} is in the future`);
+        }
     }
 
     public connect() {
@@ -710,6 +726,10 @@ export class TwitchChat extends EventEmitter {
             throw new Error("messageToDump: message.parameters is undefined");
         }
 
+        if (offset_seconds === undefined || offset_seconds === null) {
+            throw new Error("messageToDump: offset_seconds is undefined");
+        }
+
         const emoticons: TwitchCommentEmoticons[] = [];
         if (message.getTag('emotes')) {
             for (const emote in message.tags.emotes) {
@@ -717,7 +737,7 @@ export class TwitchChat extends EventEmitter {
                     emoticons.push({
                         _id: emote,
                         begin: parseInt(pos.startPosition),
-                        end: parseInt(pos.endPosition),
+                        end: parseInt(pos.endPosition) + 1, // 2023-11-02 - for some reason the end position is off by 1 now
                     });
                 }
             }
@@ -748,66 +768,6 @@ export class TwitchChat extends EventEmitter {
                 emoticon: null,
             });
         }
-
-        /*
-        const words = message.parameters.split(" ");
-
-        for (let i = 0; i < words.length; i++) {
-            const word = words[i];
-            const fragment: TwitchCommentMessageFragment = {
-                "text": word,
-                "emoticon": null,
-            };
-
-            if (emoticons.length > 0) {
-                // find emoticon based on entire message text position
-                // i in this case is the word index, not the character index
-                const emoticon = emoticons.find(e => e.begin <= i && e.end >= i);
-                if (emoticon) {
-                    fragment.emoticon = {
-                        emoticon_id: emoticon._id,
-                        // emoticon_set_id: message.tags["emote-sets"][0],
-                    };
-                } else {
-                    console.debug(`No emoticon found for word ${word}`);
-                }
-            }
-
-            fragments.push(fragment);
-        }
-        */
-
-        // console.debug(`Got ${fragments.length} fragments`, fragments);
-
-        // merge fragments with only text
-        /*
-        const mergedFragments: TwitchCommentMessageFragment[] = [];
-        let currentFragment: TwitchCommentMessageFragment | undefined = undefined;
-        for (let i = 0; i < fragments.length; i++) {
-            const fragment = fragments[i];
-            if (fragment.emoticon) {
-                if (currentFragment) {
-                    mergedFragments.push(currentFragment);
-                }
-                currentFragment = undefined;
-                mergedFragments.push(fragment);
-            } else {
-                if (!currentFragment) {
-                    currentFragment = {
-                        text: fragment.text,
-                        emoticon: null,
-                    };
-                } else {
-                    currentFragment.text += " " + fragment.text;
-                }
-            }
-        }
-        if (currentFragment) {
-            mergedFragments.push(currentFragment);
-        }
-
-        console.debug(`Merged ${fragments.length} fragments to ${mergedFragments.length}`);
-        */
 
         const badges: TwitchCommentUserBadge[] = [];
         if (message.tags?.badges) {
@@ -865,7 +825,7 @@ export class TwitchChat extends EventEmitter {
             throw new Error("Dump already started");
         }
         if (fs.existsSync(filename)) {
-            throw new Error(`File ${filename} already exists`);
+            throw new Error(`EEXIST: File ${filename} already exists`);
         }
         this.dumpFilename = filename;
         this.dumpStream = fs.createWriteStream(`${this.dumpFilename}.line`, { flags: "a" });

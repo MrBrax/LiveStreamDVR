@@ -5,6 +5,14 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Launch TS",
+            "request": "launch",
+            "runtimeArgs": ["run", "start:dev"],
+            "runtimeExecutable": "yarn",
+            "skipFiles": ["<node_internals>/**"],
+            "type": "node"
+        },
+        {
             "type": "node",
             "request": "launch",
             "name": "Launch Program",

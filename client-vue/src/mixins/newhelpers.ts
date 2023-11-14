@@ -4,6 +4,7 @@ import YouTubeChannel from "@/core/Providers/YouTube/YouTubeChannel";
 import YouTubeVOD from "@/core/Providers/YouTube/YouTubeVOD";
 import type { ChannelTypes, VODTypes } from "@/twitchautomator";
 import { format, formatDistance, parseJSON, isDate } from "date-fns";
+import type { ApiTwitchChannel, ApiYouTubeChannel, ApiTwitchVod, ApiYouTubeVod } from "@common/Api/Client";
 
 export function niceDuration(durationInSeconds: number): string {
     if (durationInSeconds < 0) {
@@ -118,6 +119,16 @@ export function formatNumber(num: number, decimals = 0): string {
     return num.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
 }
 
+export function formatNumberShort(num: number, decimals = 0): string {
+    if (num < 1000) {
+        return num.toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+    } else if (num < 1000000) {
+        return `${(num / 1000).toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}K`;
+    } else {
+        return `${(num / 1000000).toLocaleString("en-US", { minimumFractionDigits: decimals, maximumFractionDigits: decimals })}M`;
+    }   
+}
+
 export function formatTimestamp(timestamp: number, fmt = "yyyy-MM-dd HH:mm:ss"): string {
     const o = new Date(timestamp * 1000);
     return format(o, fmt);
@@ -139,12 +150,28 @@ export function twitchDuration(seconds: number): string {
     // return trim(str_replace(" ", "", self::getNiceDuration($seconds)));
 }
 
-export function isTwitch(vod: ChannelTypes): vod is TwitchChannel {
+export function isTwitchChannel(vod: ChannelTypes): vod is TwitchChannel {
     return vod instanceof TwitchChannel;
 }
 
-export function isYouTube(vod: ChannelTypes): vod is YouTubeChannel {
+export function isYouTubeChannel(vod: ChannelTypes): vod is YouTubeChannel {
     return vod instanceof YouTubeChannel;
+}
+
+export function isTwitchApiChannel(vod: any): vod is ApiTwitchChannel {
+    return vod.provider == "twitch";
+}
+
+export function isTwitchApiVOD(vod: any): vod is ApiTwitchVod {
+    return vod.provider == "twitch";
+}
+
+export function isYouTubeApiVOD(vod: any): vod is ApiYouTubeVod {
+    return vod.provider == "youtube";
+}
+
+export function isYouTubeApiChannel(vod: any): vod is ApiYouTubeChannel {
+    return vod.provider == "youtube";
 }
 
 export function isTwitchVOD(vod: VODTypes): vod is TwitchVOD {

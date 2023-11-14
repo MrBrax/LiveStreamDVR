@@ -70,7 +70,8 @@
       "render-menu": "Render menu",
       "fix-issues": "Fix issues",
       "download-vod-muted": "Download muted VOD",
-      "refresh-metadata": "Refresh metadata"
+      "refresh-metadata": "Refresh metadata",
+      "split-video": "Split video"
     },
     "chapters": {
       "offset": "Offset",
@@ -172,7 +173,9 @@
     "upload-config": "Upload config",
     "sync-down": "Sync down",
     "sync-up": "Sync up",
-    "unsubscribe": "Unsubscribe"
+    "unsubscribe": "Unsubscribe",
+    "play": "Play",
+    "vod": "VOD"
   },
   "pages": {
     "favourite-games": "Favourite games",
@@ -223,7 +226,9 @@
       "uses-default-settings-defined-in-the-settings": "Uses default settings defined in the settings",
       "subscriptions-warning": "Remember to delete all subscriptions before you stop using this application. Old subscriptions will not be deleted automatically, and will continue to send requests to your server.",
       "slug": "Slug",
-      "slug_help": "The channel slug (username in url)"
+      "slug_help": "The channel slug (username in url)",
+      "internal-id": "Internal ID",
+      "youtube-url-help": "As of now, the URL to the channel is the most convenient way of getting the ID. If it correctly identified the channel, the ID field below will populate automatically."
     },
     "config": {
       "validate-external-url": "Validate external URL"
@@ -330,7 +335,8 @@
       "clean-up": "Clean up",
       "refresh-data": "Refresh data",
       "expand-collapse-all-vods": "Expand/collapse all vods",
-      "more": "More tools"
+      "more": "More tools",
+      "match-all-provider-vods": "Match all provider VODs"
     }
   },
   "about": {

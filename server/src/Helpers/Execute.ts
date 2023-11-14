@@ -1,11 +1,19 @@
+import { Config } from "@/Core/Config";
+import { Job } from "@/Core/Job";
+import { LOGLEVEL, log } from "@/Core/Log";
+import chalk from "chalk";
 import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { spawn } from "node:child_process";
-import type { ExecReturn } from "../Providers/Twitch";
-import { LOGLEVEL, log } from "@/Core/Log";
 import type { Stream } from "node:stream";
-import { Config } from "@/Core/Config";
-import chalk from "chalk";
-import { Job } from "@/Core/Job";
+
+export interface ExecReturn {
+    stdout: string[];
+    stderr: string[];
+    code: number;
+    bin?: string;
+    args?: string[];
+    what?: string;
+}
 
 interface RunningProcess {
     internal_pid: number;
@@ -106,13 +114,28 @@ export function execSimple(
     });
 }
 
+export function isExecReturn(
+    execReturn: ExecReturn | unknown
+): execReturn is ExecReturn {
+    return (
+        typeof execReturn === "object" &&
+        execReturn !== null &&
+        "code" in execReturn &&
+        "stdout" in execReturn &&
+        "stderr" in execReturn &&
+        "bin" in execReturn &&
+        "args" in execReturn &&
+        "what" in execReturn
+    );
+}
+
 /**
  * Execute a command, make a job, and when it's done, return the output
  *
- * @param bin
- * @param args
- * @param jobName
- * @param progressFunction
+ * @param bin - The binary to execute
+ * @param args - The arguments to pass to the binary
+ * @param jobName - The name of the job to create
+ * @param progressFunction - Return a number between 0 and 1 to set the progress of the job
  * @returns
  */
 export function execAdvanced(
@@ -241,6 +264,14 @@ export function execAdvanced(
     });
 }
 
+/**
+ * Spawns a new process with the given binary and arguments, and returns a Job object to track its progress.
+ * @param jobName - The name of the job to be executed.
+ * @param bin - The binary to be executed.
+ * @param args - The arguments to be passed to the binary.
+ * @param env - An optional object containing environment variables to be set for the process.
+ * @returns A Job object representing the spawned process, or false if the process failed to spawn.
+ */
 export function startJob(
     jobName: string,
     bin: string,

@@ -13,10 +13,16 @@ import type { MediaInfo } from "@common/mediainfofield";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import type { RemuxReturn } from "../Providers/Twitch";
 import { progressOutput } from "./Console";
 import { execSimple, startJob } from "./Execute";
 import { formatDuration } from "./Format";
+
+export interface RemuxReturn {
+    stdout: string[];
+    stderr: string[];
+    code: number;
+    success: boolean;
+}
 
 /**
  * Remux input to output
