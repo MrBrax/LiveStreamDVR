@@ -1,18 +1,32 @@
 import { Config } from "../src/Core/Config";
-import { log, LOGLEVEL } from "../src/Core/Log";
 import "./environment";
 
 describe("Config", () => {
-
     it("external url validation", () => {
-        expect(() => Config.validateExternalURLRules("http://example.com")).toThrow();
-        expect(() => Config.validateExternalURLRules("http://example.com:1234")).toThrow();
-        expect(() => Config.validateExternalURLRules("http://example.com:80")).toThrow();
-        expect(Config.validateExternalURLRules("https://example.com:443")).toBe(true);
-        expect(Config.validateExternalURLRules("https://example.com")).toBe(true);
-        expect(Config.validateExternalURLRules("https://sub.example.com")).toBe(true);
-        expect(() => Config.validateExternalURLRules("https://sub.example.com/folder/")).toThrow();
-        expect(Config.validateExternalURLRules("https://sub.example.com/folder")).toBe(true);
+        expect(() =>
+            Config.validateExternalURLRules("http://example.com")
+        ).toThrow();
+        expect(() =>
+            Config.validateExternalURLRules("http://example.com:1234")
+        ).toThrow();
+        expect(() =>
+            Config.validateExternalURLRules("http://example.com:80")
+        ).toThrow();
+        expect(Config.validateExternalURLRules("https://example.com:443")).toBe(
+            true
+        );
+        expect(Config.validateExternalURLRules("https://example.com")).toBe(
+            true
+        );
+        expect(Config.validateExternalURLRules("https://sub.example.com")).toBe(
+            true
+        );
+        expect(() =>
+            Config.validateExternalURLRules("https://sub.example.com/folder/")
+        ).toThrow();
+        expect(
+            Config.validateExternalURLRules("https://sub.example.com/folder")
+        ).toBe(true);
     });
 
     it("config value set", () => {
@@ -40,7 +54,9 @@ describe("Config", () => {
     it("config value set with default", () => {
         const config = Config.getCleanInstance();
         config.config = {};
-        expect(config.cfg("app_url", "https://example.com")).toBe("https://example.com");
+        expect(config.cfg("app_url", "https://example.com")).toBe(
+            "https://example.com"
+        );
         expect(config.cfg("app_url", "")).toBe("");
         expect(config.cfg("app_url")).toBeUndefined();
 
@@ -81,15 +97,15 @@ describe("Config", () => {
 
     it("hasValue", () => {
         const config = Config.getCleanInstance();
-        
+
         config.config = {};
-        
+
         expect(config.hasValue("password")).toBe(false);
-        
+
         // config value is set
         config.setConfig("password", "test");
         expect(config.hasValue("password")).toBe(true);
-       
+
         // config value is empty string
         config.setConfig("password", "");
         expect(config.hasValue("password")).toBe(false);
@@ -126,7 +142,16 @@ describe("Config", () => {
         // env value is undefined
         process.env.TCD_PASSWORD = "";
         expect(config.hasValue("password")).toBe(false);
-        
+    });
+
+    it("choice values", () => {
+        const config = Config.getCleanInstance();
+        config.config = {};
+        expect(() =>
+            config.setConfig("date_format", "dd-mm-yyyy")
+        ).toThrowError();
+        config.setConfig("date_format", "dd-MM-yyyy");
+        expect(config.cfg("date_format")).toBe("dd-MM-yyyy");
     });
 
     it("setting exists", () => {
@@ -135,5 +160,4 @@ describe("Config", () => {
         expect(Config.getSettingField("app_url")).toHaveProperty("text");
         expect(Config.getSettingField("app_url1")).toBeUndefined();
     });
-
 });
