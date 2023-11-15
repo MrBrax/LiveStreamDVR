@@ -29,7 +29,7 @@
                         
                             {{ formatDistanceToNow(new Date(vod.created_at)) }} ago
                         
-                        <small>({{ format(new Date(vod.created_at), "yyyy-MM-dd HH:mm:ss") }})</small>
+                        <small>({{ format(new Date(vod.created_at), `${store.cfg('locale.date-format')} ${store.cfg('locale.time-format')}`) }})</small>
                     </p>
                     <p>{{ vod.description }}</p>
                     <ul>
@@ -68,6 +68,7 @@ import { useI18n } from "vue-i18n";
 import type { ApiResponse } from "@common/Api/Api";
 import type { ChannelTypes } from "@/twitchautomator";
 import { formatDistanceToNow, format } from "date-fns";
+import { useStore } from "@/store";
 library.add(faSpinner);
 
 const props = defineProps<{
@@ -79,6 +80,8 @@ const { t } = useI18n();
 const onlineVods = ref<ProxyVideo[]>([]);
 const loading = ref(false);
 const quality = ref<string>("best");
+
+const store = useStore();
 
 // videos
 async function fetchTwitchVods() {

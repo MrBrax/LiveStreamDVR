@@ -20,7 +20,7 @@
                         {{ formatNumberShort(clip.view_count, 0) }} views
                         &bull;
                             {{ formatDistanceToNow(new Date(clip.created_at)) }} ago
-                        <small>({{ format(new Date(clip.created_at), "yyyy-MM-dd HH:mm:ss") }})</small>
+                        <small>({{ format(new Date(clip.created_at), `${store.cfg('locale.date-format')} ${store.cfg('locale.time-format')}`) }})</small>
                     </p>
                     <p>
                         by {{ clip.creator_name }}, playing {{ clip.game_id }}
@@ -57,6 +57,7 @@ import { useI18n } from "vue-i18n";
 import type { ApiResponse } from "@common/Api/Api";
 import type { ChannelTypes } from "@/twitchautomator";
 import { formatDistanceToNow, format } from "date-fns";
+import { useStore } from "@/store";
 library.add(faSpinner, faTwitch);
 
 const props = defineProps<{
@@ -67,6 +68,8 @@ const { t } = useI18n();
 
 const onlineClips = ref<Clip[]>([]);
 const loading = ref(false);
+
+const store = useStore();
 
 // clips
 async function fetchTwitchClips() {

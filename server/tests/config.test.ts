@@ -149,12 +149,12 @@ describe("Config", () => {
         config.config = {};
 
         // object
-        config.setConfig("date_format", "dd-MM-yyyy");
-        expect(config.cfg("date_format")).toBe("dd-MM-yyyy");
+        config.setConfig("locale.date-format", "dd-MM-yyyy");
+        expect(config.cfg("locale.date-format")).toBe("dd-MM-yyyy");
         expect(() =>
-            config.setConfig("date_format", "dd-mm-yyyy")
+            config.setConfig("locale.date-format", "dd-mm-yyyy")
         ).toThrowError();
-        expect(config.cfg("date_format")).toBe("dd-MM-yyyy");
+        expect(config.cfg("locale.date-format")).toBe("dd-MM-yyyy");
 
         // array
         config.setConfig("vod_container", "mkv");

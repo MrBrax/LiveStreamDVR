@@ -86,7 +86,7 @@
                 </template>
             </template>
             <template v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized">
-                <em>Waiting to finalize video (since {{ vod.ended_at ? formatDate(vod.ended_at, "yyyy-MM-dd HH:mm:ss") : "(unknown)" }})</em>
+                <em>Waiting to finalize video (since {{ vod.ended_at ? formatDate(vod.ended_at, `${store.cfg('locale.date-format')} ${store.cfg('locale.time-format')}`) : "(unknown)" }})</em>
             </template>
             <template v-else>
                 <em>No video file or error</em>

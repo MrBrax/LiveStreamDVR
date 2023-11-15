@@ -15,6 +15,7 @@ import i18n from "./plugins/i18n";
 import LoadingBox from "@/components/reusables/LoadingBox.vue";
 import DButton from "@/components/reusables/DButton.vue";
 import DSelect from "@/components/reusables/DSelect.vue";
+import DBoolean from "@/components/reusables/DBoolean.vue";
 
 if (import.meta.env.BASE_URL !== undefined) {
     axios.defaults.baseURL = import.meta.env.BASE_URL;
@@ -30,6 +31,7 @@ createApp(App)
     .component("LoadingBox", LoadingBox)
     .component("DButton", DButton)
     .component("DSelect", DSelect)
+    .component("DBoolean", DBoolean)
     // .mixin(titleMixin)
     // .mixin(helpers)
     .mount("#app");
