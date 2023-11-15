@@ -52,3 +52,7 @@ export function isKickChannel(
 export function isError(compareData: unknown): compareData is Error {
     return compareData instanceof Error;
 }
+
+export function isNumber(compareData: string): boolean {
+    return !isNaN(Number(compareData));
+}

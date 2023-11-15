@@ -1,6 +1,7 @@
 import { debugLog } from "@/Helpers/Console";
 import { GetRunningProcesses, execSimple } from "@/Helpers/Execute";
 import { is_docker } from "@/Helpers/System";
+import { isNumber } from "@/Helpers/Types";
 import type { SettingField } from "@common/Config";
 import { settingsFields } from "@common/ServerConfig";
 import type { AxiosResponse } from "axios";
@@ -331,15 +332,28 @@ export class Config {
                 setting.stripslash &&
                 typeof newValue === "string"
             ) {
-                newValue = newValue.replace(/\/$/, "");
+                newValue = newValue.replace(/\/$/, "").replace(/\\$/, "");
             }
 
             if (setting.type === "number" && typeof newValue === "string") {
+                if (!isNumber(newValue)) {
+                    throw new Error(
+                        `Invalid value for setting '${key}': ${newValue}`
+                    );
+                }
                 newValue = parseInt(newValue);
             }
 
             if (setting.type === "boolean" && typeof newValue === "string") {
-                newValue = newValue === "true" || newValue === "1";
+                if (newValue === "true" || newValue === "1") {
+                    newValue = true;
+                } else if (newValue === "false" || newValue === "0") {
+                    newValue = false;
+                } else {
+                    throw new Error(
+                        `Invalid value for setting '${key}': ${newValue}`
+                    );
+                }
             }
 
             if (setting.type == "array") {

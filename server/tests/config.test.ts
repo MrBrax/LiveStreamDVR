@@ -147,11 +147,65 @@ describe("Config", () => {
     it("choice values", () => {
         const config = Config.getCleanInstance();
         config.config = {};
+
+        // object
+        config.setConfig("date_format", "dd-MM-yyyy");
+        expect(config.cfg("date_format")).toBe("dd-MM-yyyy");
         expect(() =>
             config.setConfig("date_format", "dd-mm-yyyy")
         ).toThrowError();
-        config.setConfig("date_format", "dd-MM-yyyy");
         expect(config.cfg("date_format")).toBe("dd-MM-yyyy");
+
+        // array
+        config.setConfig("vod_container", "mkv");
+        expect(config.cfg("vod_container")).toBe("mkv");
+        expect(() => config.setConfig("vod_container", "asdf")).toThrowError();
+        expect(config.cfg("vod_container")).toBe("mkv");
+    });
+
+    it("number values", () => {
+        const config = Config.getCleanInstance();
+        config.config = {};
+
+        // number
+        config.setConfig("server_port", 1234);
+        expect(config.cfg("server_port")).toBe(1234);
+        expect(() => config.setConfig("server_port", "asdf")).toThrowError();
+        expect(config.cfg("server_port")).toBe(1234);
+
+        // cast to number
+        config.setConfig("server_port", "1234");
+        expect(config.cfg("server_port")).toBe(1234);
+    });
+
+    it("boolean values", () => {
+        const config = Config.getCleanInstance();
+        config.config = {};
+
+        // boolean
+        config.setConfig("trust_proxy", true);
+        expect(config.cfg("trust_proxy")).toBe(true);
+        expect(() => config.setConfig("trust_proxy", "asdf")).toThrowError();
+        expect(config.cfg("trust_proxy")).toBe(true);
+
+        // cast to boolean
+        config.setConfig("trust_proxy", "1");
+        expect(config.cfg("trust_proxy")).toBe(true);
+        config.setConfig("trust_proxy", "0");
+        expect(config.cfg("trust_proxy")).toBe(false);
+    });
+
+    it("stripslashes", () => {
+        const config = Config.getCleanInstance();
+        config.config = {};
+
+        // windows
+        config.setConfig("bin_dir", "C:\\Program Files\\ffmpeg\\bin\\");
+        expect(config.cfg("bin_dir")).toBe("C:\\Program Files\\ffmpeg\\bin");
+
+        // linux
+        config.setConfig("bin_dir", "/usr/bin/");
+        expect(config.cfg("bin_dir")).toBe("/usr/bin");
     });
 
     it("setting exists", () => {
