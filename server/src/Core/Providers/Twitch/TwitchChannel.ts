@@ -1653,32 +1653,43 @@ export class TwitchChannel extends BaseChannel {
 
     // TODO: load by uuid?
     public static async loadAbstract(
-        channel_id: string
+        // channel_id: string
+        uuid: string
     ): Promise<TwitchChannel> {
-        log(
-            LOGLEVEL.DEBUG,
-            "tw.channel.loadAbstract",
-            `Load channel ${channel_id}`
-        );
+        log(LOGLEVEL.DEBUG, "tw.channel.loadAbstract", `Load channel ${uuid}`);
 
         const channel_memory = LiveStreamDVR.getInstance()
             .getChannels()
             .find<TwitchChannel>(
                 (channel): channel is TwitchChannel =>
-                    isTwitchChannel(channel) &&
-                    channel.internalId === channel_id
+                    isTwitchChannel(channel) && channel.uuid === uuid
             );
         if (channel_memory) {
             log(
                 LOGLEVEL.WARNING,
                 "tw.channel.loadAbstract",
-                `Channel ${channel_id} already loaded`
+                `Channel ${uuid} (${channel_memory.internalName}) already exists in memory, returning`
             );
             return channel_memory;
         }
 
+        const channel_config = LiveStreamDVR.getInstance().channels_config.find(
+            (c) => c.provider == "twitch" && c.uuid === uuid
+        );
+
+        if (!channel_config)
+            throw new Error(`Could not find channel config for uuid ${uuid}`);
+
+        const channel_id =
+            channel_config.internalId ||
+            (await this.channelIdFromLogin(channel_config.internalName));
+
+        if (!channel_id)
+            throw new Error(
+                `Could not get channel id for login ${channel_config.internalName}`
+            );
+
         const channel = new this();
-        // channel.userid = channel_id;
 
         const channel_data = await this.getUserDataById(channel_id);
         if (!channel_data)
@@ -1687,16 +1698,6 @@ export class TwitchChannel extends BaseChannel {
             );
 
         const channel_login = channel_data.login;
-
-        const channel_config = LiveStreamDVR.getInstance().channels_config.find(
-            (c) =>
-                c.provider == "twitch" &&
-                (c.login === channel_login || c.internalName === channel_login)
-        );
-        if (!channel_config)
-            throw new Error(
-                `Could not find channel config in memory for channel login: ${channel_login}`
-            );
 
         channel.uuid = channel_config.uuid;
         channel.channel_data = channel_data;
@@ -1826,11 +1827,11 @@ export class TwitchChannel extends BaseChannel {
     public static async create(
         config: TwitchChannelConfig
     ): Promise<TwitchChannel> {
+        // check if channel already exists in config
         const exists_config = LiveStreamDVR.getInstance().channels_config.find(
             (ch) =>
                 ch.provider == "twitch" &&
-                (ch.login === config.login ||
-                    ch.internalName === config.login ||
+                (ch.login === config.internalName ||
                     ch.internalName === config.internalName)
         );
         if (exists_config)
@@ -1838,6 +1839,7 @@ export class TwitchChannel extends BaseChannel {
                 `Channel ${config.internalName} already exists in config`
             );
 
+        // check if channel already exists in memory
         const exists_channel = LiveStreamDVR.getInstance()
             .getChannels()
             .find<TwitchChannel>(
@@ -1850,6 +1852,7 @@ export class TwitchChannel extends BaseChannel {
                 `Channel ${config.internalName} already exists in channels`
             );
 
+        // fetch channel data
         const data = await TwitchChannel.getUserDataByLogin(
             config.internalName
         );
@@ -1863,7 +1866,8 @@ export class TwitchChannel extends BaseChannel {
         LiveStreamDVR.getInstance().channels_config.push(config);
         LiveStreamDVR.getInstance().saveChannelsConfig();
 
-        const channel = await TwitchChannel.loadFromLogin(config.internalName);
+        // const channel = await TwitchChannel.loadFromLogin(config.internalName);
+        const channel = await TwitchChannel.load(config.uuid);
         if (!channel || !channel.internalName)
             throw new Error(
                 `Channel ${config.internalName} could not be loaded`
@@ -2006,7 +2010,7 @@ export class TwitchChannel extends BaseChannel {
         let response;
 
         if (!TwitchHelper.hasAxios()) {
-            throw new Error("Axios is not initialized");
+            throw new Error("Axios is not initialized (getStreams)");
         }
 
         try {
@@ -2047,26 +2051,24 @@ export class TwitchChannel extends BaseChannel {
         return json.data ?? false;
     }
 
-    /**
-     * Load channel class using login, don't call this. Used internally.
-     *
-     * @internal
-     * @param login
-     * @returns
-     */
-    public static async loadFromLogin(login: string): Promise<TwitchChannel> {
-        if (!login) throw new Error("Streamer login is empty");
-        if (typeof login !== "string")
-            throw new TypeError("Streamer login is not a string");
-        log(
-            LOGLEVEL.DEBUG,
-            "tw.channel.loadFromLogin",
-            `Load from login ${login}`
+    public static async load(uuid: string): Promise<TwitchChannel> {
+        /*
+        const channel_config = LiveStreamDVR.getInstance().channels_config.find(
+            (c) => c.uuid === uuid
         );
-        const channel_id = await this.channelIdFromLogin(login);
-        if (!channel_id)
-            throw new Error(`Could not get channel id from login: ${login}`);
-        return this.loadAbstract(channel_id); // $channel;
+        if (!channel_config)
+            throw new Error(`Could not find channel config for uuid: ${uuid}`);
+
+        const channel_data = await this.getUserDataByLogin(
+            channel_config.internalName
+        );
+
+        if (!channel_data)
+            throw new Error(
+                `Could not get channel data for channel login: ${channel_config.internalName}`
+            );
+        */
+        return await this.loadAbstract(uuid);
     }
 
     public static async channelIdFromLogin(
@@ -2141,6 +2143,10 @@ export class TwitchChannel extends BaseChannel {
             `Fetching user data for ${method} ${identifier}, force: ${force}`
         );
 
+        if (identifier == undefined || identifier == null || identifier == "") {
+            throw new Error(`getUserDataProxy: identifier is empty`);
+        }
+
         // check cache first
         if (!force) {
             const channelData =
@@ -2202,7 +2208,7 @@ export class TwitchChannel extends BaseChannel {
         */
 
         if (!TwitchHelper.hasAxios()) {
-            throw new Error("Axios is not initialized");
+            throw new Error("Axios is not initialized (getUserDataProxy)");
         }
 
         let response;
@@ -2478,7 +2484,7 @@ export class TwitchChannel extends BaseChannel {
         );
 
         if (!TwitchHelper.hasAxios()) {
-            throw new Error("Axios is not initialized");
+            throw new Error("Axios is not initialized (getChannelDataById)");
         }
 
         let response;
@@ -2660,7 +2666,9 @@ export class TwitchChannel extends BaseChannel {
             };
 
             if (!TwitchHelper.hasAxios()) {
-                throw new Error("Axios is not initialized");
+                throw new Error(
+                    "Axios is not initialized (subscribeToIdWithWebhook)"
+                );
             }
 
             let response;
@@ -3006,7 +3014,9 @@ export class TwitchChannel extends BaseChannel {
             };
 
             if (!TwitchHelper.hasAxios()) {
-                throw new Error("Axios is not initialized");
+                throw new Error(
+                    "Axios is not initialized (subscribeToIdWithWebsocket)"
+                );
             }
 
             let response;

@@ -210,6 +210,25 @@ export class LiveStreamDVR {
         // TwitchHelper.refreshUserAccessToken();
     }
 
+    public static migrateChannelConfig(channel: ChannelConfig): void {
+        if (channel.provider == "twitch") {
+            if (!channel.internalName && channel.login) {
+                channel.internalName = channel.login;
+            }
+        } else if (channel.provider == "youtube") {
+            if (!channel.internalName && channel.channel_id) {
+                channel.internalName = channel.channel_id;
+            }
+            if (!channel.internalId && channel.channel_id) {
+                channel.internalId = channel.channel_id;
+            }
+        } else if (channel.provider == "kick") {
+            if (!channel.internalName && channel.slug) {
+                channel.internalName = channel.slug;
+            }
+        }
+    }
+
     /**
      * @test disable
      * @returns
@@ -255,6 +274,8 @@ export class LiveStreamDVR {
                 );
                 needsSave = true;
             }
+
+            /*
             if (!channel.internalName || !channel.internalId) {
                 if (channel.provider == "twitch") {
                     channel.internalName = channel.login || "";
@@ -267,6 +288,8 @@ export class LiveStreamDVR {
                     // throw new Error(`Channel ${channel.uuid} does not have an internalName`);
                 }
             }
+            */
+            LiveStreamDVR.migrateChannelConfig(channel);
         }
 
         this.channels_config = data;
@@ -324,9 +347,7 @@ export class LiveStreamDVR {
                     let ch: TwitchChannel;
 
                     try {
-                        ch = await TwitchChannel.loadFromLogin(
-                            channel.internalName
-                        );
+                        ch = await TwitchChannel.load(channel.uuid);
                     } catch (th) {
                         log(
                             LOGLEVEL.FATAL,
