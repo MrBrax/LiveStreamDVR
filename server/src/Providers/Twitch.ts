@@ -86,13 +86,6 @@ export class TwitchHelper {
         "oauth_user_refresh.json"
     );
 
-    /** @deprecated */
-    static readonly accessTokenExpire = 60 * 60 * 24 * 60 * 1000; // 60 days
-    /** @deprecated */
-    static readonly accessTokenRefresh = 60 * 60 * 24 * 30 * 1000; // 30 days
-
-    /** @deprecated */
-    static readonly PHP_DATE_FORMAT = "yyyy-MM-dd HH:mm:ss.SSSSSS";
     static readonly TWITCH_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss'Z'";
     static readonly TWITCH_DATE_FORMAT_MS = "yyyy-MM-dd'T'HH:mm:ss'.'SSS'Z'";
 

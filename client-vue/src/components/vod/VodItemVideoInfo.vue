@@ -15,46 +15,46 @@
                 <li>
                     <strong>{{ t("vod.video-info.created") }}:</strong>
                     <template v-if="vod.created_at">
-                        {{ " " + formatDate(vod.created_at, "yyyy-MM-dd HH:mm:ss") }}
+                        {{ " " + formatDate(vod.created_at, `${store.cfg("locale.date-format")} ${store.cfg("locale.time-format")}`) }}
                     </template>
                     <span v-else class="text-is-error">No created_at</span>
                 </li>
                 <li v-if="showAdvanced">
                     <strong>{{ t("vod.video-info.went-live") }}:</strong>
                     <template v-if="vod.started_at">
-                        {{ formatDate(vod.started_at, "yyyy-MM-dd HH:mm:ss") }}
+                        {{ formatDate(vod.started_at, `${store.cfg("locale.date-format")} ${store.cfg("locale.time-format")}`) }}
                     </template>
                     <span v-else class="text-is-error">No started_at</span>
                 </li>
                 <li v-if="showAdvanced">
                     <strong>{{ t("vod.video-info.capture-launched") }}:</strong>
                     <template v-if="vod.capture_started">
-                        {{ formatDate(vod.capture_started, "yyyy-MM-dd HH:mm:ss") }}
+                        {{ formatDate(vod.capture_started, `${store.cfg("locale.date-format")} ${store.cfg("locale.time-format")}`) }}
                     </template>
                     <span v-else class="text-is-error">No capture_started</span>
                 </li>
                 <li v-if="showAdvanced">
                     <strong>{{ t("vod.video-info.wrote-file") }}:</strong>
                     <template v-if="vod.capture_started2">
-                        {{ formatDate(vod.capture_started2, "yyyy-MM-dd HH:mm:ss") }}
+                        {{ formatDate(vod.capture_started2, `${store.cfg("locale.date-format")} ${store.cfg("locale.time-format")}`) }}
                     </template>
                     <span v-else class="text-is-error">No capture_started2</span>
                 </li>
                 <li>
                     <strong>{{ t("vod.video-info.stream-end") }}:</strong> 
                     <template v-if="vod.ended_at">
-                        {{ " " + formatDate(vod.ended_at, "yyyy-MM-dd HH:mm:ss") }}
+                        {{ " " + formatDate(vod.ended_at, `${store.cfg("locale.date-format")} ${store.cfg("locale.time-format")}`) }}
                     </template>
                     <span v-else class="text-is-error">No ended_at</span>
                 </li>
                 <template v-if="vod.capture_started && vod.conversion_started">
                     <li>
                         <strong>{{ t("vod.video-info.capture-start") }}:</strong>
-                        {{ formatDate(vod.capture_started, "yyyy-MM-dd HH:mm:ss") }}
+                        {{ formatDate(vod.capture_started, `${store.cfg("locale.date-format")} ${store.cfg("locale.time-format")}`) }}
                     </li>
                     <li>
                         <strong>{{ t("vod.video-info.conversion-start") }}:</strong>
-                        {{ formatDate(vod.conversion_started, "yyyy-MM-dd HH:mm:ss") }}
+                        {{ formatDate(vod.conversion_started, `${store.cfg("locale.date-format")} ${store.cfg("locale.time-format")}`) }}
                     </li>
                 </template>
                 <li v-if="vod.getDuration() && showAdvanced">
@@ -69,19 +69,23 @@
                 </li>
                 <li>
                     <strong>{{ t("vod.video-info.chat-downloaded") }}:</strong>
-                    {{ vod.is_chat_downloaded ? t("boolean.yes") : t("boolean.no") }}
+                    <!--{{ vod.is_chat_downloaded ? t("boolean.yes") : t("boolean.no") }}-->
+                    <d-boolean :value="vod.is_chat_downloaded" />
                 </li>
                 <li>
                     <strong>{{ t("vod.video-info.chat-dumped") }}:</strong>
-                    {{ vod.is_chatdump_captured ? t("boolean.yes") : t("boolean.no") }}
+                    <!--{{ vod.is_chatdump_captured ? t("boolean.yes") : t("boolean.no") }}-->
+                    <d-boolean :value="vod.is_chatdump_captured" />
                 </li>
                 <li>
                     <strong>{{ t("vod.video-info.chat-rendered") }}:</strong>
-                    {{ vod.is_chat_rendered ? t("boolean.yes") : t("boolean.no") }}
+                    <!--{{ vod.is_chat_rendered ? t("boolean.yes") : t("boolean.no") }}-->
+                    <d-boolean :value="vod.is_chat_rendered" />
                 </li>
                 <li>
                     <strong>{{ t("vod.video-info.chat-burned") }}:</strong>
-                    {{ vod.is_chat_burned ? t("boolean.yes") : t("boolean.no") }}
+                    <!--{{ vod.is_chat_burned ? t("boolean.yes") : t("boolean.no") }}-->
+                    <d-boolean :value="vod.is_chat_burned" />
                 </li>
             </ul>
         </article>
@@ -249,7 +253,8 @@
                 </template>
                 <li>
                     <strong>{{ t("vod.video-info.downloaded") }}:</strong>
-                    {{ vod.is_vod_downloaded ? t("boolean.yes") : t("boolean.no") }}
+                    <!--{{ vod.is_vod_downloaded ? t("boolean.yes") : t("boolean.no") }}-->
+                    <d-boolean :value="vod.is_vod_downloaded" />
                 </li>
             </ul>
         </article>
@@ -366,6 +371,7 @@ function youtubePlaylistLink(playlist_id: string): string {
 </script>
 
 <style lang="scss" scoped>
+@import "../../assets/_variables";
 .info-columns {
     margin-top: 1em;
     display: flex;
@@ -411,12 +417,13 @@ function youtubePlaylistLink(playlist_id: string): string {
 
 .duration-difference {
     color: #fff;
-    background-color: #ce1b1b;
-    text-shadow: 1px 1px 0 #991111;
+    font-family: 'Roboto Condensed', sans-serif;
+    background-color: var(--color-danger);
+    // text-shadow: 1px 1px 2px #4b0909;
     padding: 0.2em 0.5em;
     border-radius: 0.2em;
     line-height: 1.3em;
-    font-size: 0.8em;
+    font-size: 0.9em;
     max-width: 250px;
 }
 </style>

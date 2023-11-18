@@ -110,8 +110,8 @@ export const settingsFields: Record<string, SettingField> = {
         help: "Enable this if your server is not exposed to the internet, aka no EventSub support.",
     },
 
-    date_format: {
-        group: "Basic",
+    "locale.date-format": {
+        group: "Locale",
         text: "Date format",
         type: "object",
         default: "yyyy-MM-dd",
@@ -123,6 +123,20 @@ export const settingsFields: Record<string, SettingField> = {
             "MM-dd-yyyy": "12-31-2021",
             "dd-MM yyyy": "31-12 2021",
             "MM-dd yyyy": "12-31 2021",
+        },
+        migrate: "date_format",
+    },
+
+    "locale.time-format": {
+        group: "Locale",
+        text: "Time format",
+        type: "object",
+        default: "HH:mm:ss",
+        choices: {
+            "HH:mm:ss": "23:59:59 (default)",
+            "HH:mm": "23:59",
+            "hh:mm:ss a": "11:59:59 PM",
+            "hh:mm a": "11:59 PM",
         },
     },
 

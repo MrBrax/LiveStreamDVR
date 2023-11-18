@@ -134,11 +134,28 @@ svg[data-icon] {
 }
 */
 
+/** @deprecated */
 .text-is-error {
     color: #f00;
     &.flashing {
         animation: 1s ease-in-out infinite live;
     }
+}
+
+.has-text-danger {
+    color: var(--color-danger);
+}
+
+.has-text-warning {
+    color: #f80;
+}
+
+.has-text-success {
+    color: #1db51d;
+}
+
+.has-bg-danger {
+    background-color: var(--color-danger);
 }
 
 .is-warning {
