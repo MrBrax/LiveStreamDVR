@@ -157,6 +157,8 @@ describe("Validate", () => {
             expect(validateAbsolutePath("C:\\test\\test\\\\")).toEqual(true);
             expect(validateAbsolutePath("C:\\test/test")).toEqual(true);
             expect(validateAbsolutePath("C:\\\0\\test")).toEqual(false);
+            expect(validateAbsolutePath("/test/test")).toEqual(true);
+            expect(validateAbsolutePath("/test\0/test")).toEqual(false);
         });
 
         it("should not validate relative directory path", () => {

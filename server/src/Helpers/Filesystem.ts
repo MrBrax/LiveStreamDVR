@@ -51,7 +51,14 @@ export function sanitizeFilename(filename: string): string {
 */
 
 export function validateAbsolutePath(dir: string): boolean {
-    return path.isAbsolute(dir) && !dir.match(/\0/);
+    // return path.isAbsolute(dir) && !dir.match(/\0/);
+    const normalDir = path.normalize(dir);
+    if (normalDir.match(/\0/)) return false;
+    return (
+        path.isAbsolute(normalDir) ||
+        normalDir.startsWith("/") ||
+        new RegExp(/^[a-zA-Z]:\\/).test(normalDir)
+    );
 }
 
 /**
