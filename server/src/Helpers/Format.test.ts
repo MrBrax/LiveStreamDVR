@@ -186,37 +186,19 @@ describe("Validate", () => {
 
     describe("validateRelativePath", () => {
         it("should not validate absolute directory path", () => {
-            expect(
-                validateRelativePath(path.join("C:\\", "test", "test"))
-            ).toEqual(false);
-            expect(
-                validateRelativePath(path.join("C:\\", "test", "test\\"))
-            ).toEqual(false);
-            expect(
-                validateRelativePath(path.join("C:\\", "test", "test\\\\"))
-            ).toEqual(false);
-            expect(
-                validateRelativePath(path.join("C:\\", "test/test"))
-            ).toEqual(false);
-            expect(validateRelativePath(path.join("/test", "test"))).toEqual(
-                false
-            );
-            expect(validateRelativePath(path.join("/test\0", "test"))).toEqual(
-                false
-            );
+            expect(validateRelativePath("C:\\test\\test")).toEqual(false);
+            expect(validateRelativePath("C:\\test\\test\\")).toEqual(false);
+            expect(validateRelativePath("C:\\test\\test\\\\")).toEqual(false);
+            expect(validateRelativePath("C:\\test/test")).toEqual(false);
+            expect(validateRelativePath("/test/test")).toEqual(false);
+            expect(validateRelativePath("/test\0/test")).toEqual(false);
         });
 
         it("should validate relative directory path", () => {
-            expect(validateRelativePath(path.join("test", "test"))).toEqual(
-                true
-            );
-            expect(validateRelativePath(path.join("test", "test\\"))).toEqual(
-                true
-            );
-            expect(validateRelativePath(path.join("test", "test\\\\"))).toEqual(
-                true
-            );
-            expect(validateRelativePath(path.join("test/test"))).toEqual(true);
+            expect(validateRelativePath("test\\test")).toEqual(true);
+            expect(validateRelativePath("test\\test\\")).toEqual(true);
+            expect(validateRelativePath("test\\test\\\\")).toEqual(true);
+            expect(validateRelativePath("test/test")).toEqual(true);
         });
 
         it("should fail relative directory path with ..", () => {
