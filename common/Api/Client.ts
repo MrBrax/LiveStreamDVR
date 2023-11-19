@@ -239,8 +239,8 @@ export interface ApiTwitchChannel extends ApiBaseChannel {
 
 export interface ApiYouTubeChannel extends ApiBaseChannel {
     provider: "youtube";
-    channel_id: string;
-    display_name: string;
+    // channel_id: string;
+    // display_name: string;
     // quality: VideoQuality[] | undefined;
     vods_list: ApiYouTubeVod[];
     profile_image_url: string;

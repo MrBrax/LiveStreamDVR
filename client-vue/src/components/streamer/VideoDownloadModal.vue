@@ -119,7 +119,7 @@ async function fetchYouTubeVods() {
     let response;
 
     try {
-        response = await axios.get<ApiResponse>(`/api/v0/youtubeapi/videos/${props.streamer.channel_id}`);
+        response = await axios.get<ApiResponse>(`/api/v0/youtubeapi/videos/${props.streamer.internalId}`);
     } catch (error) {
         if (axios.isAxiosError(error)) {
             console.error("fetchYouTubeVods error", error.response);

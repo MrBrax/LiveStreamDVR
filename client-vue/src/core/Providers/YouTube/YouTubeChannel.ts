@@ -6,8 +6,8 @@ import YouTubeVOD from "./YouTubeVOD";
 export default class YouTubeChannel extends BaseChannel {
     uuid = "";
     readonly provider = "youtube";
-    channel_id = "";
-    display_name = "";
+    // channel_id = "";
+    // display_name = "";
     // quality: VideoQuality[] = [];
     profile_image_url = "";
 
