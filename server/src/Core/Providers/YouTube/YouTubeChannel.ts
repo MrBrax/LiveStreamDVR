@@ -30,7 +30,7 @@ export class YouTubeChannel extends BaseChannel {
 
     public provider: Providers = "youtube";
 
-    public channel_id = "";
+    // public channel_id = "";
 
     public vods_list: YouTubeVOD[] = [];
 
@@ -52,26 +52,29 @@ export class YouTubeChannel extends BaseChannel {
     }
 
     static async create(config: YouTubeChannelConfig): Promise<YouTubeChannel> {
+        // check if channel exists in config
         const exists_config = LiveStreamDVR.getInstance().channels_config.find(
-            (ch) =>
-                ch.provider == "youtube" && ch.channel_id === config.channel_id
+            (configEntry) =>
+                configEntry.provider == "youtube" &&
+                (configEntry.channel_id === config.internalId ||
+                    configEntry.internalId === config.internalId)
         );
         if (exists_config)
             throw new Error(
-                `Channel ${config.channel_id} already exists in config`
+                `Channel ${config.internalId} already exists in config`
             );
 
-        // const exists_channel = TwitchChannel.channels.find(ch => ch.login === config.login);
+        // check if channel exists in memory
         const exists_channel = LiveStreamDVR.getInstance()
             .getChannels()
             .find<YouTubeChannel>(
                 (channel): channel is YouTubeChannel =>
                     isYouTubeChannel(channel) &&
-                    channel.channel_id === config.channel_id
+                    channel.internalId === config.internalId
             );
         if (exists_channel)
             throw new Error(
-                `Channel ${config.channel_id} already exists in channels`
+                `Channel ${config.internalId} already exists in channels`
             );
 
         const data = await YouTubeChannel.getUserDataById(config.internalId);
@@ -85,8 +88,8 @@ export class YouTubeChannel extends BaseChannel {
         LiveStreamDVR.getInstance().channels_config.push(config);
         LiveStreamDVR.getInstance().saveChannelsConfig();
 
-        const channel = await YouTubeChannel.loadFromId(config.internalId);
-        if (!channel || !channel.channel_id)
+        const channel = await YouTubeChannel.load(config.uuid);
+        if (!channel || !channel.internalId)
             throw new Error(`Channel ${config.internalId} could not be loaded`);
 
         if (
@@ -95,12 +98,12 @@ export class YouTubeChannel extends BaseChannel {
             !Config.getInstance().cfg<boolean>("isolated_mode")
         ) {
             try {
-                await YouTubeChannel.subscribe(channel.channel_id);
+                await YouTubeChannel.subscribe(channel.internalId);
             } catch (error) {
                 log(
                     LOGLEVEL.ERROR,
                     "yt.channel",
-                    `Failed to subscribe to channel ${channel.channel_id}: ${
+                    `Failed to subscribe to channel ${channel.internalId}: ${
                         (error as Error).message
                     }`
                 );
@@ -118,25 +121,27 @@ export class YouTubeChannel extends BaseChannel {
             log(
                 LOGLEVEL.WARNING,
                 "yt.channel",
-                `Not subscribing to ${channel.channel_id} due to debug app_url.`
+                `Not subscribing to ${channel.internalId} due to debug app_url.`
             );
         } else if (Config.getInstance().cfg("isolated_mode")) {
             log(
                 LOGLEVEL.WARNING,
                 "yt.channel",
-                `Not subscribing to ${channel.channel_id} due to isolated mode.`
+                `Not subscribing to ${channel.internalId} due to isolated mode.`
             );
         } else {
             log(
                 LOGLEVEL.ERROR,
                 "yt.channel",
-                `Can't subscribe to ${channel.channel_id} due to either no app_url or isolated mode disabled.`
+                `Can't subscribe to ${channel.internalId} due to either no app_url or isolated mode disabled.`
             );
+
+            // remove channel from config
             LiveStreamDVR.getInstance().channels_config =
                 LiveStreamDVR.getInstance().channels_config.filter(
-                    (ch) =>
-                        ch.provider == "youtube" &&
-                        ch.channel_id !== config.channel_id
+                    (configEntry) =>
+                        configEntry.provider == "youtube" &&
+                        configEntry.internalId !== config.internalId
                 ); // remove channel from config
             LiveStreamDVR.getInstance().saveChannelsConfig();
             throw new Error(
@@ -158,57 +163,57 @@ export class YouTubeChannel extends BaseChannel {
         return channel;
     }
 
-    public static async loadFromId(
-        channel_id: string
-    ): Promise<YouTubeChannel> {
-        if (!channel_id) throw new Error("Streamer login is empty");
-        if (typeof channel_id !== "string")
-            throw new TypeError("Streamer id is not a string");
-        log(LOGLEVEL.DEBUG, "yt.channel", `Load from login ${channel_id}`);
+    public static async load(uuid: string): Promise<YouTubeChannel> {
+        // if (!channel_id) throw new Error("Streamer login is empty");
+        // if (typeof channel_id !== "string")
+        //     throw new TypeError("Streamer id is not a string");
+        // log(LOGLEVEL.DEBUG, "yt.channel", `Load from login ${channel_id}`);
         // const channel_id = await this.channelIdFromLogin(channel_id);
         // if (!channel_id) throw new Error(`Could not get channel id from login: ${channel_id}`);
-        return await this.loadAbstract(channel_id); // $channel;
+        return await this.loadAbstract(uuid);
     }
 
     public static async loadAbstract(
-        channel_id: string
+        // channel_id: string
+        uuid: string
     ): Promise<YouTubeChannel> {
-        log(LOGLEVEL.DEBUG, "yt.channel", `Load channel ${channel_id}`);
+        log(LOGLEVEL.DEBUG, "yt.channel", `Load channel ${uuid}`);
 
         const channel_memory = LiveStreamDVR.getInstance()
             .getChannels()
             .find<YouTubeChannel>(
                 (channel): channel is YouTubeChannel =>
-                    isYouTubeChannel(channel) &&
-                    channel.channel_id === channel_id
+                    isYouTubeChannel(channel) && channel.uuid === uuid
             );
         if (channel_memory) {
             log(
                 LOGLEVEL.WARNING,
                 "yt.channel",
-                `Channel ${channel_id} already loaded`
+                `Channel ${uuid} (${channel_memory.internalName}) already exists in memory, returning`
             );
             return channel_memory;
         }
 
-        const channel = new this();
-        channel.channel_id = channel_id;
-
-        const channel_data = await this.getUserDataById(channel_id);
-        if (!channel_data)
-            throw new Error(
-                `Could not get channel data for channel id: ${channel_id}`
-            );
-
-        // const channel_login = channel_data.login;
-
         const channel_config = LiveStreamDVR.getInstance().channels_config.find(
-            (c) => c.provider == "youtube" && c.channel_id === channel_id
+            (c) => c.provider == "youtube" && c.uuid === uuid
         );
         if (!channel_config)
             throw new Error(
-                `Could not find channel config in memory for channel id: ${channel_id}`
+                `Could not find channel config for channel uuid: ${uuid}`
             );
+
+        const channel = new this();
+        // channel.channel_id = channel_id;
+
+        const channel_data = await this.getUserDataById(
+            channel_config.internalId
+        );
+        if (!channel_data)
+            throw new Error(
+                `Could not get channel data for channel id: ${channel_config.internalId}`
+            );
+
+        // const channel_login = channel_data.login;
 
         channel.uuid = channel_config.uuid;
         channel.channel_data = channel_data;
@@ -220,25 +225,25 @@ export class YouTubeChannel extends BaseChannel {
 
         if (
             await KeyValue.getInstance().getBoolAsync(
-                `yt.${channel.channel_id}.online`
+                `yt.${channel.internalId}.online`
             )
         ) {
             log(
                 LOGLEVEL.WARNING,
                 "yt.channel",
-                `Channel ${channel.channel_id} is online, stale?`
+                `Channel ${channel.internalId} is online, stale?`
             );
         }
 
         if (
             await KeyValue.getInstance().hasAsync(
-                `yt.${channel.channel_id}.channeldata`
+                `yt.${channel.internalId}.channeldata`
             )
         ) {
             log(
                 LOGLEVEL.WARNING,
                 "yt.channel",
-                `Channel ${channel.channel_id} has stale chapter data.`
+                `Channel ${channel.internalId} has stale chapter data.`
             );
         }
 
@@ -441,7 +446,7 @@ export class YouTubeChannel extends BaseChannel {
             .getChannels()
             .find<YouTubeChannel>(
                 (ch): ch is YouTubeChannel =>
-                    isYouTubeChannel(ch) && ch.channel_id === channel_id
+                    isYouTubeChannel(ch) && ch.internalId === channel_id
             );
     }
 
@@ -585,8 +590,8 @@ export class YouTubeChannel extends BaseChannel {
         return {
             ...(await super.toAPI()),
             provider: "youtube",
-            channel_id: this.channel_id || "",
-            display_name: this.displayName || "",
+            // channel_id: this.channel_id || "",
+            // display_name: this.displayName || "",
             description: this.description || "",
             profile_image_url:
                 this.channel_data?.thumbnails?.default?.url || "",
@@ -609,13 +614,13 @@ export class YouTubeChannel extends BaseChannel {
 
     get saves_vods(): boolean {
         return KeyValue.getInstance().getBool(
-            `yt.${this.channel_id}.saves_vods`
+            `yt.${this.internalId}.saves_vods`
         );
     }
 
     public getChapterData(): BaseVODChapterJSON | undefined {
         const cd = KeyValue.getInstance().get(
-            `yt.${this.channel_id}.chapterdata`
+            `yt.${this.internalId}.chapterdata`
         );
         return cd ? (JSON.parse(cd) as BaseVODChapterJSON) : undefined;
     }
@@ -636,7 +641,7 @@ export class YouTubeChannel extends BaseChannel {
      * @returns Empty VOD
      */
     public async createVOD(filename: string): Promise<YouTubeVOD> {
-        if (!this.channel_id) throw new Error("Channel id is not set");
+        if (!this.internalId) throw new Error("Channel id is not set");
         // if (!this.login) throw new Error("Channel login is not set");
         if (!this.internalName)
             throw new Error("Channel display_name is not set");
@@ -644,7 +649,7 @@ export class YouTubeChannel extends BaseChannel {
         log(
             LOGLEVEL.INFO,
             "yt.channel.createVOD",
-            `Create VOD JSON for ${this.channel_id}: ${path.basename(
+            `Create VOD JSON for ${this.internalId}: ${path.basename(
                 filename
             )} @ ${path.dirname(filename)}`
         );
@@ -764,7 +769,7 @@ export class YouTubeChannel extends BaseChannel {
     }
 
     public async refreshData(): Promise<boolean> {
-        if (!this.channel_id) throw new Error("Channel id not set");
+        if (!this.internalId) throw new Error("Channel id not set");
         log(
             LOGLEVEL.INFO,
             "channel.refreshData",
@@ -772,13 +777,13 @@ export class YouTubeChannel extends BaseChannel {
         );
 
         const channel_data = await YouTubeChannel.getUserDataById(
-            this.channel_id,
+            this.internalId,
             true
         );
 
         if (channel_data) {
             this.channel_data = channel_data;
-            this.channel_id = channel_data.id;
+            // this.internalId = channel_data.id;
             // this.login = channel_data.login;
             // this.display_name = channel_data.display_name;
             // this.profile_image_url = channel_data.profile_image_url;
@@ -791,7 +796,7 @@ export class YouTubeChannel extends BaseChannel {
     }
 
     public async getVideos(): Promise<false | ProxyVideo[]> {
-        return await YouTubeVOD.getVideosProxy(this.channel_id);
+        return await YouTubeVOD.getVideosProxy(this.internalId);
     }
 
     public async getStreams(): Promise<false | youtube_v3.Schema$SearchResult> {
@@ -815,7 +820,7 @@ export class YouTubeChannel extends BaseChannel {
         let searchResponse;
         try {
             searchResponse = await service.search.list({
-                channelId: this.channel_id,
+                channelId: this.internalId,
                 eventType: "live",
                 type: ["video"],
                 part: ["id", "snippet"],

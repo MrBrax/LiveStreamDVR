@@ -176,7 +176,10 @@
                         </tr>
                     </tbody>
                 </table>
-                <div v-else class="text-is-error padding-1">No chapters found</div>
+                <div v-else class="has-text-danger padding-1">
+                    <span class="icon"><fa icon="exclamation-triangle" /></span>
+                    No chapters found
+                </div>
             </div>
         </transition>
     </div>

@@ -241,7 +241,7 @@ export function UpdateChannel(
         const channel_config: YouTubeChannelConfig = {
             uuid: channel.uuid,
             provider: "youtube",
-            channel_id: channel.channel_id || "",
+            // channel_id: channel.channel_id || "",
             internalId: channel.internalId,
             internalName: channel.internalName,
             quality: quality,

@@ -1,18 +1,32 @@
 import { Config } from "../src/Core/Config";
-import { log, LOGLEVEL } from "../src/Core/Log";
 import "./environment";
 
 describe("Config", () => {
-
     it("external url validation", () => {
-        expect(() => Config.validateExternalURLRules("http://example.com")).toThrow();
-        expect(() => Config.validateExternalURLRules("http://example.com:1234")).toThrow();
-        expect(() => Config.validateExternalURLRules("http://example.com:80")).toThrow();
-        expect(Config.validateExternalURLRules("https://example.com:443")).toBe(true);
-        expect(Config.validateExternalURLRules("https://example.com")).toBe(true);
-        expect(Config.validateExternalURLRules("https://sub.example.com")).toBe(true);
-        expect(() => Config.validateExternalURLRules("https://sub.example.com/folder/")).toThrow();
-        expect(Config.validateExternalURLRules("https://sub.example.com/folder")).toBe(true);
+        expect(() =>
+            Config.validateExternalURLRules("http://example.com")
+        ).toThrow();
+        expect(() =>
+            Config.validateExternalURLRules("http://example.com:1234")
+        ).toThrow();
+        expect(() =>
+            Config.validateExternalURLRules("http://example.com:80")
+        ).toThrow();
+        expect(Config.validateExternalURLRules("https://example.com:443")).toBe(
+            true
+        );
+        expect(Config.validateExternalURLRules("https://example.com")).toBe(
+            true
+        );
+        expect(Config.validateExternalURLRules("https://sub.example.com")).toBe(
+            true
+        );
+        expect(() =>
+            Config.validateExternalURLRules("https://sub.example.com/folder/")
+        ).toThrow();
+        expect(
+            Config.validateExternalURLRules("https://sub.example.com/folder")
+        ).toBe(true);
     });
 
     it("config value set", () => {
@@ -40,7 +54,9 @@ describe("Config", () => {
     it("config value set with default", () => {
         const config = Config.getCleanInstance();
         config.config = {};
-        expect(config.cfg("app_url", "https://example.com")).toBe("https://example.com");
+        expect(config.cfg("app_url", "https://example.com")).toBe(
+            "https://example.com"
+        );
         expect(config.cfg("app_url", "")).toBe("");
         expect(config.cfg("app_url")).toBeUndefined();
 
@@ -81,15 +97,15 @@ describe("Config", () => {
 
     it("hasValue", () => {
         const config = Config.getCleanInstance();
-        
+
         config.config = {};
-        
+
         expect(config.hasValue("password")).toBe(false);
-        
+
         // config value is set
         config.setConfig("password", "test");
         expect(config.hasValue("password")).toBe(true);
-       
+
         // config value is empty string
         config.setConfig("password", "");
         expect(config.hasValue("password")).toBe(false);
@@ -126,7 +142,70 @@ describe("Config", () => {
         // env value is undefined
         process.env.TCD_PASSWORD = "";
         expect(config.hasValue("password")).toBe(false);
-        
+    });
+
+    it("choice values", () => {
+        const config = Config.getCleanInstance();
+        config.config = {};
+
+        // object
+        config.setConfig("locale.date-format", "dd-MM-yyyy");
+        expect(config.cfg("locale.date-format")).toBe("dd-MM-yyyy");
+        expect(() =>
+            config.setConfig("locale.date-format", "dd-mm-yyyy")
+        ).toThrowError();
+        expect(config.cfg("locale.date-format")).toBe("dd-MM-yyyy");
+
+        // array
+        config.setConfig("vod_container", "mkv");
+        expect(config.cfg("vod_container")).toBe("mkv");
+        expect(() => config.setConfig("vod_container", "asdf")).toThrowError();
+        expect(config.cfg("vod_container")).toBe("mkv");
+    });
+
+    it("number values", () => {
+        const config = Config.getCleanInstance();
+        config.config = {};
+
+        // number
+        config.setConfig("server_port", 1234);
+        expect(config.cfg("server_port")).toBe(1234);
+        expect(() => config.setConfig("server_port", "asdf")).toThrowError();
+        expect(config.cfg("server_port")).toBe(1234);
+
+        // cast to number
+        config.setConfig("server_port", "1234");
+        expect(config.cfg("server_port")).toBe(1234);
+    });
+
+    it("boolean values", () => {
+        const config = Config.getCleanInstance();
+        config.config = {};
+
+        // boolean
+        config.setConfig("trust_proxy", true);
+        expect(config.cfg("trust_proxy")).toBe(true);
+        expect(() => config.setConfig("trust_proxy", "asdf")).toThrowError();
+        expect(config.cfg("trust_proxy")).toBe(true);
+
+        // cast to boolean
+        config.setConfig("trust_proxy", "1");
+        expect(config.cfg("trust_proxy")).toBe(true);
+        config.setConfig("trust_proxy", "0");
+        expect(config.cfg("trust_proxy")).toBe(false);
+    });
+
+    it("stripslashes", () => {
+        const config = Config.getCleanInstance();
+        config.config = {};
+
+        // windows
+        config.setConfig("bin_dir", "C:\\Program Files\\ffmpeg\\bin\\");
+        expect(config.cfg("bin_dir")).toBe("C:\\Program Files\\ffmpeg\\bin");
+
+        // linux
+        config.setConfig("bin_dir", "/usr/bin/");
+        expect(config.cfg("bin_dir")).toBe("/usr/bin");
     });
 
     it("setting exists", () => {
@@ -135,5 +214,4 @@ describe("Config", () => {
         expect(Config.getSettingField("app_url")).toHaveProperty("text");
         expect(Config.getSettingField("app_url1")).toBeUndefined();
     });
-
 });
