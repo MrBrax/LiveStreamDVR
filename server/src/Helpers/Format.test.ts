@@ -7,7 +7,6 @@ import {
 } from "./Format";
 
 import { formatString } from "@common/Format";
-import path from "path";
 
 import {
     validateAbsolutePath,
@@ -153,34 +152,18 @@ describe("Sanitize", () => {
 describe("Validate", () => {
     describe("validateAbsolutePath", () => {
         it("should validate absolute directory path", () => {
-            expect(
-                validateAbsolutePath(path.join("C:\\", "test", "test"))
-            ).toEqual(true);
-            expect(
-                validateAbsolutePath(path.join("C:\\", "test", "test\\"))
-            ).toEqual(true);
-            expect(
-                validateAbsolutePath(path.join("C:\\", "test", "test\\\\"))
-            ).toEqual(true);
-            expect(
-                validateAbsolutePath(path.join("C:\\", "test/test"))
-            ).toEqual(true);
-            expect(validateAbsolutePath(path.join("C:\\\0\\test"))).toEqual(
-                false
-            );
+            expect(validateAbsolutePath("C:\\test\\test")).toEqual(true);
+            expect(validateAbsolutePath("C:\\test\\test\\")).toEqual(true);
+            expect(validateAbsolutePath("C:\\test\\test\\\\")).toEqual(true);
+            expect(validateAbsolutePath("C:\\test/test")).toEqual(true);
+            expect(validateAbsolutePath("C:\\\0\\test")).toEqual(false);
         });
 
         it("should not validate relative directory path", () => {
-            expect(validateAbsolutePath(path.join("test", "test"))).toEqual(
-                false
-            );
-            expect(validateAbsolutePath(path.join("test", "test\\"))).toEqual(
-                false
-            );
-            expect(validateAbsolutePath(path.join("test", "test\\\\"))).toEqual(
-                false
-            );
-            expect(validateAbsolutePath(path.join("test/test"))).toEqual(false);
+            expect(validateAbsolutePath("test\\test")).toEqual(false);
+            expect(validateAbsolutePath("test\\test\\")).toEqual(false);
+            expect(validateAbsolutePath("test\\test\\\\")).toEqual(false);
+            expect(validateAbsolutePath("test/test")).toEqual(false);
         });
     });
 
@@ -202,18 +185,10 @@ describe("Validate", () => {
         });
 
         it("should fail relative directory path with ..", () => {
-            expect(validateRelativePath(path.join("..", "test"))).toEqual(
-                false
-            );
-            expect(validateRelativePath(path.join("..", "test\\"))).toEqual(
-                false
-            );
-            expect(validateRelativePath(path.join("..", "test\\\\"))).toEqual(
-                false
-            );
-            expect(validateRelativePath(path.join("..", "test/test"))).toEqual(
-                false
-            );
+            expect(validateRelativePath("..\\test")).toEqual(false);
+            expect(validateRelativePath("..\\test\\")).toEqual(false);
+            expect(validateRelativePath("..\\test\\\\")).toEqual(false);
+            expect(validateRelativePath("../test/test")).toEqual(false);
             expect(validateRelativePath("test../test")).toEqual(true);
         });
     });
