@@ -1,15 +1,17 @@
-import { getLogLines } from "@/Core/Log";
+import { LOGLEVEL, getLogLines, log } from "@/Core/Log";
+import { ZodErrorMessageResponse } from "@/Helpers/Zod";
 // import { fetchLog } from "@/Core/Log";
 import type { ApiLogResponse } from "@common/Api/Api";
-import { isValid, parseJSON } from "date-fns";
 import type express from "express";
+import { z } from "zod";
 
 export async function GetLog(req: express.Request, res: express.Response) {
+    /*
     const dateFrom = req.query.dateFrom as string | undefined;
     const dateTo = req.query.dateTo as string | undefined;
-    const startFrom = req.query.startFrom
-        ? parseInt(req.query.startFrom as string)
-        : undefined;
+    // const startFrom = req.query.startFrom
+    //     ? parseInt(req.query.startFrom as string)
+    //     : undefined;
     const limit = req.query.limit
         ? parseInt(req.query.limit as string)
         : undefined;
@@ -40,6 +42,22 @@ export async function GetLog(req: express.Request, res: express.Response) {
             message: "Invalid dateTo",
         });
         return;
+    }*/
+
+    const querySchema = z.object({
+        dateFrom: z.coerce.date(),
+        dateTo: z.coerce.date().optional().default(new Date()),
+        limit: z.number().optional(),
+        transport: z.string().optional().default("dailyRotateFile"),
+    });
+
+    const query = querySchema.safeParse(req.query);
+    if (!query.success) {
+        res.api(400, {
+            status: "ERROR",
+            message: ZodErrorMessageResponse(query.error),
+        });
+        return;
     }
 
     /**
@@ -50,9 +68,9 @@ export async function GetLog(req: express.Request, res: express.Response) {
 
     try {
         allData = await getLogLines({
-            from,
-            to,
-            limit /* start: startFrom */,
+            from: query.data.dateFrom,
+            to: query.data.dateTo,
+            limit: query.data.limit,
         });
     } catch (error) {
         res.api(400, {
@@ -70,7 +88,7 @@ export async function GetLog(req: express.Request, res: express.Response) {
         return;
     }
 
-    if (!(transport in allData)) {
+    if (!(query.data.transport in allData)) {
         res.api(400, {
             status: "ERROR",
             message: "Invalid transport",
@@ -78,16 +96,24 @@ export async function GetLog(req: express.Request, res: express.Response) {
         return;
     }
 
-    const data = allData[transport];
+    const data = allData[query.data.transport];
+
+    log(
+        LOGLEVEL.ERROR,
+        "log",
+        `Querying log from ${query.data.dateFrom.toISOString()} to ${query.data.dateTo.toISOString()} with limit ${
+            query.data.limit
+        } and transport ${query.data.transport}`
+    );
 
     res.api<ApiLogResponse>(200, {
         status: "OK",
         data: {
             lines: data,
             amount: data.length,
-            from: from.toISOString(),
-            to: to.toISOString(),
-            limit,
+            from: query.data.dateFrom.toISOString(),
+            to: query.data.dateTo.toISOString(),
+            limit: query.data.limit,
         },
     });
 
