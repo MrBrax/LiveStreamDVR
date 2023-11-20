@@ -5,13 +5,13 @@
             <p>This page contains some tips and other stuff that might be useful to you.</p>
         </article>
         <article>
-            <h2>How to access subscription-only streams</h2>
+            <h2>How to access subscription-only streams / apply turbo to streams</h2>
             <p>
-                If you want to access subscription-only streams, you need supply your session token.<br />
+                If you want to access subscription-only streams or disable ads via turbo, you need supply your session token.<br />
                 You can follow this guide to get the ascii string:
                 <a href="https://streamlink.github.io/cli/plugins/twitch.html" target="_blank">https://streamlink.github.io/cli/plugins/twitch.html</a>
                 <br /><br />
-                Store the string in the <code class="code-small">/config/twitch_oauth.txt</code> file and let the recording begin. There is no need to restart
+                Store the string <em>without</em> "OAuth" or any other prepending text in the <code class="code-small">/config/twitch_oauth.txt</code> file and let the recording begin. There is no need to restart
                 the application to update the token.<br />
                 I have never tested this myself, so I don't know if it works or not. It will probably fail after a while when the token expires.
             </p>
