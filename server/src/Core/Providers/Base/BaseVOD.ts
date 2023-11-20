@@ -1750,6 +1750,12 @@ export class BaseVOD {
             }
         }
 
+        if (this.segments.length == 0 && !this.is_finalized) {
+            throw new Error(
+                `No segments available for ${this.basename} and VOD is not finalized. Completely broken. Edit the JSON file manually.`
+            );
+        }
+
         if (
             !this.video_metadata &&
             this.is_finalized &&

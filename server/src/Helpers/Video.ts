@@ -404,6 +404,65 @@ export function cutFile(
     });
 }
 
+export function validateMediaInfo(info: MediaInfo): boolean {
+    if (!info.general) {
+        throw new Error("Missing general info");
+    }
+
+    if (!info.general.Format) {
+        throw new Error("Missing general format");
+    }
+
+    if (info.general.Format.startsWith("0x0000")) {
+        throw new Error("Corrupted general format");
+    }
+
+    if (!info.general.Duration) {
+        throw new Error("Missing general duration");
+    }
+
+    if (!info.general.OverallBitRate) {
+        throw new Error("Missing general overall bitrate");
+    }
+
+    if (info.video && !info.video.FrameRate) {
+        throw new Error("Missing video framerate");
+    }
+
+    return true;
+}
+
+export function parseMediainfoOutput(inputData: string): MediaInfo {
+    const json: MediaInfoJSONOutput = JSON.parse(inputData);
+
+    const data: any = {};
+
+    for (const track of json.media.track) {
+        if (track["@type"] == "General") {
+            data.general = track;
+        } else if (track["@type"] == "Video") {
+            data.video = track;
+        } else if (track["@type"] == "Audio") {
+            data.audio = track;
+        }
+    }
+
+    try {
+        validateMediaInfo(data);
+    } catch (th) {
+        log(
+            LOGLEVEL.ERROR,
+            "helper.parseMediainfoOutput",
+            `Invalid mediainfo: ${(th as Error).message}`
+        );
+        console.error(th);
+        console.error(json);
+        throw th;
+    }
+
+    return data as MediaInfo;
+}
+
 /**
  * Return mediainfo for a file
  *
@@ -436,21 +495,7 @@ export async function mediainfo(filename: string): Promise<MediaInfo> {
     );
 
     if (output && output.stdout) {
-        const json: MediaInfoJSONOutput = JSON.parse(output.stdout.join(""));
-
-        const data: any = {};
-
-        for (const track of json.media.track) {
-            if (track["@type"] == "General") {
-                data.general = track;
-            } else if (track["@type"] == "Video") {
-                data.video = track;
-            } else if (track["@type"] == "Audio") {
-                data.audio = track;
-            }
-        }
-
-        return data as MediaInfo;
+        return parseMediainfoOutput(output.stdout.join(""));
     } else {
         log(
             LOGLEVEL.ERROR,

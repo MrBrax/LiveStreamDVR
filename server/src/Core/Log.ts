@@ -184,12 +184,13 @@ export async function getLogLines({
 
                 // TODO: hacky way to filter out logs that are not in the time range, why does query not do this?
                 const transport = Object.keys(results)[0];
-                results[transport] = results[transport].filter(
-                    (result: WinstonLogLine) =>
-                        result.metadata &&
-                        new Date(result.metadata.timestamp) >= from &&
-                        new Date(result.metadata.timestamp) <= to
-                );
+                if (results[transport])
+                    results[transport] = results[transport].filter(
+                        (result: WinstonLogLine) =>
+                            result.metadata &&
+                            new Date(result.metadata.timestamp) >= from &&
+                            new Date(result.metadata.timestamp) <= to
+                    );
 
                 resolve(results);
             }
@@ -235,9 +236,11 @@ export function log(
     textLogger.log(winstonLogData); // hack to get query working
 
     // send over websocket, probably extremely slow
+    const instance = Config.getInstance();
     if (
-        Config.getInstance().initialised &&
-        Config.getInstance().cfg<boolean>("websocket_log")
+        instance &&
+        instance.initialised &&
+        instance.cfg<boolean>("websocket_log")
     ) {
         websocket_buffer.push(websocketLogData);
 

@@ -77,5 +77,72 @@ describe("videometadata", () => {
         expect(metadata.container).toBe("MPEG Audio");
         expect(metadata.audio_codec).toBe("MPEG Audio");
     });
+
+    it("should error on corrupted video file", () => {
+        expect(async () => {
+            await videometadata(
+                path.join(
+                    __dirname,
+                    "..",
+                    "..",
+                    "tests",
+                    "mockdata",
+                    "testvideo_corrupted.mp4"
+                )
+            );
+        }).rejects.toThrow();
+    });
 });
-// END: 7d4e1f7d9f5a
+
+/*
+describe("parseMediainfoOutput", () => {
+    it("should parse mediainfo output and return the expected MediaInfo object", () => {
+        const inputData = `{
+            "media": {
+                "track": [
+                    {
+                        "@type": "General",
+                        "duration": "1",
+                        "bit_rate": "6125255"
+                    },
+                    {
+                        "@type": "Video",
+                        "codec_name": "AVC",
+                        "width": "1920",
+                        "height": "1080",
+                        "frame_rate": "60",
+                        "frame_rate_mode": "VFR"
+                    },
+                    {
+                        "@type": "Audio",
+                        "codec_name": "AAC"
+                    }
+                ]
+            }
+        }`;
+
+        const expectedOutput = {
+            general: {
+                "@type": "General",
+                duration: "1",
+                bit_rate: "6125255",
+            },
+            video: {
+                "@type": "Video",
+                codec_name: "AVC",
+                width: "1920",
+                height: "1080",
+                frame_rate: "60",
+                frame_rate_mode: "VFR",
+            },
+            audio: {
+                "@type": "Audio",
+                codec_name: "AAC",
+            },
+        };
+
+        const result = parseMediainfoOutput(inputData);
+        expect(result).toEqual(expectedOutput);
+    });
+});
+*/
