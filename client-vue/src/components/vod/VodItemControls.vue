@@ -60,7 +60,12 @@
                     {{ t("vod.controls.check-mute") }}
                 </d-button>
             </template>
-            <d-button v-if="vod.video_metadata && vod.video_metadata.type !== 'audio'" icon="burn" @click="emit('showModal', 'burn')">
+            <d-button
+                v-if="vod.video_metadata && vod.video_metadata.type !== 'audio'"
+                icon="burn"
+                :loading="store.hasJob(`tdrender_${vod.basename}`) || store.hasJob(`tdburn_${vod.basename}`)"
+                @click="emit('showModal', 'burn')"
+            >
                 {{ t("vod.controls.render-menu") }}
             </d-button>
             <!-- Fix issues -->

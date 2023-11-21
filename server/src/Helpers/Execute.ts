@@ -340,6 +340,172 @@ export function execAdvanced(
 }
 
 /**
+ * Executes a command asynchronously.
+ *
+ * @param bin - The command to execute.
+ * @param args - The arguments to pass to the command.
+ * @param env - The environment variables to set for the command (optional).
+ * @param jobName - The name of the job (optional).
+ * @param ticker - A callback function to receive stdout and stderr data (optional).
+ * @param progressFunction - A callback function to track the progress of the command (optional).
+ * @returns A promise that resolves with the execution result.
+ */
+export function exec(
+    bin: string,
+    args: string[],
+    env: Record<string, string> = {},
+    jobName: string,
+    ticker?: (source: "stdout" | "stderr", data: string) => void,
+    progressFunction?: (log: string) => number | undefined
+): Promise<ExecReturn> {
+    return new Promise((resolve, reject) => {
+        const stdout: string[] = [];
+        const stderr: string[] = [];
+
+        const process = spawn(bin, args || [], {
+            env: env,
+        });
+
+        process.on("error", (err) => {
+            log(
+                LOGLEVEL.ERROR,
+                "helper.exec",
+                `Process ${process.pid} error: ${err}`
+            );
+            // reject({ code: -1, stdout, stderr, bin, args, jobName });
+            reject(
+                new ExecError(
+                    `Process ${process.pid} error: ${err}`,
+                    -1,
+                    stdout,
+                    stderr,
+                    bin,
+                    args,
+                    jobName
+                )
+            );
+        });
+
+        log(
+            LOGLEVEL.EXEC,
+            "helper.exec",
+            `Executing job '${jobName}': $ ${bin} ${args.join(" ")}`
+        );
+
+        let job: Job;
+
+        if (process.pid) {
+            log(
+                LOGLEVEL.SUCCESS,
+                "helper.exec",
+                `Spawned process ${process.pid} for ${jobName}`
+            );
+            job = Job.create(jobName);
+            job.setPid(process.pid);
+            job.setExec(bin, args);
+            job.setProcess(process);
+            job.startLog(jobName, `$ ${bin} ${args.join(" ")}\n`);
+            if (!job.save()) {
+                log(
+                    LOGLEVEL.ERROR,
+                    "helper.exec",
+                    `Failed to save job ${jobName}`
+                );
+            }
+        } else {
+            log(
+                LOGLEVEL.ERROR,
+                "helper.exec",
+                `Failed to spawn process for ${jobName}`
+            );
+            // reject(new Error(`Failed to spawn process for ${jobName}`));
+        }
+
+        process.stdout.on("data", (data: Stream) => {
+            stdout.push(data.toString());
+            if (ticker) {
+                ticker("stdout", data.toString());
+            }
+            if (progressFunction) {
+                const p = progressFunction(data.toString());
+                if (p !== undefined && job) {
+                    job.setProgress(p);
+                    // console.debug(`Progress for ${jobName}: ${p}`);
+                }
+            }
+        });
+
+        process.stderr.on("data", (data: Stream) => {
+            stderr.push(data.toString());
+            if (ticker) {
+                ticker("stderr", data.toString());
+            }
+            if (progressFunction) {
+                const p = progressFunction(data.toString());
+                if (p !== undefined && job) {
+                    job.setProgress(p);
+                    // console.debug(`Progress for ${jobName}: ${p}`);
+                }
+            }
+        });
+
+        process.on("close", (code) => {
+            if (job) {
+                job.clear();
+            }
+            // const out_log = ffmpeg.stdout.read();
+            // const success = fs.existsSync(output) && fs.statSync(output).size > 0;
+            if (code == 0) {
+                log(
+                    LOGLEVEL.INFO,
+                    "helper.exec",
+                    `Process ${process.pid} for ${jobName} exited with code 0`
+                );
+                resolve({ code, stdout, stderr });
+            } else {
+                log(
+                    LOGLEVEL.ERROR,
+                    "helper.exec",
+                    `Process ${process.pid} for ${jobName} exited with code ${code}`
+                );
+                // reject({ code, stdout, stderr });
+                reject(
+                    new ExecError(
+                        `Process ${process.pid} for ${jobName} exited with code ${code}`,
+                        code,
+                        stdout,
+                        stderr,
+                        bin,
+                        args,
+                        jobName
+                    )
+                );
+            }
+        });
+
+        RunningProcesses.push({
+            process,
+            what: jobName,
+            internal_pid: InternalPid++,
+        });
+        process.on("close", () => {
+            const index = RunningProcesses.findIndex(
+                (p) => p.process.pid == process.pid
+            );
+            if (index >= 0) {
+                RunningProcesses.splice(index, 1);
+            }
+        });
+
+        log(
+            LOGLEVEL.INFO,
+            "helper.exec",
+            `Attached to all streams for process ${process.pid} for ${jobName}`
+        );
+    });
+}
+
+/**
  * Spawns a new process with the given binary and arguments, and returns a Job object to track its progress.
  * @param jobName - The name of the job to be executed.
  * @param bin - The binary to be executed.

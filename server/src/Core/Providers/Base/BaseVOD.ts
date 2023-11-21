@@ -15,7 +15,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { debugLog } from "../../../Helpers/Console";
 import type { ExecReturn } from "../../../Helpers/Execute";
-import { startJob } from "../../../Helpers/Execute";
+import { exec, startJob } from "../../../Helpers/Execute";
 import { formatBytes } from "../../../Helpers/Format";
 import { xClearTimeout, xTimeout } from "../../../Helpers/Timeout";
 import { isTwitchVOD, isTwitchVODChapter } from "../../../Helpers/Types";
@@ -699,7 +699,7 @@ export class BaseVOD {
         return 0;
     }
 
-    public renderChat(
+    public async renderChat(
         chat_width: number,
         chat_height: number,
         font: string,
@@ -793,6 +793,7 @@ export class BaseVOD {
             TEMP: BaseConfigCacheFolder.cache,
         };
 
+        /*
         return new Promise((resolve, reject) => {
             this.stopWatching();
 
@@ -875,10 +876,50 @@ export class BaseVOD {
                 }
             });
         });
+        */
+
+        const job = await exec(
+            bin,
+            args,
+            env,
+            `tdrender_${this.basename}`,
+            undefined,
+            (text) => {
+                const m = text.match(/Video:\s(\d+)%/i);
+                if (m && m[1]) {
+                    return parseInt(m[1]) / 100;
+                }
+            }
+        );
+
+        if (!job) {
+            console.error(chalk.redBright("Couldn't start job"));
+            throw new Error("Could not start job");
+        }
+
+        if (
+            fs.existsSync(this.path_chatrender) &&
+            fs.statSync(this.path_chatrender).size > 0
+        ) {
+            log(
+                LOGLEVEL.INFO,
+                "vod.renderChat",
+                `Chat rendered for ${this.basename}`
+            );
+            return true;
+        }
+
+        log(
+            LOGLEVEL.ERROR,
+            "vod.renderChat",
+            `Chat couldn't be rendered for ${this.basename}, no file generated`
+        );
+
+        throw new Error("Chat couldn't be rendered, no file generated");
     }
 
     // TODO: add hardware acceleration
-    public burnChat(
+    public async burnChat(
         burn_horizontal = "left",
         burn_vertical = "top",
         ffmpeg_preset = "slow",
@@ -1002,6 +1043,7 @@ export class BaseVOD {
         // output
         args.push(this.path_chatburn);
 
+        /*
         return new Promise((resolve, reject) => {
             this.stopWatching();
 
@@ -1031,6 +1073,61 @@ export class BaseVOD {
                 }
             });
         });
+        */
+
+        let currentSeconds = 0;
+        let totalSeconds = 0;
+
+        const job = await exec(
+            bin,
+            args,
+            {},
+            `tdburn_${this.basename}`,
+            undefined,
+            (text) => {
+                const totalDurationMatch = text.match(
+                    /Duration: (\d+):(\d+):(\d+)/
+                );
+                if (totalDurationMatch && !totalSeconds) {
+                    totalSeconds =
+                        parseInt(totalDurationMatch[1]) * 3600 +
+                        parseInt(totalDurationMatch[2]) * 60 +
+                        parseInt(totalDurationMatch[3]);
+                }
+                const currentTimeMatch = text.match(/time=(\d+):(\d+):(\d+)/);
+                if (currentTimeMatch && totalSeconds > 0) {
+                    currentSeconds =
+                        parseInt(currentTimeMatch[1]) * 3600 +
+                        parseInt(currentTimeMatch[2]) * 60 +
+                        parseInt(currentTimeMatch[3]);
+                    return currentSeconds / totalSeconds;
+                }
+            }
+        );
+
+        if (!job) {
+            throw new Error("Burn chat job failed");
+        }
+
+        if (
+            fs.existsSync(this.path_chatburn) &&
+            fs.statSync(this.path_chatburn).size > 0
+        ) {
+            log(
+                LOGLEVEL.INFO,
+                "vod.burnChat",
+                `Chat burned for ${this.basename}`
+            );
+            return true;
+        }
+
+        log(
+            LOGLEVEL.ERROR,
+            "vod.burnChat",
+            `Chat couldn't be burned for ${this.basename}, no file generated`
+        );
+
+        throw new Error("Chat couldn't be burned, no file generated");
     }
 
     /**
@@ -1956,9 +2053,9 @@ export class BaseVOD {
             log(
                 LOGLEVEL.ERROR,
                 "vod.getMediainfo",
-                `Could not get video metadata of ${this.basename} (${filename} @ ${
-                    this.directory
-                }): ${(e as Error).message}`
+                `Could not get video metadata of ${
+                    this.basename
+                } (${filename} @ ${this.directory}): ${(e as Error).message}`
             );
             return false;
         }
