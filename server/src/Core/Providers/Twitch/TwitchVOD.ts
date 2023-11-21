@@ -11,7 +11,6 @@ import { xClearInterval, xInterval, xTimeout } from "@/Helpers/Timeout";
 import { isTwitchVOD } from "@/Helpers/Types";
 import { ffprobe, remuxFile } from "@/Helpers/Video";
 import type { ApiTwitchVod } from "@common/Api/Client";
-import type { TwitchComment, TwitchCommentDump } from "@common/Comments";
 import type { VideoQuality } from "@common/Config";
 import type { Providers } from "@common/Defs";
 import { JobStatus, MuteStatus } from "@common/Defs";
@@ -1879,6 +1878,7 @@ export class TwitchVOD extends BaseVOD {
         );
     }
 
+    /*
     public compareDumpedChatAndDownloadedChat(): void {
         if (!fs.existsSync(this.path_chat)) return;
         if (!fs.existsSync(this.path_chatdump)) return;
@@ -1938,8 +1938,9 @@ export class TwitchVOD extends BaseVOD {
             }
             return;
         }
-        */
+        *
     }
+    */
 
     public setupStreamNumber(): void {
         let channel;
