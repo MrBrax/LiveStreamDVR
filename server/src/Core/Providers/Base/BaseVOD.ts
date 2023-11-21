@@ -1950,7 +1950,7 @@ export class BaseVOD {
             log(
                 LOGLEVEL.ERROR,
                 "vod.getMediainfo",
-                `Could not get mediainfo of ${this.basename} (${filename} @ ${
+                `Could not get video metadata of ${this.basename} (${filename} @ ${
                     this.directory
                 }): ${(e as Error).message}`
             );

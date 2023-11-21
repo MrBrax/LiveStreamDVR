@@ -43,6 +43,7 @@ module.exports = {
         // "log-module": "warn",
         "no-throw-literal": "error",
         // "import/no-relative-parent-imports": "error",
+        "no-use-before-define": "warn",
     },
     ignorePatterns: [".eslintrc.js"],
 };

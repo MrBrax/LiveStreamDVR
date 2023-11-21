@@ -2,7 +2,7 @@ import { progressOutput } from "@/Helpers/Console";
 import {
     execAdvanced,
     execSimple,
-    isExecReturn,
+    isExecError,
     startJob,
 } from "@/Helpers/Execute";
 import { validateAbsolutePath, validateFilename } from "@/Helpers/Filesystem";
@@ -761,9 +761,11 @@ export class TwitchVOD extends BaseVOD {
                     `chapter_split_${this.basename}_${chapter_index}`
                 );
             } catch (error) {
-                if (isExecReturn(error)) {
+                if (isExecError(error)) {
                     throw new Error(
-                        `Chapter ${chapter.title} failed to split for ${this.basename}: ${error.stderr}`
+                        `Chapter ${chapter.title} failed to split for ${
+                            this.basename
+                        }: ${error.stderr.join("")}`
                     );
                 }
                 throw error;

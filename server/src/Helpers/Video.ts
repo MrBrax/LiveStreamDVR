@@ -429,11 +429,22 @@ export async function mediainfo(filename: string): Promise<MediaInfo> {
     const mediainfo_path = Helper.path_mediainfo();
     if (!mediainfo_path) throw new Error("Failed to find mediainfo");
 
-    const output = await execSimple(
-        mediainfo_path,
-        ["--Full", "--Output=JSON", filename],
-        "mediainfo"
-    );
+    let output;
+
+    try {
+        output = await execSimple(
+            mediainfo_path,
+            ["--Full", "--Output=JSON", filename],
+            "mediainfo"
+        );
+    } catch (th) {
+        log(
+            LOGLEVEL.ERROR,
+            "helper.mediainfo",
+            `Mediainfo of ${filename} returned: ${(th as Error).message}`
+        );
+        throw th; // rethrow?
+    }
 
     if (output && output.stdout) {
         const json: MediaInfoJSONOutput = JSON.parse(output.stdout.join(""));
