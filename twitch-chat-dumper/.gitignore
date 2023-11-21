@@ -3,6 +3,7 @@ test/
 !tests/dump.json
 *.line
 *.mp4
+tests/tmp/
 
 .yarn/*
 !.yarn/cache

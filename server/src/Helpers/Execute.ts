@@ -6,13 +6,49 @@ import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { spawn } from "node:child_process";
 import type { Stream } from "node:stream";
 
+/**
+ * A tuple-like type representing the return value of execSimple and execAdvanced
+ */
 export interface ExecReturn {
+    /** stdout of the process, as an array of strings */
     stdout: string[];
+    /** stderr of the process, as an array of strings */
     stderr: string[];
+    /** The exit code of the process */
     code: number;
+    /** The binary that was executed */
     bin?: string;
+    /** The arguments that were passed to the binary */
     args?: string[];
+    /** A description of what was executed */
     what?: string;
+}
+
+class ExecError extends Error {
+    public code: number | null;
+    public stdout: string[];
+    public stderr: string[];
+    public bin?: string;
+    public args?: string[];
+    public what?: string;
+
+    constructor(
+        message: string,
+        code: number | null,
+        stdout: string[],
+        stderr: string[],
+        bin?: string,
+        args?: string[],
+        what?: string
+    ) {
+        super(message);
+        this.code = code;
+        this.stdout = stdout;
+        this.stderr = stderr;
+        this.bin = bin;
+        this.args = args;
+        this.what = what;
+    }
 }
 
 interface RunningProcess {
@@ -29,9 +65,9 @@ const RunningProcesses: RunningProcess[] = [];
 /**
  * Execute a command and return the output
  *
- * @param bin
- * @param args
- * @param what
+ * @param bin - The binary to execute
+ * @param args - The arguments to pass to the binary
+ * @param what - A description of what is being executed, for logging purposes
  * @throws Exception
  * @returns
  */
@@ -41,10 +77,15 @@ export function execSimple(
     what: string
 ): Promise<ExecReturn> {
     return new Promise((resolve, reject) => {
+        const stdout: string[] = [];
+        const stderr: string[] = [];
+
         const process = spawn(bin, args || [], {
             // detached: true,
             windowsHide: true,
         });
+
+        const pid = process.pid;
 
         process.on("error", (err) => {
             log(
@@ -52,19 +93,25 @@ export function execSimple(
                 "helper.execSimple",
                 `Process ${pid} for '${what}' error: ${err}`
             );
-            reject({ code: -1, stdout, stderr, bin, args, what });
+            console.error(err);
+            reject(
+                new ExecError(
+                    `Process ${pid} for '${what}' error: ${err}`,
+                    -1,
+                    stdout,
+                    stderr,
+                    bin,
+                    args,
+                    what
+                )
+            );
         });
-
-        const pid = process.pid;
 
         log(
             LOGLEVEL.EXEC,
             "helper.execSimple",
             `Executing '${what}': $ ${bin} ${args.join(" ")}`
         );
-
-        const stdout: string[] = [];
-        const stderr: string[] = [];
 
         process.stdout.on("data", (data: Stream) => {
             if (Config.debug)
@@ -98,7 +145,18 @@ export function execSimple(
             if (code == 0) {
                 resolve({ code, stdout, stderr, bin, args, what });
             } else {
-                reject({ code, stdout, stderr, bin, args, what });
+                // reject({ code, stdout, stderr, bin, args, what });
+                reject(
+                    new ExecError(
+                        `Process ${pid} for '${what}' exited with code ${code}`,
+                        code,
+                        stdout,
+                        stderr,
+                        bin,
+                        args,
+                        what
+                    )
+                );
             }
         });
 
@@ -129,6 +187,12 @@ export function isExecReturn(
     );
 }
 
+export function isExecError(
+    execError: ExecError | unknown
+): execError is ExecError {
+    return execError instanceof ExecError;
+}
+
 /**
  * Execute a command, make a job, and when it's done, return the output
  *
@@ -145,6 +209,9 @@ export function execAdvanced(
     progressFunction?: (log: string) => number | undefined
 ): Promise<ExecReturn> {
     return new Promise((resolve, reject) => {
+        const stdout: string[] = [];
+        const stderr: string[] = [];
+
         const process = spawn(bin, args || [], {
             // detached: true,
             // windowsHide: true,
@@ -156,7 +223,7 @@ export function execAdvanced(
                 "helper.execAdvanced",
                 `Process ${process.pid} error: ${err}`
             );
-            reject({ code: -1, stdout, stderr, bin, args, jobName });
+            // reject({ code: -1, stdout, stderr, bin, args, jobName });
         });
 
         log(
@@ -193,9 +260,6 @@ export function execAdvanced(
             );
             // reject(new Error(`Failed to spawn process for ${jobName}`));
         }
-
-        const stdout: string[] = [];
-        const stderr: string[] = [];
 
         process.stdout.on("data", (data: Stream) => {
             stdout.push(data.toString());
@@ -238,7 +302,18 @@ export function execAdvanced(
                     "helper.execAdvanced",
                     `Process ${process.pid} for ${jobName} exited with code ${code}`
                 );
-                reject({ code, stdout, stderr });
+                // reject({ code, stdout, stderr });
+                reject(
+                    new ExecError(
+                        `Process ${process.pid} for ${jobName} exited with code ${code}`,
+                        code,
+                        stdout,
+                        stderr,
+                        bin,
+                        args,
+                        jobName
+                    )
+                );
             }
         });
 
@@ -279,6 +354,9 @@ export function startJob(
     env: Record<string, string> = {}
 ): Job | false {
     const envs = Object.keys(env).length > 0 ? env : process.env;
+
+    const stdout: string[] = [];
+    const stderr: string[] = [];
 
     const jobProcess = spawn(bin, args || [], {
         // detached: true,
@@ -338,9 +416,6 @@ export function startJob(
         );
         // reject(new Error(`Failed to spawn process for ${jobName}`));
     }
-
-    const stdout: string[] = [];
-    const stderr: string[] = [];
 
     jobProcess.stdout.on("data", (data: Stream) => {
         stdout.push(data.toString());

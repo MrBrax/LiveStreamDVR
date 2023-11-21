@@ -155,12 +155,12 @@ export class TwitchChannel extends BaseChannel {
         for (const vod of this.vods_raw) {
             log(LOGLEVEL.DEBUG, "channel.parseVODs", `Try to parse VOD ${vod}`);
 
-            const vod_full_path = path.join(BaseConfigDataFolder.vod, vod);
+            const vodFullPath = path.join(BaseConfigDataFolder.vod, vod);
 
             let vodclass;
 
             try {
-                vodclass = await TwitchVOD.load(vod_full_path, true);
+                vodclass = await TwitchVOD.load(vodFullPath, true);
             } catch (e) {
                 log(
                     LOGLEVEL.ERROR,
@@ -251,7 +251,7 @@ export class TwitchChannel extends BaseChannel {
                 )
             );
 
-        const vods_list = await Promise.all(
+        const vodsList = await Promise.all(
             this.getVods().map(async (vod) => await vod.toAPI())
         );
 
@@ -290,7 +290,7 @@ export class TwitchChannel extends BaseChannel {
 
             quality: this.quality,
 
-            vods_list,
+            vods_list: vodsList,
         };
     }
 
@@ -397,10 +397,10 @@ export class TwitchChannel extends BaseChannel {
         await vod.saveJSON("create json");
 
         // reload
-        const load_vod = await TwitchVOD.load(vod.filename, true);
+        const loadVod = await TwitchVOD.load(vod.filename, true);
 
         // TwitchVOD.addVod(vod);
-        this.addVod(load_vod);
+        this.addVod(loadVod);
         this.sortVods();
 
         // add to database
@@ -411,7 +411,7 @@ export class TwitchChannel extends BaseChannel {
 
         this.checkStaleVodsInMemory();
 
-        return load_vod;
+        return loadVod;
     }
 
     public checkStaleVodsInMemory(): void {
@@ -422,10 +422,10 @@ export class TwitchChannel extends BaseChannel {
         );
 
         // const vods_on_disk = fs.readdirSync(Helper.vodFolder(this.login)).filter(f => this.login && f.startsWith(this.login) && f.endsWith(".json") && !f.endsWith("_chat.json"));
-        const vods_on_disk = this.rescanVods();
-        const vods_in_channel_memory = this.getVods();
-        const vods_in_main_memory =
-            LiveStreamDVR.getInstance().getVodsByChannelUUID(this.uuid);
+        // const vods_on_disk = this.rescanVods();
+        // const vods_in_channel_memory = this.getVods();
+        // const vods_in_main_memory =
+        //     LiveStreamDVR.getInstance().getVodsByChannelUUID(this.uuid);
 
         /**
          * // TODO: rewrite all of this, it's a mess. it doesn't make any sense anymore when vods can be stored in customised folders.
@@ -526,21 +526,21 @@ export class TwitchChannel extends BaseChannel {
     }
 
     public roundupCleanupVodCandidates(ignore_uuid = ""): TwitchVOD[] {
-        let total_size = 0;
-        let total_vods = 0;
+        let totalSize = 0;
+        let totalVods = 0;
 
-        let vod_candidates: TwitchVOD[] = [];
+        let vodCandidates: TwitchVOD[] = [];
 
-        const max_storage =
+        const maxStorage =
             this.max_storage > 0
                 ? this.max_storage
                 : Config.getInstance().cfg<number>("storage_per_streamer", 100);
-        const max_vods =
+        const maxVods =
             this.max_vods > 0
                 ? this.max_vods
                 : Config.getInstance().cfg<number>("vods_to_keep", 5);
 
-        const max_gigabytes = max_storage * 1024 * 1024 * 1024;
+        const maxGigabytes = maxStorage * 1024 * 1024 * 1024;
         // const vods_to_keep = max_vods;
 
         if (this.vods_list) {
@@ -632,10 +632,10 @@ export class TwitchChannel extends BaseChannel {
                     continue;
                 }
 
-                total_size += vodclass.total_size;
-                total_vods += 1;
+                totalSize += vodclass.total_size;
+                totalVods += 1;
 
-                if (total_size > max_gigabytes) {
+                if (totalSize > maxGigabytes) {
                     log(
                         LOGLEVEL.DEBUG,
                         "tw.channel.roundupCleanupVodCandidates",
@@ -644,50 +644,50 @@ export class TwitchChannel extends BaseChannel {
                         } to vod_candidates due to storage limit (${formatBytes(
                             vodclass.total_size
                         )} of current total ${formatBytes(
-                            total_size
-                        )}, limit ${formatBytes(max_gigabytes)})`
+                            totalSize
+                        )}, limit ${formatBytes(maxGigabytes)})`
                     );
-                    vod_candidates.push(vodclass);
+                    vodCandidates.push(vodclass);
                 }
 
-                if (total_vods > max_vods) {
+                if (totalVods > maxVods) {
                     log(
                         LOGLEVEL.DEBUG,
                         "tw.channel.roundupCleanupVodCandidates",
-                        `Adding ${vodclass.basename} to vod_candidates due to vod limit (${total_vods} of limit ${max_vods})`
+                        `Adding ${vodclass.basename} to vod_candidates due to vod limit (${totalVods} of limit ${maxVods})`
                     );
-                    vod_candidates.push(vodclass);
+                    vodCandidates.push(vodclass);
                 }
 
-                if (!vod_candidates.includes(vodclass)) {
+                if (!vodCandidates.includes(vodclass)) {
                     log(
                         LOGLEVEL.DEBUG,
                         "tw.channel.roundupCleanupVodCandidates",
                         `Keeping ${
                             vodclass.basename
                         } due to it not being over storage limit (${formatBytes(
-                            total_size
+                            totalSize
                         )}/${formatBytes(
-                            max_gigabytes
-                        )}) and not being over vod limit (${total_vods}/${max_vods})`
+                            maxGigabytes
+                        )}) and not being over vod limit (${totalVods}/${maxVods})`
                     );
                 }
             }
         }
 
         // remove duplicates
-        vod_candidates = vod_candidates.filter(
+        vodCandidates = vodCandidates.filter(
             (v, i, a) => a.findIndex((t) => t.basename === v.basename) === i
         );
 
         log(
             LOGLEVEL.INFO,
             "tw.channel.roundupCleanupVodCandidates",
-            `Chose ${vod_candidates.length} vods to delete`,
-            { vod_candidates: vod_candidates.map((v) => v.basename) }
+            `Chose ${vodCandidates.length} vods to delete`,
+            { vod_candidates: vodCandidates.map((v) => v.basename) }
         );
 
-        return vod_candidates;
+        return vodCandidates;
     }
 
     public async cleanupVods(ignore_uuid = ""): Promise<number | false> {
@@ -706,9 +706,9 @@ export class TwitchChannel extends BaseChannel {
             `Cleanup VODs for ${this.internalName}, ignore ${ignore_uuid}`
         );
 
-        const vod_candidates = this.roundupCleanupVodCandidates(ignore_uuid);
+        const vodCandidates = this.roundupCleanupVodCandidates(ignore_uuid);
 
-        if (vod_candidates.length === 0) {
+        if (vodCandidates.length === 0) {
             log(
                 LOGLEVEL.INFO,
                 "tw.channel.cleanupVods",
@@ -721,15 +721,15 @@ export class TwitchChannel extends BaseChannel {
             log(
                 LOGLEVEL.INFO,
                 "tw.channel.cleanupVods",
-                `Deleting only one vod for ${this.internalName}: ${vod_candidates[0].basename}`
+                `Deleting only one vod for ${this.internalName}: ${vodCandidates[0].basename}`
             );
             try {
-                await vod_candidates[0].delete();
+                await vodCandidates[0].delete();
             } catch (error) {
                 log(
                     LOGLEVEL.ERROR,
                     "tw.channel.cleanupVods",
-                    `Failed to delete ${vod_candidates[0].basename} for ${
+                    `Failed to delete ${vodCandidates[0].basename} for ${
                         this.internalName
                     }: ${(error as Error).message}`
                 );
@@ -737,7 +737,7 @@ export class TwitchChannel extends BaseChannel {
             }
             return 1;
         } else {
-            for (const vodclass of vod_candidates) {
+            for (const vodclass of vodCandidates) {
                 log(
                     LOGLEVEL.INFO,
                     "tw.channel.cleanupVods",
@@ -769,7 +769,7 @@ export class TwitchChannel extends BaseChannel {
             );
         }
 
-        return vod_candidates.length;
+        return vodCandidates.length;
     }
 
     public async refreshData(): Promise<boolean> {
@@ -780,18 +780,18 @@ export class TwitchChannel extends BaseChannel {
             `Refreshing data for ${this.internalName}`
         );
 
-        const channel_data = await TwitchChannel.getUserDataById(
+        const channelData = await TwitchChannel.getUserDataById(
             this.internalId,
             true
         );
 
-        if (channel_data) {
-            this.channel_data = channel_data;
+        if (channelData) {
+            this.channel_data = channelData;
             // this.userid = channel_data.id;
             // this.login = channel_data.login;
             // this.display_name = channel_data.display_name;
             // this.profile_image_url = channel_data.profile_image_url;
-            this.broadcaster_type = channel_data.broadcaster_type;
+            this.broadcaster_type = channelData.broadcaster_type;
             // this.description = channel_data.description;
 
             await this.checkIfChannelSavesVods();
@@ -827,18 +827,18 @@ export class TwitchChannel extends BaseChannel {
             return false;
         }
 
-        const nfo_file = path.join(this.getFolder(), "tvshow.nfo");
+        const nfoFile = path.join(this.getFolder(), "tvshow.nfo");
         let avatar;
 
         if (this.channel_data.avatar_cache) {
-            const avatar_path = path.join(
+            const avatarPath = path.join(
                 BaseConfigCacheFolder.public_cache_avatars,
                 this.channel_data.avatar_cache
             );
 
-            if (fs.existsSync(avatar_path)) {
+            if (fs.existsSync(avatarPath)) {
                 fs.copyFileSync(
-                    avatar_path,
+                    avatarPath,
                     path.join(
                         this.getFolder(),
                         `poster${path.extname(this.channel_data.avatar_cache)}`
@@ -875,32 +875,32 @@ export class TwitchChannel extends BaseChannel {
             );
         }
 
-        let nfo_content =
+        let nfoContent =
             '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n';
-        nfo_content += "<tvshow>\n";
-        nfo_content += `<title>${this.channel_data.display_name}</title>\n`;
-        nfo_content += `<uniqueid type="twitch>${this.internalId}</uniqueid>\n`;
-        if (avatar) nfo_content += `<thumb aspect="poster">${avatar}</thumb>\n`;
+        nfoContent += "<tvshow>\n";
+        nfoContent += `<title>${this.channel_data.display_name}</title>\n`;
+        nfoContent += `<uniqueid type="twitch>${this.internalId}</uniqueid>\n`;
+        if (avatar) nfoContent += `<thumb aspect="poster">${avatar}</thumb>\n`;
         // nfo_content += `<thumb aspect="fanart">${this.channel_data.profile_banner_url}</thumb>\n`;
-        nfo_content += `<episode>${this.getVods().length}</episode>\n`;
-        nfo_content += `<plot>${htmlentities(
+        nfoContent += `<episode>${this.getVods().length}</episode>\n`;
+        nfoContent += `<plot>${htmlentities(
             this.channel_data.description
         )}</plot>\n`;
-        nfo_content += "<actor>\n";
-        nfo_content += `\t<name>${this.channel_data.display_name}</name>\n`;
-        nfo_content += "\t<role>Themselves</role>\n";
-        nfo_content += "</actor>\n";
-        nfo_content += "</tvshow>";
+        nfoContent += "<actor>\n";
+        nfoContent += `\t<name>${this.channel_data.display_name}</name>\n`;
+        nfoContent += "\t<role>Themselves</role>\n";
+        nfoContent += "</actor>\n";
+        nfoContent += "</tvshow>";
 
-        fs.writeFileSync(nfo_file, nfo_content);
+        fs.writeFileSync(nfoFile, nfoContent);
 
         log(
             LOGLEVEL.INFO,
             "tw.channel.kodi",
-            `Wrote nfo file for ${this.internalName} to ${nfo_file}`
+            `Wrote nfo file for ${this.internalName} to ${nfoFile}`
         );
 
-        return fs.existsSync(nfo_file);
+        return fs.existsSync(nfoFile);
     }
 
     public async setupStreamNumber(): Promise<void> {
@@ -1009,8 +1009,8 @@ export class TwitchChannel extends BaseChannel {
             throw new Error("Cannot rename channel to same name");
         }
 
-        const old_login = this.internalName;
-        if (!old_login) {
+        const oldLogin = this.internalName;
+        if (!oldLogin) {
             throw new Error("Cannot rename channel without login");
         }
 
@@ -1027,21 +1027,19 @@ export class TwitchChannel extends BaseChannel {
             c.internalName = new_login;
             LiveStreamDVR.getInstance().saveChannelsConfig();
         } else {
-            throw new Error(`Could not find channel config for ${old_login}`);
+            throw new Error(`Could not find channel config for ${oldLogin}`);
         }
 
         // rename vods
         for (const vod of this.getVods()) {
-            await vod.changeBaseName(
-                vod.basename.replace(old_login, new_login)
-            );
+            await vod.changeBaseName(vod.basename.replace(oldLogin, new_login));
         }
 
         // rename channel folder
-        const old_channel_folder = Helper.vodFolder(old_login);
-        const new_channel_folder = Helper.vodFolder(new_login);
-        if (fs.existsSync(old_channel_folder)) {
-            fs.renameSync(old_channel_folder, new_channel_folder);
+        const oldChannelFolder = Helper.vodFolder(oldLogin);
+        const newChannelFolder = Helper.vodFolder(new_login);
+        if (fs.existsSync(oldChannelFolder)) {
+            fs.renameSync(oldChannelFolder, newChannelFolder);
         }
 
         await Config.resetChannels();
@@ -1149,7 +1147,7 @@ export class TwitchChannel extends BaseChannel {
             );
         }
 
-        const channel_basepath = this.getFolder();
+        const channelBasepath = this.getFolder();
         let basepath = "";
 
         // fetch supplementary data
@@ -1181,7 +1179,7 @@ export class TwitchChannel extends BaseChannel {
         // const basename = `${this.login}_${latestVodData.created_at.replaceAll(":", "-")}_${latestVodData.stream_id}`;
 
         if (Config.getInstance().cfg<boolean>("vod_folders")) {
-            const vod_folder_template_variables: VodBasenameTemplate = {
+            const vodFolderTemplateVariables: VodBasenameTemplate = {
                 login: this.internalName,
                 internalName: this.internalName,
                 displayName: this.displayName,
@@ -1223,15 +1221,15 @@ export class TwitchChannel extends BaseChannel {
             const vod_folder_base = sanitize(
                 formatString(
                     Config.getInstance().cfg("filename_vod_folder"),
-                    vod_folder_template_variables
+                    vodFolderTemplateVariables
                 )
             );
 
             basepath = sanitizePath(
-                path.join(channel_basepath, vod_folder_base)
+                path.join(channelBasepath, vod_folder_base)
             );
         } else {
-            basepath = channel_basepath;
+            basepath = channelBasepath;
         }
 
         if (!fs.existsSync(basepath)) {
@@ -3257,6 +3255,9 @@ export class TwitchChannel extends BaseChannel {
         return startJob(`chatdump_${name}`, chat_bin, chat_cmd);
     }
 
+    /**
+     * Retrieves the list of Twitch VODs for the channel.
+     */
     public getVods(): TwitchVOD[] {
         return this.vods_list;
     }

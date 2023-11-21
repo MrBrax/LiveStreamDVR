@@ -8,11 +8,11 @@ import fs from "node:fs";
 import path from "node:path";
 import sanitize from "sanitize-filename";
 import * as CronController from "../Controllers/Cron";
-import { TwitchHelper } from "../Providers/Twitch";
+import { TwitchHelper } from "@/Providers/Twitch";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "./BaseConfig";
 import { Config } from "./Config";
 import { LiveStreamDVR } from "./LiveStreamDVR";
-import { LOGLEVEL, log } from "./Log";
+import { log, LOGLEVEL } from "./Log";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
 
