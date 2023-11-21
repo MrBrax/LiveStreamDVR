@@ -25,6 +25,7 @@ function main(argv: Record<string, string>): void {
     const show_commands = argv.showcommands;
     const show_subs = argv.showsubs;
     const show_bans = argv.showbans;
+    const show_fragments = argv.fragments;
 
     const no_color = argv.nocolor;
 
@@ -46,6 +47,7 @@ function main(argv: Record<string, string>): void {
         --showcommands              Show commands
         --showsubs                  Show subs
         --showbans                  Show bans
+        --fragments                 Show fragments
         --nocolor                   Disable color output
         --help                      Show help
         `);
@@ -140,6 +142,13 @@ function main(argv: Record<string, string>): void {
                     return;
                 }
                 console.log(`${TwitchChat.chalk.red(message.getTime())} <${dumper.channel_login}:${dumper.userCount}>${message.getUser()?.displayBadges()}${message.getFormattedUser()}${message.isAbuse ? '⚠️' : ''}: ${message.getFormattedText()}`);
+            
+                if ( show_fragments ) {
+                    const dumpEntry = dumper.messageToDump(message, dumper.channel_id, 0);
+                    if ( dumpEntry.message.fragments.length > 1 )
+                        console.log(JSON.stringify(dumpEntry.message.fragments, null, 4));
+                }
+
             });
             dumper.on("comedy", (total, delta, message) => {
                 console.log(`${TwitchChat.chalk.red(message.getTime())} <${dumper.channel_login}:${dumper.userCount}> ${TwitchChat.chalk.yellow(`Comedy: ${total} (+${delta})`)}`);

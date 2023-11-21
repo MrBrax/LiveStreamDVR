@@ -1,3 +1,4 @@
+/*
 export interface TwitchCommentDump {
     comments: TwitchComment[];
     video: {
@@ -16,19 +17,20 @@ export interface TwitchCommentDump {
         view_count: number;
         viewable: string;
 
-        /** @deprecated */
+        /** @deprecated *
         length?: string;
-        /** @deprecated */
+        /** @deprecated *
         channel?: {
             _id: string;
             display_name: string;
         };
-        /** @deprecated */
+        /** @deprecated *
         _id?: string;
     };
 }
+*/
 
-export interface TwitchCommentDumpTD extends TwitchCommentDump {
+export interface TwitchCommentDumpTD {
     FileInfo?: {
         Version: {
             Major: number;
@@ -43,7 +45,7 @@ export interface TwitchCommentDumpTD extends TwitchCommentDump {
         id: number; // ?
     };
 
-    comments: TwitchCommentTD[];
+    comments: TwitchComment[];
     video: {
         title: string;
         description: string | null;
