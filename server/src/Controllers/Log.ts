@@ -99,7 +99,7 @@ export async function GetLog(req: express.Request, res: express.Response) {
     const data = allData[query.data.transport];
 
     log(
-        LOGLEVEL.ERROR,
+        LOGLEVEL.INFO,
         "log",
         `Querying log from ${query.data.dateFrom.toISOString()} to ${query.data.dateTo.toISOString()} with limit ${
             query.data.limit

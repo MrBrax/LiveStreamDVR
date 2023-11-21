@@ -6,12 +6,21 @@ import type { ChildProcessWithoutNullStreams } from "node:child_process";
 import { spawn } from "node:child_process";
 import type { Stream } from "node:stream";
 
+/**
+ * A tuple-like type representing the return value of execSimple and execAdvanced
+ */
 export interface ExecReturn {
+    /** stdout of the process, as an array of strings */
     stdout: string[];
+    /** stderr of the process, as an array of strings */
     stderr: string[];
+    /** The exit code of the process */
     code: number;
+    /** The binary that was executed */
     bin?: string;
+    /** The arguments that were passed to the binary */
     args?: string[];
+    /** A description of what was executed */
     what?: string;
 }
 
@@ -56,9 +65,9 @@ const RunningProcesses: RunningProcess[] = [];
 /**
  * Execute a command and return the output
  *
- * @param bin
- * @param args
- * @param what
+ * @param bin - The binary to execute
+ * @param args - The arguments to pass to the binary
+ * @param what - A description of what is being executed, for logging purposes
  * @throws Exception
  * @returns
  */

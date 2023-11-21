@@ -44,6 +44,23 @@ module.exports = {
         "no-throw-literal": "error",
         // "import/no-relative-parent-imports": "error",
         "no-use-before-define": "warn",
+        "@typescript-eslint/naming-convention": [
+            "error",
+            {
+                selector: "variable",
+                format: ["camelCase", "UPPER_CASE"],
+                leadingUnderscore: "allow",
+                trailingUnderscore: "allow",
+            },
+            {
+                selector: "typeLike",
+                format: ["PascalCase"],
+            },
+            {
+                selector: "enumMember",
+                format: ["PascalCase"],
+            },
+        ],
     },
     ignorePatterns: [".eslintrc.js"],
 };

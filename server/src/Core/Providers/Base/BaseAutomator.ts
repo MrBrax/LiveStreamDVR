@@ -280,37 +280,37 @@ export class BaseAutomator {
 
         if (!vod.chapters || vod.chapters.length == 0) return;
 
-        const current_chapter = vod.chapters[vod.chapters.length - 1];
-        const previous_chapter =
+        const currentChapter = vod.chapters[vod.chapters.length - 1];
+        const previousChapter =
             vod.chapters.length > 2
                 ? vod.chapters[vod.chapters.length - 2]
                 : null;
 
         let title = "";
-        const body = current_chapter.title;
+        const body = currentChapter.title;
         const icon = channel.profilePictureUrl;
 
-        if (current_chapter && !isTwitchVODChapter(current_chapter)) return;
-        if (previous_chapter && !isTwitchVODChapter(previous_chapter)) return;
+        if (currentChapter && !isTwitchVODChapter(currentChapter)) return;
+        if (previousChapter && !isTwitchVODChapter(previousChapter)) return;
 
         let category: NotificationCategory = "streamStatusChange";
         if (
-            (!previous_chapter?.game_id && current_chapter.game_id) || // game changed from null to something
-            (previous_chapter?.game_id &&
-                current_chapter.game_id &&
-                previous_chapter.game_id !== current_chapter.game_id) // game changed
+            (!previousChapter?.game_id && currentChapter.game_id) || // game changed from null to something
+            (previousChapter?.game_id &&
+                currentChapter.game_id &&
+                previousChapter.game_id !== currentChapter.game_id) // game changed
         ) {
-            if (nonGameCategories.includes(current_chapter.game_name)) {
-                if (current_chapter.game?.isFavourite()) {
+            if (nonGameCategories.includes(currentChapter.game_name)) {
+                if (currentChapter.game?.isFavourite()) {
                     title = t(
                         "notify.channel-displayname-is-online-with-one-of-your-favourite-categories-current_chapter-game_name",
-                        [channel.displayName, current_chapter.game_name]
+                        [channel.displayName, currentChapter.game_name]
                     );
                     category = "streamStatusChangeFavourite";
-                } else if (current_chapter.game_name) {
+                } else if (currentChapter.game_name) {
                     title = t(
                         "notify.channel-displayname-is-now-streaming-current_chapter-game_name",
-                        [channel.displayName, current_chapter.game_name]
+                        [channel.displayName, currentChapter.game_name]
                     );
                 } else {
                     title = t(
@@ -319,16 +319,16 @@ export class BaseAutomator {
                     );
                 }
             } else {
-                if (current_chapter.game?.isFavourite()) {
+                if (currentChapter.game?.isFavourite()) {
                     title = t(
                         "notify.channel-displayname-is-now-playing-one-of-your-favourite-games-current_chapter-game_name",
-                        [channel.displayName, current_chapter.game_name]
+                        [channel.displayName, currentChapter.game_name]
                     );
                     category = "streamStatusChangeFavourite";
-                } else if (current_chapter.game_name) {
+                } else if (currentChapter.game_name) {
                     title = t(
                         "notify.channel-displayname-is-now-playing-current_chapter-game_name",
-                        [channel.displayName, current_chapter.game_name]
+                        [channel.displayName, currentChapter.game_name]
                     );
                 } else {
                     title = t(
@@ -337,20 +337,20 @@ export class BaseAutomator {
                     );
                 }
             }
-        } else if (previous_chapter?.game_id && !current_chapter.game_id) {
+        } else if (previousChapter?.game_id && !currentChapter.game_id) {
             title = t(
                 "notify.channel-displayname-is-now-streaming-without-a-game",
                 [channel.displayName]
             );
-        } else if (!previous_chapter?.game_id && !current_chapter.game_id) {
+        } else if (!previousChapter?.game_id && !currentChapter.game_id) {
             title = t(
                 "notify.channel-displayname-is-still-streaming-without-a-game",
                 [channel.displayName]
             );
-        } else if (previous_chapter?.title !== current_chapter.title) {
+        } else if (previousChapter?.title !== currentChapter.title) {
             title = t(
                 "notify.channel-displayname-changed-title-still-playing-streaming-current_chapter-game_name",
-                [channel.displayName, current_chapter.game_name]
+                [channel.displayName, currentChapter.game_name]
             );
         }
 
@@ -360,8 +360,8 @@ export class BaseAutomator {
                 "automator.notifyChapterChange",
                 `No title generated for ${channel.displayName} chapter change.`,
                 {
-                    previous_chapter,
-                    current_chapter,
+                    previous_chapter: previousChapter,
+                    current_chapter: currentChapter,
                     body,
                     icon,
                     category,
@@ -381,7 +381,7 @@ export class BaseAutomator {
     public async getChapterData(
         event: ChannelUpdateEvent
     ): Promise<TwitchVODChapterJSON> {
-        const chapter_data = {
+        const chapterData = {
             started_at: new Date().toISOString(),
             game_id: event.category_id,
             game_name: event.category_name,
@@ -418,7 +418,7 @@ export class BaseAutomator {
                 const stream = streams[0];
 
                 if (stream.viewer_count !== undefined) {
-                    chapter_data.viewer_count = stream.viewer_count;
+                    chapterData.viewer_count = stream.viewer_count;
 
                     if (this.vod) {
                         this.vod.viewers.push({
@@ -442,7 +442,7 @@ export class BaseAutomator {
             }
         }
 
-        return chapter_data;
+        return chapterData;
     }
 
     private async cleanup() {
@@ -530,9 +530,9 @@ export class BaseAutomator {
 
         // download latest vod from channel. is the end hook late enough for it to be available?
         if (this.channel && this.channel.download_vod_at_end) {
-            let download_success = "";
+            let downloadSuccess = "";
             try {
-                download_success = await this.channel.downloadLatestVod(
+                downloadSuccess = await this.channel.downloadLatestVod(
                     this.channel.download_vod_at_end_quality
                 );
             } catch (err) {
@@ -545,7 +545,7 @@ export class BaseAutomator {
                     err
                 );
             }
-            if (download_success !== "") {
+            if (downloadSuccess !== "") {
                 log(
                     LOGLEVEL.INFO,
                     "automator.end",
@@ -815,7 +815,7 @@ export class BaseAutomator {
             );
         }
 
-        const temp_basename = this.vodBasenameTemplate();
+        const tempBasename = this.vodBasenameTemplate();
 
         // if running
         const job = Job.findJob(
@@ -865,7 +865,7 @@ export class BaseAutomator {
             log(
                 LOGLEVEL.INFO,
                 "automator.download",
-                `Check keyword matches for ${temp_basename}`
+                `Check keyword matches for ${tempBasename}`
             );
 
             for (const m of this.channel.match) {
@@ -879,7 +879,7 @@ export class BaseAutomator {
                 log(
                     LOGLEVEL.WARNING,
                     "automator.download",
-                    `Cancel download of ${temp_basename} due to missing keywords`
+                    `Cancel download of ${tempBasename} due to missing keywords`
                 );
                 return false;
             }
@@ -896,7 +896,7 @@ export class BaseAutomator {
             log(
                 LOGLEVEL.DEBUG,
                 "automator.download",
-                `Making folder for ${temp_basename}.`
+                `Making folder for ${tempBasename}.`
             );
             fs.mkdirSync(folder_base, { recursive: true });
         }
@@ -985,7 +985,7 @@ export class BaseAutomator {
             // KeyValue.delete(`${this.getLogin()}.channeldata`);
         }
 
-        const container_ext =
+        const containerExtension =
             this.channel.quality && this.channel.quality[0] === "audio_only"
                 ? Config.AudioContainer
                 : Config.getInstance().cfg("vod_container", "mp4");
@@ -993,7 +993,10 @@ export class BaseAutomator {
         if (Config.getInstance().cfg("capture.use_cache", false)) {
             this.capture_filename = path.join(
                 BaseConfigCacheFolder.capture,
-                `${basename}.ts`
+                `${this.getLogin()}_${this.getVodID()}_${format(
+                    new Date(),
+                    "yyyy-MM-dd_HH-mm-ss"
+                )}.ts`
             );
         } else {
             this.capture_filename = path.join(folder_base, `${basename}.ts`);
@@ -1003,7 +1006,7 @@ export class BaseAutomator {
 
         this.converted_filename = path.join(
             folder_base,
-            `${basename}.${container_ext}`
+            `${basename}.${containerExtension}`
         );
         this.chat_filename = path.join(folder_base, `${basename}.chatdump`);
 
@@ -1019,6 +1022,7 @@ export class BaseAutomator {
             this.vod.startWatchingViewerCount();
         }
 
+        // fingers crossed, this is where the capture happens
         try {
             await this.captureVideo();
         } catch (error) {
@@ -1318,6 +1322,14 @@ export class BaseAutomator {
                 LOGLEVEL.ERROR,
                 "automator.captureTicker",
                 "Fatal error with streamlink, please check logs"
+            );
+        }
+
+        if (data.includes("already exists, use --force to overwrite")) {
+            log(
+                LOGLEVEL.FATAL,
+                "automator.captureTicker",
+                `File already exists for ${basename}!`
             );
         }
 

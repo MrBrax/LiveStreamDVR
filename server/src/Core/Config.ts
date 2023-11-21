@@ -1,5 +1,5 @@
 import { debugLog } from "@/Helpers/Console";
-import { GetRunningProcesses, execSimple } from "@/Helpers/Execute";
+import { execSimple, GetRunningProcesses } from "@/Helpers/Execute";
 import { is_docker } from "@/Helpers/System";
 import { isNumber } from "@/Helpers/Types";
 import type { SettingField } from "@common/Config";
@@ -13,8 +13,8 @@ import minimist from "minimist";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { TwitchHelper } from "../Providers/Twitch";
-import { YouTubeHelper } from "../Providers/YouTube";
+import { TwitchHelper } from "@/Providers/Twitch";
+import { YouTubeHelper } from "@/Providers/YouTube";
 import {
     AppRoot,
     BaseConfigCacheFolder,
@@ -24,7 +24,7 @@ import {
     DataRoot,
 } from "./BaseConfig";
 import { LiveStreamDVR } from "./LiveStreamDVR";
-import { LOGLEVEL, log, setLogDebug } from "./Log";
+import { log, LOGLEVEL, setLogDebug } from "./Log";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 import { Scheduler } from "./Scheduler";
@@ -36,8 +36,6 @@ export class Config {
     config: Record<string, string | number | boolean | string[]> | undefined;
     private _writeConfig = false;
     watcher: fs.FSWatcher | undefined;
-
-    // forceDebug = false;
 
     gitHash?: string;
     gitBranch?: string;
@@ -57,6 +55,7 @@ export class Config {
     static readonly SeasonFormat = "yyyyMM";
 
     static instance: Config | undefined;
+
     static getInstance(): Config {
         if (this.instance === undefined) {
             this.instance = new Config();
@@ -635,7 +634,7 @@ export class Config {
             console.log(
                 chalk.green(
                     "Client is built: " +
-                        path.join(BaseConfigFolder.client, "index.html")
+                    path.join(BaseConfigFolder.client, "index.html")
                 )
             );
         }
@@ -681,12 +680,12 @@ export class Config {
             console.log(
                 chalk.green(
                     "Chat dumper is built: " +
-                        path.join(
-                            AppRoot,
-                            "twitch-chat-dumper",
-                            "build",
-                            "index.js"
-                        )
+                    path.join(
+                        AppRoot,
+                        "twitch-chat-dumper",
+                        "build",
+                        "index.js"
+                    )
                 )
             );
         }
