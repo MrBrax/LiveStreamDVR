@@ -399,6 +399,9 @@ export class TwitchChannel extends BaseChannel {
         // reload
         const loadVod = await TwitchVOD.load(vod.filename, true);
 
+        loadVod.created = true; // re-set created flag
+        loadVod.not_started = true; // re-set not_started flag
+
         // TwitchVOD.addVod(vod);
         this.addVod(loadVod);
         this.sortVods();
