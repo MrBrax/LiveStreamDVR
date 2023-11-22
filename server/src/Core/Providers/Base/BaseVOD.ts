@@ -83,6 +83,10 @@ export class BaseVOD {
     duration = 0;
     total_size = 0;
 
+    /**
+     * Indicates whether the VOD has just been created and not yet captured.
+     * It will not save to JSON.
+     */
     created = false;
     not_started = false;
 
@@ -1847,7 +1851,7 @@ export class BaseVOD {
             }
         }
 
-        if (this.segments.length == 0 && !this.is_finalized) {
+        if (this.segments.length == 0 && !this.is_finalized && !this.created) {
             throw new Error(
                 `No segments available for ${this.basename} and VOD is not finalized. Completely broken. Edit the JSON file manually.`
             );
