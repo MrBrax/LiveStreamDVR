@@ -10,7 +10,7 @@
 set -euxo pipefail
 
 # set version
-TD_VERSION="1.53.0";
+TD_VERSION="1.53.5";
 
 # set arch, compatible with Linux-x64, LinuxArm, and LinuxArm64
 if [ "$(uname -m)" = "x86_64" ]; then
