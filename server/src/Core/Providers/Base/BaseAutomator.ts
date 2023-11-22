@@ -1022,6 +1022,8 @@ export class BaseAutomator {
             this.vod.startWatchingViewerCount();
         }
 
+        this.vod.not_started = false;
+
         // fingers crossed, this is where the capture happens
         try {
             await this.captureVideo();

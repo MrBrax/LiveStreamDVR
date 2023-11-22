@@ -1192,7 +1192,79 @@ export class BaseVOD {
      * @returns
      */
     public async finalize(): Promise<boolean> {
-        throw new Error("Not implemented");
+        log(
+            LOGLEVEL.INFO,
+            "vod.finalize",
+            `Finalize ${this.basename} @ ${this.directory}`
+        );
+
+        if (this.path_playlist && fs.existsSync(this.path_playlist)) {
+            fs.unlinkSync(this.path_playlist);
+        }
+
+        // generate mediainfo, like duration, size, resolution, etc
+        try {
+            await this.getMediainfo();
+        } catch (error) {
+            log(
+                LOGLEVEL.ERROR,
+                "vod.finalize",
+                `Failed to get mediainfo for ${this.basename}: ${error}`
+            );
+        }
+
+        // generate chapter related files
+        try {
+            await this.saveLosslessCut();
+        } catch (error) {
+            log(
+                LOGLEVEL.ERROR,
+                "vod.finalize",
+                `Failed to save lossless cut for ${this.basename}: ${error}`
+            );
+        }
+
+        try {
+            await this.saveFFMPEGChapters();
+        } catch (error) {
+            log(
+                LOGLEVEL.ERROR,
+                "vod.finalize",
+                `Failed to save ffmpeg chapters for ${this.basename}: ${error}`
+            );
+        }
+
+        try {
+            await this.saveVTTChapters();
+        } catch (error) {
+            log(
+                LOGLEVEL.ERROR,
+                "vod.finalize",
+                `Failed to save vtt chapters for ${this.basename}: ${error}`
+            );
+        }
+
+        try {
+            await this.saveKodiNfo();
+        } catch (error) {
+            log(
+                LOGLEVEL.ERROR,
+                "vod.finalize",
+                `Failed to save kodi nfo for ${this.basename}: ${error}`
+            );
+        }
+
+        // generate contact sheet
+        if (Config.getInstance().cfg("contact_sheet.enable")) {
+            await this.createVideoContactSheet();
+        }
+
+        // calculate chapter durations and offsets
+        this.calculateChapters();
+
+        LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
+
+        return true;
     }
 
     /**
