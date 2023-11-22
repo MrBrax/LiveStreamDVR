@@ -1056,7 +1056,7 @@ export class TwitchChannel extends BaseChannel {
 
     public async isLiveApi(): Promise<boolean> {
         if (!this.internalId) return false;
-        const streams = await TwitchChannel.getStreams(this.internalId);
+        const streams = await this.getStreams();
         log(
             LOGLEVEL.DEBUG,
             "tw.channel.isLiveApi",
@@ -2047,6 +2047,10 @@ export class TwitchChannel extends BaseChannel {
         );
 
         return json.data ?? false;
+    }
+
+    public async getStreams(): Promise<Stream[] | false> {
+        return await TwitchChannel.getStreams(this.internalId);
     }
 
     public static async load(uuid: string): Promise<TwitchChannel> {

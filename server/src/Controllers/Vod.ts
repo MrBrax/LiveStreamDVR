@@ -375,7 +375,7 @@ export async function RenderWizard(
     log(
         LOGLEVEL.INFO,
         "route.vod.RenderWizard",
-        `Start render wizard for vod ${vod}`
+        `Start render wizard for vod ${vod.basename}`
     );
     log(LOGLEVEL.INFO, "route.vod.RenderWizard", `chat_width: ${chat_width}`);
     log(LOGLEVEL.INFO, "route.vod.RenderWizard", `chat_height: ${chat_height}`);

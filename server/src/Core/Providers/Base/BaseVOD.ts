@@ -341,22 +341,55 @@ export class BaseVOD {
         if (!this.directory) return [];
 
         const base = [
+            /** Base JSON file */
             `${this.basename}.json`,
+
+            /** unknown **/
             `${this.basename}.chat`,
+
+            /** Downloaded chat */
             `${this.basename}_chat.json`,
+
+            /** Downloaded VOD */
             `${this.basename}_vod.mp4`,
+
+            /** LosslessCut file */
             `${this.basename}-llc-edl.csv`,
+
+            /** Chat render */
             `${this.basename}_chat.mp4`,
+
+            /** Chat render mask */
             `${this.basename}_chat_mask.mp4`,
+
+            /** Burned chat */
             `${this.basename}_burned.mp4`,
+
+            /** Live chat dump */
             `${this.basename}.chatdump`,
+
+            /** in-progress chat dump */
             `${this.basename}.chatdump.txt`,
+
+            /** in-progress chat dump */
             `${this.basename}.chatdump.line`,
+
+            /** in-progress playlist file */
             `${this.basename}.m3u8`,
+
+            /** Ad break file */
             `${this.basename}.adbreak`,
+
+            /** FFmpeg chapters */
             `${this.basename}-ffmpeg-chapters.txt`,
+
+            /** VTT chapters */
             `${this.basename}.chapters.vtt`,
+
+            /** Kodi info */
             `${this.basename}.nfo`,
+
+            /** Contact sheet */
             `${this.basename}-contact_sheet.png`,
         ];
 
