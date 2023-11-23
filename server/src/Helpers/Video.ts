@@ -7,9 +7,9 @@ import type { FFProbe } from "@common/FFProbe";
 import type {
     AudioMetadata,
     MediaInfoJSONOutput,
+    MediaInfoObject,
     VideoMetadata,
 } from "@common/MediaInfo";
-import type { MediaInfo } from "@common/mediainfofield";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -400,7 +400,7 @@ export function cutFile(
     });
 }
 
-export function validateMediaInfo(info: MediaInfo): boolean {
+export function validateMediaInfo(info: MediaInfoObject): boolean {
     if (!info.general) {
         throw new Error("Missing general info");
     }
@@ -428,7 +428,7 @@ export function validateMediaInfo(info: MediaInfo): boolean {
     return true;
 }
 
-export function parseMediainfoOutput(inputData: string): MediaInfo {
+export function parseMediainfoOutput(inputData: string): MediaInfoObject {
     const json: MediaInfoJSONOutput = JSON.parse(inputData);
 
     const data: any = {};
@@ -442,6 +442,19 @@ export function parseMediainfoOutput(inputData: string): MediaInfo {
             data.audio = track;
         }
     }
+
+    /*
+    const data = json.media.track.reduce((acc, track) => {
+        if (track["@type"] == "General") {
+            acc.general = track;
+        } else if (track["@type"] == "Video") {
+            acc.video = track;
+        } else if (track["@type"] == "Audio") {
+            acc.audio = track;
+        }
+        return acc;
+    });
+    */
 
     try {
         validateMediaInfo(data);
@@ -457,7 +470,7 @@ export function parseMediainfoOutput(inputData: string): MediaInfo {
         throw error;
     }
 
-    return data as MediaInfo;
+    return data as MediaInfoObject;
 }
 
 /**
@@ -467,7 +480,7 @@ export function parseMediainfoOutput(inputData: string): MediaInfo {
  * @throws
  * @returns
  */
-export async function mediainfo(filename: string): Promise<MediaInfo> {
+export async function mediainfo(filename: string): Promise<MediaInfoObject> {
     log(LOGLEVEL.INFO, "helper.mediainfo", `Run mediainfo on ${filename}`);
 
     if (!filename) {
@@ -566,7 +579,7 @@ export async function videometadata(
     filename: string,
     force = false
 ): Promise<VideoMetadata | AudioMetadata> {
-    let data: MediaInfo | false = false;
+    let data: MediaInfoObject | false = false;
 
     const filenameHash = createHash("md5").update(filename).digest("hex"); // TODO: do we need it to by dynamic?
     const dataPath = path.join(
@@ -660,7 +673,7 @@ export async function videometadata(
 
     if (isAudio) {
         if (data.audio) {
-            const audioMetadata = {
+            const audioMetadata: AudioMetadata = {
                 type: "audio",
 
                 container: data.general.Format,
@@ -678,7 +691,7 @@ export async function videometadata(
                 audio_bitrate_mode: data.audio.BitRate_Mode as "VBR" | "CBR",
                 audio_sample_rate: parseInt(data.audio.SamplingRate),
                 audio_channels: parseInt(data.audio.Channels),
-            } as AudioMetadata;
+            };
 
             log(
                 LOGLEVEL.SUCCESS,
@@ -692,7 +705,7 @@ export async function videometadata(
         }
     } else {
         if (data.video && data.audio) {
-            const videoMetadata = {
+            const videoMetadata: VideoMetadata = {
                 type: "video",
 
                 container: data.general.Format,
@@ -709,18 +722,18 @@ export async function videometadata(
                 height: parseInt(data.video.Height),
 
                 fps: parseInt(data.video.FrameRate), // TODO: check if this is correct, seems to be variable
-                fps_mode: data.video.FrameRate_Mode as "VFR" | "CFR",
+                fps_mode: data.video.FrameRate_Mode,
 
                 audio_codec: data.audio.Format,
                 audio_bitrate: parseInt(data.audio.BitRate),
-                audio_bitrate_mode: data.audio.BitRate_Mode as "VBR" | "CBR",
+                audio_bitrate_mode: data.audio.BitRate_Mode,
                 audio_sample_rate: parseInt(data.audio.SamplingRate),
                 audio_channels: parseInt(data.audio.Channels),
 
                 video_codec: data.video.Format,
                 video_bitrate: parseInt(data.video.BitRate),
                 video_bitrate_mode: data.video.BitRate_Mode as "VBR" | "CBR",
-            } as VideoMetadata;
+            };
 
             log(
                 LOGLEVEL.SUCCESS,

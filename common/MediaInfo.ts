@@ -8,7 +8,11 @@ interface AudioTrackExtra {
 
 // type TrackType = "Video" | "Audio" | "Text" | "Other";
 
-export interface GeneralTrack {
+export interface Track {
+    "@type": "Video" | "Audio" | "Text" | "General";
+}
+
+export interface GeneralTrack extends Track {
     "@type": "General";
     Count: string;
     StreamCount: string;
@@ -51,7 +55,7 @@ export interface GeneralTrack {
     Duration_String3: string;
     Duration_String4: string;
     Duration_String5: string;
-    OverallBitRate_Mode: string;
+    OverallBitRate_Mode: "VBR" | "CBR";
     OverallBitRate_Mode_String: string;
     OverallBitRate: string;
     OverallBitRate_String: string;
@@ -78,7 +82,7 @@ export interface GeneralTrack {
     Encoded_Application_String: string;
 }
 
-export interface VideoTrack {
+export interface VideoTrack extends Track {
     "@type": "Video";
     Count: string;
     StreamCount: string;
@@ -113,6 +117,8 @@ export interface VideoTrack {
     Duration_String5: string;
     BitRate: string;
     BitRate_String: string;
+    BitRate_Mode?: "VBR" | "CBR";
+    BitRate_Mode_String?: string;
     Width: string;
     Width_String: string;
     Height: string;
@@ -123,8 +129,16 @@ export interface VideoTrack {
     DisplayAspectRatio: string;
     DisplayAspectRatio_String: string;
     Rotation: string;
+    FrameRate_Mode: "VFR" | "CFR";
+    FrameRate_Mode_String: string;
     FrameRate: string;
     FrameRate_String: string;
+    FrameRate_Num: string;
+    FrameRate_Den: string;
+    FrameRate_Minimum: string;
+    FrameRate_Minimum_String: string;
+    FrameRate_Maximum: string;
+    FrameRate_Maximum_String: string;
     FrameCount: string;
     ColorSpace: string;
     ChromaSubsampling: string;
@@ -152,7 +166,7 @@ export interface VideoTrack {
     extra: VideoTrackExtra;
 }
 
-export interface AudioTrack {
+export interface AudioTrack extends Track {
     "@type": "Audio";
     Count: string;
     StreamCount: string;
@@ -180,7 +194,7 @@ export interface AudioTrack {
     Source_Duration_String1: string;
     Source_Duration_String2: string;
     Source_Duration_String3: string;
-    BitRate_Mode: string;
+    BitRate_Mode: "VBR" | "CBR";
     BitRate_Mode_String: string;
     BitRate: string;
     BitRate_String: string;
@@ -233,8 +247,13 @@ export interface MediaInfoJSONOutput {
     media: Media;
 }
 
-export interface VideoMetadata {
+export interface MediaInfoObject {
+    video: VideoTrack;
+    audio: AudioTrack;
+    general: GeneralTrack;
+}
 
+export interface VideoMetadata {
     type: "video";
 
     container: string;
@@ -259,11 +278,9 @@ export interface VideoMetadata {
     video_codec: string;
     video_bitrate: number;
     video_bitrate_mode: "VBR" | "CBR";
-
 }
 
 export interface AudioMetadata {
-
     type: "audio";
 
     container: string;
@@ -278,5 +295,4 @@ export interface AudioMetadata {
     audio_bitrate_mode: "VBR" | "CBR";
     audio_sample_rate: number;
     audio_channels: number;
-
 }

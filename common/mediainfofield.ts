@@ -2,8 +2,9 @@
  * @todo: rename this file
  */
 
+/*
 interface General {
-    "@type": string;
+    "@type": "General";
     Count: string;
     StreamCount: string;
     StreamKind: string;
@@ -78,7 +79,7 @@ interface Extra {
 }
 
 interface Video {
-    "@type": string;
+    "@type": "Video";
     Count: string;
     StreamCount: string;
     StreamKind: string;
@@ -189,7 +190,7 @@ export interface Extra2 {
 }
 
 export interface Audio {
-    "@type": string;
+    "@type": "Audio";
     Count: string;
     StreamCount: string;
     StreamKind: string;
@@ -295,3 +296,4 @@ export interface MediaInfoPublic {
     video: VideoPublic;
     audio: AudioPublic;
 }
+*/
