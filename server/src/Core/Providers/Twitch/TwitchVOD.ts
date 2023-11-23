@@ -38,7 +38,7 @@ import { encode as htmlentities } from "html-entities";
 import fs from "node:fs";
 import path from "node:path";
 import sanitize from "sanitize-filename";
-import { TwitchHelper } from "../../../Providers/Twitch";
+import { TwitchHelper, parseTwitchDuration } from "../../../Providers/Twitch";
 import type {
     TwitchVODChapterJSON,
     TwitchVODJSON,
@@ -562,7 +562,7 @@ export class TwitchVOD extends BaseVOD {
                     BaseConfigCacheFolder.cache,
                     `${video_id}.ffmpeg.txt`
                 );
-                const end = TwitchHelper.parseTwitchDuration(video.duration);
+                const end = parseTwitchDuration(video.duration);
                 const meta = new FFmpegMetadata()
                     .setArtist(video.user_name)
                     .setTitle(video.title);
@@ -1123,7 +1123,7 @@ export class TwitchVOD extends BaseVOD {
                 url: `https://www.twitch.tv/videos/${item.id}`,
                 thumbnail: item.thumbnail_url,
                 created_at: item.created_at,
-                duration: TwitchHelper.parseTwitchDuration(item.duration),
+                duration: parseTwitchDuration(item.duration),
                 view_count: item.view_count,
                 muted_segments: item.muted_segments,
                 stream_id: item.stream_id,
@@ -1193,7 +1193,7 @@ export class TwitchVOD extends BaseVOD {
             url: `https://www.twitch.tv/videos/${item.id}`,
             thumbnail: item.thumbnail_url,
             created_at: item.created_at,
-            duration: TwitchHelper.parseTwitchDuration(item.duration),
+            duration: parseTwitchDuration(item.duration),
             view_count: item.view_count,
             muted_segments: item.muted_segments,
         } as ProxyVideo;
@@ -2292,9 +2292,7 @@ export class TwitchVOD extends BaseVOD {
 
             // log(LOGLEVEL.DEBUG, "vod.matchProviderVod", `Checking '${this.basename}' (${this.getTitle()}) against '${video.title}' (${video.id}) with offset ${startOffset}ms: ${matchingCaptureId}`);
 
-            const videoDuration = TwitchHelper.parseTwitchDuration(
-                video.duration
-            );
+            const videoDuration = parseTwitchDuration(video.duration);
 
             if (
                 startOffset < maxOffset || // 5 minutes
@@ -2336,16 +2334,12 @@ export class TwitchVOD extends BaseVOD {
 
     public setProviderVod(video: Video): void {
         this.twitch_vod_id = video.id;
-        this.twitch_vod_duration = TwitchHelper.parseTwitchDuration(
-            video.duration
-        );
+        this.twitch_vod_duration = parseTwitchDuration(video.duration);
         this.twitch_vod_title = video.title;
         this.twitch_vod_date = video.created_at;
 
         this.external_vod_id = video.id;
-        this.external_vod_duration = TwitchHelper.parseTwitchDuration(
-            video.duration
-        );
+        this.external_vod_duration = parseTwitchDuration(video.duration);
         this.external_vod_title = video.title;
         this.external_vod_date = parseJSON(video.created_at);
         // this.external_vod_exists = true;

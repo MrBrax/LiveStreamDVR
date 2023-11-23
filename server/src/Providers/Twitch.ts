@@ -56,6 +56,38 @@ interface TwitchAuthUserTokenFile {
     token_type: string;
 }
 
+/**
+ * For some reason, twitch uses "1h1m1s" for durations, not seconds
+ * thanks copilot
+ *
+ * @param duration
+ */
+export function parseTwitchDuration(duration: string) {
+    const regex = /(\d+)([a-z]+)/g;
+    let match;
+    let seconds = 0;
+    while ((match = regex.exec(duration)) !== null) {
+        const num = parseInt(match[1]);
+        const unit = match[2];
+        switch (unit) {
+            case "h":
+                seconds += num * 3600;
+                break;
+            case "m":
+                seconds += num * 60;
+                break;
+            case "s":
+                seconds += num;
+                break;
+        }
+    }
+    return seconds;
+}
+
+export function twitchDuration(seconds: number): string {
+    return getNiceDuration(seconds).replaceAll(" ", "").trim();
+}
+
 export class TwitchHelper {
     public static accessToken = "";
     public static accessTokenType?: "user" | "app";
@@ -535,39 +567,6 @@ export class TwitchHelper {
         return json.data;
     }
 
-    /**
-     * For some reason, twitch uses "1h1m1s" for durations, not seconds
-     * thanks copilot
-     *
-     * @param duration
-     */
-    public static parseTwitchDuration(duration: string) {
-        const regex = /(\d+)([a-z]+)/g;
-        let match;
-        let seconds = 0;
-        while ((match = regex.exec(duration)) !== null) {
-            const num = parseInt(match[1]);
-            const unit = match[2];
-            switch (unit) {
-                case "h":
-                    seconds += num * 3600;
-                    break;
-                case "m":
-                    seconds += num * 60;
-                    break;
-                case "s":
-                    seconds += num;
-                    break;
-            }
-        }
-        return seconds;
-    }
-
-    public static twitchDuration(seconds: number): string {
-        return getNiceDuration(seconds).replaceAll(" ", "").trim();
-        // return trim(str_replace(" ", "", self::getNiceDuration($seconds)));
-    }
-
     public static async eventSubUnsubscribe(subscription_id: string) {
         log(
             LOGLEVEL.INFO,
@@ -659,43 +658,6 @@ export class TwitchHelper {
 
         return fs.existsSync(output) && fs.statSync(output).size > 0;
     }
-
-    /*
-    public static async getSubs(): Promise<Subscriptions | false> {
-        logAdvanced(
-            LOGLEVEL.INFO,
-            "tw.helper.getSubs",
-            "Requesting subscriptions list"
-        );
-
-        if (!this.axios) {
-            throw new Error("Axios is not initialized");
-        }
-
-        let response;
-
-        try {
-            response = await this.axios.get<Subscriptions>("/helix/eventsub/subscriptions");
-        } catch (err) {
-            logAdvanced(
-                LOGLEVEL.FATAL,
-                "tw.helper.getSubs",
-                `Subs return: ${err}`
-            );
-            return false;
-        }
-
-        const json = response.data;
-
-        logAdvanced(
-            LOGLEVEL.INFO,
-            "tw.helper.getSubs",
-            `${json.total} subscriptions`
-        );
-
-        return json;
-    }
-    */
 
     public static async getSubsList(): Promise<Subscription[] | false> {
         log(
@@ -1928,7 +1890,7 @@ export class EventWebsocket {
     }
 }
 
-export function getClipId(clip_url: string): string | false {
+export function getTwitchClipId(clip_url: string): string | false {
     const idMatch1 = clip_url.match(/\/clip\/([0-9a-zA-Z_-]+)/);
     const idMatch2 = clip_url.match(/clip=([0-9a-zA-Z_-]+)/);
     const idMatch3 = clip_url.match(/clips\.twitch\.tv\/([0-9a-zA-Z_-]+)/);

@@ -5,6 +5,7 @@ import { LOGLEVEL, log } from "@/Core/Log";
 import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "@/Core/Providers/Twitch/TwitchVOD";
 import { Scheduler } from "@/Core/Scheduler";
+import { getTwitchClipId } from "@/Providers/Twitch";
 import type { ApiErrorResponse } from "@common/Api/Api";
 import type { VideoQuality } from "@common/Config";
 import { formatString } from "@common/Format";
@@ -243,7 +244,7 @@ export async function DownloadClip(
         return;
     }
 
-    const id = TwitchVOD.getClipId(url);
+    const id = getTwitchClipId(url);
 
     if (!id) {
         res.api(400, {
