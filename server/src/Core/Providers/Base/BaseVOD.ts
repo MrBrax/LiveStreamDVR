@@ -1956,7 +1956,11 @@ export class BaseVOD {
             }
         }
 
-        if (this.segments.length == 0 && !this.is_finalized && !this.created) {
+        if (
+            this.segments.length == 0 &&
+            !this.is_finalized &&
+            !this.not_started
+        ) {
             throw new Error(
                 `No segments available for ${this.basename} and VOD is not finalized. Completely broken. Edit the JSON file manually.`
             );
