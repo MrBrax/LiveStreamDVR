@@ -1,3 +1,16 @@
+import { debugLog } from "@/Helpers/Console";
+import type { ExecReturn } from "@/Helpers/Execute";
+import { exec, startJob } from "@/Helpers/Execute";
+import { formatBytes } from "@/Helpers/Format";
+import { xClearTimeout, xTimeout } from "@/Helpers/Timeout";
+import { isTwitchVOD, isTwitchVODChapter } from "@/Helpers/Types";
+import {
+    ffmpeg_time,
+    remuxFile,
+    videoContactSheet,
+    videometadata,
+} from "@/Helpers/Video";
+import type { BaseVODChapterJSON, VODJSON } from "@/Storage/JSON";
 import type { ApiBaseVod } from "@common/Api/Client";
 import type { VODBookmark } from "@common/Bookmark";
 import type { VideoQuality } from "@common/Config";
@@ -13,19 +26,6 @@ import { format, parseJSON } from "date-fns";
 import { randomUUID } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { debugLog } from "../../../Helpers/Console";
-import type { ExecReturn } from "../../../Helpers/Execute";
-import { exec, startJob } from "../../../Helpers/Execute";
-import { formatBytes } from "../../../Helpers/Format";
-import { xClearTimeout, xTimeout } from "../../../Helpers/Timeout";
-import { isTwitchVOD, isTwitchVODChapter } from "../../../Helpers/Types";
-import {
-    ffmpeg_time,
-    remuxFile,
-    videoContactSheet,
-    videometadata,
-} from "../../../Helpers/Video";
-import type { BaseVODChapterJSON, VODJSON } from "../../../Storage/JSON";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
 import { ClientBroker } from "../../ClientBroker";
 import { Config } from "../../Config";
@@ -43,104 +43,108 @@ import { BaseVODSegment } from "./BaseVODSegment";
 export class BaseVOD {
     public provider: Providers = "base";
 
-    loaded = false;
+    public loaded = false;
 
-    uuid = "";
-    capture_id = "";
-    filename = "";
-    basename = "";
-    directory = "";
+    public uuid = "";
+    public capture_id = "";
+    public filename = "";
+    public basename = "";
+    public directory = "";
 
-    json?: VODJSON;
+    public json?: VODJSON;
 
     /**
      * Date for when the VOD was created
      */
-    created_at?: Date;
+    public created_at?: Date;
 
     /**
      * Date for when the stream was started on the provider's end.
      */
-    started_at?: Date;
-    ended_at?: Date;
-    saved_at?: Date;
+    public started_at?: Date;
+    public ended_at?: Date;
+    public saved_at?: Date;
 
     /**
      * Date for when the capture process was launched
      */
-    capture_started?: Date;
+    public capture_started?: Date;
 
     /**
      * Date for when the capture file was output
      */
-    capture_started2?: Date;
-    conversion_started?: Date;
+    public capture_started2?: Date;
+    public conversion_started?: Date;
 
-    video_metadata: VideoMetadata | AudioMetadata | undefined;
+    public video_metadata: VideoMetadata | AudioMetadata | undefined;
 
-    force_record = false;
+    public force_record = false;
 
-    duration = 0;
-    total_size = 0;
+    public duration = 0;
+    public total_size = 0;
 
     /**
      * Indicates whether the VOD has just been created and not yet captured.
      * It will not save to JSON.
      */
-    created = false;
-    not_started = false;
+    public created = false;
+    public not_started = false;
 
-    is_capturing = false;
-    is_converting = false;
-    is_finalized = false;
+    public is_capturing = false;
+    public is_converting = false;
 
-    stream_number?: number;
-    stream_absolute_season?: number;
-    stream_absolute_number?: number;
+    /**
+     * This is set when the VOD is done capturing and converting, no more automatic changes will be made to it.
+     */
+    public is_finalized = false;
 
-    external_vod_id?: string;
-    external_vod_title?: string;
-    external_vod_duration?: number;
-    external_vod_exists?: boolean;
-    external_vod_date?: Date;
+    public stream_number?: number;
+    public stream_absolute_season?: number;
+    public stream_absolute_number?: number;
 
-    comment?: string;
+    public external_vod_id?: string;
+    public external_vod_title?: string;
+    public external_vod_duration?: number;
+    public external_vod_exists?: boolean;
+    public external_vod_date?: Date;
 
-    prevent_deletion = false;
+    public comment?: string;
 
-    failed = false;
+    public prevent_deletion = false;
 
-    chapters_raw: BaseVODChapterJSON[] = [];
+    public failed = false;
 
-    chapters: Array<BaseVODChapter> = [];
+    public chapters_raw: BaseVODChapterJSON[] = [];
 
-    path_chat = "";
-    path_downloaded_vod = "";
-    path_losslesscut = "";
-    path_chatrender = "";
-    path_chatmask = "";
-    path_chatburn = "";
-    path_chatdump = "";
+    public chapters: Array<BaseVODChapter> = [];
+
+    public path_chat = "";
+    public path_downloaded_vod = "";
+    public path_losslesscut = "";
+    public path_chatrender = "";
+    public path_chatmask = "";
+    public path_chatburn = "";
+    public path_chatdump = "";
     // path_adbreak = "";
-    path_playlist = "";
-    path_ffmpegchapters = "";
-    path_vttchapters = "";
-    path_kodinfo = "";
+    public path_playlist = "";
+    public path_ffmpegchapters = "";
+    public path_vttchapters = "";
+    public path_kodinfo = "";
 
-    stream_resolution: VideoQuality | undefined;
-    stream_title = "";
+    public stream_resolution: VideoQuality | undefined;
+    public stream_title = "";
 
     public cloud_storage = false;
 
     /**
      * An array of strings containing the file paths of the segments.
      */
-    segments_raw: string[] = [];
-    segments: BaseVODSegment[] = [];
+    public segments_raw: string[] = [];
+    public segments: BaseVODSegment[] = [];
 
     public channel_uuid?: string;
 
-    webpath = "";
+    public webpath = "";
 
     public fileWatcher?: chokidar.FSWatcher;
     public _writeJSON = false;
@@ -155,6 +159,169 @@ export class BaseVOD {
     public stream_pauses: StreamPause[] = [];
 
     public bookmarks: Array<VODBookmark> = [];
+
+    public is_capture_paused = false; // no longer a file, just a flag
+
+    public issueFixCount = 0;
+    public issueFixes: Record<string, boolean> = {};
+
+    public get associatedFiles(): string[] {
+        if (!this.directory) return [];
+
+        const base = [
+            /** Base JSON file */
+            `${this.basename}.json`,
+
+            /** unknown **/
+            `${this.basename}.chat`,
+
+            /** Downloaded chat */
+            `${this.basename}_chat.json`,
+
+            /** Downloaded VOD */
+            `${this.basename}_vod.mp4`,
+
+            /** LosslessCut file */
+            `${this.basename}-llc-edl.csv`,
+
+            /** Chat render */
+            `${this.basename}_chat.mp4`,
+
+            /** Chat render mask */
+            `${this.basename}_chat_mask.mp4`,
+
+            /** Burned chat */
+            `${this.basename}_burned.mp4`,
+
+            /** Live chat dump */
+            `${this.basename}.chatdump`,
+
+            /** in-progress chat dump */
+            `${this.basename}.chatdump.txt`,
+
+            /** in-progress chat dump */
+            `${this.basename}.chatdump.line`,
+
+            /** in-progress playlist file */
+            `${this.basename}.m3u8`,
+
+            /** Ad break file */
+            `${this.basename}.adbreak`,
+
+            /** FFmpeg chapters */
+            `${this.basename}-ffmpeg-chapters.txt`,
+
+            /** VTT chapters */
+            `${this.basename}.chapters.vtt`,
+
+            /** Kodi info */
+            `${this.basename}.nfo`,
+
+            /** Contact sheet */
+            `${this.basename}-contact_sheet.png`,
+        ];
+
+        if (this.segments_raw) {
+            // for (const seg of this.segments_raw) {
+            //     base.push(path.basename(seg));
+            // }
+            base.push(...this.segments_raw.map((seg) => path.basename(seg)));
+        }
+
+        return base.filter((f) =>
+            fs.existsSync(this.realpath(path.join(this.directory || "", f)))
+        );
+    }
+
+    public get is_chat_downloaded(): boolean {
+        return this.path_chat !== "" && fs.existsSync(this.path_chat);
+    }
+
+    public get is_vod_downloaded(): boolean {
+        return (
+            this.path_downloaded_vod !== "" &&
+            fs.existsSync(this.path_downloaded_vod)
+        );
+    }
+
+    public get is_lossless_cut_generated(): boolean {
+        return (
+            this.path_losslesscut !== "" && fs.existsSync(this.path_losslesscut)
+        );
+    }
+
+    public get is_chatdump_captured(): boolean {
+        return this.path_chatdump !== "" && fs.existsSync(this.path_chatdump);
+    }
+
+    public get is_chat_rendered(): boolean {
+        return (
+            this.path_chatrender !== "" && fs.existsSync(this.path_chatrender)
+        );
+    }
+
+    public get is_chat_burned(): boolean {
+        return this.path_chatburn !== "" && fs.existsSync(this.path_chatburn);
+    }
+
+    /**
+     * Is ts filed converted?
+     * GETTER
+     */
+    public get is_converted(): boolean {
+        if (!this.directory) return false;
+        if (!this.segments || this.segments.length == 0) return false;
+        if (this.is_converting) return false;
+        return this.segments.some(
+            (segment) =>
+                segment.filename &&
+                fs.existsSync(segment.filename) &&
+                fs.statSync(segment.filename).size > 0
+        );
+    }
+
+    /**
+     * Stream season
+     * GETTER
+     */
+    public get stream_season(): string | undefined {
+        if (!this.started_at) return undefined;
+        return format(this.started_at, Config.SeasonFormat);
+    }
+
+    // getter for game_name
+    public get game_name(): string {
+        return ""; // base vod does not have game_name
+    }
+
+    public get game_id(): string {
+        return ""; // base vod does not have game_id
+    }
+
+    /**
+     *
+     * @param basename
+     * @deprecated
+     * @returns
+     */
+    public static hasVod(basename: string): boolean {
+        return (
+            LiveStreamDVR.getInstance()
+                .getVods()
+                .findIndex((vod) => vod.basename == basename) != -1
+        );
+    }
+
+    public static addVod(vod: VODTypes): boolean {
+        if (!vod.basename) throw new Error("VOD basename is not set!");
+
+        if (this.hasVod(vod.basename))
+            throw new Error(`VOD ${vod.basename} is already in cache!`);
+
+        LiveStreamDVR.getInstance().addVod(vod);
+
+        return this.hasVod(vod.basename);
+    }
 
     /**
      * Set up date related data
@@ -335,102 +502,6 @@ export class BaseVOD {
 
     public postLoad(): void {
         return;
-    }
-
-    get associatedFiles(): string[] {
-        if (!this.directory) return [];
-
-        const base = [
-            /** Base JSON file */
-            `${this.basename}.json`,
-
-            /** unknown **/
-            `${this.basename}.chat`,
-
-            /** Downloaded chat */
-            `${this.basename}_chat.json`,
-
-            /** Downloaded VOD */
-            `${this.basename}_vod.mp4`,
-
-            /** LosslessCut file */
-            `${this.basename}-llc-edl.csv`,
-
-            /** Chat render */
-            `${this.basename}_chat.mp4`,
-
-            /** Chat render mask */
-            `${this.basename}_chat_mask.mp4`,
-
-            /** Burned chat */
-            `${this.basename}_burned.mp4`,
-
-            /** Live chat dump */
-            `${this.basename}.chatdump`,
-
-            /** in-progress chat dump */
-            `${this.basename}.chatdump.txt`,
-
-            /** in-progress chat dump */
-            `${this.basename}.chatdump.line`,
-
-            /** in-progress playlist file */
-            `${this.basename}.m3u8`,
-
-            /** Ad break file */
-            `${this.basename}.adbreak`,
-
-            /** FFmpeg chapters */
-            `${this.basename}-ffmpeg-chapters.txt`,
-
-            /** VTT chapters */
-            `${this.basename}.chapters.vtt`,
-
-            /** Kodi info */
-            `${this.basename}.nfo`,
-
-            /** Contact sheet */
-            `${this.basename}-contact_sheet.png`,
-        ];
-
-        if (this.segments_raw) {
-            // for (const seg of this.segments_raw) {
-            //     base.push(path.basename(seg));
-            // }
-            base.push(...this.segments_raw.map((seg) => path.basename(seg)));
-        }
-
-        return base.filter((f) =>
-            fs.existsSync(this.realpath(path.join(this.directory || "", f)))
-        );
-    }
-
-    get is_chat_downloaded(): boolean {
-        return this.path_chat !== "" && fs.existsSync(this.path_chat);
-    }
-    get is_vod_downloaded(): boolean {
-        return (
-            this.path_downloaded_vod !== "" &&
-            fs.existsSync(this.path_downloaded_vod)
-        );
-    }
-    get is_lossless_cut_generated(): boolean {
-        return (
-            this.path_losslesscut !== "" && fs.existsSync(this.path_losslesscut)
-        );
-    }
-    get is_chatdump_captured(): boolean {
-        return this.path_chatdump !== "" && fs.existsSync(this.path_chatdump);
-    }
-    // get is_capture_paused(): boolean { return this.path_adbreak !== "" && fs.existsSync(this.path_adbreak); }
-    public is_capture_paused = false; // no longer a file, just a flag
-    get is_chat_rendered(): boolean {
-        return (
-            this.path_chatrender !== "" && fs.existsSync(this.path_chatrender)
-        );
-    }
-    get is_chat_burned(): boolean {
-        return this.path_chatburn !== "" && fs.existsSync(this.path_chatburn);
     }
 
     public async toAPI(): Promise<ApiBaseVod> {
@@ -681,8 +752,8 @@ export class BaseVOD {
 
         const segments: BaseVODSegment[] = [];
 
-        for (const raw_segment of array) {
-            if (typeof raw_segment !== "string") {
+        for (const rawSegment of array) {
+            if (typeof rawSegment !== "string") {
                 log(
                     LOGLEVEL.ERROR,
                     "vod.parseSegments",
@@ -692,14 +763,14 @@ export class BaseVOD {
                 return;
             }
 
-            const base_segment = path.basename(raw_segment);
+            const baseSegment = path.basename(rawSegment);
 
             // find invalid characters for windows
-            if (base_segment.match(LiveStreamDVR.filenameIllegalChars)) {
+            if (baseSegment.match(LiveStreamDVR.filenameIllegalChars)) {
                 log(
                     LOGLEVEL.ERROR,
                     "vod.parseSegments",
-                    `Segment list containing invalid characters for ${this.basename}: ${base_segment}`
+                    `Segment list containing invalid characters for ${this.basename}: ${baseSegment}`
                 );
                 return false;
             }
@@ -710,9 +781,9 @@ export class BaseVOD {
             // segment.basename = basename($v);
             segment.filename = path.join(
                 this.directory,
-                path.basename(base_segment)
+                path.basename(baseSegment)
             );
-            segment.basename = path.basename(base_segment);
+            segment.basename = path.basename(baseSegment);
 
             if (
                 segment.filename &&
@@ -782,7 +853,7 @@ export class BaseVOD {
         }
 
         const bin = Helper.path_twitchdownloader();
-        const ffmpeg_bin = Helper.path_ffmpeg();
+        const ffmpegBin = Helper.path_ffmpeg();
         const args: string[] = [];
 
         if (!bin || !fs.existsSync(bin)) {
@@ -790,14 +861,14 @@ export class BaseVOD {
             throw new Error("TwitchDownloaderCLI not installed");
         }
 
-        if (!ffmpeg_bin || !fs.existsSync(ffmpeg_bin)) {
+        if (!ffmpegBin || !fs.existsSync(ffmpegBin)) {
             console.error(chalk.redBright("FFmpeg not installed"));
             throw new Error("FFmpeg not installed");
         }
 
         args.push("chatrender");
         args.push("--temp-path", BaseConfigCacheFolder.cache);
-        args.push("--ffmpeg-path", ffmpeg_bin);
+        args.push("--ffmpeg-path", ffmpegBin);
         args.push(
             "--input",
             path.normalize(use_downloaded ? this.path_chat : this.path_chatdump)
@@ -981,24 +1052,24 @@ export class BaseVOD {
             throw new Error(`Chat already burned for ${this.basename}`);
         }
 
-        let video_filename = "";
+        let videoFilename = "";
 
         if (use_vod) {
             if (!this.is_vod_downloaded) {
                 throw new Error(`VOD not downloaded for ${this.basename}`);
             }
-            video_filename = this.path_downloaded_vod;
+            videoFilename = this.path_downloaded_vod;
         } else if (
             this.segments &&
             this.segments.length > 0 &&
             this.segments[0].filename
         ) {
-            video_filename = this.segments[0].filename;
+            videoFilename = this.segments[0].filename;
         } else {
             throw new Error(`No segments available for ${this.basename}`);
         }
 
-        if (!video_filename) {
+        if (!videoFilename) {
             throw new Error(`No video file for ${this.basename}`);
         }
 
@@ -1050,16 +1121,16 @@ export class BaseVOD {
         args.push("-i", this.path_chatmask);
 
         // vod
-        args.push("-i", video_filename);
+        args.push("-i", videoFilename);
 
         // alpha mask
         // https://ffmpeg.org/ffmpeg-filters.html#overlay-1
         // https://stackoverflow.com/questions/50338129/use-ffmpeg-to-overlay-a-video-on-top-of-another-using-an-alpha-channel
-        const pos_x = burn_horizontal == "left" ? 0 : "main_w-overlay_w";
-        const pos_y = burn_vertical == "top" ? 0 : "main_h-overlay_h";
+        const posX = burn_horizontal == "left" ? 0 : "main_w-overlay_w";
+        const posY = burn_vertical == "top" ? 0 : "main_h-overlay_h";
         args.push(
             "-filter_complex",
-            `[0][1]alphamerge[ia];[2][ia]overlay=${pos_x}:${pos_y}`
+            `[0][1]alphamerge[ia];[2][ia]overlay=${posX}:${posY}`
         );
 
         // copy audio stream
@@ -1361,12 +1432,12 @@ export class BaseVOD {
 
             if (!chapter.vod_uuid) chapter.vod_uuid = this.uuid;
 
-            const next_chapter = this.chapters[index + 1];
+            const nextChapter = this.chapters[index + 1];
 
             chapter.calculateDurationAndOffset(
                 this.started_at,
                 this.ended_at,
-                next_chapter ? next_chapter.started_at : undefined
+                nextChapter ? nextChapter.started_at : undefined
             );
         });
 
@@ -1482,9 +1553,9 @@ export class BaseVOD {
 
         if (!this.segments) throw new Error("No segments");
 
-        const ffmpeg_path = Helper.path_ffmpeg();
+        const ffmpegPath = Helper.path_ffmpeg();
 
-        if (!ffmpeg_path) {
+        if (!ffmpegPath) {
             throw new Error("Failed to find ffmpeg");
         }
 
@@ -1495,21 +1566,21 @@ export class BaseVOD {
                         reject(new Error("No filename"));
                         return;
                     }
-                    const file_in_path = path.join(
+                    const fileInPath = path.join(
                         this.directory,
                         segment.basename
                     );
-                    if (!fs.existsSync(file_in_path)) {
-                        reject(new Error(`File not found: ${file_in_path}`));
+                    if (!fs.existsSync(fileInPath)) {
+                        reject(new Error(`File not found: ${fileInPath}`));
                         return;
                     }
-                    const file_out_path = path.join(
+                    const fileOutPath = path.join(
                         this.directory,
                         `${segment.basename}_enc.mp4`
                     );
-                    if (fs.existsSync(file_out_path)) {
+                    if (fs.existsSync(fileOutPath)) {
                         reject(
-                            new Error(`File ${file_out_path} already exists!`)
+                            new Error(`File ${fileOutPath} already exists!`)
                         );
                         return;
                     }
@@ -1517,7 +1588,7 @@ export class BaseVOD {
                     const args = [];
                     if (Config.getInstance().cfg<string>("reencoder.hwaccel")) {
                         // args.push("-hwaccel", Config.getInstance().cfg<string>("reencoder.hwaccel"));
-                        args.push("-i", file_in_path);
+                        args.push("-i", fileInPath);
                         args.push(
                             "-c:v",
                             Config.getInstance().cfg<string>(
@@ -1534,7 +1605,7 @@ export class BaseVOD {
                             Config.getInstance().cfg<string>("reencoder.tune")
                         );
                     } else {
-                        args.push("-i", file_in_path);
+                        args.push("-i", fileInPath);
                         args.push(
                             "-c:v",
                             Config.getInstance().cfg<string>(
@@ -1563,11 +1634,11 @@ export class BaseVOD {
                         );
                     }
                     // args.push("-vf", "scale=trunc(iw/2)*2:trunc(ih/2)*2"); // scale to nearest multiple of 2
-                    args.push(file_out_path);
+                    args.push(fileOutPath);
 
                     const job = startJob(
-                        `reencode_${path.basename(file_in_path)}`,
-                        ffmpeg_path,
+                        `reencode_${path.basename(fileInPath)}`,
+                        ffmpegPath,
                         args
                     );
 
@@ -1630,19 +1701,19 @@ export class BaseVOD {
                         }
                         // const out_log = ffmpeg.stdout.read();
                         const success =
-                            fs.existsSync(file_out_path) &&
-                            fs.statSync(file_out_path).size > 0;
+                            fs.existsSync(fileOutPath) &&
+                            fs.statSync(fileOutPath).size > 0;
                         if (success) {
                             log(
                                 LOGLEVEL.SUCCESS,
                                 "vod.reencodeSegments",
-                                `Reencoded ${file_in_path} to ${file_out_path}`
+                                `Reencoded ${fileInPath} to ${fileOutPath}`
                             );
                             if (deleteOriginal) {
                                 // fs.unlinkSync(file_in_path);
                             }
                             if (addToSegments) {
-                                this.addSegment(path.basename(file_out_path));
+                                this.addSegment(path.basename(fileOutPath));
                             }
                             resolve(true);
                         } else {
@@ -1650,8 +1721,8 @@ export class BaseVOD {
                                 LOGLEVEL.ERROR,
                                 "vod.reencodeSegments",
                                 `Failed to reencode ${path.basename(
-                                    file_in_path
-                                )} to ${path.basename(file_out_path)}`
+                                    fileInPath
+                                )} to ${path.basename(fileOutPath)}`
                             );
                             // reject({ code, success, stdout: job.stdout, stderr: job.stderr });
 
@@ -1664,10 +1735,10 @@ export class BaseVOD {
                             }
 
                             if (
-                                fs.existsSync(file_out_path) &&
-                                fs.statSync(file_out_path).size == 0
+                                fs.existsSync(fileOutPath) &&
+                                fs.statSync(fileOutPath).size == 0
                             ) {
-                                fs.unlinkSync(file_out_path);
+                                fs.unlinkSync(fileOutPath);
                             }
 
                             // for (const err of errorSearch) {
@@ -1675,9 +1746,9 @@ export class BaseVOD {
                             reject(
                                 new Error(
                                     `Failed to reencode ${path.basename(
-                                        file_in_path
+                                        fileInPath
                                     )} to ${path.basename(
-                                        file_out_path
+                                        fileOutPath
                                     )}: ${message}`
                                 )
                             );
@@ -1715,31 +1786,6 @@ export class BaseVOD {
             .finally(() => {
                 this.startWatching();
             });
-    }
-
-    /**
-     * Is ts filed converted?
-     * GETTER
-     */
-    get is_converted(): boolean {
-        if (!this.directory) return false;
-        if (!this.segments || this.segments.length == 0) return false;
-        if (this.is_converting) return false;
-        return this.segments.some(
-            (segment) =>
-                segment.filename &&
-                fs.existsSync(segment.filename) &&
-                fs.statSync(segment.filename).size > 0
-        );
-    }
-
-    /**
-     * Stream season
-     * GETTER
-     */
-    get stream_season(): string | undefined {
-        if (!this.started_at) return undefined;
-        return format(this.started_at, Config.SeasonFormat);
     }
 
     public async setupFiles(): Promise<void> {
@@ -1823,7 +1869,7 @@ export class BaseVOD {
         }
 
         // $csv_path = $this->directory . DIRECTORY_SEPARATOR . $this->basename . '-llc-edl.csv';
-        const csv_path = path.join(
+        const csvPath = path.join(
             this.directory,
             `${this.basename}-llc-edl.csv`
         );
@@ -1831,7 +1877,7 @@ export class BaseVOD {
         log(
             LOGLEVEL.INFO,
             "vod.saveLosslessCut",
-            `Saving lossless cut csv for ${this.basename} to ${csv_path}`
+            `Saving lossless cut csv for ${this.basename} to ${csvPath}`
         );
 
         let data = "";
@@ -1870,45 +1916,21 @@ export class BaseVOD {
 
         await this.stopWatching();
 
-        fs.writeFileSync(csv_path, data);
+        fs.writeFileSync(csvPath, data);
 
         this.setPermissions();
 
         await this.startWatching();
 
-        return fs.existsSync(csv_path);
+        return fs.existsSync(csvPath);
     }
 
     public async saveVTTChapters(): Promise<boolean> {
         return await Promise.resolve(false);
     }
+
     public async saveKodiNfo(): Promise<boolean> {
         return await Promise.resolve(false);
-    }
-
-    /**
-     *
-     * @param basename
-     * @deprecated
-     * @returns
-     */
-    public static hasVod(basename: string): boolean {
-        return (
-            LiveStreamDVR.getInstance()
-                .getVods()
-                .findIndex((vod) => vod.basename == basename) != -1
-        );
-    }
-
-    public static addVod(vod: VODTypes): boolean {
-        if (!vod.basename) throw new Error("VOD basename is not set!");
-
-        if (this.hasVod(vod.basename))
-            throw new Error(`VOD ${vod.basename} is already in cache!`);
-
-        LiveStreamDVR.getInstance().addVod(vod);
-
-        return this.hasVod(vod.basename);
     }
 
     /**
@@ -2190,6 +2212,7 @@ export class BaseVOD {
     public setupUserData(): void {
         return;
     }
+
     public setupBasic(): void {
         if (!this.json) {
             throw new Error("No JSON loaded for basic setup!");
@@ -2248,6 +2271,7 @@ export class BaseVOD {
         this.external_vod_duration = this.json.external_vod_duration;
         this.external_vod_exists = this.json.external_vod_exists ?? false;
     }
+
     public setupProvider(): void {
         return;
     }
@@ -2360,12 +2384,12 @@ export class BaseVOD {
 
     public async changeBaseName(new_basename: string): Promise<boolean> {
         if (this.basename == new_basename) return false;
-        const old_basename = this.basename;
+        const oldBasename = this.basename;
 
         log(
             LOGLEVEL.INFO,
             "vodclass.changeBaseName",
-            `Changing basename from ${old_basename} to ${new_basename}`
+            `Changing basename from ${oldBasename} to ${new_basename}`
         );
 
         await this.stopWatching();
@@ -2382,63 +2406,63 @@ export class BaseVOD {
                 );
                 continue;
             }
-            const file_path = path.join(this.directory, path.basename(file));
-            if (fs.existsSync(file_path)) {
+            const filePath = path.join(this.directory, path.basename(file));
+            if (fs.existsSync(filePath)) {
                 log(
                     LOGLEVEL.INFO,
                     "vodclass.changeBaseName",
-                    `Rename assoc '${file_path}' to '${file_path.replaceAll(
-                        old_basename,
+                    `Rename assoc '${filePath}' to '${filePath.replaceAll(
+                        oldBasename,
                         new_basename
                     )}'`
                 );
                 fs.renameSync(
-                    file_path,
-                    file_path.replaceAll(old_basename, new_basename)
+                    filePath,
+                    filePath.replaceAll(oldBasename, new_basename)
                 );
             } else {
                 log(
                     LOGLEVEL.WARNING,
                     "vodclass.changeBaseName",
-                    `File assoc '${file_path}' not found!`
+                    `File assoc '${filePath}' not found!`
                 );
             }
         }
 
-        const new_segments = [];
+        const newSegments = [];
         for (const segment of this.segments_raw) {
-            const file_path = path.join(this.directory, path.basename(segment));
-            if (fs.existsSync(file_path)) {
+            const filePath = path.join(this.directory, path.basename(segment));
+            if (fs.existsSync(filePath)) {
                 log(
                     LOGLEVEL.INFO,
                     "vodclass.changeBaseName",
-                    `Rename segment '${file_path}' to '${file_path.replaceAll(
-                        old_basename,
+                    `Rename segment '${filePath}' to '${filePath.replaceAll(
+                        oldBasename,
                         new_basename
                     )}'`
                 );
                 fs.renameSync(
-                    file_path,
-                    file_path.replaceAll(old_basename, new_basename)
+                    filePath,
+                    filePath.replaceAll(oldBasename, new_basename)
                 );
-                new_segments.push(
+                newSegments.push(
                     path.basename(
-                        file_path.replaceAll(old_basename, new_basename)
+                        filePath.replaceAll(oldBasename, new_basename)
                     )
                 );
             } else {
                 log(
                     LOGLEVEL.WARNING,
                     "vodclass.changeBaseName",
-                    `Segment '${file_path}' not found!`
+                    `Segment '${filePath}' not found!`
                 );
             }
         }
 
         this.basename = new_basename;
-        this.filename = this.filename.replaceAll(old_basename, new_basename);
+        this.filename = this.filename.replaceAll(oldBasename, new_basename);
         await this.setupFiles();
-        this.segments_raw = new_segments;
+        this.segments_raw = newSegments;
         await this.parseSegments(this.segments_raw);
         await this.saveJSON("basename rename");
         // this.rebuildSegmentList();
@@ -2446,18 +2470,18 @@ export class BaseVOD {
         return true;
     }
 
-    public archive(): void {
-        return;
-    }
     public async downloadVod(quality: VideoQuality = "best"): Promise<boolean> {
         return await Promise.resolve(false);
     }
+
     public async downloadChat(method: "td" | "tcd" = "td"): Promise<boolean> {
         return await Promise.resolve(false);
     }
+
     public async checkMutedVod(save = false): Promise<MuteStatus> {
         return await Promise.resolve(MuteStatus.UNKNOWN);
     }
+
     public async matchProviderVod(force = false): Promise<boolean | undefined> {
         return await Promise.resolve(false);
     }
@@ -2475,16 +2499,16 @@ export class BaseVOD {
 
     public backupJSON(): void {
         if (fs.existsSync(this.filename)) {
-            const backup_file = path.join(
+            const backupFile = path.join(
                 BaseConfigDataFolder.backup,
                 `${this.basename}.${Date.now()}.json`
             );
             log(
                 LOGLEVEL.INFO,
                 "vod.backupJSON",
-                `Backing up ${this.basename} to ${backup_file}`
+                `Backing up ${this.basename} to ${backupFile}`
             );
-            fs.copyFileSync(this.filename, backup_file);
+            fs.copyFileSync(this.filename, backupFile);
         }
     }
 
@@ -2530,8 +2554,6 @@ export class BaseVOD {
         return job ? await job.getStatus() : JobStatus.STOPPED;
     }
 
-    public issueFixCount = 0;
-    public issueFixes: Record<string, boolean> = {};
     /**
      * Fix issues
      *
@@ -2589,11 +2611,11 @@ export class BaseVOD {
                     `🛠️ [${source}] ${this.basename} contains invalid characters!`
                 )
             );
-            const new_basename = this.basename.replaceAll(
+            const newBasename = this.basename.replaceAll(
                 LiveStreamDVR.filenameIllegalChars,
                 "_"
             );
-            await this.changeBaseName(new_basename);
+            await this.changeBaseName(newBasename);
             this.issueFixCount++;
             this.issueFixes["illegal_chars"] = true;
             return false;
@@ -2759,31 +2781,31 @@ export class BaseVOD {
                 }
 
                 if (channel) {
-                    const container_ext =
+                    const containerExt =
                         channel &&
                         channel.quality &&
                         channel.quality[0] === "audio_only"
                             ? Config.AudioContainer
                             : Config.getInstance().cfg("vod_container", "mp4");
 
-                    const in_file = path.join(
+                    const inFile = path.join(
                         this.directory,
                         `${this.basename}.ts`
                     );
-                    const out_file = path.join(
+                    const outFile = path.join(
                         this.directory,
-                        `${this.basename}.${container_ext}`
+                        `${this.basename}.${containerExt}`
                     );
 
-                    if (fs.existsSync(out_file)) {
+                    if (fs.existsSync(outFile)) {
                         console.log(
                             chalk.bgRed.whiteBright(
-                                `🛠️ [${source}] Converted file '${out_file}' for '${this.basename}' already exists, skipping remux!`
+                                `🛠️ [${source}] Converted file '${outFile}' for '${this.basename}' already exists, skipping remux!`
                             )
                         );
                     } else {
                         this.is_converting = true;
-                        remuxFile(in_file, out_file)
+                        remuxFile(inFile, outFile)
                             .then(async (status) => {
                                 console.log(
                                     chalk.bgRed.whiteBright(
@@ -2791,7 +2813,7 @@ export class BaseVOD {
                                     )
                                 );
                                 await this.addSegment(
-                                    `${this.basename}.${container_ext}`
+                                    `${this.basename}.${containerExt}`
                                 );
                                 this.is_converting = false;
                                 await this.finalize();
@@ -3139,15 +3161,6 @@ export class BaseVOD {
         return true;
     }
 
-    // getter for game_name
-    public get game_name(): string {
-        return ""; // base vod does not have game_name
-    }
-
-    public get game_id(): string {
-        return ""; // base vod does not have game_id
-    }
-
     public calculateBookmarks(): boolean {
         if (!this.bookmarks || this.bookmarks.length == 0) return false;
         if (!this.started_at) return false;
@@ -3249,5 +3262,41 @@ export class BaseVOD {
             return true;
         }
         return false;
+    }
+
+    public move(newDirectory: string): void {
+        if (!this.directory) throw new Error("No directory set for move");
+
+        log(
+            LOGLEVEL.INFO,
+            "vod.move",
+            `Move ${this.basename} to ${newDirectory}`
+        );
+
+        for (const file of this.associatedFiles) {
+            const fileFrom = path.join(this.directory, file);
+            const fileTo = path.join(newDirectory, file);
+            if (fs.existsSync(fileFrom)) {
+                log(
+                    LOGLEVEL.DEBUG,
+                    "vod.move",
+                    `Move ${fileFrom} to ${fileTo}`
+                );
+                fs.renameSync(fileFrom, fileTo);
+            } else {
+                log(
+                    LOGLEVEL.ERROR,
+                    "vod.move",
+                    `File ${fileFrom} does not exist`
+                );
+            }
+        }
+    }
+
+    public archive(): void {
+        this.move(BaseConfigDataFolder.saved_vods);
+
+        const channel = this.getChannel();
+        if (channel) channel.removeVod(this.uuid);
     }
 }

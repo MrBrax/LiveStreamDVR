@@ -61,6 +61,8 @@ module.exports = {
                 format: ["PascalCase"],
             },
         ],
+        "@typescript-eslint/member-ordering": ["error"],
+        "@typescript-eslint/explicit-member-accessibility": ["error"],
     },
     ignorePatterns: [".eslintrc.js"],
 };
