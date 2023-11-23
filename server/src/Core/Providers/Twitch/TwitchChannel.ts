@@ -157,7 +157,7 @@ export class TwitchChannel extends BaseChannel {
 
     public get current_game(): TwitchGame | undefined {
         if (!this.current_vod) return undefined;
-        return (this.current_vod as TwitchVOD).current_game;
+        return this.current_vod.current_game;
     }
 
     public get current_duration(): number | undefined {
@@ -277,17 +277,6 @@ export class TwitchChannel extends BaseChannel {
                 "tw.channel.loadAbstract",
                 `Channel ${channel.internalName} has stale chapter data.`
             );
-        }
-
-        if ((channel.channel_data as any).cache_avatar) {
-            log(
-                LOGLEVEL.WARNING,
-                "tw.channel.loadAbstract",
-                `Channel ${channel.internalName} has stale avatar data.`
-            );
-            channel.channel_data.avatar_thumb = (
-                channel.channel_data as any
-            ).cache_avatar;
         }
 
         if (
@@ -620,7 +609,10 @@ export class TwitchChannel extends BaseChannel {
             log(
                 LOGLEVEL.ERROR,
                 "tw.channel.getStreams",
-                `Could not get streams for ${streamer_id}: ${error}`
+                `Could not get streams for ${streamer_id}: ${
+                    (error as Error).message
+                }`,
+                error
             );
             return false;
         }
@@ -834,10 +826,12 @@ export class TwitchChannel extends BaseChannel {
             log(
                 LOGLEVEL.ERROR,
                 "tw.channel.getUserDataProxy",
-                `User data request for ${identifier} exceptioned: ${err}`,
+                `User data request for ${identifier} exceptioned: ${
+                    (err as Error).message
+                }`,
                 err
             );
-            console.log(err);
+            console.error(err);
             return false;
         }
 
@@ -975,7 +969,7 @@ export class TwitchChannel extends BaseChannel {
                 ChannelsResponse | ErrorResponse
             >(`/helix/channels?broadcaster_id=${broadcaster_id}`);
         } catch (err) {
-            if (axios.isAxiosError(err)) {
+            if (axios.isAxiosError<ErrorResponse>(err)) {
                 // logAdvanced(LOGLEVEL.ERROR, "channel", `Could not get channel data for ${method} ${identifier}: ${err.message} / ${err.response?.data.message}`, err);
                 // return false;
                 if (err.response && err.response.status === 404) {
@@ -997,10 +991,12 @@ export class TwitchChannel extends BaseChannel {
             log(
                 LOGLEVEL.ERROR,
                 "tw.channel.getChannelDataById",
-                `User data request for ${broadcaster_id} exceptioned: ${err}`,
+                `User data request for ${broadcaster_id} exceptioned: ${
+                    (err as Error).message
+                }`,
                 err
             );
-            console.log(err);
+            console.error(err);
             return false;
         }
 
@@ -1076,12 +1072,13 @@ export class TwitchChannel extends BaseChannel {
         }
 
         let hookCallback = `${Config.getInstance().cfg(
-            "app_url"
+            "app_url",
+            ""
         )}/api/v0/hook/twitch`;
 
         if (Config.getInstance().hasValue("instance_id")) {
             hookCallback +=
-                "?instance=" + Config.getInstance().cfg("instance_id");
+                "?instance=" + Config.getInstance().cfg("instance_id", "");
         }
 
         if (!Config.getInstance().hasValue("eventsub_secret")) {
@@ -1140,7 +1137,7 @@ export class TwitchChannel extends BaseChannel {
                     payload
                 );
             } catch (err) {
-                if (axios.isAxiosError(err)) {
+                if (axios.isAxiosError<ErrorResponse>(err)) {
                     log(
                         LOGLEVEL.ERROR,
                         "tw.ch.subWebhook",
@@ -1172,9 +1169,11 @@ export class TwitchChannel extends BaseChannel {
                 log(
                     LOGLEVEL.ERROR,
                     "tw.ch.subWebhook",
-                    `Subscription request for ${channel_id} exceptioned: ${err}`
+                    `Subscription request for ${channel_id} exceptioned: ${
+                        (err as Error).message
+                    }`
                 );
-                console.log(err);
+                console.error(err);
                 continue;
             }
 
@@ -1301,12 +1300,16 @@ export class TwitchChannel extends BaseChannel {
                 log(
                     LOGLEVEL.ERROR,
                     "tw.ch.subWebhook",
-                    `Failed to send subscription request for ${channel_id}:${subType}: ${json}, HTTP ${httpCode})`
+                    `Failed to send subscription request for ${channel_id}:${subType}: ${JSON.stringify(
+                        json
+                    )}, HTTP ${httpCode})`
                 );
                 // return false;
                 // continue;
                 throw new Error(
-                    `Failed to send subscription request for ${channel_id}:${subType}: ${json}, HTTP ${httpCode})`
+                    `Failed to send subscription request for ${channel_id}:${subType}: ${JSON.stringify(
+                        json
+                    )}, HTTP ${httpCode})`
                 );
             }
         }
@@ -1488,7 +1491,7 @@ export class TwitchChannel extends BaseChannel {
                     payload
                 );
             } catch (err) {
-                if (axios.isAxiosError(err)) {
+                if (axios.isAxiosError<ErrorResponse>(err)) {
                     log(
                         LOGLEVEL.ERROR,
                         "tw.ch.subscribeToIdWithWebsocket",
@@ -1522,9 +1525,11 @@ export class TwitchChannel extends BaseChannel {
                 log(
                     LOGLEVEL.ERROR,
                     "tw.ch.subscribeToIdWithWebsocket",
-                    `Subscription request for ${channel_id} exceptioned: ${err}`
+                    `Subscription request for ${channel_id} exceptioned: ${
+                        (err as Error).message
+                    }`
                 );
-                console.log(err);
+                console.error(err);
                 continue;
             }
 
@@ -1584,7 +1589,9 @@ export class TwitchChannel extends BaseChannel {
                 log(
                     LOGLEVEL.ERROR,
                     "tw.ch.subscribeToIdWithWebsocket",
-                    `Failed to send subscription request for ${channel_id}:${subType}: ${json}, HTTP ${httpCode})`
+                    `Failed to send subscription request for ${channel_id}:${subType}: ${JSON.stringify(
+                        json
+                    )}, HTTP ${httpCode})`
                 );
                 return false;
             }
@@ -3178,7 +3185,7 @@ export class TwitchChannel extends BaseChannel {
                         if (!filename.endsWith(".mp4")) return;
 
                         if (eventType === "add") {
-                            this.addLocalVideo(path.basename(filename));
+                            void this.addLocalVideo(path.basename(filename));
                         }
                     }
                 } else if (eventType === "unlink") {
@@ -3203,7 +3210,7 @@ export class TwitchChannel extends BaseChannel {
             if (!file.endsWith(".mp4")) continue;
             if (allVodFiles.includes(path.basename(file))) continue;
             // console.debug(`Adding local video ${file} for channel ${this.internalName}`);
-            this.addLocalVideo(path.basename(file));
+            void this.addLocalVideo(path.basename(file));
         }
         // console.log(`Added ${this.video_list.length} local videos to ${this.internalName}`);
         log(
@@ -3302,7 +3309,9 @@ export class TwitchChannel extends BaseChannel {
             log(
                 LOGLEVEL.ERROR,
                 "tw.channel.addLocalVideo",
-                `Failed to generate thumbnail for ${filename}: ${error}`
+                `Failed to generate thumbnail for ${filename}: ${
+                    (error as Error).message
+                }`
             );
         }
 

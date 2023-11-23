@@ -218,7 +218,7 @@ export class TwitchHelper {
             },
             {
                 headers: {
-                    "Client-ID": Config.getInstance().cfg("api_client_id"),
+                    "Client-ID": Config.getInstance().cfg("api_client_id", ""),
                 },
             }
         );
@@ -240,9 +240,11 @@ export class TwitchHelper {
             log(
                 LOGLEVEL.ERROR,
                 "tw.helper.getAccessTokenApp",
-                `Failed to fetch app access token: ${json}`
+                `Failed to fetch app access token: ${JSON.stringify(json)}`
             );
-            throw new Error(`Failed to fetch access token: ${json}`);
+            throw new Error(
+                `Failed to fetch access token: ${JSON.stringify(json)}`
+            );
         }
 
         const accessToken = json.access_token;
@@ -429,7 +431,7 @@ export class TwitchHelper {
                 }
             );
         } catch (error) {
-            if (axios.isAxiosError(error)) {
+            if (axios.isAxiosError<ErrorResponse>(error)) {
                 log(
                     LOGLEVEL.FATAL,
                     "tw.helper.refreshUserAccessToken",
@@ -439,7 +441,9 @@ export class TwitchHelper {
                 log(
                     LOGLEVEL.FATAL,
                     "tw.helper.refreshUserAccessToken",
-                    `Tried to refresh oauth token but server returned: ${error}`
+                    `Tried to refresh oauth token but server returned: ${
+                        (error as Error).message
+                    }`
                 );
             }
             return false;
@@ -503,11 +507,12 @@ export class TwitchHelper {
             response = await TwitchHelper.getRequest<GlobalChatBadgesResponse>(
                 "/helix/chat/badges/global"
             );
-        } catch (e) {
+        } catch (error) {
             log(
                 LOGLEVEL.ERROR,
                 "tw.helper.getGlobalChatBadges",
-                `Error getting global chat badges: ${e}`
+                `Error getting global chat badges: ${(error as Error).message}`,
+                error
             );
             return false;
         }
@@ -518,7 +523,7 @@ export class TwitchHelper {
             log(
                 LOGLEVEL.ERROR,
                 "tw.helper.getGlobalChatBadges",
-                `Error getting global chat badges: ${json}`
+                `Error getting global chat badges: ${JSON.stringify(json)}`
             );
             return false;
         }
@@ -544,11 +549,14 @@ export class TwitchHelper {
                     },
                 }
             );
-        } catch (e) {
+        } catch (error) {
             log(
                 LOGLEVEL.ERROR,
                 "tw.helper.getChannelChatBadges",
-                `Error getting channel chat badges: ${e}`
+                `Error getting channel chat badges: ${
+                    (error as Error).message
+                }`,
+                error
             );
             return false;
         }
@@ -559,7 +567,7 @@ export class TwitchHelper {
             log(
                 LOGLEVEL.ERROR,
                 "tw.helper.getChannelChatBadges",
-                `Error getting channel chat badges: ${json}`
+                `Error getting channel chat badges: ${JSON.stringify(json)}`
             );
             return false;
         }
@@ -585,11 +593,14 @@ export class TwitchHelper {
             response = await this.deleteRequest(
                 `/helix/eventsub/subscriptions?id=${subscription_id}`
             );
-        } catch (th) {
+        } catch (error) {
             log(
                 LOGLEVEL.FATAL,
                 "tw.helper",
-                `Unsubscribe from eventsub ${subscription_id} error: ${th}`
+                `Unsubscribe from eventsub ${subscription_id} error: ${
+                    (error as Error).message
+                }`,
+                error
             );
             return false;
         }
@@ -693,11 +704,12 @@ export class TwitchHelper {
                         },
                     }
                 );
-            } catch (err) {
+            } catch (error) {
                 log(
                     LOGLEVEL.FATAL,
                     "tw.helper.getSubsList",
-                    `Subs return: ${err}`
+                    `Subs return: ${(error as Error).message}`,
+                    error
                 );
                 return false;
             }
@@ -801,7 +813,13 @@ export class TwitchHelper {
         try {
             token = await TwitchHelper.getAccessToken();
         } catch (error) {
-            console.error(chalk.red(`Failed to get access token: ${error}`));
+            // console.error(chalk.red(`Failed to get access token: ${error}`));
+            log(
+                LOGLEVEL.FATAL,
+                "tw.helper.setupAxios",
+                `Failed to get access token: ${(error as Error).message}`,
+                error
+            );
             return;
         }
 
@@ -837,7 +855,7 @@ export class TwitchHelper {
         TwitchHelper.axios = axios.create({
             baseURL: "https://api.twitch.tv",
             headers: {
-                "Client-ID": Config.getInstance().cfg("api_client_id"),
+                "Client-ID": Config.getInstance().cfg("api_client_id", ""),
                 "Content-Type": "application/json",
                 Authorization: `Bearer ${token}`,
             },
@@ -931,7 +949,7 @@ export class TwitchHelper {
                 log(
                     LOGLEVEL.DEBUG,
                     "tw.helper",
-                    `Error during get request: ${error}`,
+                    `Error during get request: ${(error as Error).message}`,
                     error
                 );
             }
@@ -1413,7 +1431,7 @@ export class TwitchHelper {
                 }
             );
         } catch (error) {
-            if (axios.isAxiosError(error)) {
+            if (axios.isAxiosError<ErrorResponse>(error)) {
                 log(
                     LOGLEVEL.ERROR,
                     "tw.helper.validateOAuth",
@@ -1606,7 +1624,7 @@ export class EventWebsocket {
             log(
                 LOGLEVEL.ERROR,
                 "tw.helper.ew",
-                `Error on event websocket: ${err}`,
+                `Error on event websocket: ${err.message}`,
                 err
             );
         });
@@ -1809,7 +1827,8 @@ export class EventWebsocket {
             log(
                 LOGLEVEL.FATAL,
                 "tw.helper.ew",
-                `Automator returned error: ${error.message}`
+                `Automator returned error: ${(error as Error).message}`,
+                error
             );
         });
     }
@@ -1901,5 +1920,15 @@ export function getTwitchClipId(clip_url: string): string | false {
     if (idMatch2) return idMatch2[1];
     if (idMatch3) return idMatch3[1];
     if (idMatch4) return idMatch4[1];
+    return false;
+}
+
+export function getTwitchVideoId(video_url: string): string | false {
+    const idMatch1 = video_url.match(/\/videos\/([0-9]+)/);
+    const idMatch2 = video_url.match(/video=([0-9]+)/);
+    const idMatch3 = video_url.match(/twitch\.tv\/videos\/([0-9]+)/);
+    if (idMatch1) return idMatch1[1];
+    if (idMatch2) return idMatch2[1];
+    if (idMatch3) return idMatch3[1];
     return false;
 }

@@ -28,7 +28,6 @@ import { format, formatDistanceToNow, isValid, parseJSON } from "date-fns";
 import { t } from "i18next";
 import { spawn } from "node:child_process";
 import fs from "node:fs";
-import type { IncomingHttpHeaders } from "node:http";
 import path from "node:path";
 import sanitize from "sanitize-filename";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
@@ -47,30 +46,24 @@ import { TwitchVOD } from "../Twitch/TwitchVOD";
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 
 export class BaseAutomator {
-    vod: VODTypes | undefined;
-    channel: ChannelTypes | undefined;
+    public vod: VODTypes | undefined;
+    public channel: ChannelTypes | undefined;
 
-    realm = "base";
+    public realm = "base";
 
     public broadcaster_user_id = "";
     public broadcaster_user_login = "";
     public broadcaster_user_name = "";
 
-    /** @deprecated */
-    payload_headers: IncomingHttpHeaders | undefined;
+    public force_record = false;
+    public stream_resolution: VideoQuality | undefined;
 
-    /** @deprecated */
-    // data_cache: EventSubResponse | undefined;
+    public capture_filename = "";
+    public converted_filename = "";
+    public chat_filename = "";
 
-    force_record = false;
-    stream_resolution: VideoQuality | undefined;
-
-    capture_filename = "";
-    converted_filename = "";
-    chat_filename = "";
-
-    captureJob: Job | undefined;
-    chatJob: Job | undefined;
+    public captureJob: Job | undefined;
+    public chatJob: Job | undefined;
 
     private vod_season?: string; // why is this a string
     private vod_absolute_season?: number;
@@ -274,7 +267,7 @@ export class BaseAutomator {
         return false;
     }
 
-    notifyChapterChange(channel: TwitchChannel) {
+    public notifyChapterChange(channel: TwitchChannel) {
         const vod = channel.latest_vod;
         if (!vod) return;
 
@@ -786,9 +779,9 @@ export class BaseAutomator {
 
     public async download(tries = 0): Promise<boolean> {
         // const data_title = this.getTitle();
-        const data_started = this.getStartDate();
-        const data_id = this.getVodID();
-        const data_username = this.getUsername();
+        const dataStarted = this.getStartDate();
+        const dataId = this.getVodID();
+        const dataUsername = this.getUsername();
 
         // const channel = TwitchChannel.getChannelByLogin(this.getLogin());
 
@@ -796,7 +789,7 @@ export class BaseAutomator {
             throw new Error(`Channel ${this.getLogin()} not found, weird.`);
         }
 
-        if (!data_id) {
+        if (!dataId) {
             log(
                 LOGLEVEL.ERROR,
                 "automator.download",
@@ -831,7 +824,7 @@ export class BaseAutomator {
             log(
                 LOGLEVEL.FATAL,
                 "automator.download",
-                `Stream already capturing to ${meta.basename} from ${data_username}, but reached download function regardless!`
+                `Stream already capturing to ${meta.basename} from ${dataUsername}, but reached download function regardless!`
             );
             this.fallbackCapture()
                 .then(() => {
@@ -952,7 +945,7 @@ export class BaseAutomator {
 
         // this.vod.json.meta = $this.payload_eventsub; // what
         this.vod.capture_id = this.getVodID() || "1";
-        this.vod.started_at = parseJSON(data_started);
+        this.vod.started_at = parseJSON(dataStarted);
 
         // this.vod.stream_number = this.channel.incrementStreamNumber();
         // this.vod.stream_season = this.channel.current_season; /** @TODO: field? **/
@@ -1031,7 +1024,8 @@ export class BaseAutomator {
             log(
                 LOGLEVEL.FATAL,
                 "automator.download",
-                `Failed to capture video: ${error}`
+                `Failed to capture video: ${(error as Error).message}`,
+                error
             );
             this.endCaptureChat();
             // capture viewer count if enabled
@@ -1267,7 +1261,7 @@ export class BaseAutomator {
         log(
             LOGLEVEL.INFO,
             "automator.download",
-            `Cleanup old VODs for ${data_username}`
+            `Cleanup old VODs for ${dataUsername}`
         );
         await this.cleanup();
 
@@ -2045,7 +2039,7 @@ export class BaseAutomator {
     /**
      * Capture chat in a "detached" process
      */
-    startCaptureChat(): boolean {
+    private startCaptureChat(): boolean {
         // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
 
         // chat capture
@@ -2107,7 +2101,7 @@ export class BaseAutomator {
     /**
      * Kill the process, stopping chat capture
      */
-    async endCaptureChat(): Promise<void> {
+    private async endCaptureChat(): Promise<void> {
         if (this.chatJob) {
             log(
                 LOGLEVEL.INFO,
@@ -2121,7 +2115,7 @@ export class BaseAutomator {
     }
 
     // maybe use this?
-    async compressChat(): Promise<boolean> {
+    private async compressChat(): Promise<boolean> {
         if (fs.existsSync(this.chat_filename)) {
             await execSimple("gzip", [this.chat_filename], "compress chat");
             return fs.existsSync(`${this.chat_filename}.gz`);
@@ -2129,7 +2123,7 @@ export class BaseAutomator {
         return false;
     }
 
-    async convertVideo(): Promise<boolean> {
+    private async convertVideo(): Promise<boolean> {
         if (!this.vod) throw new Error("VOD not set");
 
         Webhook.dispatchAll("start_convert", {

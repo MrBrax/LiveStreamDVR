@@ -33,15 +33,15 @@ export class BaseVODChapter {
         if (vod_started_at.getTime() > this.started_at.getTime()) {
             // this chapter started before the vod started
 
-            const started_at = vod_started_at;
+            const startedAt = vod_started_at;
 
             if (next_chapter_started_at) {
                 this.duration =
-                    (next_chapter_started_at.getTime() - started_at.getTime()) /
+                    (next_chapter_started_at.getTime() - startedAt.getTime()) /
                     1000;
             } else if (vod_ended_at) {
                 this.duration =
-                    (vod_ended_at.getTime() - started_at.getTime()) / 1000;
+                    (vod_ended_at.getTime() - startedAt.getTime()) / 1000;
             } else {
                 log(
                     LOGLEVEL.WARNING,

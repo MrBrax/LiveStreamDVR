@@ -40,9 +40,9 @@ export function remuxFile(
     metadata_file?: string
 ): Promise<RemuxReturn> {
     return new Promise((resolve, reject) => {
-        const ffmpeg_path = Helper.path_ffmpeg();
+        const ffmpegPath = Helper.path_ffmpeg();
 
-        if (!ffmpeg_path) {
+        if (!ffmpegPath) {
             reject(new Error("Failed to find ffmpeg"));
             return;
         }
@@ -133,11 +133,7 @@ export function remuxFile(
 
         log(LOGLEVEL.INFO, "video.remux", `Remuxing ${input} to ${output}`);
 
-        const job = startJob(
-            `remux_${path.basename(input)}`,
-            ffmpeg_path,
-            opts
-        );
+        const job = startJob(`remux_${path.basename(input)}`, ffmpegPath, opts);
 
         if (!job || !job.process) {
             reject(
@@ -194,17 +190,17 @@ export function remuxFile(
             log(
                 LOGLEVEL.ERROR,
                 "video.remux",
-                `Process ${process.pid} error: ${err}`
+                `Process ${process.pid} error: ${err.message}`
             );
             // reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
-            reject(new Error(`Process ${process.pid} error: ${err}`));
+            reject(new Error(`Process ${process.pid} error: ${err.message}`));
         });
 
         job.process.on("close", (code) => {
             if (job) {
                 job.clear();
             }
-            LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
+            void LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
             // const out_log = ffmpeg.stdout.read();
             const success =
                 fs.existsSync(output) && fs.statSync(output).size > 0;
@@ -260,9 +256,9 @@ export function cutFile(
     overwrite = false
 ): Promise<RemuxReturn> {
     return new Promise((resolve, reject) => {
-        const ffmpeg_path = Helper.path_ffmpeg();
+        const ffmpegPath = Helper.path_ffmpeg();
 
-        if (!ffmpeg_path) {
+        if (!ffmpegPath) {
             reject(new Error("Failed to find ffmpeg"));
             return;
         }
@@ -301,7 +297,7 @@ export function cutFile(
 
         log(LOGLEVEL.INFO, "video.cut", `Cutting ${input} to ${output}`);
 
-        const job = startJob(`cut_${path.basename(input)}`, ffmpeg_path, opts);
+        const job = startJob(`cut_${path.basename(input)}`, ffmpegPath, opts);
 
         if (!job || !job.process) {
             reject(
@@ -316,10 +312,10 @@ export function cutFile(
             log(
                 LOGLEVEL.ERROR,
                 "video.cut",
-                `Process ${process.pid} error: ${err}`
+                `Process ${process.pid} error: ${err.message}`
             );
             // reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
-            reject(new Error(`Process ${process.pid} error: ${err}`));
+            reject(new Error(`Process ${process.pid} error: ${err.message}`));
         });
 
         job.process.on("close", (code) => {
@@ -449,15 +445,16 @@ export function parseMediainfoOutput(inputData: string): MediaInfo {
 
     try {
         validateMediaInfo(data);
-    } catch (th) {
+    } catch (error) {
         log(
             LOGLEVEL.ERROR,
             "helper.parseMediainfoOutput",
-            `Invalid mediainfo: ${(th as Error).message}`
+            `Invalid mediainfo: ${(error as Error).message}`,
+            error
         );
-        console.error(th);
+        console.error(error);
         console.error(json);
-        throw th;
+        throw error;
     }
 
     return data as MediaInfo;
@@ -485,24 +482,25 @@ export async function mediainfo(filename: string): Promise<MediaInfo> {
         throw new Error("Filesize is 0 for mediainfo");
     }
 
-    const mediainfo_path = Helper.path_mediainfo();
-    if (!mediainfo_path) throw new Error("Failed to find mediainfo");
+    const mediainfoPath = Helper.path_mediainfo();
+    if (!mediainfoPath) throw new Error("Failed to find mediainfo");
 
     let output;
 
     try {
         output = await execSimple(
-            mediainfo_path,
+            mediainfoPath,
             ["--Full", "--Output=JSON", filename],
             "mediainfo"
         );
-    } catch (th) {
+    } catch (error) {
         log(
             LOGLEVEL.ERROR,
             "helper.mediainfo",
-            `Mediainfo of ${filename} returned: ${(th as Error).message}`
+            `Mediainfo of ${filename} returned: ${(error as Error).message}`,
+            error
         );
-        throw th; // rethrow?
+        throw error; // rethrow?
     }
 
     if (output && output.stdout) {
@@ -532,11 +530,11 @@ export async function ffprobe(filename: string): Promise<FFProbe> {
         throw new Error("Filesize is 0 for ffprobe");
     }
 
-    const ffprobe_path = Helper.path_ffprobe();
-    if (!ffprobe_path) throw new Error("Failed to find ffprobe");
+    const ffprobePath = Helper.path_ffprobe();
+    if (!ffprobePath) throw new Error("Failed to find ffprobe");
 
     const output = await execSimple(
-        ffprobe_path,
+        ffprobePath,
         [
             "-v",
             "quiet",
@@ -596,15 +594,16 @@ export async function videometadata(
     } else {
         try {
             data = await mediainfo(filename);
-        } catch (th) {
+        } catch (error) {
             log(
                 LOGLEVEL.ERROR,
                 "helper.videometadata",
                 `Trying to get mediainfo of ${filename} returned: ${
-                    (th as Error).message
-                }`
+                    (error as Error).message
+                }`,
+                error
             );
-            throw th; // rethrow?
+            throw error; // rethrow?
         }
 
         if (!data) {
@@ -658,7 +657,7 @@ export async function videometadata(
 
     if (isAudio) {
         if (data.audio) {
-            const audio_metadata = {
+            const audioMetadata = {
                 type: "audio",
 
                 container: data.general.Format,
@@ -681,16 +680,16 @@ export async function videometadata(
             log(
                 LOGLEVEL.SUCCESS,
                 "helper.videometadata",
-                `${filename} is an audio file ${audio_metadata.duration} long.`
+                `${filename} is an audio file ${audioMetadata.duration} long.`
             );
 
-            return audio_metadata;
+            return audioMetadata;
         } else {
             throw new Error("Invalid mediainfo: no audio");
         }
     } else {
         if (data.video && data.audio) {
-            const video_metadata = {
+            const videoMetadata = {
                 type: "video",
 
                 container: data.general.Format,
@@ -724,11 +723,11 @@ export async function videometadata(
                 LOGLEVEL.SUCCESS,
                 "helper.videometadata",
                 `${filename} is a video file ${formatDuration(
-                    video_metadata.duration
-                )} long at ${video_metadata.height}p${video_metadata.fps}.`
+                    videoMetadata.duration
+                )} long at ${videoMetadata.height}p${videoMetadata.fps}.`
             );
 
-            return video_metadata;
+            return videoMetadata;
         } else {
             throw new Error("Invalid mediainfo: no video/audio");
         }
@@ -775,7 +774,7 @@ export async function videoThumbnail(
         .update(filename + width + offset)
         .digest("hex");
 
-    const output_image = path.join(
+    const outputImage = path.join(
         BaseConfigCacheFolder.public_cache_thumbs,
         `${filenameHash}.${Config.getInstance().cfg<string>(
             "thumbnail_format",
@@ -783,20 +782,20 @@ export async function videoThumbnail(
         )}`
     );
 
-    if (fs.existsSync(output_image)) {
+    if (fs.existsSync(outputImage)) {
         log(
             LOGLEVEL.DEBUG,
             "helper.videoThumbnail",
             `Thumbnail already exists for ${filename}, returning cached version`
         );
-        return path.basename(output_image);
+        return path.basename(outputImage);
     }
 
-    const ffmpeg_path = Helper.path_ffmpeg();
-    if (!ffmpeg_path) throw new Error("Failed to find ffmpeg");
+    const ffmpegPath = Helper.path_ffmpeg();
+    if (!ffmpegPath) throw new Error("Failed to find ffmpeg");
 
     const output = await execSimple(
-        ffmpeg_path,
+        ffmpegPath,
         [
             "-ss",
             ffmpeg_time(offset),
@@ -806,22 +805,22 @@ export async function videoThumbnail(
             `thumbnail,scale=${width}:-1`,
             "-frames:v",
             "1",
-            output_image,
+            outputImage,
         ],
         "ffmpeg video thumbnail"
     );
 
     if (
         output &&
-        fs.existsSync(output_image) &&
-        fs.statSync(output_image).size > 0
+        fs.existsSync(outputImage) &&
+        fs.statSync(outputImage).size > 0
     ) {
         log(
             LOGLEVEL.SUCCESS,
             "helper.videoThumbnail",
             `Created video thumbnail for ${filename}`
         );
-        return path.basename(output_image);
+        return path.basename(outputImage);
     } else {
         log(
             LOGLEVEL.ERROR,
@@ -868,12 +867,12 @@ export async function videoContactSheet(
         `Requested video contact sheet of ${video_filename} with width ${width} and grid ${grid}, output to ${output_image}`
     );
 
-    const vcsi_path = Helper.path_vcsi();
+    const vcsiPath = Helper.path_vcsi();
 
-    if (!vcsi_path) throw new Error("Failed to find vcsi");
+    if (!vcsiPath) throw new Error("Failed to find vcsi");
 
     const output = await execSimple(
-        vcsi_path,
+        vcsiPath,
         [
             video_filename,
             "-t", // show timestamp for each frame

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/unbound-method */
+/* eslint-disable @typescript-eslint/no-misused-promises */
 import { Config } from "@/Core/Config";
 import { AuthAdmin, AuthCore, AuthGuest } from "@/Extend/express-auth";
 import express from "express";

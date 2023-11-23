@@ -1,6 +1,5 @@
 import { debugLog } from "@/Helpers/Console";
-import type { ExecReturn } from "@/Helpers/Execute";
-import { exec, startJob } from "@/Helpers/Execute";
+import { exec, isExecError, startJob } from "@/Helpers/Execute";
 import { formatBytes } from "@/Helpers/Format";
 import { xClearTimeout, xTimeout } from "@/Helpers/Timeout";
 import { isTwitchVOD, isTwitchVODChapter } from "@/Helpers/Types";
@@ -377,7 +376,7 @@ export class BaseVOD {
             })
             .on("all", (eventType, filename) => {
                 if (LiveStreamDVR.shutting_down) {
-                    this.stopWatching();
+                    void this.stopWatching();
                     return;
                 }
 
@@ -697,7 +696,7 @@ export class BaseVOD {
     }
 
     public async migrate(): Promise<boolean> {
-        throw new Error("Not implemented");
+        return await Promise.reject(new Error("Not implemented"));
     }
 
     /**
@@ -1280,8 +1279,11 @@ export class BaseVOD {
             log(
                 LOGLEVEL.ERROR,
                 "vod.finalize",
-                `Failed to get mediainfo for ${this.basename}: ${error}`
+                `Failed to get mediainfo for ${this.basename}: ${
+                    (error as Error).message
+                }`
             );
+            console.error(error);
         }
 
         // generate chapter related files
@@ -1291,8 +1293,11 @@ export class BaseVOD {
             log(
                 LOGLEVEL.ERROR,
                 "vod.finalize",
-                `Failed to save lossless cut for ${this.basename}: ${error}`
+                `Failed to save lossless cut for ${this.basename}: ${
+                    (error as Error).message
+                }`
             );
+            console.error(error);
         }
 
         try {
@@ -1301,8 +1306,11 @@ export class BaseVOD {
             log(
                 LOGLEVEL.ERROR,
                 "vod.finalize",
-                `Failed to save ffmpeg chapters for ${this.basename}: ${error}`
+                `Failed to save ffmpeg chapters for ${this.basename}: ${
+                    (error as Error).message
+                }`
             );
+            console.error(error);
         }
 
         try {
@@ -1311,8 +1319,11 @@ export class BaseVOD {
             log(
                 LOGLEVEL.ERROR,
                 "vod.finalize",
-                `Failed to save vtt chapters for ${this.basename}: ${error}`
+                `Failed to save vtt chapters for ${this.basename}: ${
+                    (error as Error).message
+                }`
             );
+            console.error(error);
         }
 
         try {
@@ -1321,8 +1332,11 @@ export class BaseVOD {
             log(
                 LOGLEVEL.ERROR,
                 "vod.finalize",
-                `Failed to save kodi nfo for ${this.basename}: ${error}`
+                `Failed to save kodi nfo for ${this.basename}: ${
+                    (error as Error).message
+                }`
             );
+            console.error(error);
         }
 
         // generate contact sheet
@@ -1333,7 +1347,7 @@ export class BaseVOD {
         // calculate chapter durations and offsets
         this.calculateChapters();
 
-        LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
+        await LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
 
         return true;
     }
@@ -1687,8 +1701,9 @@ export class BaseVOD {
                         log(
                             LOGLEVEL.ERROR,
                             "vod.reencodeSegments",
-                            `Process ${process.pid} error: ${err}`
+                            `Process ${process.pid} error: ${err.message}`
                         );
+                        console.error(err);
                         // reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
                         reject(
                             new Error(`Process ${process.pid} error: ${err}`)
@@ -1713,7 +1728,9 @@ export class BaseVOD {
                                 // fs.unlinkSync(file_in_path);
                             }
                             if (addToSegments) {
-                                this.addSegment(path.basename(fileOutPath));
+                                void this.addSegment(
+                                    path.basename(fileOutPath)
+                                );
                             }
                             resolve(true);
                         } else {
@@ -1760,7 +1777,7 @@ export class BaseVOD {
             );
         }
 
-        this.stopWatching();
+        void this.stopWatching();
 
         return Promise.all(tasks)
             .then((results) => {
@@ -1784,7 +1801,7 @@ export class BaseVOD {
                 return false;
             })
             .finally(() => {
-                this.startWatching();
+                void this.startWatching();
             });
     }
 
@@ -2366,7 +2383,7 @@ export class BaseVOD {
         }
 
         if (fs.existsSync(file.filename)) {
-            log(LOGLEVEL.DEBUG, "vod.deleteSegment", `Delete ${file}`);
+            log(LOGLEVEL.DEBUG, "vod.deleteSegment", `Delete ${file.filename}`);
             fs.unlinkSync(file.filename);
         }
 
@@ -2597,7 +2614,7 @@ export class BaseVOD {
                 `VOD ${this.basename} has been migrated`
             );
             this.issueFixCount++;
-            this.saveJSON("fix migrate");
+            await this.saveJSON("fix migrate");
             return false;
         }
 
@@ -3153,7 +3170,11 @@ export class BaseVOD {
         this.segments_raw = [];
         this.segments = [];
 
-        files.forEach((file) => this.addSegment(path.basename(file)));
+        await Promise.all(
+            files.map(async (file) => {
+                await this.addSegment(path.basename(file));
+            })
+        );
 
         // this.parseSegments(this.segments_raw);
         await this.saveJSON("segments rebuild");
@@ -3214,22 +3235,25 @@ export class BaseVOD {
                 log(
                     LOGLEVEL.ERROR,
                     "vod.createVideoContactSheet",
-                    `Failed to create video contact sheet for ${this.basename}: ${error}`,
+                    `Failed to create video contact sheet for ${this.basename}: ${error.message}`,
                     error
                 );
-            } else if ("stdout" in (error as any)) {
-                const execOut = error as ExecReturn;
+            } else if (isExecError(error)) {
                 log(
                     LOGLEVEL.ERROR,
                     "vod.createVideoContactSheet",
-                    `Failed to create video contact sheet for ${this.basename}: ${execOut.stdout} ${execOut.stderr}`,
-                    execOut
+                    `Failed to create video contact sheet for ${
+                        this.basename
+                    }: ${error.stdout.join("")} ${error.stderr.join("")}`,
+                    error
                 );
             } else {
                 log(
                     LOGLEVEL.ERROR,
                     "vod.createVideoContactSheet",
-                    `Failed to create video contact sheet for ${this.basename}: ${error}`,
+                    `Failed to create video contact sheet for ${
+                        this.basename
+                    }: ${(error as Error).message}`,
                     error
                 );
             }

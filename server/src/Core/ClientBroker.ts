@@ -131,14 +131,15 @@ interface PushoverSendMessagePayload {
 }
 
 export class ClientBroker {
-    static clients: Client[] = [];
-    static wss: WebSocket.Server<WebSocket.WebSocket> | undefined = undefined;
+    public static clients: Client[] = [];
+    public static wss: WebSocket.Server<WebSocket.WebSocket> | undefined =
+        undefined;
 
     // bitmask of notification categories and providers
-    static notificationSettings: Record<NotificationCategory, number> =
+    public static notificationSettings: Record<NotificationCategory, number> =
         {} as Record<NotificationCategory, number>;
 
-    static attach(server: WebSocket.Server<WebSocket.WebSocket>): void {
+    public static attach(server: WebSocket.Server<WebSocket.WebSocket>): void {
         log(
             LOGLEVEL.INFO,
             "clientBroker.attach",
@@ -167,22 +168,22 @@ export class ClientBroker {
         });
 
         this.wss.on("connection", (ws: WebSocket, req: express.Request) => {
-            const has_password =
+            const hasPassword =
                 Config.getInstance().cfg<string>("password", "") != "";
-            const is_guest_mode = Config.getInstance().cfg<boolean>(
-                "guest_mode",
-                false
-            );
+            // const is_guest_mode = Config.getInstance().cfg<boolean>(
+            //     "guest_mode",
+            //     false
+            // );
 
-            if (!has_password) {
+            if (!hasPassword) {
                 this.onConnect(ws, req);
             } else {
                 const sp = Config.getInstance().sessionParser;
                 if (sp) {
                     sp(req, {} as any, () => {
-                        const is_authenticated = req.session.authenticated;
-                        if (is_authenticated) {
-                            this.onConnect(ws, req, is_authenticated);
+                        const isAuthenticated = req.session.authenticated;
+                        if (isAuthenticated) {
+                            this.onConnect(ws, req, isAuthenticated);
                         } else {
                             console.log(
                                 chalk.red(
@@ -202,85 +203,11 @@ export class ClientBroker {
         });
     }
 
-    private static onConnect(
-        ws: WebSocket.WebSocket,
-        req: IncomingMessage,
-        is_authenticated = false
-    ) {
-        const client: Client = {
-            id: req.headers["sec-websocket-key"] || "",
-            ws: ws,
-            ip: (req.headers["x-real-ip"] ||
-                req.headers["x-forwarded-for"] ||
-                req.socket.remoteAddress) as string,
-            alive: true,
-            userAgent: req.headers["user-agent"] || "",
-            authenticated: is_authenticated,
-        };
-
-        // console.debug(chalk.magenta(`Client ${client.id} connected from ${client.ip}, user-agent: ${client.userAgent}`));
-
-        this.clients.push(client);
-
-        ws.on("message", (raw_message: WebSocket.RawData): void => {
-            if (!this.wss) return;
-
-            // console.log("message", ws, message);
-
-            const message = raw_message.toString();
-
-            if (message == "ping") {
-                // console.debug(`Pong to ${ws.clientIP}`);
-                ws.send("pong");
-                return;
-            }
-
-            let data: unknown;
-
-            try {
-                data = JSON.parse(message);
-            } catch (error) {
-                console.error(`Invalid data from ${client.ip}: ${message}`);
-                return;
-            }
-
-            /*
-            if(data.server){
-                this.wss.clients.forEach((client) => {
-                    client.send(JSON.stringify({
-                        action: "server",
-                        data: data.data,
-                    }));
-                });
-            }
-            */
-
-            debugLog(`JSON from ${client.ip}:`, data);
-            // console.debug(`Clients: ${this.wss.clients.size}`);
-        });
-
-        ws.on("pong", () => {
-            client.alive = true;
-            // console.log(`Pong from ${client.ip}`);
-        });
-
-        ws.on("error", (err) => {
-            console.error("Client error", err);
-        });
-
-        ws.on("close", (code, reason) => {
-            // console.log(`Client ${client.id} disconnected from ${client.ip}`);
-            this.clients = this.clients.filter((c) => c.id != client.id);
-        });
-
-        ws.send(JSON.stringify({ action: "connected" }));
-    }
-
-    static broadcast(broadcastData: unknown) {
+    public static broadcast(broadcastData: unknown) {
         if (LiveStreamDVR.shutting_down) return;
 
         // const jsonData = JSON.stringify(data);
-        let jsonData: any;
+        let jsonData: string;
 
         try {
             jsonData = JSON.stringify(broadcastData);
@@ -353,7 +280,7 @@ export class ClientBroker {
      * @param url
      * @param tts
      */
-    static notify(
+    public static notify(
         title: string,
         body = "",
         icon = "",
@@ -429,12 +356,12 @@ export class ClientBroker {
             // const escaped_body = body.replace(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/g, "\\$&");
 
             const token = Config.getInstance().cfg("telegram_token");
-            const chat_id = Config.getInstance().cfg("telegram_chat_id");
+            const chatId = Config.getInstance().cfg("telegram_chat_id");
 
-            if (token && chat_id) {
+            if (token && chatId) {
                 axios
                     .post(`https://api.telegram.org/bot${token}/sendMessage`, {
-                        chat_id: chat_id,
+                        chat_id: chatId,
                         text:
                             `<strong>${title}</strong>\n` +
                             `${body}` +
@@ -509,7 +436,7 @@ export class ClientBroker {
                             );
                         }
                     });
-            } else if (!token && chat_id) {
+            } else if (!token && chatId) {
                 log(
                     LOGLEVEL.ERROR,
                     "clientBroker.notify",
@@ -518,7 +445,7 @@ export class ClientBroker {
                 console.error(
                     chalk.bgRed.whiteBright("Telegram token not set")
                 );
-            } else if (!chat_id && token) {
+            } else if (!chatId && token) {
                 log(
                     LOGLEVEL.ERROR,
                     "clientBroker.notify",
@@ -679,7 +606,7 @@ export class ClientBroker {
         }
     }
 
-    static getNotificationSettingForProvider(
+    public static getNotificationSettingForProvider(
         category: NotificationCategory,
         provider: NotificationProvider
     ): boolean {
@@ -687,7 +614,7 @@ export class ClientBroker {
         return this.notificationSettings[category] & provider ? true : false;
     }
 
-    static setNotificationSettingForProvider(
+    public static setNotificationSettingForProvider(
         category: NotificationCategory,
         provider: NotificationProvider,
         value: boolean
@@ -701,14 +628,14 @@ export class ClientBroker {
         }
     }
 
-    static resetNotificationSettings() {
+    public static resetNotificationSettings() {
         this.notificationSettings = {} as Record<NotificationCategory, number>;
         for (const category of NotificationCategories) {
             this.notificationSettings[category.id as NotificationCategory] = 0;
         }
     }
 
-    static loadNotificationSettings() {
+    public static loadNotificationSettings() {
         if (!fs.existsSync(BaseConfigPath.notifications)) {
             this.resetNotificationSettings();
             return;
@@ -729,8 +656,82 @@ export class ClientBroker {
         }
     }
 
-    static saveNotificationSettings() {
+    public static saveNotificationSettings() {
         const data = JSON.stringify(this.notificationSettings);
         fs.writeFileSync(BaseConfigPath.notifications, data);
+    }
+
+    private static onConnect(
+        ws: WebSocket.WebSocket,
+        req: IncomingMessage,
+        is_authenticated = false
+    ) {
+        const client: Client = {
+            id: req.headers["sec-websocket-key"] || "",
+            ws: ws,
+            ip: (req.headers["x-real-ip"] ||
+                req.headers["x-forwarded-for"] ||
+                req.socket.remoteAddress) as string,
+            alive: true,
+            userAgent: req.headers["user-agent"] || "",
+            authenticated: is_authenticated,
+        };
+
+        // console.debug(chalk.magenta(`Client ${client.id} connected from ${client.ip}, user-agent: ${client.userAgent}`));
+
+        this.clients.push(client);
+
+        ws.on("message", (raw_message: WebSocket.RawData): void => {
+            if (!this.wss) return;
+
+            // console.log("message", ws, message);
+
+            const message = raw_message.toString();
+
+            if (message == "ping") {
+                // console.debug(`Pong to ${ws.clientIP}`);
+                ws.send("pong");
+                return;
+            }
+
+            let data: unknown;
+
+            try {
+                data = JSON.parse(message);
+            } catch (error) {
+                console.error(`Invalid data from ${client.ip}: ${message}`);
+                return;
+            }
+
+            /*
+            if(data.server){
+                this.wss.clients.forEach((client) => {
+                    client.send(JSON.stringify({
+                        action: "server",
+                        data: data.data,
+                    }));
+                });
+            }
+            */
+
+            debugLog(`JSON from ${client.ip}:`, data);
+            // console.debug(`Clients: ${this.wss.clients.size}`);
+        });
+
+        ws.on("pong", () => {
+            client.alive = true;
+            // console.log(`Pong from ${client.ip}`);
+        });
+
+        ws.on("error", (err) => {
+            console.error("Client error", err);
+        });
+
+        ws.on("close", (code, reason) => {
+            // console.log(`Client ${client.id} disconnected from ${client.ip}`);
+            this.clients = this.clients.filter((c) => c.id != client.id);
+        });
+
+        ws.send(JSON.stringify({ action: "connected" }));
     }
 }

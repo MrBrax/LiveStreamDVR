@@ -43,7 +43,7 @@ if (LiveStreamDVR.argv.help || LiveStreamDVR.argv.h) {
 }
 
 // for overriding port if you can't or don't want to use the web gui to change it
-const override_port = LiveStreamDVR.argv.port
+const overridePort = LiveStreamDVR.argv.port
     ? parseInt(LiveStreamDVR.argv.port as string)
     : undefined;
 
@@ -54,7 +54,7 @@ try {
 }
 
 // load all required config files and cache stuff
-LiveStreamDVR.init().then(() => {
+void LiveStreamDVR.init().then(() => {
     // if (fs.existsSync(path.join(BaseConfigDataFolder.cache, "lock"))) {
     //     logAdvanced(LOGLEVEL.WARNING, "index", "Seems like the server was not shut down gracefully...");
     // }
@@ -63,7 +63,7 @@ LiveStreamDVR.init().then(() => {
     const app = getApp();
 
     const port =
-        override_port || Config.getInstance().cfg<number>("server_port", 8080);
+        overridePort || Config.getInstance().cfg<number>("server_port", 8080);
 
     // const basepath = Config.getInstance().cfg<string>("basepath", "");
 
@@ -111,7 +111,7 @@ LiveStreamDVR.init().then(() => {
             )
         );
         console.log(
-            chalk.yellow(`Public: ${Config.getInstance().cfg("app_url")}`)
+            chalk.yellow(`Public: ${Config.getInstance().cfg("app_url", "")}`)
         );
         if (process.env.HTTP_PROXY) {
             console.log(chalk.yellow(`HTTP Proxy: ${process.env.HTTP_PROXY}`));
@@ -204,7 +204,7 @@ LiveStreamDVR.init().then(() => {
             });
             ClientBroker.notify(
                 "Uncaught exception, server will exit.",
-                err + "\n" + origin,
+                `${err.message}\n${err.stack}\n${origin}`,
                 undefined,
                 "system"
             );
@@ -235,7 +235,7 @@ LiveStreamDVR.init().then(() => {
             });
             ClientBroker.notify(
                 "Uncaught rejection, server will exit.",
-                reason + "\n" + promise,
+                `${reason.message}\n${reason.stack}\n${promise}`,
                 undefined,
                 "system"
             );
