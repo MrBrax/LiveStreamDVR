@@ -14,7 +14,7 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { progressOutput } from "./Console";
-import { execSimple, startJob } from "./Execute";
+import { exec, execSimple, startJob } from "./Execute";
 import { formatDuration } from "./Format";
 
 export interface RemuxReturn {
@@ -488,10 +488,11 @@ export async function mediainfo(filename: string): Promise<MediaInfo> {
     let output;
 
     try {
-        output = await execSimple(
+        output = await exec(
             mediainfoPath,
             ["--Full", "--Output=JSON", filename],
-            "mediainfo"
+            {},
+            `mediainfo_${path.basename(filename)}`
         );
     } catch (error) {
         log(
@@ -575,7 +576,9 @@ export async function videometadata(
     );
 
     if (fs.existsSync(dataPath) && !force) {
-        data = JSON.parse(fs.readFileSync(dataPath, { encoding: "utf-8" }));
+        const rawData = fs.readFileSync(dataPath, { encoding: "utf-8" });
+
+        data = JSON.parse(rawData);
 
         if (!data) {
             log(

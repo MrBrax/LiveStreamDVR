@@ -91,12 +91,19 @@ export function execSimple(
             log(
                 LOGLEVEL.ERROR,
                 "helper.execSimple",
-                `Process ${pid} for '${what}' error: ${err}`
+                `Process ${pid} for '${what}' error: ${err.message}`,
+                {
+                    bin,
+                    args,
+                    what,
+                    stdout,
+                    stderr,
+                }
             );
             console.error(err);
             reject(
                 new ExecError(
-                    `Process ${pid} for '${what}' error: ${err}`,
+                    `Process ${pid} for '${what}' error: ${err.message}`,
                     -1,
                     stdout,
                     stderr,
@@ -136,16 +143,26 @@ export function execSimple(
         });
 
         process.on("close", (code) => {
-            log(
-                LOGLEVEL.INFO,
-                "helper.execSimple",
-                `Process ${pid} for '${what}' exited with code ${code}`
-            );
-
             if (code == 0) {
+                log(
+                    LOGLEVEL.INFO,
+                    "helper.execSimple",
+                    `Process ${pid} for '${what}' exited with code ${code}`
+                );
                 resolve({ code, stdout, stderr, bin, args, what });
             } else {
-                // reject({ code, stdout, stderr, bin, args, what });
+                log(
+                    LOGLEVEL.ERROR,
+                    "helper.execSimple",
+                    `Process ${pid} for '${what}' exited with code ${code}`,
+                    {
+                        bin,
+                        args,
+                        what,
+                        stdout,
+                        stderr,
+                    }
+                );
                 reject(
                     new ExecError(
                         `Process ${pid} for '${what}' exited with code ${code}`,
@@ -370,12 +387,19 @@ export function exec(
             log(
                 LOGLEVEL.ERROR,
                 "helper.exec",
-                `Process ${process.pid} error: ${err}`
+                `Process ${process.pid} error: ${err.message}`,
+                {
+                    bin,
+                    args,
+                    jobName,
+                    stdout,
+                    stderr,
+                }
             );
             // reject({ code: -1, stdout, stderr, bin, args, jobName });
             reject(
                 new ExecError(
-                    `Process ${process.pid} error: ${err}`,
+                    `Process ${process.pid} error: ${err.message}`,
                     -1,
                     stdout,
                     stderr,
@@ -466,7 +490,14 @@ export function exec(
                 log(
                     LOGLEVEL.ERROR,
                     "helper.exec",
-                    `Process ${process.pid} for ${jobName} exited with code ${code}`
+                    `Process ${process.pid} for ${jobName} exited with code ${code}`,
+                    {
+                        bin,
+                        args,
+                        jobName,
+                        stdout,
+                        stderr,
+                    }
                 );
                 // reject({ code, stdout, stderr });
                 reject(
