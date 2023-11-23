@@ -924,7 +924,8 @@ export class BaseAutomator {
         // create the vod and put it inside this class
         try {
             this.vod = await this.channel.createVOD(
-                path.join(folder_base, `${basename}.json`)
+                path.join(folder_base, `${basename}.json`),
+                dataId
             );
         } catch (error) {
             log(
@@ -944,7 +945,7 @@ export class BaseAutomator {
         // }
 
         // this.vod.json.meta = $this.payload_eventsub; // what
-        this.vod.capture_id = this.getVodID() || "1";
+        this.vod.capture_id = dataId || "1";
         this.vod.started_at = parseJSON(dataStarted);
 
         // this.vod.stream_number = this.channel.incrementStreamNumber();

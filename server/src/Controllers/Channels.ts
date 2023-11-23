@@ -313,7 +313,7 @@ export async function DeleteChannel(
         return;
     }
 
-    if (req.query.deletevods == "1" && channel.vods_list.length > 0) {
+    if (req.query.deletevods == "1" && channel.getVods().length > 0) {
         try {
             await channel.deleteAllVods();
         } catch (error) {
@@ -979,7 +979,8 @@ export async function DownloadVideo(
             let vod: TwitchVOD;
             try {
                 vod = await channel.createVOD(
-                    path.join(basefolder, `${basename}.json`)
+                    path.join(basefolder, `${basename}.json`),
+                    video.stream_id || video_id
                 );
             } catch (error) {
                 res.api(400, {

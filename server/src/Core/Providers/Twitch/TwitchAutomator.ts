@@ -212,6 +212,18 @@ export class TwitchAutomator extends BaseAutomator {
                 );
             }
 
+            if (
+                (await KeyValue.getInstance().getAsync(
+                    `${this.broadcaster_user_login}.vod.id`
+                )) == event.id
+            ) {
+                log(
+                    LOGLEVEL.WARNING,
+                    "automator.handle",
+                    `${this.broadcaster_user_login} event ID ${event.id} is the same as the last one.`
+                );
+            }
+
             await KeyValue.getInstance().setBoolAsync(
                 `${this.broadcaster_user_login}.online`,
                 true

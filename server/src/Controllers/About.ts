@@ -80,7 +80,7 @@ export async function About(
               vod_amount: LiveStreamDVR.getInstance()
                   .getChannels()
                   .reduce((a, b) => {
-                      return a + b.vods_list.length;
+                      return a + b.getVods().length;
                   }, 0),
               keyvalue_amount: KeyValue.getInstance().count(),
               storage_data_file_count,

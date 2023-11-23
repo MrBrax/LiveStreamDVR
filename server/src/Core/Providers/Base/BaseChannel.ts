@@ -306,7 +306,10 @@ export class BaseChannel {
         throw new Error("Method not implemented.");
     }
 
-    public async createVOD(filename: string): Promise<BaseVOD> {
+    public async createVOD(
+        filename: string,
+        capture_id: string
+    ): Promise<BaseVOD> {
         return await Promise.reject(new Error("Method not implemented."));
     }
 
@@ -395,7 +398,7 @@ export class BaseChannel {
     }
 
     public sortVods() {
-        return this.vods_list.sort((a, b) => {
+        return this.getVods().sort((a, b) => {
             if (!a.started_at || !b.started_at) return 0;
             return a.started_at.getTime() - b.started_at.getTime();
         });
@@ -461,7 +464,7 @@ export class BaseChannel {
 
         void vod.stopWatching();
 
-        this.vods_list = this.vods_list.filter((v) => v.uuid !== uuid);
+        this.vods_list = this.getVods().filter((v) => v.uuid !== uuid);
 
         // remove vod from database
         this.removeVodFromDatabase(
@@ -492,10 +495,10 @@ export class BaseChannel {
     }
 
     public getVodByIndex(index: number): BaseVOD | undefined {
-        if (index < 0 || index >= this.vods_list.length) {
+        if (index < 0 || index >= this.getVods().length) {
             return undefined;
         }
-        return this.vods_list[index];
+        return this.getVods().at(index);
     }
 
     /**
@@ -818,11 +821,11 @@ export class BaseChannel {
         job.save();
         job.broadcastUpdate(); // manual send
 
-        const totalVods = this.vods_list.length;
+        const totalVods = this.getVods().length;
         let completedVods = 0;
         let failedVods = 0;
 
-        for (const vod of this.vods_list) {
+        for (const vod of this.getVods()) {
             if (vod.exportData.exported_at && !force) {
                 completedVods++;
                 log(

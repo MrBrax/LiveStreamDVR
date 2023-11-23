@@ -1764,17 +1764,11 @@ export class TwitchChannel extends BaseChannel {
     }
 
     public async parseVODs(rescan = false): Promise<void> {
-        /*
-        this.vods_raw = fs.readdirSync(this.getFolder())
-            .filter(file =>
-                (
-                    file.startsWith(`${this.login}_`) ||
-                    file.startsWith(`${this.display_name}_`) // for backwards compatibility
-                ) &&
-                file.endsWith(".json") &&
-                !file.endsWith("_chat.json") // bad workaround
-            );
-        */
+        log(
+            LOGLEVEL.INFO,
+            "channel.parseVODs",
+            `Parsing VODs for ${this.internalName}`
+        );
 
         if (
             fs.existsSync(
@@ -1823,8 +1817,14 @@ export class TwitchChannel extends BaseChannel {
 
         this.vods_list = [];
 
+        log(
+            LOGLEVEL.INFO,
+            "channel.parseVODs",
+            `Found ${this.vods_raw.length} VODs for ${this.internalName}`
+        );
+
         for (const vod of this.vods_raw) {
-            log(LOGLEVEL.DEBUG, "channel.parseVODs", `Try to parse VOD ${vod}`);
+            log(LOGLEVEL.INFO, "channel.parseVODs", `Try to parse VOD ${vod}`);
 
             const vodFullPath = path.join(BaseConfigDataFolder.vod, vod);
 
@@ -1888,13 +1888,13 @@ export class TwitchChannel extends BaseChannel {
             //     this.vods_size += vodclass.segments.reduce((acc, seg) => acc + (seg && seg.filesize ? seg.filesize : 0), 0);
             // }
 
+            this.addVod(vodclass);
+
             log(
                 LOGLEVEL.DEBUG,
                 "channel.parseVODs",
                 `VOD ${vod} added to ${this.internalName}`
             );
-
-            this.addVod(vodclass);
         }
         this.sortVods();
     }
@@ -2001,7 +2001,10 @@ export class TwitchChannel extends BaseChannel {
      * @param filename The filename of the vod including json extension.
      * @returns Empty VOD
      */
-    public async createVOD(filename: string): Promise<TwitchVOD> {
+    public async createVOD(
+        filename: string,
+        capture_id: string
+    ): Promise<TwitchVOD> {
         if (!this.internalId) throw new Error("Channel internalId is not set");
         if (!this.internalName)
             throw new Error("Channel internalName is not set");
@@ -2045,6 +2048,8 @@ export class TwitchChannel extends BaseChannel {
         vod.created_at = new Date();
 
         vod.uuid = randomUUID();
+
+        vod.capture_id = capture_id;
 
         await vod.saveJSON("create json");
 
@@ -2943,7 +2948,8 @@ export class TwitchChannel extends BaseChannel {
         }
 
         const vod = await this.createVOD(
-            path.join(basepath, `${basename}.json`)
+            path.join(basepath, `${basename}.json`),
+            latestVodData.stream_id || latestVodData.id
         );
         vod.started_at = parseJSON(latestVodData.created_at);
 
@@ -3267,13 +3273,46 @@ export class TwitchChannel extends BaseChannel {
     }
 
     public getVodByIndex(index: number): TwitchVOD | undefined {
-        if (index < 0 || index >= this.vods_list.length) {
+        if (index < 0 || index >= this.getVods().length) {
             return undefined;
         }
-        return this.vods_list[index];
+        return this.getVods().at(index);
     }
 
     public addVod(vod: TwitchVOD): void {
+        // don't add vods that are already in the list
+        if (this.getVods().includes(vod)) {
+            throw new Error("VOD already exists (instance)");
+        }
+
+        // don't add vods that have the same basename
+        if (this.getVods().find((v) => v.basename === vod.basename)) {
+            throw new Error(`VOD already exists (basename=${vod.basename})`);
+        }
+
+        // don't add vods that have the same capture id
+        if (
+            this.getVods().find(
+                (v) =>
+                    v.capture_id &&
+                    vod.capture_id &&
+                    v.capture_id === vod.capture_id
+            )
+        ) {
+            // throw new Error(
+            // `VOD already exists (capture_id=${vod.capture_id})`
+            // );
+            log(
+                LOGLEVEL.WARNING,
+                "tw.channel.addVod",
+                `VOD already exists (capture_id=${vod.capture_id})`
+            );
+        }
+
+        // don't add vods that have the same uuid
+        if (this.getVods().find((v) => v.uuid === vod.uuid))
+            throw new Error(`VOD already exists (uuid=${vod.uuid})`);
+
         this.vods_list.push(vod);
     }
 

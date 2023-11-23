@@ -228,12 +228,20 @@ export class TwitchVOD extends BaseVOD {
         // parse file
         const json: TwitchVODJSON = JSON.parse(data);
 
+        /*
         if (json.capture_id) {
             const cachedVod = this.getVodByCaptureId(json.capture_id);
             if (cachedVod) {
                 console.log(`[TwitchVOD] Returning cached vod ${basename}`);
                 return cachedVod;
             }
+        }
+        */
+
+        if (json.uuid && TwitchVOD.getVodByUUID(json.uuid)) {
+            throw new Error(
+                `VOD ${basename} with UUID ${json.uuid} already exists!`
+            );
         }
 
         if (!("version" in json) || json.version < 2) {
