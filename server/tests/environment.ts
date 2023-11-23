@@ -143,7 +143,7 @@ beforeAll(() => {
     jest.spyOn(TwitchChannel.prototype, "startWatching").mockImplementation(
         () => {
             console.debug("Disable start watching twitchchannel");
-            return Promise.resolve();
+            return Promise.resolve(false);
         }
     );
     jest.spyOn(TwitchChannel, "loadChannelsCache").mockImplementation(() => {

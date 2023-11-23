@@ -3140,7 +3140,7 @@ export class TwitchChannel extends BaseChannel {
      * @test disable
      * @returns
      */
-    public async startWatching() {
+    public async startWatching(): Promise<boolean> {
         if (this.fileWatcher) await this.stopWatching();
 
         // no blocks in testing
@@ -3152,7 +3152,7 @@ export class TwitchChannel extends BaseChannel {
                 "tw.channel.startWatching",
                 `Channel folders are disabled, not watching channel ${this.internalName}`
             );
-            return; // don't watch if no channel folders are enabled
+            return false; // don't watch if no channel folders are enabled
         }
 
         const folders = [Helper.vodFolder(this.internalName)];
@@ -3196,6 +3196,8 @@ export class TwitchChannel extends BaseChannel {
                     this.broadcastUpdate();
                 }
             });
+
+        return true;
     }
 
     public addAllLocalVideos() {

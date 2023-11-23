@@ -181,7 +181,7 @@ export class BaseChannel {
         return false;
     }
 
-    public async startWatching() {
+    public async startWatching(): Promise<boolean> {
         return await Promise.reject(new Error("Method not implemented."));
     }
 

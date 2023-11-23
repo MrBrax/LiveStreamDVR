@@ -625,8 +625,8 @@ export class YouTubeChannel extends BaseChannel {
         return cd ? (JSON.parse(cd) as BaseVODChapterJSON) : undefined;
     }
 
-    public async startWatching(): Promise<void> {
-        return await Promise.resolve();
+    public async startWatching(): Promise<boolean> {
+        return true;
     }
 
     get latest_vod(): YouTubeVOD | undefined {
