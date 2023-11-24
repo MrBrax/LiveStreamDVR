@@ -9,11 +9,8 @@ export function GetAllKeyValues(req: express.Request, res: express.Response) {
     });
 }
 
-export async function GetKeyValue(
-    req: express.Request,
-    res: express.Response
-): Promise<void> {
-    if (!(await KeyValue.getInstance().hasAsync(req.params.key))) {
+export function GetKeyValue(req: express.Request, res: express.Response): void {
+    if (!KeyValue.getInstance().has(req.params.key)) {
         res.api(404, {
             status: "ERROR",
             message: "Key not found.",
@@ -23,15 +20,14 @@ export async function GetKeyValue(
 
     res.api(200, {
         status: "OK",
-        data: await KeyValue.getInstance().getRawAsync(req.params.key),
+        data: KeyValue.getInstance().getRaw(req.params.key),
     });
 }
 
-export async function SetKeyValue(
-    req: express.Request,
-    res: express.Response
-): Promise<void> {
-    if (!req.body.value) {
+export function SetKeyValue(req: express.Request, res: express.Response): void {
+    const value = req.body.value as string;
+
+    if (!value) {
         res.api(400, {
             status: "ERROR",
             message: "No value provided.",
@@ -39,18 +35,18 @@ export async function SetKeyValue(
         return;
     }
 
-    await KeyValue.getInstance().setAsync(req.params.key, req.body.value);
+    KeyValue.getInstance().set(req.params.key, value);
 
     res.api(200, {
         status: "OK",
     });
 }
 
-export async function DeleteKeyValue(
+export function DeleteKeyValue(
     req: express.Request,
     res: express.Response
-): Promise<void> {
-    if (!(await KeyValue.getInstance().hasAsync(req.params.key))) {
+): void {
+    if (!KeyValue.getInstance().has(req.params.key)) {
         res.api(404, {
             status: "ERROR",
             message: "Key not found.",
@@ -58,18 +54,18 @@ export async function DeleteKeyValue(
         return;
     }
 
-    await KeyValue.getInstance().deleteAsync(req.params.key);
+    KeyValue.getInstance().delete(req.params.key);
 
     res.api(200, {
         status: "OK",
     });
 }
 
-export async function DeleteAllKeyValues(
+export function DeleteAllKeyValues(
     req: express.Request,
     res: express.Response
-): Promise<void> {
-    await KeyValue.getInstance().deleteAllAsync();
+): void {
+    KeyValue.getInstance().deleteAll();
 
     res.api(200, {
         status: "OK",

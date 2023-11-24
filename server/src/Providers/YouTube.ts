@@ -560,7 +560,7 @@ export class YouTubeHelper {
         let value;
 
         try {
-            value = await KeyValue.getInstance().getAsync(
+            value = KeyValue.getInstance().get(
                 "exporter.youtube.quota_exceeded_date"
             );
         } catch (error) {

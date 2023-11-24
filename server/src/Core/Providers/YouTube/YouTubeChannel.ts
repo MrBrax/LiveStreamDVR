@@ -223,11 +223,7 @@ export class YouTubeChannel extends BaseChannel {
 
         channel.applyConfig(channel_config);
 
-        if (
-            await KeyValue.getInstance().getBoolAsync(
-                `yt.${channel.internalId}.online`
-            )
-        ) {
+        if (KeyValue.getInstance().getBool(`yt.${channel.internalId}.online`)) {
             log(
                 LOGLEVEL.WARNING,
                 "yt.channel",
@@ -236,9 +232,7 @@ export class YouTubeChannel extends BaseChannel {
         }
 
         if (
-            await KeyValue.getInstance().hasAsync(
-                `yt.${channel.internalId}.channeldata`
-            )
+            KeyValue.getInstance().has(`yt.${channel.internalId}.channeldata`)
         ) {
             log(
                 LOGLEVEL.WARNING,
@@ -360,9 +354,7 @@ export class YouTubeChannel extends BaseChannel {
                 );
             }
 
-            if (
-                await KeyValue.getInstance().hasAsync(`${identifier}.deleted`)
-            ) {
+            if (KeyValue.getInstance().has(`${identifier}.deleted`)) {
                 log(
                     LOGLEVEL.WARNING,
                     "yt.channel.getUserDataProxy",

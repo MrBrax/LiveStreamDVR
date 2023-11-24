@@ -1408,15 +1408,9 @@ export async function RefreshChannel(
     }
 
     if (!isLive) {
-        await KeyValue.getInstance().deleteAsync(
-            `${channel.internalName}.online`
-        );
-        await KeyValue.getInstance().deleteAsync(
-            `${channel.internalName}.vod.id`
-        );
-        await KeyValue.getInstance().deleteAsync(
-            `${channel.internalName}.vod.started_at`
-        );
+        KeyValue.getInstance().delete(`${channel.internalName}.online`);
+        KeyValue.getInstance().delete(`${channel.internalName}.vod.id`);
+        KeyValue.getInstance().delete(`${channel.internalName}.vod.started_at`);
     }
 
     if (success) {
@@ -1521,7 +1515,7 @@ export async function ForceRecord(
                     online: true,
                 } as TwitchVODChapterJSON;
 
-                await KeyValue.getInstance().setObjectAsync(
+                KeyValue.getInstance().setObject(
                     `${stream.user_login}.chapterdata`,
                     chapter_data
                 );
@@ -1575,11 +1569,11 @@ export async function ForceRecord(
             YA.channel = channel;
             // YA.handle(mock_data, req);
 
-            await KeyValue.getInstance().setAsync(
+            KeyValue.getInstance().set(
                 `yt.${YA.getUserID()}.vod.started_at`,
                 streams.snippet?.publishedAt || new Date().toISOString()
             );
-            await KeyValue.getInstance().setAsync(
+            KeyValue.getInstance().set(
                 `yt.${YA.getUserID()}.vod.id`,
                 streams.id?.videoId || "fake"
             );

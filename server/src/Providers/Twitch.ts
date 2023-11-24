@@ -733,12 +733,12 @@ export class TwitchHelper {
         });
 
         if (subscriptions) {
-            subscriptions.forEach(async (sub) => {
-                await KeyValue.getInstance().setAsync(
+            subscriptions.forEach((sub) => {
+                KeyValue.getInstance().set(
                     `${sub.condition.broadcaster_user_id}.sub.${sub.type}`,
                     sub.id
                 );
-                await KeyValue.getInstance().setAsync(
+                KeyValue.getInstance().set(
                     `${sub.condition.broadcaster_user_id}.substatus.${sub.type}`,
                     sub.status == "enabled"
                         ? SubStatus.SUBSCRIBED

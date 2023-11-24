@@ -84,12 +84,6 @@ export class KeyValue extends EventEmitter {
         }
     }
 
-    public hasAsync(key: string): Promise<boolean> {
-        return new Promise((resolve) => {
-            resolve(this.has(key));
-        });
-    }
-
     public getRaw(key: string): KeyValueData | undefined {
         key = key.replaceAll("/", "");
 
@@ -98,12 +92,6 @@ export class KeyValue extends EventEmitter {
         }
 
         return this.data[key];
-    }
-
-    public getRawAsync(key: string): Promise<KeyValueData | undefined> {
-        return new Promise((resolve) => {
-            resolve(this.getRaw(key));
-        });
     }
 
     /**
@@ -119,24 +107,6 @@ export class KeyValue extends EventEmitter {
         }
 
         return raw.value;
-    }
-
-    /**
-     * Get a value from the key-value store as a promise. Rejects if the key does not exist.
-     * Could be used for an external cache store like Redis in the future.
-     * @param key The key to get
-     * @returns {Promise<string|false>} The value or false if the key does not exist.
-     * @throws Error if the key does not exist
-     */
-    public getAsync(key: string): Promise<string | false> {
-        return new Promise((resolve, reject) => {
-            const value = this.getRaw(key);
-            if (value === undefined) {
-                reject(new Error(`Key ${key} does not exist`));
-            } else {
-                resolve(value.value);
-            }
-        });
     }
 
     /**
@@ -159,29 +129,12 @@ export class KeyValue extends EventEmitter {
     }
 
     /**
-     * Get a value from the key-value store as an object as a promise. Rejects if the key does not exist.
-     * @param key
-     * @returns
-     */
-    public getObjectAsync<T>(key: string): Promise<T | undefined> {
-        return new Promise((resolve) => {
-            resolve(this.getObject<T>(key));
-        });
-    }
-
-    /**
      *
      * @param key
      * @returns
      */
     public getBool(key: string): boolean {
         return this.get(key) === "true";
-    }
-
-    public getBoolAsync(key: string): Promise<boolean> {
-        return new Promise((resolve) => {
-            resolve(this.getBool(key));
-        });
     }
 
     /**
@@ -204,12 +157,6 @@ export class KeyValue extends EventEmitter {
         // return parseInt(this.get(key) || "0");
     }
 
-    public getIntAsync(key: string, def?: number): Promise<number> {
-        return new Promise((resolve) => {
-            resolve(this.getInt(key, def));
-        });
-    }
-
     /**
      * Set a value in the key-value store.
      * @param key
@@ -229,12 +176,14 @@ export class KeyValue extends EventEmitter {
         this.save();
     }
 
+    /*
     public setAsync(key: string, value: string): Promise<void> {
         return new Promise((resolve) => {
             this.set(key, value);
             resolve();
         });
     }
+    */
 
     public setExpiring(key: string, value: string, seconds: number): void {
         key = key.replaceAll("/", "");
@@ -273,13 +222,6 @@ export class KeyValue extends EventEmitter {
         // this.save();
     }
 
-    public setObjectAsync<T>(key: string, value: T | null): Promise<void> {
-        return new Promise((resolve) => {
-            this.setObject(key, value);
-            resolve();
-        });
-    }
-
     /**
      *
      * @param key
@@ -289,13 +231,6 @@ export class KeyValue extends EventEmitter {
         this.set(key, value ? "true" : "false");
     }
 
-    public setBoolAsync(key: string, value: boolean): Promise<void> {
-        return new Promise((resolve) => {
-            this.setBool(key, value);
-            resolve();
-        });
-    }
-
     /**
      *
      * @param key
@@ -303,13 +238,6 @@ export class KeyValue extends EventEmitter {
      */
     public setInt(key: string, value: number) {
         this.set(key, value.toString());
-    }
-
-    public setIntAsync(key: string, value: number): Promise<void> {
-        return new Promise((resolve) => {
-            this.setInt(key, value);
-            resolve();
-        });
     }
 
     public setDate(key: string, date: Date) {
@@ -411,17 +339,6 @@ export class KeyValue extends EventEmitter {
             this.emit("delete", key);
             if (!dontSave) this.save();
         }
-    }
-
-    public deleteAsync(key: string): Promise<boolean> {
-        return new Promise((resolve) => {
-            if (this.data[key]) {
-                this.delete(key);
-                resolve(true);
-            } else {
-                resolve(false);
-            }
-        });
     }
 
     /**

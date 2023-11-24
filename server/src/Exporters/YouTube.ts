@@ -147,7 +147,7 @@ export class YouTubeExporter extends BaseExporter {
                                 `Quota exceeded: ${quotaError.reason}`
                             );
                             job.clear();
-                            await KeyValue.getInstance().setAsync(
+                            KeyValue.getInstance().set(
                                 "exporter.youtube.quota_exceeded_date",
                                 new Date().toISOString()
                             );

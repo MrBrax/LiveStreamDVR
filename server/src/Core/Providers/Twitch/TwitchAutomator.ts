@@ -86,7 +86,7 @@ export class TwitchAutomator extends BaseAutomator {
         }
 
         try {
-            await KeyValue.getInstance().setBoolAsync(
+            KeyValue.getInstance().setBool(
                 `tw.eventsub.${messageId}.ack`,
                 true
             );
@@ -150,7 +150,7 @@ export class TwitchAutomator extends BaseAutomator {
             }
 
             // KeyValue.getInstance().set("${this.broadcaster_user_login}.last.update", (new DateTime())->format(DateTime::ATOM));
-            await KeyValue.getInstance().setAsync(
+            KeyValue.getInstance().set(
                 `${this.broadcaster_user_login}.last.update`,
                 new Date().toISOString()
             );
@@ -173,11 +173,11 @@ export class TwitchAutomator extends BaseAutomator {
                 return false;
             }
 
-            await KeyValue.getInstance().deleteAsync(
+            KeyValue.getInstance().delete(
                 `${this.broadcaster_user_login}.offline`
             );
 
-            await KeyValue.getInstance().setAsync(
+            KeyValue.getInstance().set(
                 `${this.broadcaster_user_login}.last.online`,
                 new Date().toISOString()
             );
@@ -354,7 +354,7 @@ export class TwitchAutomator extends BaseAutomator {
 
             return true;
         } else if (subscription_type == "stream.offline") {
-            await KeyValue.getInstance().setBoolAsync(
+            KeyValue.getInstance().setBool(
                 `${this.broadcaster_user_login}.offline`,
                 true
             );
@@ -374,7 +374,7 @@ export class TwitchAutomator extends BaseAutomator {
     }
 
     public async updateGame(from_cache = false, no_run_check = false) {
-        const isLive = await KeyValue.getInstance().getBoolAsync(
+        const isLive = KeyValue.getInstance().getBool(
             `${this.getLogin()}.online`
         );
 
@@ -406,9 +406,7 @@ export class TwitchAutomator extends BaseAutomator {
                     "automator.updateGame",
                     `Resetting online status on ${this.getLogin()}.`
                 );
-                await KeyValue.getInstance().deleteAsync(
-                    `${this.getLogin()}.online`
-                );
+                KeyValue.getInstance().delete(`${this.getLogin()}.online`);
                 return false;
             }
 
@@ -418,28 +416,24 @@ export class TwitchAutomator extends BaseAutomator {
                     "automator.updateGame",
                     `VOD ${vod.basename} is not capturing, skipping chapter update. Removing online status.`
                 );
-                await KeyValue.getInstance().deleteAsync(
-                    `${this.getLogin()}.online`
-                );
+                KeyValue.getInstance().delete(`${this.getLogin()}.online`);
                 return false;
             }
 
             let event: ChannelUpdateEvent;
-            let chapter_data: TwitchVODChapterJSON | undefined;
+            let chapterData: TwitchVODChapterJSON | undefined;
 
             // fetch from cache
             if (from_cache) {
                 if (this.channel) {
-                    chapter_data = this.channel.getChapterData();
+                    chapterData = this.channel.getChapterData();
                 } else if (
-                    await KeyValue.getInstance().hasAsync(
-                        `${this.getLogin()}.chapterdata`
-                    )
+                    KeyValue.getInstance().has(`${this.getLogin()}.chapterdata`)
                 ) {
-                    chapter_data =
-                        (await KeyValue.getInstance().getObjectAsync<TwitchVODChapterJSON>(
+                    chapterData =
+                        KeyValue.getInstance().getObject<TwitchVODChapterJSON>(
                             `${this.getLogin()}.chapterdata`
-                        )) as TwitchVODChapterJSON; // type guard not working
+                        ) as TwitchVODChapterJSON; // type guard not working
                 } else {
                     log(
                         LOGLEVEL.ERROR,
@@ -461,7 +455,7 @@ export class TwitchAutomator extends BaseAutomator {
                     return false;
                 }
                 event = this.payload_eventsub.event as ChannelUpdateEvent;
-                chapter_data = await this.getChapterData(event);
+                chapterData = await this.getChapterData(event);
             } else {
                 log(
                     LOGLEVEL.ERROR,
@@ -471,7 +465,7 @@ export class TwitchAutomator extends BaseAutomator {
                 return false;
             }
 
-            if (!chapter_data) {
+            if (!chapterData) {
                 log(
                     LOGLEVEL.ERROR,
                     "automator.updateGame",
@@ -488,11 +482,11 @@ export class TwitchAutomator extends BaseAutomator {
                 }.`
             );
 
-            const chapter = await TwitchVODChapter.fromJSON(chapter_data);
+            const chapter = await TwitchVODChapter.fromJSON(chapterData);
 
-            await KeyValue.getInstance().setObjectAsync(
+            KeyValue.getInstance().setObject(
                 `${this.getLogin()}.chapterdata`,
-                chapter_data
+                chapterData
             );
 
             vod.addChapter(chapter);
@@ -517,8 +511,8 @@ export class TwitchAutomator extends BaseAutomator {
                 LOGLEVEL.SUCCESS,
                 "automator.updateGame",
                 `Stream updated on '${this.getLogin()}' to '${
-                    chapter_data.game_name
-                }' (${chapter_data.title}) using ${
+                    chapterData.game_name
+                }' (${chapterData.title}) using ${
                     from_cache ? "cache" : "eventsub"
                 }.`
             );
@@ -584,7 +578,7 @@ export class TwitchAutomator extends BaseAutomator {
                     event.category_name
                 } (${event.title})`
             );
-            await KeyValue.getInstance().setObjectAsync(
+            KeyValue.getInstance().setObject(
                 `${this.getLogin()}.chapterdata`,
                 chapter_data
             );

@@ -161,7 +161,7 @@ export class KickChannel extends BaseChannel {
         // if (hasAxiosInstance()) { // bad hack?
         const streams = await GetStream(channel.internalName);
         if (streams) {
-            await KeyValue.getInstance().setBoolAsync(
+            KeyValue.getInstance().setBool(
                 `kick.${channel.internalName}.online`,
                 true
             );
@@ -271,9 +271,7 @@ export class KickChannel extends BaseChannel {
         channel.applyConfig(channel_config);
 
         if (
-            await KeyValue.getInstance().getBoolAsync(
-                `kick.${channel.internalId}.online`
-            )
+            KeyValue.getInstance().getBool(`kick.${channel.internalId}.online`)
         ) {
             log(
                 LOGLEVEL.WARNING,
@@ -283,7 +281,7 @@ export class KickChannel extends BaseChannel {
         }
 
         if (
-            await KeyValue.getInstance().hasAsync(
+            KeyValue.getInstance().has(
                 `kick.${channel.internalName}.channeldata`
             )
         ) {

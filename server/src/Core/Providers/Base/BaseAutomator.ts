@@ -395,9 +395,9 @@ export class BaseAutomator {
 
             if (streams && streams.length > 0) {
                 if (
-                    !(await KeyValue.getInstance().getBoolAsync(
+                    !KeyValue.getInstance().getBool(
                         `${this.broadcaster_user_login}.online`
-                    ))
+                    )
                 ) {
                     log(
                         LOGLEVEL.INFO,
@@ -406,7 +406,7 @@ export class BaseAutomator {
                     );
                 }
 
-                await KeyValue.getInstance().setBoolAsync(
+                KeyValue.getInstance().setBool(
                     `${this.broadcaster_user_login}.online`,
                     true
                 ); // if status has somehow been set to false, set it back to true
@@ -467,7 +467,7 @@ export class BaseAutomator {
     public async end(): Promise<boolean> {
         log(LOGLEVEL.INFO, "automator.end", "Stream end");
 
-        await KeyValue.getInstance().setAsync(
+        KeyValue.getInstance().set(
             `${this.broadcaster_user_login}.last.offline`,
             new Date().toISOString()
         );
@@ -553,13 +553,9 @@ export class BaseAutomator {
             }
         }
 
-        await KeyValue.getInstance().deleteAsync(
-            `${this.broadcaster_user_login}.online`
-        );
-        await KeyValue.getInstance().deleteAsync(
-            `${this.broadcaster_user_login}.vod.id`
-        );
-        await KeyValue.getInstance().deleteAsync(
+        KeyValue.getInstance().delete(`${this.broadcaster_user_login}.online`);
+        KeyValue.getInstance().delete(`${this.broadcaster_user_login}.vod.id`);
+        KeyValue.getInstance().delete(
             `${this.broadcaster_user_login}.vod.started_at`
         );
 
@@ -764,9 +760,7 @@ export class BaseAutomator {
             }
         }
 
-        await KeyValue.getInstance().deleteAsync(
-            `${this.broadcaster_user_login}.offline`
-        );
+        KeyValue.getInstance().delete(`${this.broadcaster_user_login}.offline`);
 
         return true;
     }
@@ -801,9 +795,7 @@ export class BaseAutomator {
             throw new Error("No vod id supplied");
         }
 
-        if (
-            await KeyValue.getInstance().hasAsync(`${this.getLogin()}.vod.id`)
-        ) {
+        if (KeyValue.getInstance().has(`${this.getLogin()}.vod.id`)) {
             log(
                 LOGLEVEL.ERROR,
                 "automator.download",
@@ -973,11 +965,7 @@ export class BaseAutomator {
 
         // update the game + title if it wasn't updated already
         log(LOGLEVEL.INFO, "automator.download", `Update game for ${basename}`);
-        if (
-            await KeyValue.getInstance().hasAsync(
-                `${this.getLogin()}.chapterdata`
-            )
-        ) {
+        if (KeyValue.getInstance().has(`${this.getLogin()}.chapterdata`)) {
             await this.updateGame(true, true);
             // KeyValue.delete(`${this.getLogin()}.channeldata`);
         }
