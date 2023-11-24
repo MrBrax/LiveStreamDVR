@@ -2001,7 +2001,7 @@ export class BaseVOD {
             !this.not_started
         ) {
             throw new Error(
-                `No segments available for ${this.basename} and VOD is not finalized. Completely broken. Edit the JSON file manually.`
+                `No segments available for ${this.basename} and VOD is not finalized and started. Completely broken. Edit the JSON file manually.`
             );
         }
 
@@ -2234,6 +2234,8 @@ export class BaseVOD {
         if (!this.json) {
             throw new Error("No JSON loaded for basic setup!");
         }
+
+        this.not_started = this.json.not_started ?? false;
 
         this.is_capturing = this.json.is_capturing;
         this.is_converting = this.json.is_converting;
