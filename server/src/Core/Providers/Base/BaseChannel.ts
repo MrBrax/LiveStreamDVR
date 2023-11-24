@@ -328,7 +328,7 @@ export class BaseChannel {
             `${this.internalName}.season_identifier`
         );
         if (
-            seasonIdentifier &&
+            seasonIdentifier !== undefined &&
             seasonIdentifier !== format(new Date(), Config.SeasonFormat)
         ) {
             this.current_stream_number = 1;

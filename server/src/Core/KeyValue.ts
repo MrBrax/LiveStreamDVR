@@ -1,6 +1,6 @@
 import { debugLog } from "@/Helpers/Console";
 import chalk from "chalk";
-import { isDate } from "date-fns";
+import { isDate, isValid } from "date-fns";
 import { minimatch } from "minimatch";
 import EventEmitter from "node:events";
 import fs from "node:fs";
@@ -16,30 +16,29 @@ export interface KeyValueData {
 
 export class KeyValue extends EventEmitter {
     private data: Record<string, KeyValueData> = {};
-    // public static events = new EventEmitter();
 
     public static instance: KeyValue | undefined;
 
-    static getInstance(): KeyValue {
+    public static getInstance(): KeyValue {
         if (!this.instance) {
             this.instance = new KeyValue();
         }
         return this.instance;
     }
 
-    static getCleanInstance() {
+    public static getCleanInstance() {
         return new KeyValue();
     }
 
-    static destroyInstance() {
+    public static destroyInstance() {
         this.instance = undefined;
     }
 
-    getData(): Record<string, KeyValueData> {
+    public getData(): Record<string, KeyValueData> {
         return this.data;
     }
 
-    getAllRaw(): Record<string, KeyValueData> {
+    public getAllRaw(): Record<string, KeyValueData> {
         const filteredExpired = Object.entries(this.data).filter(
             ([key, value]) => {
                 if (value.expires) {
@@ -52,7 +51,7 @@ export class KeyValue extends EventEmitter {
         return Object.fromEntries(filteredExpired);
     }
 
-    getAll(): Record<string, string> {
+    public getAll(): Record<string, string> {
         // entries that are not expired
         const entries = Object.entries(this.getAllRaw());
         return Object.fromEntries(
@@ -60,17 +59,16 @@ export class KeyValue extends EventEmitter {
         );
     }
 
-    count() {
+    public count() {
         return Object.keys(this.getAll()).length;
     }
 
     /**
      * Check if a key exists in the key-value store.
      * @param key
-     * @deprecated Use hasAsync instead
      * @returns
      */
-    has(key: string): boolean {
+    public has(key: string): boolean {
         key = key.replaceAll("/", "");
 
         // check if the key exists and is not expired
@@ -86,23 +84,23 @@ export class KeyValue extends EventEmitter {
         }
     }
 
-    hasAsync(key: string): Promise<boolean> {
+    public hasAsync(key: string): Promise<boolean> {
         return new Promise((resolve) => {
             resolve(this.has(key));
         });
     }
 
-    getRaw(key: string): KeyValueData | false {
+    public getRaw(key: string): KeyValueData | undefined {
         key = key.replaceAll("/", "");
 
         if (!this.has(key) || this.data[key] === undefined) {
-            return false;
+            return undefined;
         }
 
         return this.data[key];
     }
 
-    getRawAsync(key: string): Promise<KeyValueData | false> {
+    public getRawAsync(key: string): Promise<KeyValueData | undefined> {
         return new Promise((resolve) => {
             resolve(this.getRaw(key));
         });
@@ -111,14 +109,13 @@ export class KeyValue extends EventEmitter {
     /**
      * Get a value from the key-value store.
      * @param key
-     * @returns {string|false} The value or false if the key does not exist.
-     * @deprecated Use getAsync instead
+     * @returns {string|false} The value or
      */
-    get(key: string): string | false {
+    public get(key: string): string | undefined {
         const raw = this.getRaw(key);
 
-        if (raw === false) {
-            return false;
+        if (raw === undefined) {
+            return undefined;
         }
 
         return raw.value;
@@ -131,10 +128,10 @@ export class KeyValue extends EventEmitter {
      * @returns {Promise<string|false>} The value or false if the key does not exist.
      * @throws Error if the key does not exist
      */
-    getAsync(key: string): Promise<string | false> {
+    public getAsync(key: string): Promise<string | false> {
         return new Promise((resolve, reject) => {
             const value = this.getRaw(key);
-            if (value === false) {
+            if (value === undefined) {
                 reject(new Error(`Key ${key} does not exist`));
             } else {
                 resolve(value.value);
@@ -146,19 +143,18 @@ export class KeyValue extends EventEmitter {
      * Get a value from the key-value store as an object.
      * @param key
      * @returns
-     * @deprecated Use getObjectAsync instead
      */
-    getObject<T>(key: string): T | false {
+    public getObject<T>(key: string): T | undefined {
         const value = this.get(key);
 
-        if (value === false) {
-            return false;
+        if (value === undefined) {
+            return undefined;
         }
 
         try {
-            return JSON.parse(value);
+            return JSON.parse(value) as T;
         } catch (error) {
-            return false;
+            return undefined;
         }
     }
 
@@ -167,7 +163,7 @@ export class KeyValue extends EventEmitter {
      * @param key
      * @returns
      */
-    getObjectAsync<T>(key: string): Promise<T | false> {
+    public getObjectAsync<T>(key: string): Promise<T | undefined> {
         return new Promise((resolve) => {
             resolve(this.getObject<T>(key));
         });
@@ -177,13 +173,12 @@ export class KeyValue extends EventEmitter {
      *
      * @param key
      * @returns
-     * @deprecated Use getBoolAsync instead
      */
-    getBool(key: string): boolean {
+    public getBool(key: string): boolean {
         return this.get(key) === "true";
     }
 
-    getBoolAsync(key: string): Promise<boolean> {
+    public getBoolAsync(key: string): Promise<boolean> {
         return new Promise((resolve) => {
             resolve(this.getBool(key));
         });
@@ -194,11 +189,10 @@ export class KeyValue extends EventEmitter {
      * @param key
      * @param def
      * @returns
-     * @deprecated Use getIntAsync instead
      */
-    getInt(key: string, def?: number): number {
+    public getInt(key: string, def?: number): number {
         const value = this.get(key);
-        if (value === false) {
+        if (value === undefined) {
             if (def !== undefined) {
                 return def;
             } else {
@@ -210,7 +204,7 @@ export class KeyValue extends EventEmitter {
         // return parseInt(this.get(key) || "0");
     }
 
-    getIntAsync(key: string, def?: number): Promise<number> {
+    public getIntAsync(key: string, def?: number): Promise<number> {
         return new Promise((resolve) => {
             resolve(this.getInt(key, def));
         });
@@ -220,9 +214,8 @@ export class KeyValue extends EventEmitter {
      * Set a value in the key-value store.
      * @param key
      * @param value
-     * @deprecated Use setAsync instead
      */
-    set(key: string, value: string): void {
+    public set(key: string, value: string): void {
         key = key.replaceAll("/", "");
 
         debugLog(`Setting key-value pair: ${key} = ${value}`);
@@ -236,14 +229,14 @@ export class KeyValue extends EventEmitter {
         this.save();
     }
 
-    setAsync(key: string, value: string): Promise<void> {
+    public setAsync(key: string, value: string): Promise<void> {
         return new Promise((resolve) => {
             this.set(key, value);
             resolve();
         });
     }
 
-    setExpiring(key: string, value: string, seconds: number): void {
+    public setExpiring(key: string, value: string, seconds: number): void {
         key = key.replaceAll("/", "");
 
         debugLog(
@@ -264,9 +257,8 @@ export class KeyValue extends EventEmitter {
      * Set a value in the key-value store as an object (JSON).
      * @param key
      * @param value
-     * @deprecated Use setObjectAsync instead
      */
-    setObject<T>(key: string, value: T | null): void {
+    public setObject<T>(key: string, value: T | null): void {
         key = key.replaceAll("/", "");
 
         if (value === null) {
@@ -281,7 +273,7 @@ export class KeyValue extends EventEmitter {
         // this.save();
     }
 
-    setObjectAsync<T>(key: string, value: T | null): Promise<void> {
+    public setObjectAsync<T>(key: string, value: T | null): Promise<void> {
         return new Promise((resolve) => {
             this.setObject(key, value);
             resolve();
@@ -292,13 +284,12 @@ export class KeyValue extends EventEmitter {
      *
      * @param key
      * @param value
-     * @deprecated Use setBoolAsync instead
      */
-    setBool(key: string, value: boolean) {
+    public setBool(key: string, value: boolean) {
         this.set(key, value ? "true" : "false");
     }
 
-    setBoolAsync(key: string, value: boolean): Promise<void> {
+    public setBoolAsync(key: string, value: boolean): Promise<void> {
         return new Promise((resolve) => {
             this.setBool(key, value);
             resolve();
@@ -309,35 +300,37 @@ export class KeyValue extends EventEmitter {
      *
      * @param key
      * @param value
-     * @deprecated Use setIntAsync instead
      */
-    setInt(key: string, value: number) {
+    public setInt(key: string, value: number) {
         this.set(key, value.toString());
     }
 
-    setIntAsync(key: string, value: number): Promise<void> {
+    public setIntAsync(key: string, value: number): Promise<void> {
         return new Promise((resolve) => {
             this.setInt(key, value);
             resolve();
         });
     }
 
-    setDate(key: string, date: Date) {
+    public setDate(key: string, date: Date) {
         if (!date || isNaN(date.getTime()) || !isDate(date)) {
             throw new Error("Invalid date");
         }
         this.set(key, date.toISOString());
     }
 
-    getDate(key: string): Date | false {
+    public getDate(key: string): Date | undefined {
         const value = this.get(key);
-        if (value === false) {
-            return false;
+        if (value === undefined) {
+            return undefined;
+        }
+        if (!isValid(new Date(value))) {
+            throw new Error("Invalid date");
         }
         return new Date(value);
     }
 
-    setExpiry(key: string, seconds: number) {
+    public setExpiry(key: string, seconds: number) {
         if (!this.has(key)) {
             throw new Error("Key does not exist");
         }
@@ -345,7 +338,7 @@ export class KeyValue extends EventEmitter {
         this.data[key].expires = new Date(Date.now() + seconds * 1000);
     }
 
-    cleanWildcard(keyWildcard: string /* limitSeconds: number */) {
+    public cleanWildcard(keyWildcard: string /* limitSeconds: number */) {
         let deleted = 0;
 
         const keys = Object.keys(this.data);
@@ -391,7 +384,7 @@ export class KeyValue extends EventEmitter {
         }
     }
 
-    filterExpired() {
+    public filterExpired() {
         // filter out expired keys
         const keys = Object.keys(this.data);
         for (const key of keys) {
@@ -411,7 +404,7 @@ export class KeyValue extends EventEmitter {
      * Delete a value from the key-value store.
      * @param key
      */
-    delete(key: string, dontSave = false) {
+    public delete(key: string, dontSave = false) {
         if (this.data[key]) {
             debugLog(`Deleting key-value pair: ${key}`);
             delete this.data[key];
@@ -420,7 +413,7 @@ export class KeyValue extends EventEmitter {
         }
     }
 
-    deleteAsync(key: string): Promise<boolean> {
+    public deleteAsync(key: string): Promise<boolean> {
         return new Promise((resolve) => {
             if (this.data[key]) {
                 this.delete(key);
@@ -434,14 +427,14 @@ export class KeyValue extends EventEmitter {
     /**
      * Delete all values from the key-value store.
      */
-    deleteAll() {
+    public deleteAll() {
         debugLog("Deleting all key-value pairs");
         this.data = {};
         this.emit("delete_all");
         this.save();
     }
 
-    deleteAllAsync(): Promise<void> {
+    public deleteAllAsync(): Promise<void> {
         return new Promise((resolve) => {
             this.deleteAll();
             resolve();
@@ -451,7 +444,7 @@ export class KeyValue extends EventEmitter {
     /**
      * Save the key-value store to disk.
      */
-    save() {
+    public save() {
         this.filterExpired();
         fs.writeFileSync(
             BaseConfigPath.keyvalueDatabase,
@@ -459,7 +452,7 @@ export class KeyValue extends EventEmitter {
         );
     }
 
-    load() {
+    public load() {
         console.log(chalk.blue("Loading key-value pairs..."));
         if (fs.existsSync(BaseConfigPath.keyvalueDatabase)) {
             this.data = JSON.parse(
@@ -491,7 +484,7 @@ export class KeyValue extends EventEmitter {
         this.cleanWildcard("tw.eventsub.*"); // clean up old eventsub acks
     }
 
-    migrateFromFileBasedKeyValue() {
+    public migrateFromFileBasedKeyValue() {
         console.log(chalk.blue("Migrating key-value pairs..."));
         const files = fs
             .readdirSync(BaseConfigCacheFolder.keyvalue)
@@ -515,7 +508,7 @@ export class KeyValue extends EventEmitter {
         }
     }
 
-    migrateFromFlatKeyValue() {
+    public migrateFromFlatKeyValue() {
         console.log(
             chalk.blue("Migrating key-value pairs from flat key-value store...")
         );

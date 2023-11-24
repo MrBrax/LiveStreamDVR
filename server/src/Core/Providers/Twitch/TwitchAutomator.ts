@@ -213,9 +213,9 @@ export class TwitchAutomator extends BaseAutomator {
             }
 
             if (
-                (await KeyValue.getInstance().getAsync(
+                KeyValue.getInstance().get(
                     `${this.broadcaster_user_login}.vod.id`
-                )) == event.id
+                ) == event.id
             ) {
                 log(
                     LOGLEVEL.WARNING,
@@ -224,15 +224,15 @@ export class TwitchAutomator extends BaseAutomator {
                 );
             }
 
-            await KeyValue.getInstance().setBoolAsync(
+            KeyValue.getInstance().setBool(
                 `${this.broadcaster_user_login}.online`,
                 true
             );
-            await KeyValue.getInstance().setAsync(
+            KeyValue.getInstance().set(
                 `${this.broadcaster_user_login}.vod.id`,
                 event.id
             );
-            await KeyValue.getInstance().setAsync(
+            KeyValue.getInstance().set(
                 `${this.broadcaster_user_login}.vod.started_at`,
                 event.started_at
             );
@@ -374,20 +374,13 @@ export class TwitchAutomator extends BaseAutomator {
     }
 
     public async updateGame(from_cache = false, no_run_check = false) {
-        // const basename = this.vodBasenameTemplate();
-        const is_live = await KeyValue.getInstance().getBoolAsync(
+        const isLive = await KeyValue.getInstance().getBoolAsync(
             `${this.getLogin()}.online`
         );
 
         // if online
         if (this.channel?.is_capturing) {
-            // const folder_base = TwitchHelper.vodFolder(this.getLogin());
-
-            const capture_id = await KeyValue.getInstance().getAsync(
-                `${this.getLogin()}.vod.id`
-            );
-
-            if (!capture_id) {
+            if (!KeyValue.getInstance().has(`${this.getLogin()}.vod.id`)) {
                 log(
                     LOGLEVEL.FATAL,
                     "automator.updateGame",
@@ -396,13 +389,17 @@ export class TwitchAutomator extends BaseAutomator {
                 return false;
             }
 
-            const vod = TwitchVOD.getVodByCaptureId(capture_id);
+            const captureId = KeyValue.getInstance().get(
+                `${this.getLogin()}.vod.id`
+            )!;
+
+            const vod = TwitchVOD.getVodByCaptureId(captureId);
 
             if (!vod) {
                 log(
                     LOGLEVEL.FATAL,
                     "automator.updateGame",
-                    `Tried to load VOD ${capture_id} for chapter update but errored.`
+                    `Tried to load VOD ${captureId} for chapter update but errored.`
                 );
                 log(
                     LOGLEVEL.INFO,
@@ -556,7 +553,7 @@ export class TwitchAutomator extends BaseAutomator {
             if (this.channel) {
                 // const notifyTitle = `${is_live ? "Live non-capturing" : "Offline"} channel ${this.getLogin()} changed status`;
                 let notifyTitle = "";
-                if (is_live) {
+                if (isLive) {
                     notifyTitle = t(
                         "notify.live-non-capturing-channel-this-getlogin-changed-status",
                         [this.getLogin()]
@@ -618,7 +615,7 @@ export class TwitchAutomator extends BaseAutomator {
 
             if (
                 !this.channel?.no_capture &&
-                is_live &&
+                isLive &&
                 !this.channel?.is_capturing
             ) {
                 if (!this.getVodID()) {

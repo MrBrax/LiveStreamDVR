@@ -292,13 +292,17 @@ export async function HookTwitch(
             };
 
             const TA = new TwitchAutomator();
-            /* await */ TA.handle(data_json, metadata_proxy).catch((error) => {
-                log(
-                    LOGLEVEL.FATAL,
-                    "hook.HookTwitch",
-                    `Automator returned error: ${error.message}`
-                );
-            });
+            /* await */ TA.handle(data_json, metadata_proxy).catch(
+                (error: Error) => {
+                    log(
+                        LOGLEVEL.FATAL,
+                        "hook.HookTwitch",
+                        `Automator returned error: ${error.message}`,
+                        error
+                    );
+                    console.error(error);
+                }
+            );
             res.status(200).send("");
             return;
         } else {

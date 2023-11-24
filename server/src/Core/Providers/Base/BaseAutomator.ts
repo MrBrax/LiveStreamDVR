@@ -182,10 +182,7 @@ export class BaseAutomator {
     }
 
     public getVodID(): string | false {
-        const id = KeyValue.getInstance().get(`${this.getLogin()}.vod.id`);
-        if (id) {
-            return id;
-        } else {
+        if (!KeyValue.getInstance().has(`${this.getLogin()}.vod.id`)) {
             log(
                 LOGLEVEL.ERROR,
                 "automator.getVodID",
@@ -193,7 +190,8 @@ export class BaseAutomator {
             );
             return false;
         }
-        // return $this->payload['id'];
+
+        return KeyValue.getInstance().get(`${this.getLogin()}.vod.id`)!;
     }
 
     public getUserID(): string {
@@ -209,10 +207,15 @@ export class BaseAutomator {
     }
 
     public getStartDate(): string {
-        return (
-            KeyValue.getInstance().get(`${this.getLogin()}.vod.started_at`) ||
-            ""
-        );
+        if (!KeyValue.getInstance().has(`${this.getLogin()}.vod.started_at`)) {
+            log(
+                LOGLEVEL.ERROR,
+                "automator.getStartDate",
+                `No start date for ${this.getLogin()}`
+            );
+            return "";
+        }
+        return KeyValue.getInstance().get(`${this.getLogin()}.vod.started_at`)!;
     }
 
     public getTitle(): string {

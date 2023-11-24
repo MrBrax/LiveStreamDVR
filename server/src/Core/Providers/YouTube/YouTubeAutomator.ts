@@ -1,11 +1,13 @@
-import { KeyValue } from "../../../Core/KeyValue";
 import type { PubsubVideo } from "@common/YouTubeAPI/Pubsub";
-import { BaseAutomator } from "../Base/BaseAutomator";
 import type express from "express";
+import { KeyValue } from "../../../Core/KeyValue";
+import { BaseAutomator } from "../Base/BaseAutomator";
 
 export class YouTubeAutomator extends BaseAutomator {
     public getVodID(): string | false {
-        return KeyValue.getInstance().get(`yt.${this.getUserID()}.vod.id`);
+        return (
+            KeyValue.getInstance().get(`yt.${this.getUserID()}.vod.id`) || false
+        );
         // return $this->payload['id'];
     }
 

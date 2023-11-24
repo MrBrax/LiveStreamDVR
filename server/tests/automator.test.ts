@@ -1,6 +1,6 @@
 import { Config } from "../src/Core/Config";
-import { BaseAutomator } from "../src/Core/Providers/Base/BaseAutomator";
 import { KeyValue } from "../src/Core/KeyValue";
+import { BaseAutomator } from "../src/Core/Providers/Base/BaseAutomator";
 import { TwitchChannel } from "../src/Core/Providers/Twitch/TwitchChannel";
 import "./environment";
 // jest.mock("Automator");
@@ -30,11 +30,15 @@ describe("Automator", () => {
         TA.channel = channel;
 
         const kv = KeyValue.getInstance();
-        const spy = jest.spyOn(kv, "get").mockImplementation((key) => {
-            return "2022-09-02T16:10:37Z";
-        });
+        // const spy = jest.spyOn(kv, "get").mockImplementation((key) => {
+        //     return "2022-09-02T16:10:37Z";
+        // });
+
+        kv.set("test.vod.started_at", "2022-09-02T16:10:37Z");
 
         expect(TA.getStartDate()).toBe("2022-09-02T16:10:37Z");
+
+        // spy.mockRestore();
 
         Config.getInstance().setConfig(
             "filename_vod",
@@ -42,10 +46,10 @@ describe("Automator", () => {
         );
         expect(TA.vodBasenameTemplate()).toBe("test_2022_09_02");
 
-        spy.mockImplementation((key) => {
-            return "";
-        });
+        kv.delete("test.vod.started_at");
 
         expect(TA.vodBasenameTemplate()).toBe("test_{year}_{month}_{day}");
+
+        // spy.mockRestore();
     });
 });
