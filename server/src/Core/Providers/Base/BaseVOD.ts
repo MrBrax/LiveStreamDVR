@@ -75,6 +75,7 @@ export class BaseVOD {
     public capture_started2?: Date;
     public conversion_started?: Date;
 
+    /** @deprecated */
     public video_metadata: VideoMetadata | AudioMetadata | undefined;
 
     public force_record = false;
@@ -298,8 +299,18 @@ export class BaseVOD {
     }
 
     public get duration(): number | undefined {
+        // default to first segment
+        if (this.firstSegment && this.firstSegment.metadata) {
+            return this.firstSegment.metadata.duration;
+        }
+
+        // legacy
         if (!this.video_metadata) return undefined;
         return this.video_metadata.duration;
+    }
+
+    public get firstSegment(): BaseVODSegment | undefined {
+        return this.segments[0];
     }
 
     /**
@@ -701,7 +712,16 @@ export class BaseVOD {
     }
 
     public async migrate(): Promise<boolean> {
-        return await Promise.reject(new Error("Not implemented"));
+        let migrated = false;
+        if (
+            this.firstSegment &&
+            !this.firstSegment.metadata &&
+            this.video_metadata
+        ) {
+            this.firstSegment.metadata = this.video_metadata;
+            migrated = true;
+        }
+        return await Promise.resolve(migrated);
     }
 
     /**
@@ -788,6 +808,7 @@ export class BaseVOD {
                 path.basename(baseSegment)
             );
             segment.basename = path.basename(baseSegment);
+            segment.directory = this.directory;
 
             if (
                 segment.filename &&
@@ -831,12 +852,16 @@ export class BaseVOD {
             );
         }
 
-        if (!this.video_metadata) {
+        const segment = this.firstSegment;
+
+        const videoMetadata = segment?.metadata || this.video_metadata;
+
+        if (!videoMetadata) {
             console.error(chalk.redBright("No video metadata"));
             throw new Error("No video metadata");
         }
 
-        if (!("height" in this.video_metadata)) {
+        if (!("height" in videoMetadata)) {
             console.error(chalk.redBright("No video metadata height"));
             throw new Error("No video metadata height");
         }
@@ -879,13 +904,10 @@ export class BaseVOD {
         );
         args.push(
             "--chat-height",
-            (chat_height ? chat_height : this.video_metadata.height).toString()
+            (chat_height ? chat_height : videoMetadata.height).toString()
         );
         args.push("--chat-width", chat_width.toString());
-        args.push(
-            "--framerate",
-            Math.round(this.video_metadata.fps).toString()
-        );
+        args.push("--framerate", Math.round(videoMetadata.fps).toString());
         args.push("--update-rate", "0");
         args.push("--font", font);
         args.push("--font-size", font_size.toString());
@@ -1964,14 +1986,11 @@ export class BaseVOD {
             throw new Error("No JSON loaded for assoc setup!");
         }
 
-        // this.video_fail2 = this.json.video_fail2 !== undefined ? this.json.video_fail2 : false;
         this.video_metadata =
             this.json.video_metadata !== undefined
                 ? this.json.video_metadata
                 : undefined;
-        // this.filterMediainfo();
 
-        // this.ads = this.json.ads !== undefined ? this.json.ads : [];
         if (this.json.chapters && this.json.chapters.length > 0) {
             await this.parseChapters(this.json.chapters);
         } else {
@@ -2040,9 +2059,9 @@ export class BaseVOD {
                 : undefined;
     }
 
+    /** @deprecated */
     public async getDuration(save = false): Promise<number | null> {
         if (this.duration && this.duration > 0) {
-            // TwitchHelper.log(LOGLEVEL.DEBUG, "Returning saved duration for " . this.basename . ": " . this.duration_seconds );
             return this.duration;
         }
 
@@ -2181,45 +2200,48 @@ export class BaseVOD {
             throw new Error("No directory set!");
         }
 
-        if (!this.segments_raw || this.segments_raw.length == 0) {
-            log(
-                LOGLEVEL.ERROR,
-                "vod.getMediainfo",
-                `No segments available for mediainfo of ${this.basename}`
-            );
-            return false;
+        if (!this.segments || this.segments.length == 0) {
+            throw new Error("No segments available");
         }
 
-        const filename = path.join(
-            this.directory,
-            path.basename(this.segments_raw[segment_num])
-        );
+        const segment = this.segments[segment_num];
 
-        if (!fs.existsSync(filename)) {
+        if (!segment) {
+            throw new Error(
+                `Segment #${segment_num} does not exist for ${this.basename}`
+            );
+        }
+
+        // const filename = path.join(
+        //     this.directory,
+        //     path.basename(this.segments_raw[segment_num])
+        // );
+
+        if (!fs.existsSync(segment.filename)) {
             log(
                 LOGLEVEL.ERROR,
                 "vod.getMediainfo",
-                `File does not exist for mediainfo of ${this.basename} (${filename} @ ${this.directory})`
+                `File does not exist for mediainfo of ${this.basename} (${segment.filename} @ ${this.directory})`
             );
             return false;
         }
 
         let metadata: VideoMetadata | AudioMetadata;
         try {
-            metadata = await videometadata(filename, force);
+            metadata = await videometadata(segment.filename, force);
         } catch (e) {
             log(
                 LOGLEVEL.ERROR,
                 "vod.getMediainfo",
-                `Could not get video metadata of ${
-                    this.basename
-                } (${filename} @ ${this.directory}): ${(e as Error).message}`
+                `Could not get video metadata of ${this.basename} (${
+                    segment.filename
+                } @ ${this.directory}): ${(e as Error).message}`
             );
             return false;
         }
 
         this.video_metadata = metadata;
-        // this.duration = metadata.duration;
+        segment.metadata = metadata;
 
         this.broadcastUpdate();
 

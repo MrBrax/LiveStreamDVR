@@ -2219,7 +2219,7 @@ export class TwitchVOD extends BaseVOD {
     }
 
     public async migrate(): Promise<boolean> {
-        let migrated = false;
+        let migrated = await super.migrate();
 
         if (this.twitch_vod_id !== undefined && !this.external_vod_id) {
             this.external_vod_id = this.twitch_vod_id;

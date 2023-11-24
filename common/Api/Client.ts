@@ -16,6 +16,7 @@ export type ApiVodSegment = {
     basename: string;
     filesize: number;
     deleted: boolean;
+    metadata?: VideoMetadata | AudioMetadata;
 };
 
 export interface ApiVodBaseChapter {
