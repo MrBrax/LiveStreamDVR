@@ -568,8 +568,8 @@ export class TwitchAutomator extends BaseAutomator {
                 );
             }
 
-            const chapter_data = await this.getChapterData(event);
-            chapter_data.online = false;
+            const chapterData = await this.getChapterData(event);
+            chapterData.online = false;
 
             log(
                 LOGLEVEL.INFO,
@@ -580,7 +580,7 @@ export class TwitchAutomator extends BaseAutomator {
             );
             KeyValue.getInstance().setObject(
                 `${this.getLogin()}.chapterdata`,
-                chapter_data
+                chapterData
             );
             if (this.channel) {
                 this.channel.broadcastUpdate();

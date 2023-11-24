@@ -4,8 +4,7 @@ import type { BinaryStatus } from "@common/Api/About";
 import { compareVersions } from "compare-versions";
 import fs from "node:fs";
 import path from "node:path";
-import type { ExecReturn } from "./Execute";
-import { execSimple } from "./Execute";
+import { execSimple, isExecError } from "./Execute";
 
 interface BinaryDef {
     binary: string | false;
@@ -92,10 +91,10 @@ export const BinaryRequirements: Record<
 
 export function loadPipRequirements() {
     if (Object.keys(PipRequirements).length > 0) return;
-    const requirements_file = path.join(AppRoot, "requirements.txt");
-    if (fs.existsSync(requirements_file)) {
-        const requirements_data = fs.readFileSync(requirements_file, "utf8");
-        const lines = requirements_data.split("\n");
+    const requirementsFile = path.join(AppRoot, "requirements.txt");
+    if (fs.existsSync(requirementsFile)) {
+        const requirementsData = fs.readFileSync(requirementsFile, "utf8");
+        const lines = requirementsData.split("\n");
         lines.forEach((line) => {
             const matches = line.trim().match(/^([a-z_-]+)([=<>]+)([0-9.]+)$/);
             if (matches) {
@@ -109,16 +108,16 @@ export function loadPipRequirements() {
         });
         // console.debug("PipRequirements:", PipRequirements);
     } else {
-        console.error("requirements.txt not found", requirements_file);
+        console.error("requirements.txt not found", requirementsFile);
     }
 }
 
 export function loadBinaryRequirements() {
     if (Object.keys(BinaryRequirements).length > 0) return;
-    const requirements_file = path.join(AppRoot, "binaries.txt");
-    if (fs.existsSync(requirements_file)) {
-        const requirements_data = fs.readFileSync(requirements_file, "utf8");
-        const lines = requirements_data.split("\n");
+    const requirementsFile = path.join(AppRoot, "binaries.txt");
+    if (fs.existsSync(requirementsFile)) {
+        const requirementsData = fs.readFileSync(requirementsFile, "utf8");
+        const lines = requirementsData.split("\n");
         lines.forEach((line) => {
             const matches = line.trim().match(/^([a-z_-]+)([=<>]+)([0-9.]+)$/);
             if (matches) {
@@ -132,7 +131,7 @@ export function loadBinaryRequirements() {
         });
         // console.debug("PipRequirements:", PipRequirements);
     } else {
-        console.error("binaries.txt not found", requirements_file);
+        console.error("binaries.txt not found", requirementsFile);
     }
 }
 
@@ -143,55 +142,53 @@ export async function getBinaryVersion(
     loadPipRequirements();
     loadBinaryRequirements();
 
-    const bin_data =
+    const binData =
         type == "bin" ? DVRBinaries()[bin_name] : DVRPipPackages()[bin_name];
-    if (bin_data.binary) {
-        let string_out = "";
+    if (binData.binary) {
+        let outString = "";
 
-        let exec_out;
+        let outExec;
         try {
-            exec_out = await execSimple(
-                bin_data.binary,
-                bin_data.version_args,
+            outExec = await execSimple(
+                binData.binary,
+                binData.version_args,
                 "about binary check"
             );
         } catch (error) {
-            const e = error as ExecReturn;
-            if ("code" in e) {
+            if (isExecError(error)) {
                 console.error("exec error", error);
-                // return undefined;
+                outString += error.stdout.map((line) => line.trim()).join("\n");
+                outString += error.stderr.map((line) => line.trim()).join("\n");
+            } else {
+                console.error("exec error", error);
             }
-            if ("stdout" in e)
-                string_out += e.stdout.map((line) => line.trim()).join("\n");
-            if ("stderr" in e)
-                string_out += e.stderr.map((line) => line.trim()).join("\n");
         }
 
-        if (exec_out) {
-            string_out += exec_out.stdout.map((line) => line.trim()).join("\n");
+        if (outExec) {
+            outString += outExec.stdout.map((line) => line.trim()).join("\n");
         }
 
-        if (string_out !== "") {
-            const match = string_out.trim().match(bin_data.version_regex);
+        if (outString !== "") {
+            const match = outString.trim().match(binData.version_regex);
 
             if (!match || match.length < 2) {
                 console.error(
                     bin_name,
                     "failed to match",
                     match,
-                    string_out.trim()
+                    outString.trim()
                 );
                 return undefined;
             }
 
             const version = match[1];
-            const min_version =
+            const minVersion =
                 PipRequirements[bin_name]?.version ??
                 BinaryRequirements[bin_name]?.version;
 
             let status = "ok";
 
-            if (min_version) {
+            if (minVersion) {
                 const comparator =
                     PipRequirements[bin_name]?.comparator ??
                     BinaryRequirements[bin_name]?.comparator;
@@ -199,10 +196,10 @@ export async function getBinaryVersion(
                 //     if (match[1] != min_version) status = "outdated";
                 let compare;
                 try {
-                    compare = compareVersions(version, min_version);
+                    compare = compareVersions(version, minVersion);
                 } catch (error) {
                     console.error(
-                        `Could not compare version ${version} to ${min_version}: ${
+                        `Could not compare version ${version} to ${minVersion}: ${
                             (error as Error).message
                         }`
                     );
@@ -218,15 +215,15 @@ export async function getBinaryVersion(
 
             return match
                 ? {
-                      path: bin_data.binary,
+                      path: binData.binary,
                       status: status,
                       version: version,
-                      min_version: min_version,
+                      min_version: minVersion,
                   }
                 : undefined;
         } else {
             return {
-                path: bin_data.binary,
+                path: binData.binary,
                 status: "missing",
             };
         }

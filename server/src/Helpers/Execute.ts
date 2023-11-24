@@ -189,9 +189,7 @@ export function execSimple(
     });
 }
 
-export function isExecReturn(
-    execReturn: ExecReturn | unknown
-): execReturn is ExecReturn {
+export function isExecReturn(execReturn: unknown): execReturn is ExecReturn {
     return (
         typeof execReturn === "object" &&
         execReturn !== null &&
@@ -204,9 +202,7 @@ export function isExecReturn(
     );
 }
 
-export function isExecError(
-    execError: ExecError | unknown
-): execError is ExecError {
+export function isExecError(execError: unknown): execError is ExecError {
     return execError instanceof ExecError;
 }
 
@@ -238,7 +234,8 @@ export function execAdvanced(
             log(
                 LOGLEVEL.ERROR,
                 "helper.execAdvanced",
-                `Process ${process.pid} error: ${err}`
+                `Process ${process.pid} (${jobName}) error: ${err.message}`,
+                err
             );
             // reject({ code: -1, stdout, stderr, bin, args, jobName });
         });
@@ -567,13 +564,14 @@ export function startJob(
         log(
             LOGLEVEL.ERROR,
             "exec.startJob",
-            `Process '${jobProcess.pid}' on job '${jobName}' error: ${err}`,
+            `Process '${jobProcess.pid}' on job '${jobName}' error: ${err.message}`,
             {
                 bin,
                 args,
                 jobName,
                 stdout,
                 stderr,
+                err,
             }
         );
     });

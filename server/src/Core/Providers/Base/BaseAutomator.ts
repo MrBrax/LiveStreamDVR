@@ -70,6 +70,11 @@ export class BaseAutomator {
     private vod_episode?: number;
     private vod_absolute_episode?: number;
 
+    private is24HourStream = false;
+
+    private chunks_missing = 0;
+    private stream_pause?: Partial<StreamPause>;
+
     public basedir(): string {
         if (Config.getInstance().cfg<boolean>("vod_folders")) {
             return path.join(this.getLogin(), this.vodFolderTemplate());
@@ -262,12 +267,8 @@ export class BaseAutomator {
         return this.channel.livestreamUrl;
     }
 
-    // public async handle(data: EventSubResponse, request: express.Request): Promise<boolean> {
-    //     return false;
-    // }
-
     public async updateGame(from_cache = false, no_run_check = false) {
-        return false;
+        return await Promise.resolve(false);
     }
 
     public notifyChapterChange(channel: TwitchChannel) {
@@ -439,21 +440,6 @@ export class BaseAutomator {
         }
 
         return chapterData;
-    }
-
-    private async cleanup() {
-        // const vods = fs.readdirSync(TwitchHelper.vodFolder(this.getLogin())).filter(f => f.startsWith(`${this.getLogin()}_`) && f.endsWith(".json"));
-
-        if (!this.channel) {
-            log(
-                LOGLEVEL.ERROR,
-                "automator.cleanup",
-                `Tried to cleanup ${this.broadcaster_user_login} but channel was not available.`
-            );
-            return;
-        }
-
-        await this.channel.cleanupVods(this.vod?.uuid);
     }
 
     /**
@@ -672,7 +658,7 @@ export class BaseAutomator {
                                         ) {
                                             exporter.vod.exportData.exported_at =
                                                 new Date().toISOString();
-                                            exporter.vod.saveJSON(
+                                            void exporter.vod.saveJSON(
                                                 "export successful"
                                             );
                                         }
@@ -879,14 +865,14 @@ export class BaseAutomator {
         const basename = this.vodBasenameTemplate();
 
         // folder base depends on vod season/episode now
-        const folder_base = this.fulldir();
-        if (!fs.existsSync(folder_base)) {
+        const folderBase = this.fulldir();
+        if (!fs.existsSync(folderBase)) {
             log(
                 LOGLEVEL.DEBUG,
                 "automator.download",
                 `Making folder for ${tempBasename}.`
             );
-            fs.mkdirSync(folder_base, { recursive: true });
+            fs.mkdirSync(folderBase, { recursive: true });
         }
 
         if (TwitchVOD.hasVod(basename)) {
@@ -919,7 +905,7 @@ export class BaseAutomator {
         // create the vod and put it inside this class
         try {
             this.vod = await this.channel.createVOD(
-                path.join(folder_base, `${basename}.json`),
+                path.join(folderBase, `${basename}.json`),
                 dataId
             );
         } catch (error) {
@@ -984,16 +970,16 @@ export class BaseAutomator {
                 )}.ts`
             );
         } else {
-            this.capture_filename = path.join(folder_base, `${basename}.ts`);
+            this.capture_filename = path.join(folderBase, `${basename}.ts`);
         }
 
         this.vod.capturingFilename = this.capture_filename;
 
         this.converted_filename = path.join(
-            folder_base,
+            folderBase,
             `${basename}.${containerExtension}`
         );
-        this.chat_filename = path.join(folder_base, `${basename}.chatdump`);
+        this.chat_filename = path.join(folderBase, `${basename}.chatdump`);
 
         // capture with streamlink, this is the crucial point in this entire program
         this.startCaptureChat();
@@ -1019,7 +1005,7 @@ export class BaseAutomator {
                 `Failed to capture video: ${(error as Error).message}`,
                 error
             );
-            this.endCaptureChat();
+            void this.endCaptureChat();
             // capture viewer count if enabled
             if (this.vod && isTwitchVOD(this.vod))
                 this.vod.stopWatchingViewerCount();
@@ -1030,23 +1016,23 @@ export class BaseAutomator {
             return false;
         }
 
-        this.endCaptureChat();
+        void this.endCaptureChat();
 
         if (this.vod && isTwitchVOD(this.vod))
             this.vod.stopWatchingViewerCount();
 
-        const capture_success =
+        const captureSuccess =
             fs.existsSync(this.capture_filename) &&
             fs.statSync(this.capture_filename).size > 0;
 
         // send internal webhook for capture start
         Webhook.dispatchAll("end_capture", {
             vod: await this.vod.toAPI(),
-            success: capture_success,
+            success: captureSuccess,
         } as EndCaptureData);
 
         // error handling if nothing got downloaded
-        if (!capture_success) {
+        if (!captureSuccess) {
             log(
                 LOGLEVEL.WARNING,
                 "automator.download",
@@ -1060,8 +1046,8 @@ export class BaseAutomator {
                     `Giving up on downloading, too many tries for ${basename}`
                 );
                 fs.renameSync(
-                    path.join(folder_base, `${basename}.json`),
-                    path.join(folder_base, `${basename}.json.broken`)
+                    path.join(folderBase, `${basename}.json`),
+                    path.join(folderBase, `${basename}.json.broken`)
                 );
                 throw new Error("Too many tries");
                 // TODO: fatal error
@@ -1157,18 +1143,18 @@ export class BaseAutomator {
                 // sleep(10);
                 await Sleep(10 * 1000);
 
-                const convert_success =
+                const convertSuccess =
                     fs.existsSync(this.capture_filename) &&
                     fs.existsSync(this.converted_filename) &&
                     fs.statSync(this.converted_filename).size > 0;
                 // send internal webhook for convert start
                 Webhook.dispatchAll("end_convert", {
                     vod: await this.vod.toAPI(),
-                    success: convert_success,
+                    success: convertSuccess,
                 } as EndConvertData);
 
                 // remove ts if both files exist
-                if (convert_success) {
+                if (convertSuccess) {
                     log(
                         LOGLEVEL.DEBUG,
                         "automator.download",
@@ -1195,7 +1181,9 @@ export class BaseAutomator {
                 );
 
                 this.vod.is_converting = false;
-                this.vod.addSegment(path.basename(this.converted_filename));
+                await this.vod.addSegment(
+                    path.basename(this.converted_filename)
+                );
 
                 if (this.vod.segments.length > 1) {
                     log(
@@ -1219,7 +1207,7 @@ export class BaseAutomator {
                 "automator.download",
                 `No conversion for ${basename}, just add segments`
             );
-            this.vod.addSegment(path.basename(this.capture_filename));
+            await this.vod.addSegment(path.basename(this.capture_filename));
             await this.vod.saveJSON("add segment");
         }
 
@@ -1240,7 +1228,8 @@ export class BaseAutomator {
             log(
                 LOGLEVEL.FATAL,
                 "automator.download",
-                `Failed to finalize ${basename}: ${error}`
+                `Failed to finalize ${basename}: ${(error as Error).message}`,
+                error
             );
             await this.vod.saveJSON("failed to finalize");
         }
@@ -1276,7 +1265,7 @@ export class BaseAutomator {
             vod: await this.vod.toAPI(),
         } as VodUpdated);
 
-        this.onEndDownload();
+        await this.onEndDownload();
 
         return true;
     }
@@ -1285,8 +1274,6 @@ export class BaseAutomator {
         return [];
     }
 
-    private chunks_missing = 0;
-    private stream_pause?: Partial<StreamPause>;
     public captureTicker(source: "stdout" | "stderr", data: string) {
         if (data == null || data == undefined || typeof data !== "string") {
             log(
@@ -1322,9 +1309,9 @@ export class BaseAutomator {
         }
 
         // get stream resolution
-        const res_match = data.match(/stream:\s([0-9_a-z]+)\s/);
-        if (res_match) {
-            this.stream_resolution = res_match[1] as VideoQuality;
+        const resolutionMatch = data.match(/stream:\s([0-9_a-z]+)\s/);
+        if (resolutionMatch) {
+            this.stream_resolution = resolutionMatch[1] as VideoQuality;
             if (this.vod) this.vod.stream_resolution = this.stream_resolution;
             log(
                 LOGLEVEL.INFO,
@@ -1661,7 +1648,7 @@ export class BaseAutomator {
 
             const basename = this.vodBasenameTemplate();
 
-            const stream_url = this.streamURL();
+            const streamUrl = this.streamURL();
 
             const bin = Helper.path_streamlink();
 
@@ -1675,7 +1662,7 @@ export class BaseAutomator {
                 return;
             }
 
-            const cmd = this.captureStreamlinkArguments(stream_url);
+            const cmd = this.captureStreamlinkArguments(streamUrl);
 
             this.vod.capture_started = new Date();
             this.vod.saveJSON("dt_capture_started set");
@@ -1827,7 +1814,8 @@ export class BaseAutomator {
                 log(
                     LOGLEVEL.ERROR,
                     "automator.captureVideo",
-                    `Error with streamlink for ${basename}: ${err}`
+                    `Error with streamlink for ${basename}: ${err.message}`,
+                    err
                 );
                 reject(false);
             });
@@ -1840,7 +1828,7 @@ export class BaseAutomator {
             // this.vod.generatePlaylistFile();
 
             // send internal webhook for capture start
-            this.vod.toAPI().then((vod) => {
+            void this.vod.toAPI().then((vod) => {
                 Webhook.dispatchAll("start_capture", {
                     vod: vod,
                 } as VodUpdated);
@@ -1848,7 +1836,89 @@ export class BaseAutomator {
         });
     }
 
-    is24HourStream = false;
+    public async burnChat(): Promise<void> {
+        if (!this.vod) {
+            log(
+                LOGLEVEL.ERROR,
+                "automator.burnChat",
+                "No VOD for burning chat"
+            );
+            return;
+        }
+
+        const chatHeight: number =
+            this.vod.video_metadata &&
+            this.vod.video_metadata.type !== "audio" &&
+            Config.getInstance().cfg<boolean>(
+                "chatburn.default.auto_chat_height"
+            )
+                ? this.vod.video_metadata.height
+                : Config.getInstance().cfg<number>(
+                      "chatburn.default.chat_height"
+                  );
+        const settings = {
+            vodSource: "captured",
+            chatSource: "captured",
+            chatWidth: Config.getInstance().cfg<number>(
+                "chatburn.default.chat_width"
+            ),
+            chatHeight: chatHeight,
+            chatFont: Config.getInstance().cfg<string>(
+                "chatburn.default.chat_font"
+            ),
+            chatFontSize: Config.getInstance().cfg<number>(
+                "chatburn.default.chat_font_size"
+            ),
+            burnHorizontal: Config.getInstance().cfg<string>(
+                "chatburn.default.horizontal"
+            ),
+            burnVertical: Config.getInstance().cfg<string>(
+                "chatburn.default.vertical"
+            ),
+            ffmpegPreset: Config.getInstance().cfg<string>(
+                "chatburn.default.preset"
+            ),
+            ffmpegCrf: Config.getInstance().cfg<number>("chatburn.default.crf"),
+            burnOffset: 0,
+        };
+
+        let statusRenderchat, statusBurnchat;
+
+        try {
+            statusRenderchat = await this.vod.renderChat(
+                settings.chatWidth,
+                settings.chatHeight,
+                settings.chatFont,
+                settings.chatFontSize,
+                settings.chatSource == "downloaded",
+                true
+            );
+        } catch (error) {
+            log(LOGLEVEL.ERROR, "automator.burnChat", (error as Error).message);
+            return;
+        }
+
+        try {
+            statusBurnchat = await this.vod.burnChat(
+                settings.burnHorizontal,
+                settings.burnVertical,
+                settings.ffmpegPreset,
+                settings.ffmpegCrf,
+                settings.vodSource == "downloaded",
+                true,
+                settings.burnOffset
+            );
+        } catch (error) {
+            log(LOGLEVEL.ERROR, "automator.burnChat", (error as Error).message);
+            return;
+        }
+
+        log(
+            LOGLEVEL.INFO,
+            "automator.burnChat",
+            `Render: ${statusRenderchat}, Burn: ${statusBurnchat}`
+        );
+    }
 
     /**
      * Fallback capture for when you really really want to capture a VOD even if it's a duplicate or whatever
@@ -1867,11 +1937,11 @@ export class BaseAutomator {
                 "yyyy-MM-dd_HH-mm-ss"
             )}`;
 
-            const stream_url = this.streamURL();
+            const streamUrl = this.streamURL();
 
             const bin = Helper.path_streamlink();
 
-            const capture_filename = path.join(
+            const captureFilename = path.join(
                 BaseConfigDataFolder.saved_vods,
                 `${basename}.mp4`
             );
@@ -1886,45 +1956,45 @@ export class BaseAutomator {
                 return;
             }
 
-            const cmd = this.captureStreamlinkArguments(stream_url);
+            const cmd = this.captureStreamlinkArguments(streamUrl);
 
             log(
                 LOGLEVEL.INFO,
                 "automator.fallbackCapture",
                 `Starting fallback capture with filename ${path.basename(
-                    capture_filename
+                    captureFilename
                 )}`
             );
 
             // TODO: use TwitchHelper.startJob instead
 
             // spawn process
-            const capture_process = spawn(bin, cmd, {
-                cwd: path.dirname(capture_filename),
+            const captureProcess = spawn(bin, cmd, {
+                cwd: path.dirname(captureFilename),
                 windowsHide: true,
             });
 
             // make job for capture
-            let capture_job: Job;
+            let captureJob: Job;
             const jobName = `fbcapture_${this.getLogin()}_${this.getVodID()}`;
 
-            if (capture_process.pid) {
+            if (captureProcess.pid) {
                 log(
                     LOGLEVEL.SUCCESS,
                     "automator.fallbackCapture",
-                    `Spawned process ${capture_process.pid} for ${jobName}`
+                    `Spawned process ${captureProcess.pid} for ${jobName}`
                 );
-                capture_job = Job.create(jobName);
-                capture_job.setPid(capture_process.pid);
-                capture_job.setExec(bin, cmd);
-                capture_job.setProcess(capture_process);
-                capture_job.startLog(jobName, `$ ${bin} ${cmd.join(" ")}\n`);
-                capture_job.addMetadata({
+                captureJob = Job.create(jobName);
+                captureJob.setPid(captureProcess.pid);
+                captureJob.setExec(bin, cmd);
+                captureJob.setProcess(captureProcess);
+                captureJob.startLog(jobName, `$ ${bin} ${cmd.join(" ")}\n`);
+                captureJob.addMetadata({
                     login: this.getLogin(), // TODO: username?
-                    capture_filename: capture_filename,
+                    capture_filename: captureFilename,
                     stream_id: this.getVodID(),
                 });
-                if (!capture_job.save()) {
+                if (!captureJob.save()) {
                     log(
                         LOGLEVEL.ERROR,
                         "automator.fallbackCapture",
@@ -1943,8 +2013,8 @@ export class BaseAutomator {
 
             let lastSize = 0;
             const keepaliveAlert = () => {
-                if (fs.existsSync(capture_filename)) {
-                    const size = fs.statSync(capture_filename).size;
+                if (fs.existsSync(captureFilename)) {
+                    const size = fs.statSync(captureFilename).size;
                     const bitRate = (size - lastSize) / 120;
                     lastSize = size;
                     console.log(
@@ -1969,7 +2039,7 @@ export class BaseAutomator {
             const keepalive = xInterval(keepaliveAlert, 120 * 1000);
 
             // critical end
-            capture_process.on("close", (code, signal) => {
+            captureProcess.on("close", (code, signal) => {
                 if (code === 0) {
                     log(
                         LOGLEVEL.SUCCESS,
@@ -1986,13 +2056,13 @@ export class BaseAutomator {
 
                 xClearInterval(keepalive);
 
-                if (capture_job) {
-                    capture_job.clear();
+                if (captureJob) {
+                    captureJob.clear();
                 }
 
                 if (
-                    fs.existsSync(capture_filename) &&
-                    fs.statSync(capture_filename).size > 0
+                    fs.existsSync(captureFilename) &&
+                    fs.statSync(captureFilename).size > 0
                 ) {
                     resolve(true);
                 } else {
@@ -2008,20 +2078,21 @@ export class BaseAutomator {
             this.chunks_missing = 0;
 
             // attach output to parsing
-            capture_process.stdout.on("data", (data) => {
+            captureProcess.stdout.on("data", (data) => {
                 this.captureTicker("stdout", data);
             });
-            capture_process.stderr.on("data", (data) => {
+            captureProcess.stderr.on("data", (data) => {
                 this.captureTicker("stderr", data);
             });
 
             // check for errors
-            capture_process.on("error", (err) => {
+            captureProcess.on("error", (err) => {
                 xClearInterval(keepalive);
                 log(
                     LOGLEVEL.ERROR,
                     "automator.fallbackCapture",
-                    `Error with streamlink for ${basename}: ${err}`
+                    `Error with streamlink for ${basename}: ${err.message}`,
+                    err
                 );
                 reject(false);
             });
@@ -2036,11 +2107,11 @@ export class BaseAutomator {
 
         // chat capture
         if (this.channel && this.channel.live_chat && this.realm == "twitch") {
-            const data_started = this.getStartDate();
+            const dataStarted = this.getStartDate();
             // const data_id = this.getVodID();
-            const data_login = this.getLogin();
+            const dataLogin = this.getLogin();
             // const data_username = this.getUsername();
-            const data_userid = this.getUserID();
+            const dataUserId = this.getUserID();
 
             /*
             const chat_bin = "node";
@@ -2058,18 +2129,18 @@ export class BaseAutomator {
             const chat_job = Helper.startJob(`chatdump_${this.basename()}`, chat_bin, chat_cmd);
             */
 
-            const chat_job = TwitchChannel.startChatDump(
+            const chatJob = TwitchChannel.startChatDump(
                 `${this.getLogin()}_${this.getVodID()}`,
-                data_login,
-                data_userid,
-                parseJSON(data_started),
+                dataLogin,
+                dataUserId,
+                parseJSON(dataStarted),
                 this.chat_filename
             );
 
-            if (chat_job && chat_job.pid) {
-                this.chatJob = chat_job;
+            if (chatJob && chatJob.pid) {
+                this.chatJob = chatJob;
                 this.chatJob.addMetadata({
-                    username: data_login,
+                    username: dataLogin,
                     basename: this.vodBasenameTemplate(),
                     chat_filename: this.chat_filename,
                 });
@@ -2143,7 +2214,8 @@ export class BaseAutomator {
             log(
                 LOGLEVEL.ERROR,
                 "automator.convertVideo",
-                `Failed to convert video: ${err}`
+                `Failed to convert video: ${(err as Error).message}`,
+                err
             );
             return false;
         }
@@ -2170,87 +2242,18 @@ export class BaseAutomator {
         return result && result.success;
     }
 
-    public async burnChat(): Promise<void> {
-        if (!this.vod) {
+    private async cleanup() {
+        // const vods = fs.readdirSync(TwitchHelper.vodFolder(this.getLogin())).filter(f => f.startsWith(`${this.getLogin()}_`) && f.endsWith(".json"));
+
+        if (!this.channel) {
             log(
                 LOGLEVEL.ERROR,
-                "automator.burnChat",
-                "No VOD for burning chat"
+                "automator.cleanup",
+                `Tried to cleanup ${this.broadcaster_user_login} but channel was not available.`
             );
             return;
         }
 
-        const chatHeight: number =
-            this.vod.video_metadata &&
-            this.vod.video_metadata.type !== "audio" &&
-            Config.getInstance().cfg<boolean>(
-                "chatburn.default.auto_chat_height"
-            )
-                ? this.vod.video_metadata.height
-                : Config.getInstance().cfg<number>(
-                      "chatburn.default.chat_height"
-                  );
-        const settings = {
-            vodSource: "captured",
-            chatSource: "captured",
-            chatWidth: Config.getInstance().cfg<number>(
-                "chatburn.default.chat_width"
-            ),
-            chatHeight: chatHeight,
-            chatFont: Config.getInstance().cfg<string>(
-                "chatburn.default.chat_font"
-            ),
-            chatFontSize: Config.getInstance().cfg<number>(
-                "chatburn.default.chat_font_size"
-            ),
-            burnHorizontal: Config.getInstance().cfg<string>(
-                "chatburn.default.horizontal"
-            ),
-            burnVertical: Config.getInstance().cfg<string>(
-                "chatburn.default.vertical"
-            ),
-            ffmpegPreset: Config.getInstance().cfg<string>(
-                "chatburn.default.preset"
-            ),
-            ffmpegCrf: Config.getInstance().cfg<number>("chatburn.default.crf"),
-            burnOffset: 0,
-        };
-
-        let status_renderchat, status_burnchat;
-
-        try {
-            status_renderchat = await this.vod.renderChat(
-                settings.chatWidth,
-                settings.chatHeight,
-                settings.chatFont,
-                settings.chatFontSize,
-                settings.chatSource == "downloaded",
-                true
-            );
-        } catch (error) {
-            log(LOGLEVEL.ERROR, "automator.burnChat", (error as Error).message);
-            return;
-        }
-
-        try {
-            status_burnchat = await this.vod.burnChat(
-                settings.burnHorizontal,
-                settings.burnVertical,
-                settings.ffmpegPreset,
-                settings.ffmpegCrf,
-                settings.vodSource == "downloaded",
-                true,
-                settings.burnOffset
-            );
-        } catch (error) {
-            log(LOGLEVEL.ERROR, "automator.burnChat", (error as Error).message);
-            return;
-        }
-
-        log(
-            LOGLEVEL.INFO,
-            "automator.burnChat",
-            `Render: ${status_renderchat}, Burn: ${status_burnchat}`
-        );
+        await this.channel.cleanupVods(this.vod?.uuid);
     }
 }

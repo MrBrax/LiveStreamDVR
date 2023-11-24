@@ -41,37 +41,37 @@ export async function imageThumbnail(
         .update(fs.readFileSync(filename))
         .digest("hex");
 
-    const thumbnail_format = Config.getInstance().cfg<string>(
+    const thumbnailFormat = Config.getInstance().cfg<string>(
         "thumbnail_format",
         "jpg"
     );
 
-    const output_image = path.join(
+    const outputImage = path.join(
         BaseConfigCacheFolder.public_cache_thumbs,
-        `${fileHash}.${thumbnail_format}`
+        `${fileHash}.${thumbnailFormat}`
     );
 
-    if (fs.existsSync(output_image) && fs.statSync(output_image).size > 0) {
+    if (fs.existsSync(outputImage) && fs.statSync(outputImage).size > 0) {
         log(
             LOGLEVEL.DEBUG,
             "helper.imageThumbnail",
             `Found existing thumbnail for ${filename}`
         );
-        return path.basename(output_image);
+        return path.basename(outputImage);
     }
 
-    if (fs.existsSync(output_image) && fs.statSync(output_image).size === 0) {
+    if (fs.existsSync(outputImage) && fs.statSync(outputImage).size === 0) {
         // console.debug("Existing thumbnail filesize is 0, removing file");
         log(
             LOGLEVEL.DEBUG,
             "helper.imageThumbnail",
-            `Existing thumbnail filesize is 0, removing file: ${output_image}`
+            `Existing thumbnail filesize is 0, removing file: ${outputImage}`
         );
-        fs.unlinkSync(output_image); // remove empty file
+        fs.unlinkSync(outputImage); // remove empty file
     }
 
-    const ffmpeg_path = Helper.path_ffmpeg();
-    if (!ffmpeg_path) throw new Error("Failed to find ffmpeg");
+    const ffmpegPath = Helper.path_ffmpeg();
+    if (!ffmpegPath) throw new Error("Failed to find ffmpeg");
 
     /*
     let codec = "";
@@ -90,14 +90,14 @@ export async function imageThumbnail(
 
     try {
         output = await execSimple(
-            ffmpeg_path,
+            ffmpegPath,
             [
                 "-i",
                 filename,
                 "-vf",
                 `scale=${width}:-1`,
                 // "-codec", codec,
-                output_image,
+                outputImage,
             ],
             "ffmpeg image thumbnail"
         );
@@ -105,7 +105,7 @@ export async function imageThumbnail(
         log(
             LOGLEVEL.ERROR,
             "helper.imageThumbnail",
-            `Failed to create thumbnail: ${error}`,
+            `Failed to create thumbnail: ${(error as Error).message}`,
             error
         );
         throw error;
@@ -121,10 +121,10 @@ export async function imageThumbnail(
 
     if (
         output &&
-        fs.existsSync(output_image) &&
-        fs.statSync(output_image).size > 0
+        fs.existsSync(outputImage) &&
+        fs.statSync(outputImage).size > 0
     ) {
-        return path.basename(output_image);
+        return path.basename(outputImage);
     } else {
         log(
             LOGLEVEL.ERROR,
