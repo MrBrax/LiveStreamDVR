@@ -75,6 +75,8 @@ export class BaseAutomator {
     private chunks_missing = 0;
     private stream_pause?: Partial<StreamPause>;
 
+    private vod_id = "";
+
     public basedir(): string {
         if (Config.getInstance().cfg<boolean>("vod_folders")) {
             return path.join(this.getLogin(), this.vodFolderTemplate());
@@ -875,7 +877,7 @@ export class BaseAutomator {
             fs.mkdirSync(folderBase, { recursive: true });
         }
 
-        if (TwitchVOD.hasVod(basename)) {
+        if (TwitchVOD.hasVod(basename) || TwitchVOD.getVodByCaptureId(dataId)) {
             log(
                 LOGLEVEL.ERROR,
                 "automator.download",
@@ -961,6 +963,7 @@ export class BaseAutomator {
                 ? Config.AudioContainer
                 : Config.getInstance().cfg("vod_container", "mp4");
 
+        // decide on the capture filename
         if (Config.getInstance().cfg("capture.use_cache", false)) {
             this.capture_filename = path.join(
                 BaseConfigCacheFolder.capture,

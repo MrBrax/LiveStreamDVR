@@ -257,7 +257,7 @@ export class TwitchAutomator extends BaseAutomator {
 
             // const folder_base = TwitchHelper.vodFolder(this.broadcaster_user_login);
 
-            if (TwitchVOD.hasVod(basename)) {
+            if (TwitchVOD.getVodByCaptureId(event.id)) {
                 log(
                     LOGLEVEL.INFO,
                     "automator.handle",

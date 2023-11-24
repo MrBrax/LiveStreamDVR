@@ -923,7 +923,7 @@ export async function DownloadVideo(
             `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`
         );
 
-        if (TwitchVOD.hasVod(basename)) {
+        if (TwitchVOD.getVodByCaptureId(video.stream_id || video_id)) {
             res.api(400, {
                 status: "ERROR",
                 message: req.t("route.channels.vod-already-exists-basename", [

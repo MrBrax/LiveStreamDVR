@@ -322,6 +322,25 @@ export class BaseVOD {
         if (this.hasVod(vod.basename))
             throw new Error(`VOD ${vod.basename} is already in cache!`);
 
+        if (LiveStreamDVR.getInstance().getVods().includes(vod)) {
+            throw new Error("VOD already exists (instance)");
+        }
+
+        if (
+            LiveStreamDVR.getInstance()
+                .getVods()
+                .find((v) => v.uuid === vod.uuid)
+        )
+            throw new Error(`VOD already exists (uuid=${vod.uuid})`);
+
+        if (
+            LiveStreamDVR.getInstance()
+                .getVods()
+                .find((v) => v.basename === vod.basename)
+        ) {
+            throw new Error(`VOD already exists (basename=${vod.basename})`);
+        }
+
         LiveStreamDVR.getInstance().addVod(vod);
 
         return this.hasVod(vod.basename);

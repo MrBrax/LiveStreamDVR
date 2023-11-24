@@ -310,22 +310,10 @@ export class TwitchVOD extends BaseVOD {
     }
 
     /**
-     *
-     * @param basename
-     * @deprecated
-     * @returns
+     * Retrieves a Twitch VOD by its capture ID. Multiple VODs can have the same capture ID, but only one will be returned.
+     * @param capture_id The capture ID of the VOD.
+     * @returns The Twitch VOD matching the capture ID, or undefined if not found.
      */
-    public static getVod(basename: string): TwitchVOD | undefined {
-        if (TwitchVOD.hasVod(basename)) {
-            return LiveStreamDVR.getInstance()
-                .getVods()
-                .find<TwitchVOD>(
-                    (vod): vod is TwitchVOD =>
-                        isTwitchVOD(vod) && vod.basename == basename
-                );
-        }
-    }
-
     public static getVodByCaptureId(capture_id: string): TwitchVOD | undefined {
         return LiveStreamDVR.getInstance()
             .getVods()
