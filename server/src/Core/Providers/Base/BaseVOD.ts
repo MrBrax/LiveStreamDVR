@@ -79,7 +79,7 @@ export class BaseVOD {
 
     public force_record = false;
 
-    public duration = 0;
+    // public duration = 0;
     public total_size = 0;
 
     /**
@@ -295,6 +295,11 @@ export class BaseVOD {
 
     public get game_id(): string {
         return ""; // base vod does not have game_id
+    }
+
+    public get duration(): number | undefined {
+        if (!this.video_metadata) return undefined;
+        return this.video_metadata.duration;
     }
 
     /**
@@ -631,7 +636,7 @@ export class BaseVOD {
         generated.is_converting = this.is_converting;
         generated.is_finalized = this.is_finalized;
 
-        generated.duration = this.duration ?? undefined;
+        generated.duration = this.duration || 0;
         generated.video_metadata = this.video_metadata;
         generated.saved_at = new Date().toISOString();
 
@@ -2062,13 +2067,13 @@ export class BaseVOD {
                 return null;
             }
 
-            if (this.video_metadata.duration) {
+            if (this.video_metadata.duration && this.duration) {
                 log(
                     LOGLEVEL.DEBUG,
                     "vod.getDuration",
                     `No duration_seconds but metadata exists for ${this.basename}: ${this.video_metadata.duration}`
                 );
-                this.duration = this.video_metadata.duration;
+                // this.duration = this.video_metadata.duration;
                 return this.duration;
             }
 
@@ -2133,8 +2138,9 @@ export class BaseVOD {
             );
             return null;
         } else {
-            // this.duration 			= $file['playtime_string'];
-            this.duration = file.duration;
+            if (!this.duration) {
+                throw new Error("Could not find duration");
+            }
 
             if (save) {
                 log(
@@ -2213,7 +2219,7 @@ export class BaseVOD {
         }
 
         this.video_metadata = metadata;
-        this.duration = metadata.duration;
+        // this.duration = metadata.duration;
 
         this.broadcastUpdate();
 
@@ -2241,7 +2247,7 @@ export class BaseVOD {
         this.is_converting = this.json.is_converting;
         this.is_finalized = this.json.is_finalized;
 
-        this.duration = this.json.duration ?? undefined;
+        // this.duration = this.json.duration ?? undefined;
 
         this.comment = this.json.comment;
         this.prevent_deletion = this.json.prevent_deletion ?? false;

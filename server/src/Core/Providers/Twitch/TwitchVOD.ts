@@ -1958,6 +1958,12 @@ export class TwitchVOD extends BaseVOD {
             return false;
         }
 
+        if (!this.duration) {
+            throw new Error(
+                "TwitchVOD.splitSegmentVideoByChapters: duration is not set"
+            );
+        }
+
         if (!this.chapters || this.chapters.length == 0) {
             log(
                 LOGLEVEL.ERROR,
@@ -2860,8 +2866,7 @@ export class TwitchVOD extends BaseVOD {
 
     public getStartOffset(): number | false {
         if (!this.external_vod_duration) return false;
-        // const dur = await this.getDuration();
-        // if (!dur) return false;
+        if (!this.duration) return false;
         return this.external_vod_duration - this.duration;
     }
 

@@ -974,7 +974,7 @@ export async function RefreshVodMetadata(
         return;
     }
 
-    const oldDuration = vod.duration;
+    const oldDuration = vod.duration || 0;
 
     let md;
 
@@ -1005,7 +1005,7 @@ export async function RefreshVodMetadata(
             )}. Difference is ${formatDuration(diff)}.`,
             data: md,
         } as ApiResponse);
-        vod.saveJSON("refresh metadata");
+        await vod.saveJSON("refresh metadata");
         return;
     }
 
