@@ -25,7 +25,7 @@
                 <td>
                     {{ line.level || "UNKNOWN" }}
                 </td>
-                <td @click="expandLog(lineIndex)">
+                <td @click="expandLog(lineIndex)" class="log-line-message">
                     {{ line.message }}
                 </td>
             </tr>
@@ -203,6 +203,11 @@ defineExpose({
 
         .log-line-timestamp {
             white-space: nowrap;
+        }
+
+        .log-line-message {
+            white-space: pre-wrap;
+            word-break: break-all;
         }
 
         &.log-line-success {
