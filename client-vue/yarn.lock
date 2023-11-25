@@ -5833,6 +5833,7 @@ __metadata:
     eslint-scope: "npm:^7.2.1"
     git-describe: "npm:^4.1.1"
     jsdom: "npm:^22.1.0"
+    modern-normalize: "npm:^2.0.0"
     normalize.css: "npm:^8.0.1"
     npm-run-all: "npm:^4.1.5"
     pinia: "npm:^2.1.7"
@@ -6196,6 +6197,13 @@ __metadata:
     pkg-types: "npm:^1.0.3"
     ufo: "npm:^1.1.2"
   checksum: a4bb3bb9e58a8516a4ad4c29036b5500814f269bfa5663bb923561102cc6de6fcc7de71fad6ba7a8af76d46c713bfe97e24bba9436967ad11f7fbcfb92ea4ba3
+  languageName: node
+  linkType: hard
+
+"modern-normalize@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "modern-normalize@npm:2.0.0"
+  checksum: 866690696e1989c57416e7d9c589910bbd02221fb1b2bac0ea735e5a22e0525e9bec67269571c3eaa0de879938d5447c88dc0749675b349c61d6753038730330
   languageName: node
   linkType: hard
 

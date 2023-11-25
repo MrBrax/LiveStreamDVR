@@ -28,6 +28,7 @@
     "chart.js": "^4.3.0",
     "core-js": "^3.31.1",
     "date-fns": "^2.30.0",
+    "modern-normalize": "^2.0.0",
     "normalize.css": "^8.0.1",
     "pinia": "^2.1.7",
     "vue": "^3.3.7",

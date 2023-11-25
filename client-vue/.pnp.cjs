@@ -58,6 +58,7 @@ const RAW_RUNTIME_STATE =
           ["eslint-scope", "npm:7.2.1"],\
           ["git-describe", "npm:4.1.1"],\
           ["jsdom", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:22.1.0"],\
+          ["modern-normalize", "npm:2.0.0"],\
           ["normalize.css", "npm:8.0.1"],\
           ["npm-run-all", "npm:4.1.5"],\
           ["pinia", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:2.1.7"],\
@@ -7611,6 +7612,7 @@ const RAW_RUNTIME_STATE =
           ["eslint-scope", "npm:7.2.1"],\
           ["git-describe", "npm:4.1.1"],\
           ["jsdom", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:22.1.0"],\
+          ["modern-normalize", "npm:2.0.0"],\
           ["normalize.css", "npm:8.0.1"],\
           ["npm-run-all", "npm:4.1.5"],\
           ["pinia", "virtual:398da3f58cea92861dce3b7a81907534b88bfd0a22dc0fb4d8cbfedf9a34489edb45449f2b8b6817c699c5f78834283f80a5b9c24601e71e0e3303a73821555d#npm:2.1.7"],\
@@ -8002,6 +8004,15 @@ const RAW_RUNTIME_STATE =
           ["pathe", "npm:1.1.1"],\
           ["pkg-types", "npm:1.0.3"],\
           ["ufo", "npm:1.1.2"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["modern-normalize", [\
+      ["npm:2.0.0", {\
+        "packageLocation": "./.yarn/cache/modern-normalize-npm-2.0.0-51ed5415d4-866690696e.zip/node_modules/modern-normalize/",\
+        "packageDependencies": [\
+          ["modern-normalize", "npm:2.0.0"]\
         ],\
         "linkType": "HARD"\
       }]\
