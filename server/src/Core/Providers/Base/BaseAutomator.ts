@@ -273,6 +273,11 @@ export class BaseAutomator {
         return await Promise.resolve(false);
     }
 
+    /**
+     * Notifies the chapter change to the providers.
+     *
+     * @param channel - The Twitch channel.
+     */
     public notifyChapterChange(channel: TwitchChannel) {
         const vod = channel.latest_vod;
         if (!vod) return;
@@ -762,6 +767,12 @@ export class BaseAutomator {
         this.vod_absolute_episode = s.absolute_stream_number;
     }
 
+    /**
+     * Starts the capture of the stream.
+     * @param tries The number of download attempts made (optional, default is 0).
+     * @returns A Promise that resolves to a boolean indicating whether the download was successful.
+     * @throws An error if the channel is not found, no VOD ID is supplied, or if the download fails.
+     */
     public async download(tries = 0): Promise<boolean> {
         // const data_title = this.getTitle();
         const dataStarted = this.getStartDate();
@@ -1273,10 +1284,23 @@ export class BaseAutomator {
         return true;
     }
 
+    /**
+     * Returns an array of provider arguments.
+     * Override this method to add custom arguments.
+     *
+     * @returns {string[]} The provider arguments.
+     */
     public providerArgs(): string[] {
         return [];
     }
 
+    /**
+     * A function to do things with the incoming log data from streamlink.
+     * For example, check for errors or ad-breaks.
+     *
+     * @param source - The source of the data, either "stdout" or "stderr".
+     * @param data - The ticker data received from the streamlink.
+     */
     public captureTicker(source: "stdout" | "stderr", data: string) {
         if (data == null || data == undefined || typeof data !== "string") {
             log(

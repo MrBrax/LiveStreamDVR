@@ -284,12 +284,12 @@ export class TwitchAutomator extends BaseAutomator {
                 return false;
             }
 
-            const capture_vod = TwitchVOD.getVodByCaptureId(event.id);
-            if (capture_vod) {
+            const captureVodCheck = TwitchVOD.getVodByCaptureId(event.id);
+            if (captureVodCheck) {
                 log(
                     LOGLEVEL.INFO,
                     "automator.handle",
-                    `Channel ${this.broadcaster_user_login} online, but vod ${event.id} already exists (${capture_vod.basename}), skipping`
+                    `Channel ${this.broadcaster_user_login} online, but vod ${event.id} already exists (${captureVodCheck.basename}), skipping`
                 );
                 this.fallbackCapture()
                     .then(() => {
@@ -454,7 +454,7 @@ export class TwitchAutomator extends BaseAutomator {
                     );
                     return false;
                 }
-                event = this.payload_eventsub.event as ChannelUpdateEvent;
+                event = this.payload_eventsub.event;
                 chapterData = await this.getChapterData(event);
             } else {
                 log(
@@ -774,12 +774,12 @@ export class TwitchAutomator extends BaseAutomator {
             );
         }
 
-        const proxy_match = data.match(/Using playlist proxy: '(.*)'/);
-        if (proxy_match) {
+        const proxyMatch = data.match(/Using playlist proxy: '(.*)'/);
+        if (proxyMatch) {
             log(
                 LOGLEVEL.INFO,
                 "automator.captureVideo",
-                `Using playlist proxy: ${proxy_match[1]}`
+                `Using playlist proxy: ${proxyMatch[1]}`
             );
         }
     }
