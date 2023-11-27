@@ -1,7 +1,6 @@
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "@/Core/BaseConfig";
 import { Config } from "@/Core/Config";
 import { Helper } from "@/Core/Helper";
-import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
 import { LOGLEVEL, log } from "@/Core/Log";
 import type { FFProbe } from "@common/FFProbe";
 import type {
@@ -14,7 +13,7 @@ import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { progressOutput } from "./Console";
-import { exec, execSimple, startJob } from "./Execute";
+import { exec, execSimple, isExecError, startJob } from "./Execute";
 import { formatDuration } from "./Format";
 
 export interface RemuxReturn {
@@ -42,8 +41,7 @@ export async function remuxFile(
     const ffmpegPath = Helper.path_ffmpeg();
 
     if (!ffmpegPath) {
-        reject(new Error("Failed to find ffmpeg"));
-        return;
+        throw new Error("Failed to find ffmpeg");
     }
 
     const emptyFile = fs.existsSync(output) && fs.statSync(output).size == 0;
@@ -54,7 +52,7 @@ export async function remuxFile(
             "video.remux",
             `Output file ${output} already exists`
         );
-        reject(new Error(`Output file ${output} already exists`));
+        throw new Error(`Output file ${output} already exists`);
     }
 
     if (emptyFile) {
@@ -130,55 +128,112 @@ export async function remuxFile(
 
     // const job = startJob(`remux_${path.basename(input)}`, ffmpegPath, opts);
 
-    const job = await exec(
-        ffmpegPath,
-        opts,
-        {},
-        `remux_${path.basename(input)}`,
-        (stream: string, data: string) => {
-            const totalDurationMatch = data.match(
-                /Duration: (\d+):(\d+):(\d+)/
-            );
-            if (totalDurationMatch && !totalSeconds) {
-                totalSeconds =
-                    parseInt(totalDurationMatch[1]) * 3600 +
-                    parseInt(totalDurationMatch[2]) * 60 +
-                    parseInt(totalDurationMatch[3]);
-                console.log(
-                    `Remux total duration for ${path.basename(
-                        input
-                    )}: ${totalSeconds}`
+    let job;
+    try {
+        job = await exec(
+            ffmpegPath,
+            opts,
+            {},
+            `remux_${path.basename(input)}`,
+            (stream: string, data: string) => {
+                const totalDurationMatch = data.match(
+                    /Duration: (\d+):(\d+):(\d+)/
                 );
-            }
-            if (data.match(/moving the moov atom/)) {
-                console.log(
-                    `Create MOOV atom for ${path.basename(
-                        input
-                    )} (this usually takes a while)`
-                );
-            }
-        },
-        (data: string) => {
-            const currentTimeMatch = data.match(/time=(\d+):(\d+):(\d+)/);
-            if (currentTimeMatch && totalSeconds > 0) {
-                currentSeconds =
-                    parseInt(currentTimeMatch[1]) * 3600 +
-                    parseInt(currentTimeMatch[2]) * 60 +
-                    parseInt(currentTimeMatch[3]);
+                if (totalDurationMatch && !totalSeconds) {
+                    totalSeconds =
+                        parseInt(totalDurationMatch[1]) * 3600 +
+                        parseInt(totalDurationMatch[2]) * 60 +
+                        parseInt(totalDurationMatch[3]);
+                    console.log(
+                        `Remux total duration for ${path.basename(
+                            input
+                        )}: ${totalSeconds}`
+                    );
+                }
+                if (data.match(/moving the moov atom/)) {
+                    console.log(
+                        `Create MOOV atom for ${path.basename(
+                            input
+                        )} (this usually takes a while)`
+                    );
+                }
+            },
+            (data: string) => {
+                const currentTimeMatch = data.match(/time=(\d+):(\d+):(\d+)/);
+                if (currentTimeMatch && totalSeconds > 0) {
+                    currentSeconds =
+                        parseInt(currentTimeMatch[1]) * 3600 +
+                        parseInt(currentTimeMatch[2]) * 60 +
+                        parseInt(currentTimeMatch[3]);
 
-                // console.debug(`Remux current time: ${currentSeconds}/${totalSeconds}`);
-                progressOutput(
-                    `🎞 Remuxing ${path.basename(
-                        input
-                    )} - ${currentSeconds}/${totalSeconds} seconds (${Math.round(
-                        (currentSeconds / totalSeconds) * 100
-                    )}%)`
-                );
-                return currentSeconds / totalSeconds;
+                    // console.debug(`Remux current time: ${currentSeconds}/${totalSeconds}`);
+                    progressOutput(
+                        `🎞 Remuxing ${path.basename(
+                            input
+                        )} - ${currentSeconds}/${totalSeconds} seconds (${Math.round(
+                            (currentSeconds / totalSeconds) * 100
+                        )}%)`
+                    );
+                    return currentSeconds / totalSeconds;
+                }
             }
+        );
+    } catch (error) {
+        if (isExecError(error)) {
+            log(
+                LOGLEVEL.ERROR,
+                "video.remux",
+                `Failed to remux '${input}' to '${output}': ${error.message}`
+            );
+            throw error;
         }
+    }
+
+    // this should never happen, but type narrowing needs it
+    if (!job) {
+        throw new Error(
+            `Failed to start job for remuxing ${input} to ${output}`
+        );
+    }
+
+    const success = fs.existsSync(output) && fs.statSync(output).size > 0;
+
+    if (success) {
+        log(LOGLEVEL.SUCCESS, "video.remux", `Remuxed ${input} to ${output}`);
+        return {
+            code: 0,
+            success,
+            stdout: job.stdout,
+            stderr: job.stderr,
+        } as RemuxReturn;
+    }
+
+    log(
+        LOGLEVEL.ERROR,
+        "video.remux",
+        `Failed to remux '${input}' to '${output}'`
     );
 
+    let message = "Unknown error";
+    const errorSearch = job.stderr.join("").match(/\[error\] (.*)/g);
+    if (errorSearch && errorSearch.length > 0) {
+        message = errorSearch.slice(1).join(", ");
+    }
+
+    if (fs.existsSync(output) && fs.statSync(output).size == 0) {
+        log(
+            LOGLEVEL.ERROR,
+            "video.remux",
+            `Output file ${output} is empty, removing`
+        );
+        fs.unlinkSync(output);
+    }
+
+    // for (const err of errorSearch) {
+    //    message = err[1];
+    throw new Error(`Failed to remux '${input}' to '${output}': ${message}`);
+
+    /*
     job.process.on("error", (err) => {
         log(
             LOGLEVEL.ERROR,
@@ -235,6 +290,7 @@ export async function remuxFile(
             );
         }
     });
+    */
 }
 
 export function cutFile(
