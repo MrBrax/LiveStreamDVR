@@ -61,7 +61,7 @@ beforeAll(() => {
     jest.spyOn(Config.prototype, "startWatchingConfig").mockImplementation(
         () => {
             console.debug("Disable start watching config");
-            return;
+            return false;
         }
     );
     jest.spyOn(Config, "checkBuiltDependencies").mockImplementation(() => {
