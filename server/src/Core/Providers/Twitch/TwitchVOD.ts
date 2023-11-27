@@ -2868,6 +2868,15 @@ export class TwitchVOD extends BaseVOD {
         // no blocks in testing
         // if (process.env.NODE_ENV === "test") return false;
 
+        if (Config.getInstance().cfg("storage.no_watch_files", false)) {
+            log(
+                LOGLEVEL.DEBUG,
+                "vod.watch",
+                `Not watching files for ${this.basename} due to config setting`
+            );
+            return false;
+        }
+
         const files = this.associatedFiles.map((f) =>
             path.join(this.directory, f)
         );

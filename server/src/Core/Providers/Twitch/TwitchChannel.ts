@@ -3124,6 +3124,15 @@ export class TwitchChannel extends BaseChannel {
             return false; // don't watch if no channel folders are enabled
         }
 
+        if (Config.getInstance().cfg("storage.no_watch_files", false)) {
+            log(
+                LOGLEVEL.DEBUG,
+                "tw.channel.startWatching",
+                `Not watching files for ${this.internalName} due to setting being enabled`
+            );
+            return false;
+        }
+
         const folders = [Helper.vodFolder(this.internalName)];
 
         // if (this.login && fs.existsSync(path.join(BaseConfigDataFolder.saved_clips, "scheduler", this.login)))

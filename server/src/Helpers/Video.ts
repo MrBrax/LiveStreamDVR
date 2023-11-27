@@ -33,120 +33,109 @@ export interface RemuxReturn {
  * @param metadata_file
  * @returns
  */
-export function remuxFile(
+export async function remuxFile(
     input: string,
     output: string,
     overwrite = false,
     metadata_file?: string
 ): Promise<RemuxReturn> {
-    return new Promise((resolve, reject) => {
-        const ffmpegPath = Helper.path_ffmpeg();
+    const ffmpegPath = Helper.path_ffmpeg();
 
-        if (!ffmpegPath) {
-            reject(new Error("Failed to find ffmpeg"));
-            return;
-        }
+    if (!ffmpegPath) {
+        reject(new Error("Failed to find ffmpeg"));
+        return;
+    }
 
-        const emptyFile =
-            fs.existsSync(output) && fs.statSync(output).size == 0;
+    const emptyFile = fs.existsSync(output) && fs.statSync(output).size == 0;
 
-        if (!overwrite && fs.existsSync(output) && !emptyFile) {
+    if (!overwrite && fs.existsSync(output) && !emptyFile) {
+        log(
+            LOGLEVEL.ERROR,
+            "video.remux",
+            `Output file ${output} already exists`
+        );
+        reject(new Error(`Output file ${output} already exists`));
+    }
+
+    if (emptyFile) {
+        fs.unlinkSync(output);
+    }
+
+    // ffmpeg seems to make ts cfr into vfr, don't know why
+
+    const opts: string[] = [];
+    // "-r", parseInt(info.video.FrameRate).toString(),
+    // "-vsync", "cfr",
+    opts.push("-i", input);
+
+    // write metadata to file
+    if (metadata_file) {
+        if (fs.existsSync(metadata_file)) {
+            opts.push("-i", metadata_file);
+            opts.push("-map_metadata", "1");
+        } else {
             log(
                 LOGLEVEL.ERROR,
                 "video.remux",
-                `Output file ${output} already exists`
-            );
-            reject(new Error(`Output file ${output} already exists`));
-        }
-
-        if (emptyFile) {
-            fs.unlinkSync(output);
-        }
-
-        // ffmpeg seems to make ts cfr into vfr, don't know why
-
-        const opts: string[] = [];
-        // "-r", parseInt(info.video.FrameRate).toString(),
-        // "-vsync", "cfr",
-        opts.push("-i", input);
-
-        // write metadata to file
-        if (metadata_file) {
-            if (fs.existsSync(metadata_file)) {
-                opts.push("-i", metadata_file);
-                opts.push("-map_metadata", "1");
-            } else {
-                log(
-                    LOGLEVEL.ERROR,
-                    "video.remux",
-                    `Metadata file ${metadata_file} does not exist for remuxing ${input}`
-                );
-            }
-        }
-
-        // "-map", "0",
-        // "-analyzeduration",
-
-        opts.push("-c", "copy"); // copy all streams
-
-        if (!output.endsWith(Config.AudioContainer)) {
-            opts.push("-bsf:a", "aac_adtstoasc"); // audio bitstream filter?
-        }
-
-        if (output.endsWith(".mp4")) {
-            opts.push("-movflags", "faststart"); // make streaming possible, not sure if this is a good idea
-        }
-
-        // "-r", parseInt(info.video.FrameRate).toString(),
-        // "-vsync", "cfr",
-        // ...ffmpeg_options,
-        // output,
-
-        if (overwrite || emptyFile) {
-            opts.push("-y");
-        }
-
-        if (Config.getInstance().cfg("app_verbose")) {
-            opts.push("-loglevel", "repeat+level+verbose");
-        }
-
-        if (Config.getInstance().cfg("debug")) {
-            // opts.push("-report"); // can't set output file
-            opts.push(
-                "-progress",
-                path.join(
-                    BaseConfigDataFolder.logs_software,
-                    "ffmpeg_progress.log"
-                )
-            );
-            opts.push("-vstats");
-            opts.push(
-                "-vstats_file",
-                path.join(
-                    BaseConfigDataFolder.logs_software,
-                    "ffmpeg_vstats.log"
-                )
+                `Metadata file ${metadata_file} does not exist for remuxing ${input}`
             );
         }
+    }
 
-        opts.push(output);
+    // "-map", "0",
+    // "-analyzeduration",
 
-        log(LOGLEVEL.INFO, "video.remux", `Remuxing ${input} to ${output}`);
+    opts.push("-c", "copy"); // copy all streams
 
-        const job = startJob(`remux_${path.basename(input)}`, ffmpegPath, opts);
+    if (!output.endsWith(Config.AudioContainer)) {
+        opts.push("-bsf:a", "aac_adtstoasc"); // audio bitstream filter?
+    }
 
-        if (!job || !job.process) {
-            reject(
-                new Error(
-                    `Failed to start job for remuxing ${input} to ${output}`
-                )
-            );
-            return;
-        }
+    if (output.endsWith(".mp4")) {
+        opts.push("-movflags", "faststart"); // make streaming possible, not sure if this is a good idea
+    }
 
-        let currentSeconds = 0;
-        let totalSeconds = 0;
-        job.on("log", (stream: string, data: string) => {
+    // "-r", parseInt(info.video.FrameRate).toString(),
+    // "-vsync", "cfr",
+    // ...ffmpeg_options,
+    // output,
+
+    if (overwrite || emptyFile) {
+        opts.push("-y");
+    }
+
+    if (Config.getInstance().cfg("app_verbose")) {
+        opts.push("-loglevel", "repeat+level+verbose");
+    }
+
+    if (Config.getInstance().cfg("debug")) {
+        // opts.push("-report"); // can't set output file
+        opts.push(
+            "-progress",
+            path.join(BaseConfigDataFolder.logs_software, "ffmpeg_progress.log")
+        );
+        opts.push("-vstats");
+        opts.push(
+            "-vstats_file",
+            path.join(BaseConfigDataFolder.logs_software, "ffmpeg_vstats.log")
+        );
+    }
+
+    opts.push(output);
+
+    log(LOGLEVEL.INFO, "video.remux", `Remuxing ${input} to ${output}`);
+
+    let currentSeconds = 0;
+    let totalSeconds = 0;
+
+    // const job = startJob(`remux_${path.basename(input)}`, ffmpegPath, opts);
+
+    const job = await exec(
+        ffmpegPath,
+        opts,
+        {},
+        `remux_${path.basename(input)}`,
+        (stream: string, data: string) => {
             const totalDurationMatch = data.match(
                 /Duration: (\d+):(\d+):(\d+)/
             );
@@ -161,13 +150,22 @@ export function remuxFile(
                     )}: ${totalSeconds}`
                 );
             }
+            if (data.match(/moving the moov atom/)) {
+                console.log(
+                    `Create MOOV atom for ${path.basename(
+                        input
+                    )} (this usually takes a while)`
+                );
+            }
+        },
+        (data: string) => {
             const currentTimeMatch = data.match(/time=(\d+):(\d+):(\d+)/);
             if (currentTimeMatch && totalSeconds > 0) {
                 currentSeconds =
                     parseInt(currentTimeMatch[1]) * 3600 +
                     parseInt(currentTimeMatch[2]) * 60 +
                     parseInt(currentTimeMatch[3]);
-                job.setProgress(currentSeconds / totalSeconds);
+
                 // console.debug(`Remux current time: ${currentSeconds}/${totalSeconds}`);
                 progressOutput(
                     `🎞 Remuxing ${path.basename(
@@ -176,75 +174,66 @@ export function remuxFile(
                         (currentSeconds / totalSeconds) * 100
                     )}%)`
                 );
+                return currentSeconds / totalSeconds;
             }
-            if (data.match(/moving the moov atom/)) {
-                console.log(
-                    `Create MOOV atom for ${path.basename(
-                        input
-                    )} (this usually takes a while)`
-                );
-            }
-        });
+        }
+    );
 
-        job.process.on("error", (err) => {
+    job.process.on("error", (err) => {
+        log(
+            LOGLEVEL.ERROR,
+            "video.remux",
+            `Process ${process.pid} error: ${err.message}`
+        );
+        // reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
+        reject(new Error(`Process ${process.pid} error: ${err.message}`));
+    });
+
+    job.process.on("close", (code) => {
+        if (job) {
+            job.clear();
+        }
+        void LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
+        // const out_log = ffmpeg.stdout.read();
+        const success = fs.existsSync(output) && fs.statSync(output).size > 0;
+        if (success) {
+            log(
+                LOGLEVEL.SUCCESS,
+                "video.remux",
+                `Remuxed ${input} to ${output}`
+            );
+            resolve({
+                code: code || -1,
+                success,
+                stdout: job.stdout,
+                stderr: job.stderr,
+            });
+        } else {
             log(
                 LOGLEVEL.ERROR,
                 "video.remux",
-                `Process ${process.pid} error: ${err.message}`
+                `Failed to remux '${input}' to '${output}'`
             );
-            // reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
-            reject(new Error(`Process ${process.pid} error: ${err.message}`));
-        });
+            // reject({ code, success, stdout: job.stdout, stderr: job.stderr });
 
-        job.process.on("close", (code) => {
-            if (job) {
-                job.clear();
+            let message = "Unknown error";
+            const errorSearch = job.stderr.join("").match(/\[error\] (.*)/g);
+            if (errorSearch && errorSearch.length > 0) {
+                message = errorSearch.slice(1).join(", ");
             }
-            void LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
-            // const out_log = ffmpeg.stdout.read();
-            const success =
-                fs.existsSync(output) && fs.statSync(output).size > 0;
-            if (success) {
-                log(
-                    LOGLEVEL.SUCCESS,
-                    "video.remux",
-                    `Remuxed ${input} to ${output}`
-                );
-                resolve({
-                    code: code || -1,
-                    success,
-                    stdout: job.stdout,
-                    stderr: job.stderr,
-                });
-            } else {
-                log(
-                    LOGLEVEL.ERROR,
-                    "video.remux",
-                    `Failed to remux '${input}' to '${output}'`
-                );
-                // reject({ code, success, stdout: job.stdout, stderr: job.stderr });
 
-                let message = "Unknown error";
-                const errorSearch = job.stderr
-                    .join("")
-                    .match(/\[error\] (.*)/g);
-                if (errorSearch && errorSearch.length > 0) {
-                    message = errorSearch.slice(1).join(", ");
-                }
-
-                if (fs.existsSync(output) && fs.statSync(output).size == 0) {
-                    fs.unlinkSync(output);
-                }
-
-                // for (const err of errorSearch) {
-                //    message = err[1];
-                reject(
-                    new Error(
-                        `Failed to remux '${input}' to '${output}': ${message}`
-                    )
-                );
+            if (fs.existsSync(output) && fs.statSync(output).size == 0) {
+                fs.unlinkSync(output);
             }
-        });
+
+            // for (const err of errorSearch) {
+            //    message = err[1];
+            reject(
+                new Error(
+                    `Failed to remux '${input}' to '${output}': ${message}`
+                )
+            );
+        }
     });
 }
 

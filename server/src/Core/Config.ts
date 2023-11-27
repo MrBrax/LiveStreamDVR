@@ -2,6 +2,8 @@ import { debugLog } from "@/Helpers/Console";
 import { execSimple, GetRunningProcesses } from "@/Helpers/Execute";
 import { is_docker } from "@/Helpers/System";
 import { isNumber } from "@/Helpers/Types";
+import { TwitchHelper } from "@/Providers/Twitch";
+import { YouTubeHelper } from "@/Providers/YouTube";
 import type { SettingField } from "@common/Config";
 import { settingsFields } from "@common/ServerConfig";
 import type { AxiosResponse } from "axios";
@@ -13,8 +15,6 @@ import minimist from "minimist";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { TwitchHelper } from "@/Providers/Twitch";
-import { YouTubeHelper } from "@/Providers/YouTube";
 import {
     AppRoot,
     BaseConfigCacheFolder,
@@ -572,6 +572,15 @@ export class Config {
         // no blocks in testing
         // if (process.env.NODE_ENV === "test") return;
 
+        if (Config.getInstance().cfg("storage.no_watch_files", false)) {
+            log(
+                LOGLEVEL.DEBUG,
+                "config.startWatchingConfig",
+                `Not watching config file due to 'storage.no_watch_files' setting`
+            );
+            return false;
+        }
+
         // monitor config for external changes
         this.watcher = fs.watch(
             BaseConfigPath.config,
@@ -634,7 +643,7 @@ export class Config {
             console.log(
                 chalk.green(
                     "Client is built: " +
-                    path.join(BaseConfigFolder.client, "index.html")
+                        path.join(BaseConfigFolder.client, "index.html")
                 )
             );
         }
@@ -680,12 +689,12 @@ export class Config {
             console.log(
                 chalk.green(
                     "Chat dumper is built: " +
-                    path.join(
-                        AppRoot,
-                        "twitch-chat-dumper",
-                        "build",
-                        "index.js"
-                    )
+                        path.join(
+                            AppRoot,
+                            "twitch-chat-dumper",
+                            "build",
+                            "index.js"
+                        )
                 )
             );
         }
