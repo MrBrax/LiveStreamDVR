@@ -34,10 +34,13 @@ export class TwitchGame {
             "game.populateGameDatabase",
             "Populating game database..."
         );
+
         this.game_db = {};
-        const rawGames: Record<string, TwitchGameJSON> = JSON.parse(
+
+        const rawGames = JSON.parse(
             fs.readFileSync(BaseConfigPath.gameDb, "utf8")
-        );
+        ) as Record<string, TwitchGameJSON>;
+
         for (const id in rawGames) {
             const rawGame = rawGames[id];
             const game = new this();
@@ -71,9 +74,11 @@ export class TwitchGame {
             "game.populateFavouriteGames",
             "Populating favourite games..."
         );
+
         this.favourite_games = JSON.parse(
             fs.readFileSync(BaseConfigPath.favouriteGames, "utf8")
-        );
+        ) as string[];
+
         log(
             LOGLEVEL.INFO,
             "game.populateFavouriteGames",

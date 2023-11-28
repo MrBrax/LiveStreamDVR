@@ -21,7 +21,74 @@ export interface TwitchAutomatorJobJSON {
     args?: string[];
 }
 
-export class Job extends EventEmitter {
+interface JobEvents {
+    on(event: "update", listener: (job: ApiJob) => void): this;
+
+    on(event: "save", listener: () => void): this;
+
+    on(event: "clear", listener: (code: number | null) => void): this;
+
+    on(event: "close", listener: (code: number | null) => void): this;
+
+    on(event: "pre_clear", listener: () => void): this;
+
+    on(
+        event: "pid_set",
+        listener: (old_pid: number | undefined, new_pid: number) => void
+    ): this;
+
+    on(
+        event: "process_set",
+        listener: (
+            old_process: ChildProcessWithoutNullStreams | undefined,
+            new_process: ChildProcessWithoutNullStreams
+        ) => void
+    ): this;
+
+    on(
+        event: "metadata_set",
+        listener: (
+            old_metadata: Record<string, unknown> | undefined,
+            new_metadata: Record<string, unknown>
+        ) => void
+    ): this;
+
+    on(
+        event: "metadata_add",
+        listener: (
+            old_metadata: Record<string, unknown> | undefined,
+            new_metadata: Record<string, unknown>
+        ) => void
+    ): this;
+
+    on(event: "pre_kill", listener: (method: NodeJS.Signals) => void): this;
+
+    on(event: "process_start", listener: () => void): this;
+
+    on(
+        event: "process_exit",
+        listener: (code: number | null, signal: NodeJS.Signals) => void
+    ): this;
+
+    on(event: "process_error", listener: (err: Error) => void): this;
+
+    /** @deprecated */
+    on(
+        event: "process_close",
+        listener: (code: number | null, signal: NodeJS.Signals) => void
+    ): this;
+
+    on(event: "stdout", listener: (data: string) => void): this;
+
+    on(event: "stderr", listener: (data: string) => void): this;
+
+    on(
+        event: "log",
+        listener: (type: "stdout" | "stderr", data: string) => void
+    ): this;
+}
+
+export class Job extends EventEmitter implements JobEvents {
     static jobs: Job[] = [];
     static pidstatus: Record<number, boolean> = {};
 
@@ -64,14 +131,13 @@ export class Job extends EventEmitter {
 
     public dummy = false;
 
-    logfile = "";
+    public logfile = "";
 
     private _updateTimer: NodeJS.Timeout | undefined;
     private _progressTimer: NodeJS.Timeout | undefined;
 
-    private realpath(str: string): string {
-        return path.normalize(str);
-    }
+    private progressAccumulator = 0; // FIXME: i hate this implementation
+    private progressUpdatesCleared = 0;
 
     public static loadJobsFromCache() {
         const jobs = fs
@@ -199,7 +265,7 @@ export class Job extends EventEmitter {
             return false;
         }
 
-        const data: TwitchAutomatorJobJSON = JSON.parse(raw);
+        const data = JSON.parse(raw) as TwitchAutomatorJobJSON;
 
         job.pid = data.pid;
         job.dt_started_at = data.dt_started_at
@@ -903,9 +969,6 @@ export class Job extends EventEmitter {
         }
     }
 
-    private progressAccumulator = 0; // FIXME: i hate this implementation
-    private progressUpdatesCleared = 0;
-
     public setProgress(progress: number): void {
         if (progress > this.progress) {
             // console.debug(`Job ${this.name} progress: ${progress}`);
@@ -1094,71 +1157,8 @@ export class Job extends EventEmitter {
             });
         });
     }
-}
 
-export declare interface Job {
-    on(event: "update", listener: (job: ApiJob) => void): this;
-
-    on(event: "save", listener: () => void): this;
-
-    on(event: "clear", listener: (code: number | null) => void): this;
-
-    on(event: "close", listener: (code: number | null) => void): this;
-
-    on(event: "pre_clear", listener: () => void): this;
-
-    on(
-        event: "pid_set",
-        listener: (old_pid: number | undefined, new_pid: number) => void
-    ): this;
-
-    on(
-        event: "process_set",
-        listener: (
-            old_process: ChildProcessWithoutNullStreams | undefined,
-            new_process: ChildProcessWithoutNullStreams
-        ) => void
-    ): this;
-
-    on(
-        event: "metadata_set",
-        listener: (
-            old_metadata: Record<string, unknown> | undefined,
-            new_metadata: Record<string, unknown>
-        ) => void
-    ): this;
-
-    on(
-        event: "metadata_add",
-        listener: (
-            old_metadata: Record<string, unknown> | undefined,
-            new_metadata: Record<string, unknown>
-        ) => void
-    ): this;
-
-    on(event: "pre_kill", listener: (method: NodeJS.Signals) => void): this;
-
-    on(event: "process_start", listener: () => void): this;
-
-    on(
-        event: "process_exit",
-        listener: (code: number | null, signal: NodeJS.Signals) => void
-    ): this;
-
-    on(event: "process_error", listener: (err: Error) => void): this;
-
-    /** @deprecated */
-    on(
-        event: "process_close",
-        listener: (code: number | null, signal: NodeJS.Signals) => void
-    ): this;
-
-    on(event: "stdout", listener: (data: string) => void): this;
-
-    on(event: "stderr", listener: (data: string) => void): this;
-
-    on(
-        event: "log",
-        listener: (type: "stdout" | "stderr", data: string) => void
-    ): this;
+    private realpath(str: string): string {
+        return path.normalize(str);
+    }
 }

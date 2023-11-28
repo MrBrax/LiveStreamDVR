@@ -1,5 +1,6 @@
 import { debugLog } from "@/Helpers/Console";
 import { Sleep } from "@/Helpers/Sleep";
+import { TwitchHelper } from "@/Providers/Twitch";
 import { formatString } from "@common/Format";
 import type { ClipBasenameTemplate } from "@common/Replacements";
 import cron from "cron";
@@ -8,11 +9,10 @@ import fs from "node:fs";
 import path from "node:path";
 import sanitize from "sanitize-filename";
 import * as CronController from "../Controllers/Cron";
-import { TwitchHelper } from "@/Providers/Twitch";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "./BaseConfig";
 import { Config } from "./Config";
 import { LiveStreamDVR } from "./LiveStreamDVR";
-import { log, LOGLEVEL } from "./Log";
+import { LOGLEVEL, log } from "./Log";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "./Providers/Twitch/TwitchVOD";
 
@@ -65,7 +65,7 @@ export class Scheduler {
                 );
                 return;
             }
-            CronController.fCheckMutedVods();
+            void CronController.fCheckMutedVods();
         });
 
         this.schedule("check_deleted_vods", "10 */12 * * *", () => {
@@ -77,7 +77,7 @@ export class Scheduler {
                 );
                 return;
             }
-            CronController.fCheckDeletedVods();
+            void CronController.fCheckDeletedVods();
         });
 
         this.schedule("match_vods", "30 */12 * * *", () => {
@@ -89,7 +89,7 @@ export class Scheduler {
                 );
                 return;
             }
-            CronController.fMatchVods();
+            void CronController.fMatchVods();
         });
 
         // once a day
@@ -108,7 +108,7 @@ export class Scheduler {
             ) {
                 return;
             }
-            TwitchHelper.validateOAuth();
+            void TwitchHelper.validateOAuth();
         });
 
         // refresh oauth token every 29 days
@@ -131,7 +131,7 @@ export class Scheduler {
                 );
                 return;
             }
-            Scheduler.scheduleAllChannelVodExport();
+            void Scheduler.scheduleAllChannelVodExport();
         });
 
         log(
@@ -246,12 +246,12 @@ export class Scheduler {
             .split(",")
             .map((s) => s.trim());
 
-        const clips_database = path.join(
+        const clipsDatabase = path.join(
             BaseConfigCacheFolder.cache,
             "downloaded_clips.json"
         );
-        const downloaded_clips: string[] = fs.existsSync(clips_database)
-            ? JSON.parse(fs.readFileSync(clips_database, "utf-8"))
+        const downloadedClips: string[] = fs.existsSync(clipsDatabase)
+            ? (JSON.parse(fs.readFileSync(clipsDatabase, "utf-8")) as string[])
             : [];
 
         for (const login of logins) {
@@ -267,7 +267,7 @@ export class Scheduler {
                     if (!clips[i]) continue;
                     const clip = clips[i];
 
-                    if (downloaded_clips.includes(clip.id)) {
+                    if (downloadedClips.includes(clip.id)) {
                         log(
                             LOGLEVEL.INFO,
                             "Scheduler.scheduleClipDownload",
@@ -286,13 +286,13 @@ export class Scheduler {
                         fs.mkdirSync(basefolder, { recursive: true });
                     }
 
-                    const clip_date = parseJSON(clip.created_at);
+                    const clipDate = parseJSON(clip.created_at);
 
                     const variables: ClipBasenameTemplate = {
                         id: clip.id,
                         quality: "best", // TODO: get quality somehow
                         clip_date: format(
-                            clip_date,
+                            clipDate,
                             Config.getInstance().dateFormat
                         ),
                         title: clip.title,
@@ -318,7 +318,7 @@ export class Scheduler {
                             "scheduler.scheduleClipDownload",
                             `Clip ${clip.id} already exists`
                         );
-                        downloaded_clips.push(clip.id); // already passed the first check
+                        downloadedClips.push(clip.id); // already passed the first check
                         skipped++;
                         continue;
                     }
@@ -367,7 +367,7 @@ export class Scheduler {
                         `Downloaded clip ${clip.id}`
                     );
 
-                    downloaded_clips.push(clip.id);
+                    downloadedClips.push(clip.id);
 
                     await Sleep(5000); // hehe
                 }
@@ -377,8 +377,8 @@ export class Scheduler {
         }
 
         fs.writeFileSync(
-            clips_database,
-            JSON.stringify(downloaded_clips, null, 4)
+            clipsDatabase,
+            JSON.stringify(downloadedClips, null, 4)
         );
 
         log(

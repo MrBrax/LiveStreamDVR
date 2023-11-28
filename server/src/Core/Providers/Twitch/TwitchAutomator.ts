@@ -57,11 +57,11 @@ export class TwitchAutomator extends BaseAutomator {
 
         const messageId = metadata.message_id;
         const messageRetry = metadata.message_retry;
-        const messageType = metadata.message_type;
-        const messageSignature = metadata.message_signature;
-        const messageTimestamp = metadata.message_timestamp;
-        const subscriptionType = metadata.subscription_type;
-        const subscriptionVersion = metadata.subscription_version;
+        // const messageType = metadata.message_type;
+        // const messageSignature = metadata.message_signature;
+        // const messageTimestamp = metadata.message_timestamp;
+        // const subscriptionType = metadata.subscription_type;
+        // const subscriptionVersion = metadata.subscription_version;
 
         if (messageRetry !== undefined && messageRetry > 0) {
             log(
@@ -120,8 +120,8 @@ export class TwitchAutomator extends BaseAutomator {
         // this.payload_headers = request.headers;
 
         const subscription = data.subscription;
-        const subscription_type = subscription.type;
-        const subscription_id = subscription.id;
+        const subscriptionType = subscription.type;
+        const subscriptionId = subscription.id;
 
         // this.data_cache = data;
 
@@ -134,18 +134,18 @@ export class TwitchAutomator extends BaseAutomator {
             this.broadcaster_user_login
         );
 
-        if (subscription_type === "channel.update") {
+        if (subscriptionType === "channel.update") {
             // check if channel is in config, copypaste
             if (!TwitchChannel.getChannelByLogin(this.broadcaster_user_login)) {
                 log(
                     LOGLEVEL.ERROR,
                     "automator.handle",
-                    `Handle (update) triggered with sub id ${subscription_id}, but username '${this.broadcaster_user_login}' is not in config.`
+                    `Handle (update) triggered with sub id ${subscriptionId}, but username '${this.broadcaster_user_login}' is not in config.`
                 );
 
                 // 5head solution
                 // TwitchHelper.channelUnsubscribe($this->broadcaster_user_id);
-                TwitchHelper.eventSubUnsubscribe(subscription_id);
+                void TwitchHelper.eventSubUnsubscribe(subscriptionId);
                 return false;
             }
 
@@ -162,7 +162,7 @@ export class TwitchAutomator extends BaseAutomator {
             );
 
             return await this.updateGame();
-        } else if (subscription_type == "stream.online") {
+        } else if (subscriptionType == "stream.online") {
             if (!("id" in event)) {
                 log(
                     LOGLEVEL.ERROR,
@@ -195,12 +195,12 @@ export class TwitchAutomator extends BaseAutomator {
                 log(
                     LOGLEVEL.ERROR,
                     "automator.handle",
-                    `Handle (online) triggered with sub id ${subscription_id}, but username '${this.broadcaster_user_login}' is not in config.`
+                    `Handle (online) triggered with sub id ${subscriptionId}, but username '${this.broadcaster_user_login}' is not in config.`
                 );
 
                 // 5head solution
                 // TwitchHelper.channelUnsubscribe($this->broadcaster_user_id);
-                TwitchHelper.eventSubUnsubscribe(subscription_id);
+                void TwitchHelper.eventSubUnsubscribe(subscriptionId);
                 return false;
             }
 
@@ -353,7 +353,7 @@ export class TwitchAutomator extends BaseAutomator {
             }
 
             return true;
-        } else if (subscription_type == "stream.offline") {
+        } else if (subscriptionType == "stream.offline") {
             KeyValue.getInstance().setBool(
                 `${this.broadcaster_user_login}.offline`,
                 true
@@ -364,7 +364,7 @@ export class TwitchAutomator extends BaseAutomator {
             log(
                 LOGLEVEL.ERROR,
                 "automator.handle",
-                `No supported subscription type (${subscription_type}).`
+                `No supported subscription type (${subscriptionType}).`
             );
             return false;
         }

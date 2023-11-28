@@ -9,6 +9,7 @@ import type { ExporterOptions } from "@common/Exporter";
 import type { LocalClip } from "@common/LocalClip";
 import type { LocalVideo } from "@common/LocalVideo";
 import type { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
+import type { Clip } from "@common/TwitchAPI/Clips";
 import type { ChannelUpdated } from "@common/Webhook";
 import type chokidar from "chokidar";
 import { format } from "date-fns";
@@ -633,7 +634,7 @@ export class BaseChannel {
                             clipPath.replace(".mp4", ".info.json"),
                             "utf8"
                         )
-                    );
+                    ) as Clip;
                 } catch (error) {
                     log(
                         LOGLEVEL.ERROR,
