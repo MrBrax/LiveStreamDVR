@@ -3,7 +3,25 @@ import { execSimple, startJob } from "@/Helpers/Execute";
 import fs from "node:fs";
 import path from "node:path";
 import sanitize from "sanitize-filename";
+import { z } from "zod";
 import { BaseExporter } from "./Base";
+
+// export const rCloneExporterConfigSchema = z.object({
+//     type: z.literal("RClone"),
+//     directory: z.string(),
+//     remote: z.string(),
+// });
+
+const rCloneLsJsonSchema = z.array(
+    z.object({
+        Path: z.string(),
+        Name: z.string(),
+        Size: z.number(),
+        MimeType: z.string(),
+        ModTime: z.string(),
+        IsDir: z.string(),
+    })
+);
 
 export class RCloneExporter extends BaseExporter {
     public type = "RClone";
@@ -16,15 +34,36 @@ export class RCloneExporter extends BaseExporter {
 
     public supportsDirectories = true;
 
-    setDirectory(directory: string): void {
+    public static async getRemotes(): Promise<string[]> {
+        let result;
+        try {
+            result = await execSimple(
+                "rclone",
+                ["listremotes"],
+                "rclone list remotes"
+            );
+        } catch (error) {
+            throw new Error("Failed to list remotes");
+        }
+
+        const output = result.stdout.join("").trim();
+
+        return output
+            .split("\n")
+            .map((l) => l.trim())
+            .filter((l) => l.length > 0)
+            .map((l) => l.replace(/:$/, ""));
+    }
+
+    public setDirectory(directory: string): void {
         this.directory = directory;
     }
 
-    setRemote(remote: string): void {
+    public setRemote(remote: string): void {
         this.remote = remote;
     }
 
-    export(): Promise<boolean | string> {
+    public export(): Promise<boolean | string> {
         return new Promise<boolean | string>((resolve, reject) => {
             if (!this.filename) throw new Error("No filename");
             if (!this.extension) throw new Error("No extension");
@@ -42,15 +81,15 @@ export class RCloneExporter extends BaseExporter {
                 );
             }
 
-            const final_filename =
+            const finalFilename =
                 sanitize(this.getFormattedTitle()) + "." + this.extension;
 
-            const filesystem_path = path.join(this.directory, final_filename);
-            const linux_path = filesystem_path.replace(/\\/g, "/");
+            const filesystemPath = path.join(this.directory, finalFilename);
+            const linuxPath = filesystemPath.replace(/\\/g, "/");
             // const escaped_remote_path = linux_path.includes(" ") ? `'${linux_path}'` : linux_path;
-            const remote_path = `${this.remote}:${linux_path}`;
+            const remotePath = `${this.remote}:${linuxPath}`;
 
-            this.remote_file = linux_path;
+            this.remote_file = linuxPath;
 
             // const local_name = this.filename.replace(/\\/g, "/").replace(/^C:/, "");
             // const local_path = local_name; // local_name.includes(" ") ? `'${local_name}'` : local_name;
@@ -64,7 +103,7 @@ export class RCloneExporter extends BaseExporter {
                 "--verbose",
                 "copyto",
                 this.filename,
-                remote_path,
+                remotePath,
             ];
 
             const job = startJob(
@@ -117,14 +156,14 @@ export class RCloneExporter extends BaseExporter {
                         reject(new Error(`Failed to clear, code ${code}`));
                     }
                 } else {
-                    resolve(linux_path);
+                    resolve(linuxPath);
                 }
             });
         });
     }
 
     // verify that the file exists over ssh
-    async verify(): Promise<boolean> {
+    public async verify(): Promise<boolean> {
         const dirname = path.dirname(this.remote_file).includes(" ")
             ? `'${path.dirname(this.remote_file)}'`
             : path.dirname(this.remote_file);
@@ -139,14 +178,9 @@ export class RCloneExporter extends BaseExporter {
 
         const job = await execSimple(bin, args, "rclone file check");
 
-        const output: {
-            Path: string;
-            Name: string;
-            Size: number;
-            MimeType: string;
-            ModTime: string;
-            IsDir: string;
-        }[] = JSON.parse(job.stdout.join("").trim());
+        const output = rCloneLsJsonSchema.parse(
+            JSON.parse(job.stdout.join("").trim())
+        );
 
         if (
             output &&
@@ -158,26 +192,5 @@ export class RCloneExporter extends BaseExporter {
         }
 
         throw new Error("Failed to verify file, probably doesn't exist");
-    }
-
-    static async getRemotes(): Promise<string[]> {
-        let result;
-        try {
-            result = await execSimple(
-                "rclone",
-                ["listremotes"],
-                "rclone list remotes"
-            );
-        } catch (error) {
-            throw new Error("Failed to list remotes");
-        }
-
-        const output = result.stdout.join("").trim();
-
-        return output
-            .split("\n")
-            .map((l) => l.trim())
-            .filter((l) => l.length > 0)
-            .map((l) => l.replace(/:$/, ""));
     }
 }

@@ -20,12 +20,19 @@ export class BaseExporter {
     public supportsDirectories = false;
     public directoryMode = false;
 
-    setDirectoryMode(state: boolean) {
+    public setDirectoryMode(state: boolean) {
         if (!this.supportsDirectories) return;
         this.directoryMode = state;
     }
 
-    loadVOD(vod: VODTypes, segment = 0): boolean {
+    /**
+     * Loads a VOD and sets the filename, extension, and vod properties.
+     * @param vod - The VOD object to load.
+     * @param segment - The index of the segment to load (default is 0).
+     * @returns True if the VOD is successfully loaded, false otherwise.
+     * @throws Error if the VOD has no filename, no segments, the segment file does not exist, or no segment filename.
+     */
+    public loadVOD(vod: VODTypes, segment = 0): boolean {
         if (!vod.filename) throw new Error("No filename");
         if (!vod.segments || vod.segments.length == 0)
             throw new Error("No segments");
@@ -42,7 +49,13 @@ export class BaseExporter {
         }
     }
 
-    loadFile(filename: string): boolean {
+    /**
+     * Loads a file with the specified filename.
+     * @param filename - The name of the file to load.
+     * @returns True if the file was successfully loaded, false otherwise.
+     * @throws Error if no filename is provided or if the file does not exist.
+     */
+    public loadFile(filename: string): boolean {
         if (!filename) throw new Error("No filename");
         if (!fs.existsSync(filename)) throw new Error("File does not exist");
         this.filename = filename;
@@ -50,15 +63,20 @@ export class BaseExporter {
         return true;
     }
 
-    setTemplate(template_filename: string): void {
+    /**
+     * Sets the template filename for the exporter.
+     * @param template_filename - The filename of the template.
+     * @returns void
+     */
+    public setTemplate(template_filename: string): void {
         this.template_filename = template_filename;
     }
 
-    setOutputFilename(filename: string): void {
+    public setOutputFilename(filename: string): void {
         this.output_filename = filename;
     }
 
-    setSource(source: "segment" | "downloaded" | "burned"): void {
+    public setSource(source: "segment" | "downloaded" | "burned"): void {
         if (!this.vod) throw new Error("No vod loaded for setSource");
         if (source == "segment") {
             if (
@@ -80,7 +98,7 @@ export class BaseExporter {
         }
     }
 
-    getFormattedTitle() {
+    public getFormattedTitle() {
         if (this.output_filename !== "") {
             return this.output_filename; // override
         }
@@ -141,11 +159,19 @@ export class BaseExporter {
         return formatString(this.template_filename, replacements);
     }
 
-    async export(): Promise<boolean | string> {
+    /**
+     * Exports the VOD.
+     * @returns A promise that resolves to a boolean or a string.
+     */
+    public async export(): Promise<boolean | string> {
         return await Promise.reject(new Error("Export not implemented"));
     }
 
-    async verify(): Promise<boolean> {
+    /**
+     * Verifies the status of the exported file. This is called after the export is complete.
+     * @returns A promise that resolves to a boolean.
+     */
+    public async verify(): Promise<boolean> {
         return await Promise.reject(new Error("Verification not implemented"));
     }
 }

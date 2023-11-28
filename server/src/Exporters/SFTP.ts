@@ -3,6 +3,10 @@ import path from "node:path";
 import sanitize from "sanitize-filename";
 import { BaseExporter } from "./Base";
 
+/**
+ * Basic SFTP exporter to transfer the VOD to a remote SFTP server.
+ * Uses scp to transfer the file.
+ */
 export class SFTPExporter extends BaseExporter {
     public type = "SFTP";
 
@@ -14,19 +18,19 @@ export class SFTPExporter extends BaseExporter {
 
     public supportsDirectories = true;
 
-    setDirectory(directory: string): void {
+    public setDirectory(directory: string): void {
         this.directory = directory;
     }
 
-    setHost(host: string): void {
+    public setHost(host: string): void {
         this.host = host;
     }
 
-    setUsername(username: string): void {
+    public setUsername(username: string): void {
         this.username = username;
     }
 
-    export(): Promise<boolean | string> {
+    public export(): Promise<boolean | string> {
         return new Promise<boolean | string>((resolve, reject) => {
             if (!this.filename) throw new Error("No filename");
             if (!this.extension) throw new Error("No extension");
@@ -34,24 +38,24 @@ export class SFTPExporter extends BaseExporter {
             if (!this.directory) throw new Error("No directory");
             if (!this.getFormattedTitle()) throw new Error("No title");
 
-            const final_filename =
+            const finalFilename =
                 sanitize(this.getFormattedTitle()) + "." + this.extension;
 
-            const filesystem_path = path.join(this.directory, final_filename);
-            const linux_path = filesystem_path.replace(/\\/g, "/");
-            let remote_path = `${this.host}:'${linux_path}'`;
+            const filesystemPath = path.join(this.directory, finalFilename);
+            const linuxPath = filesystemPath.replace(/\\/g, "/");
+            let remotePath = `${this.host}:'${linuxPath}'`;
             if (this.username) {
-                remote_path = `${this.username}@${remote_path}`;
+                remotePath = `${this.username}@${remotePath}`;
             }
 
-            this.remote_file = linux_path;
+            this.remote_file = linuxPath;
 
-            const local_name = this.filename
+            const localName = this.filename
                 .replace(/\\/g, "/")
                 .replace(/^C:/, "");
-            const local_path = local_name.includes(" ")
-                ? `'${local_name}'`
-                : local_name;
+            const localPath = localName.includes(" ")
+                ? `'${localName}'`
+                : localName;
 
             const bin = "scp";
 
@@ -60,8 +64,8 @@ export class SFTPExporter extends BaseExporter {
                 "-v",
                 "-B",
                 // "-r",
-                local_path,
-                remote_path,
+                localPath,
+                remotePath,
             ];
 
             const job = startJob(
@@ -82,14 +86,14 @@ export class SFTPExporter extends BaseExporter {
                 if (code !== 0) {
                     reject(new Error(`Failed to clear, code ${code}`));
                 } else {
-                    resolve(linux_path);
+                    resolve(linuxPath);
                 }
             });
         });
     }
 
     // verify that the file exists over ssh
-    async verify(): Promise<boolean> {
+    public async verify(): Promise<boolean> {
         const bin = "ssh";
         const args = [
             "-q",

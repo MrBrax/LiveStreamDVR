@@ -13,6 +13,10 @@ import path from "node:path";
 import type { YouTubeAPIErrorResponse } from "../Providers/YouTube";
 import { YouTubeHelper } from "../Providers/YouTube";
 
+/**
+ * Represents a YouTube exporter that exports videos to YouTube.
+ * Uses the YouTube Data API v3.
+ */
 export class YouTubeExporter extends BaseExporter {
     public type = "YouTube";
 
@@ -25,27 +29,27 @@ export class YouTubeExporter extends BaseExporter {
 
     public playlist_id = "";
 
-    setDescription(description: string): void {
+    public setDescription(description: string): void {
         this.description = description;
     }
 
-    setTags(tags: string[]): void {
+    public setTags(tags: string[]): void {
         this.tags = tags;
     }
 
-    setCategory(category: string): void {
+    public setCategory(category: string): void {
         this.category = category;
     }
 
-    setPrivacy(value: "private" | "unlisted" | "public"): void {
+    public setPrivacy(value: "private" | "unlisted" | "public"): void {
         this.privacy = value;
     }
 
-    setPlaylist(playlist_id: string): void {
+    public setPlaylist(playlist_id: string): void {
         this.playlist_id = playlist_id;
     }
 
-    async export(): Promise<boolean | string> {
+    public override async export(): Promise<boolean | string> {
         // if (!this.vod) throw new Error("No VOD loaded for export");
         if (!this.filename) throw new Error("No filename");
         if (!this.template_filename) throw new Error("No template filename");
@@ -58,7 +62,7 @@ export class YouTubeExporter extends BaseExporter {
                 "Quota exceeded. Enable override in config to force upload."
             );
 
-        const final_title = this.getFormattedTitle();
+        const finalTitle = this.getFormattedTitle();
 
         // const service = google.youtube("v3");
         const service = new youtube_v3.Youtube({
@@ -99,7 +103,7 @@ export class YouTubeExporter extends BaseExporter {
                     part: ["snippet", "status"],
                     requestBody: {
                         snippet: {
-                            title: final_title,
+                            title: finalTitle,
                             description: this.description,
                             tags: this.tags,
                             categoryId: this.category,
@@ -171,9 +175,9 @@ export class YouTubeExporter extends BaseExporter {
             if (response.data.id) {
                 if (this.vod) this.vod.exportData.youtube_id = response.data.id;
 
-                let playlist_success;
+                let playlistSuccess;
                 try {
-                    playlist_success = await this.addToPlaylist(
+                    playlistSuccess = await this.addToPlaylist(
                         response.data.id,
                         this.playlist_id
                     );
@@ -193,7 +197,7 @@ export class YouTubeExporter extends BaseExporter {
                 if (this.vod)
                     this.vod.exportData.youtube_playlist_id = this.playlist_id;
 
-                if (playlist_success) {
+                if (playlistSuccess) {
                     log(
                         LOGLEVEL.SUCCESS,
                         "YouTubeExporter.export",
@@ -230,7 +234,7 @@ export class YouTubeExporter extends BaseExporter {
         return false;
     }
 
-    async verify(): Promise<boolean> {
+    public override async verify(): Promise<boolean> {
         // if (!this.vod) throw new Error("No VOD loaded for verify");
         if (!this.filename) throw new Error("No filename");
         if (!this.template_filename) throw new Error("No template filename");
@@ -319,7 +323,7 @@ export class YouTubeExporter extends BaseExporter {
         return false;
     }
 
-    async addToPlaylist(
+    public async addToPlaylist(
         video_id: string,
         playlist_id: string
     ): Promise<boolean> {
@@ -336,12 +340,12 @@ export class YouTubeExporter extends BaseExporter {
         );
 
         if (this.playlist_id == "") {
-            const raw_playlist_config = Config.getInstance().cfg<string>(
+            const rawPlaylistConfig = Config.getInstance().cfg<string>(
                 "exporter.youtube.playlists"
             );
-            if (raw_playlist_config) {
-                const raw_playlist_entries = raw_playlist_config.split(";");
-                const playlist_entries = raw_playlist_entries.map((entry) => {
+            if (rawPlaylistConfig) {
+                const rawPlaylistEntries = rawPlaylistConfig.split(";");
+                const playlistEntries = rawPlaylistEntries.map((entry) => {
                     const parts = entry.split("=");
                     return {
                         channel: parts[0],
@@ -349,13 +353,13 @@ export class YouTubeExporter extends BaseExporter {
                     };
                 });
 
-                const playlist_entry = playlist_entries.find(
+                const playlistEntry = playlistEntries.find(
                     (entry) =>
                         entry.channel == this.vod?.getChannel().internalName
                 );
 
-                if (playlist_entry) {
-                    this.playlist_id = playlist_entry.playlist;
+                if (playlistEntry) {
+                    this.playlist_id = playlistEntry.playlist;
                     log(
                         LOGLEVEL.INFO,
                         "YouTubeExporter.addToPlaylist",
