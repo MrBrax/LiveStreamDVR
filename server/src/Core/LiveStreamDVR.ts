@@ -30,6 +30,7 @@ import type { BinaryStatus } from "@common/Api/About";
 import type { ChannelConfig } from "@common/Config";
 import { SubStatus } from "@common/Defs";
 import checkDiskSpace from "check-disk-space";
+import readdirRecursive from "fs-readdir-recursive";
 import i18next, { t } from "i18next";
 import path from "node:path";
 import type { WebSocketServer } from "ws";
@@ -476,16 +477,19 @@ export class LiveStreamDVR {
 
     public cleanLingeringVODs(): void {
         this.vods.forEach((vod) => {
-            const channel = vod.getChannel();
-            if (!channel) {
+            let channel;
+            try {
+                channel = vod.getChannel();
+            } catch (error) {
                 log(
-                    LOGLEVEL.WARNING,
+                    LOGLEVEL.ERROR,
                     "dvr.cleanLingeringVODs",
                     `Channel ${vod.getChannel().internalName} removed but VOD ${
                         vod.basename
                     } still lingering`
                 );
             }
+
             if (!fs.existsSync(vod.filename)) {
                 log(
                     LOGLEVEL.WARNING,
@@ -959,6 +963,19 @@ export class LiveStreamDVR {
                         );
                     }
                 }
+            }
+        }
+
+        // check for ts files in storage
+        const files = readdirRecursive(BaseConfigDataFolder.storage);
+        for (const file of files) {
+            if (file.endsWith(".ts")) {
+                errors.push(
+                    `Found ts file in storage folder: ${path.join(
+                        BaseConfigDataFolder.storage,
+                        file
+                    )}`
+                );
             }
         }
 
