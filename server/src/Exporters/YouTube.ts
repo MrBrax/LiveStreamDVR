@@ -62,7 +62,17 @@ export class YouTubeExporter extends BaseExporter {
                 "Quota exceeded. Enable override in config to force upload."
             );
 
-        const finalTitle = this.getFormattedTitle();
+        let finalTitle = this.getFormattedTitle();
+
+        // youtube max title length is 100
+        if (finalTitle.length > 100) {
+            finalTitle = finalTitle.substring(0, 100);
+            log(
+                LOGLEVEL.WARNING,
+                "YouTubeExporter.export",
+                `Title too long, trimming to 100 characters: ${finalTitle}`
+            );
+        }
 
         // const service = google.youtube("v3");
         const service = new youtube_v3.Youtube({
