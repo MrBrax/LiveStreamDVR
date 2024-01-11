@@ -412,7 +412,7 @@ export class YouTubeExporter extends BaseExporter {
                 part: ["snippet"],
                 requestBody: {
                     snippet: {
-                        playlistId: playlist_id,
+                        playlistId: this.playlist_id,
                         resourceId: {
                             kind: "youtube#video",
                             videoId: video_id,
