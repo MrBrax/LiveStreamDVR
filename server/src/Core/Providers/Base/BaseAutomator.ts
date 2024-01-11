@@ -1618,6 +1618,11 @@ export class BaseAutomator {
             Config.getInstance().cfg("hls_timeout", 120).toString()
         );
 
+        // streamlink 6.0.0 timeout
+        if (Config.getInstance().cfg("capture.hls_segment_queue_threshold", 0) != 0) {
+            cmd.push("--hls-segment-queue-threshold", Config.getInstance().cfg("capture.hls_segment_queue_threshold", 0).toString());
+        }
+
         // The size of the thread pool used to download HLS segments.
         cmd.push("--hls-segment-threads", "5");
 
