@@ -1608,13 +1608,13 @@ export class BaseAutomator {
 
         // timeout due to ads
         cmd.push(
-            "--hls-timeout",
+            "--stream-timeout",
             Config.getInstance().cfg("hls_timeout", 120).toString()
         );
 
         // timeout due to ads
         cmd.push(
-            "--hls-segment-timeout",
+            "--stream-segment-timeout",
             Config.getInstance().cfg("hls_timeout", 120).toString()
         );
 
@@ -1624,7 +1624,7 @@ export class BaseAutomator {
         }
 
         // The size of the thread pool used to download HLS segments.
-        cmd.push("--hls-segment-threads", "5");
+        cmd.push("--stream-segment-threads", "5");
 
         // Output container format
         cmd.push("--ffmpeg-fout", "mpegts"); // default is apparently matroska?
