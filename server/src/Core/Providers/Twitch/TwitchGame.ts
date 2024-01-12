@@ -17,8 +17,8 @@ interface TwitchGameJSON {
 }
 
 export class TwitchGame {
-    static game_db: Record<string, TwitchGame> = {};
-    static favourite_games: string[] = [];
+    public static game_db: Record<string, TwitchGame> = {};
+    public static favourite_games: string[] = [];
 
     public id!: string;
     public name!: string;
@@ -34,18 +34,21 @@ export class TwitchGame {
             "game.populateGameDatabase",
             "Populating game database..."
         );
+
         this.game_db = {};
-        const raw_games: Record<string, TwitchGameJSON> = JSON.parse(
+
+        const rawGames = JSON.parse(
             fs.readFileSync(BaseConfigPath.gameDb, "utf8")
-        );
-        for (const id in raw_games) {
-            const raw_game = raw_games[id];
+        ) as Record<string, TwitchGameJSON>;
+
+        for (const id in rawGames) {
+            const rawGame = rawGames[id];
             const game = new this();
             game.id = id;
-            game.name = raw_game.name;
-            game.box_art_url = raw_game.box_art_url;
-            game.added = new Date(raw_game.added);
-            if (raw_game.deleted) game.deleted = raw_game.deleted;
+            game.name = rawGame.name;
+            game.box_art_url = rawGame.box_art_url;
+            game.added = new Date(rawGame.added);
+            if (rawGame.deleted) game.deleted = rawGame.deleted;
             this.game_db[id] = game;
         }
         log(
@@ -71,9 +74,11 @@ export class TwitchGame {
             "game.populateFavouriteGames",
             "Populating favourite games..."
         );
+
         this.favourite_games = JSON.parse(
             fs.readFileSync(BaseConfigPath.favouriteGames, "utf8")
-        );
+        ) as string[];
+
         log(
             LOGLEVEL.INFO,
             "game.populateFavouriteGames",
@@ -171,16 +176,19 @@ export class TwitchGame {
             log(
                 LOGLEVEL.FATAL,
                 "game.getGameAsync",
-                `Tried to get game data for ${game_id} but server returned: ${th}`
+                `Tried to get game data for ${game_id} but server returned: ${
+                    (th as Error).message
+                }`,
+                th
             );
             return null;
         }
 
         const json = response.data;
 
-        const game_data = json.data[0];
+        const gameData = json.data[0];
 
-        if (game_data) {
+        if (gameData) {
             /*
             const game = {
                 "id": game_id,
@@ -193,8 +201,8 @@ export class TwitchGame {
             */
             const game = new this();
             game.id = game_id;
-            game.name = game_data.name;
-            game.box_art_url = game_data.box_art_url;
+            game.name = gameData.name;
+            game.box_art_url = gameData.box_art_url;
             game.added = new Date();
 
             try {
@@ -203,7 +211,10 @@ export class TwitchGame {
                 log(
                     LOGLEVEL.ERROR,
                     "game.getGameAsync",
-                    `Failed to fetch box art for game ${game_id}: ${error}`
+                    `Failed to fetch box art for game ${game_id}: ${
+                        (error as Error).message
+                    }`,
+                    error
                 );
             }
 
@@ -259,20 +270,20 @@ export class TwitchGame {
 
         TwitchGame.game_db[this.id] = this;
 
-        const json_db: Record<string, TwitchGameJSON> = {};
+        const jsonDatabase: Record<string, TwitchGameJSON> = {};
 
         for (const id in TwitchGame.game_db) {
             const game = TwitchGame.game_db[id];
-            const json_game: TwitchGameJSON = {
+            const jsonGame: TwitchGameJSON = {
                 name: game.name || "",
                 box_art_url: game.box_art_url || "",
                 added: game.added.toISOString(),
                 deleted: game.deleted || undefined,
             };
-            json_db[id] = json_game;
+            jsonDatabase[id] = jsonGame;
         }
 
-        fs.writeFileSync(BaseConfigPath.gameDb, JSON.stringify(json_db));
+        fs.writeFileSync(BaseConfigPath.gameDb, JSON.stringify(jsonDatabase));
     }
 
     public fetchBoxArt(): Promise<string> {
@@ -303,7 +314,7 @@ export class TwitchGame {
                     log(
                         LOGLEVEL.ERROR,
                         "game.fetchBoxArt",
-                        `Failed to save box art to cache: ${err}`,
+                        `Failed to save box art to cache: ${err.message}`,
                         err
                     );
                     reject(err);
@@ -346,9 +357,9 @@ export class TwitchGame {
             )
         ) {
             // console.debug("Using cached box art", this.box_art_url);
-            const app_url = Config.getInstance().cfg<string>("app_url", "");
-            if (app_url && app_url !== "debug") {
-                return `${app_url}/cache/covers/${this.id}.${path
+            const appUrl = Config.getInstance().cfg<string>("app_url", "");
+            if (appUrl && appUrl !== "debug") {
+                return `${appUrl}/cache/covers/${this.id}.${path
                     .extname(this.box_art_url)
                     .substring(1)}`;
             } else {
@@ -360,7 +371,7 @@ export class TwitchGame {
                     .substring(1)}`;
             }
         } else {
-            this.fetchBoxArt(); // for next time
+            void this.fetchBoxArt(); // for next time
         }
         return this.box_art_url
             .replace("{width}", width.toString())

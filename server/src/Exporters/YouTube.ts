@@ -3,7 +3,6 @@ import { BaseExporter } from "./Base";
 import { Config } from "@/Core/Config";
 import { Job } from "@/Core/Job";
 import { LOGLEVEL, log } from "@/Core/Log";
-import { xTimeout } from "@/Helpers/Timeout";
 import { youtube_v3 } from "@googleapis/youtube";
 // import type { GaxiosError } from "gaxios";
 import { KeyValue } from "@/Core/KeyValue";
@@ -13,6 +12,10 @@ import path from "node:path";
 import type { YouTubeAPIErrorResponse } from "../Providers/YouTube";
 import { YouTubeHelper } from "../Providers/YouTube";
 
+/**
+ * Represents a YouTube exporter that exports videos to YouTube.
+ * Uses the YouTube Data API v3.
+ */
 export class YouTubeExporter extends BaseExporter {
     public type = "YouTube";
 
@@ -24,28 +27,35 @@ export class YouTubeExporter extends BaseExporter {
     public privacy: "private" | "unlisted" | "public" = "private";
 
     public playlist_id = "";
+    public playlist_automatic = false;
 
-    setDescription(description: string): void {
+    public setDescription(description: string): void {
         this.description = description;
     }
 
-    setTags(tags: string[]): void {
+    public setTags(tags: string[]): void {
         this.tags = tags;
     }
 
-    setCategory(category: string): void {
+    public setCategory(category: string): void {
         this.category = category;
     }
 
-    setPrivacy(value: "private" | "unlisted" | "public"): void {
+    public setPrivacy(value: "private" | "unlisted" | "public"): void {
         this.privacy = value;
     }
 
-    setPlaylist(playlist_id: string): void {
+    public setPlaylist(playlist_id: string): void {
         this.playlist_id = playlist_id;
+        this.playlist_automatic = false;
     }
 
-    async export(): Promise<boolean | string> {
+    public setAutomaticPlaylist(value: boolean): void {
+        this.playlist_automatic = value;
+        this.playlist_id = "";
+    }
+
+    public override async export(): Promise<boolean | string> {
         // if (!this.vod) throw new Error("No VOD loaded for export");
         if (!this.filename) throw new Error("No filename");
         if (!this.template_filename) throw new Error("No template filename");
@@ -58,7 +68,22 @@ export class YouTubeExporter extends BaseExporter {
                 "Quota exceeded. Enable override in config to force upload."
             );
 
-        const final_title = this.getFormattedTitle();
+        let finalTitle = this.getFormattedTitle();
+
+        // youtube max title length is 100
+        if (finalTitle.length > 100) {
+            finalTitle = finalTitle.substring(0, 100);
+            log(
+                LOGLEVEL.WARNING,
+                "YouTubeExporter.export",
+                `Title too long, trimming to 100 characters: ${finalTitle}`
+            );
+        }
+
+        // set playlist id if automatic
+        if (this.playlist_automatic) {
+            this.playlist_id = this.getAutomaticPlaylistId();
+        }
 
         // const service = google.youtube("v3");
         const service = new youtube_v3.Youtube({
@@ -78,19 +103,6 @@ export class YouTubeExporter extends BaseExporter {
         job.save();
         job.broadcastUpdate(); // manual send
 
-        const totalSize = fs.statSync(this.filename).size;
-        let uploadSupportCheck = false;
-
-        xTimeout(() => {
-            if (!uploadSupportCheck) {
-                log(
-                    LOGLEVEL.WARNING,
-                    "YouTubeExporter.export",
-                    "Upload support check timed out, progress will not be shown."
-                );
-            }
-        }, 5000);
-
         let response;
         try {
             response = await service.videos.insert(
@@ -99,7 +111,7 @@ export class YouTubeExporter extends BaseExporter {
                     part: ["snippet", "status"],
                     requestBody: {
                         snippet: {
-                            title: final_title,
+                            title: finalTitle,
                             description: this.description,
                             tags: this.tags,
                             categoryId: this.category,
@@ -111,13 +123,6 @@ export class YouTubeExporter extends BaseExporter {
                     media: {
                         body: fs.createReadStream(this.filename),
                         // body: fs.createReadStream("C:\\temp\\test.mp4"),
-                    },
-                },
-                {
-                    // this is apparently deprecated
-                    onUploadProgress: (event) => {
-                        job.setProgress(event.bytesRead / totalSize);
-                        uploadSupportCheck = true;
                     },
                 }
             );
@@ -147,7 +152,7 @@ export class YouTubeExporter extends BaseExporter {
                                 `Quota exceeded: ${quotaError.reason}`
                             );
                             job.clear();
-                            await KeyValue.getInstance().setAsync(
+                            KeyValue.getInstance().set(
                                 "exporter.youtube.quota_exceeded_date",
                                 new Date().toISOString()
                             );
@@ -171,40 +176,44 @@ export class YouTubeExporter extends BaseExporter {
             if (response.data.id) {
                 if (this.vod) this.vod.exportData.youtube_id = response.data.id;
 
-                let playlist_success;
-                try {
-                    playlist_success = await this.addToPlaylist(
-                        response.data.id,
-                        this.playlist_id
-                    );
-                } catch (error) {
-                    log(
-                        LOGLEVEL.ERROR,
-                        "YouTubeExporter.export",
-                        `Could not add video to playlist: ${
-                            (error as Error).message
-                        }`,
-                        error
-                    );
-                    job.clear();
-                    throw error;
-                }
+                if (this.playlist_id) {
 
-                if (this.vod)
-                    this.vod.exportData.youtube_playlist_id = this.playlist_id;
+                    let playlistSuccess;
+                    try {
+                        playlistSuccess = await this.addToPlaylist(
+                            response.data.id,
+                            this.playlist_id
+                        );
+                    } catch (error) {
+                        log(
+                            LOGLEVEL.ERROR,
+                            "YouTubeExporter.export",
+                            `Could not add video to playlist: ${
+                                (error as Error).message
+                            }`,
+                            error
+                        );
+                        job.clear();
+                        throw error;
+                    }
 
-                if (playlist_success) {
-                    log(
-                        LOGLEVEL.SUCCESS,
-                        "YouTubeExporter.export",
-                        `Video '${this.video_id}' added to playlist '${this.playlist_id}'.`
-                    );
-                } else {
-                    log(
-                        LOGLEVEL.WARNING,
-                        "YouTubeExporter.export",
-                        `Video '${this.video_id}' not added to playlist.`
-                    );
+                    if (this.vod)
+                        this.vod.exportData.youtube_playlist_id = this.playlist_id;
+
+                    if (playlistSuccess) {
+                        log(
+                            LOGLEVEL.SUCCESS,
+                            "YouTubeExporter.export",
+                            `Video '${this.video_id}' added to playlist '${this.playlist_id}'.`
+                        );
+                    } else {
+                        log(
+                            LOGLEVEL.WARNING,
+                            "YouTubeExporter.export",
+                            `Video '${this.video_id}' not added to playlist.`
+                        );
+                    }
+
                 }
 
                 job.clear();
@@ -230,7 +239,7 @@ export class YouTubeExporter extends BaseExporter {
         return false;
     }
 
-    async verify(): Promise<boolean> {
+    public override async verify(): Promise<boolean> {
         // if (!this.vod) throw new Error("No VOD loaded for verify");
         if (!this.filename) throw new Error("No filename");
         if (!this.template_filename) throw new Error("No template filename");
@@ -319,10 +328,11 @@ export class YouTubeExporter extends BaseExporter {
         return false;
     }
 
-    async addToPlaylist(
+    public async addToPlaylist(
         video_id: string,
         playlist_id: string
     ): Promise<boolean> {
+
         if (!YouTubeHelper.oAuth2Client) throw new Error("No YouTube client");
 
         const service = new youtube_v3.Youtube({
@@ -334,62 +344,6 @@ export class YouTubeExporter extends BaseExporter {
             "YouTubeExporter.addToPlaylist",
             `Adding ${video_id} to playlist...`
         );
-
-        if (this.playlist_id == "") {
-            const raw_playlist_config = Config.getInstance().cfg<string>(
-                "exporter.youtube.playlists"
-            );
-            if (raw_playlist_config) {
-                const raw_playlist_entries = raw_playlist_config.split(";");
-                const playlist_entries = raw_playlist_entries.map((entry) => {
-                    const parts = entry.split("=");
-                    return {
-                        channel: parts[0],
-                        playlist: parts[1],
-                    };
-                });
-
-                const playlist_entry = playlist_entries.find(
-                    (entry) =>
-                        entry.channel == this.vod?.getChannel().internalName
-                );
-
-                if (playlist_entry) {
-                    this.playlist_id = playlist_entry.playlist;
-                    log(
-                        LOGLEVEL.INFO,
-                        "YouTubeExporter.addToPlaylist",
-                        `Found playlist ${
-                            this.playlist_id
-                        } for channel ${this.vod?.getChannel().internalName}`
-                    );
-                } else {
-                    log(
-                        LOGLEVEL.ERROR,
-                        "YouTubeExporter.addToPlaylist",
-                        `No playlist configured for channel ${this.vod?.getChannel()
-                            .internalName}`
-                    );
-                    return false;
-                }
-            } else {
-                log(
-                    LOGLEVEL.ERROR,
-                    "YouTubeExporter.addToPlaylist",
-                    "No playlists configured"
-                );
-                return false;
-            }
-        }
-
-        if (this.playlist_id == "") {
-            log(
-                LOGLEVEL.WARNING,
-                "YouTubeExporter.addToPlaylist",
-                "No playlist configured"
-            );
-            return false;
-        }
 
         let response;
         try {
@@ -431,6 +385,45 @@ export class YouTubeExporter extends BaseExporter {
                 "Could not add video to playlist, no response gotten."
             );
             return false;
+        }
+
+    }
+
+    private getAutomaticPlaylistId(): string {
+        const rawPlaylistConfig = Config.getInstance().cfg<string>(
+            "exporter.youtube.playlists"
+        );
+        if (rawPlaylistConfig) {
+            const rawPlaylistEntries = rawPlaylistConfig.split(";");
+            const playlistEntries = rawPlaylistEntries.map((entry) => {
+                const parts = entry.split("=");
+                return {
+                    channel: parts[0],
+                    playlist: parts[1],
+                };
+            });
+
+            const playlistEntry = playlistEntries.find(
+                (entry) => entry.channel == this.vod?.getChannel().internalName
+            );
+
+            if (playlistEntry) {
+                return playlistEntry.playlist;
+            } else {
+                log(
+                    LOGLEVEL.ERROR,
+                    "YouTubeExporter.getAutomaticPlaylistId",
+                    `No playlist configured for channel ${this.vod?.getChannel().internalName}`
+                );
+                return "";
+            }
+        } else {
+            log(
+                LOGLEVEL.ERROR,
+                "YouTubeExporter.getAutomaticPlaylistId",
+                "No playlists configured"
+            );
+            return "";
         }
     }
 }

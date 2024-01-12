@@ -3,6 +3,10 @@ import path from "node:path";
 import sanitize from "sanitize-filename";
 import { BaseExporter } from "./Base";
 
+/**
+ * Basic FTP exporter to transfer the VOD to a remote FTP server.
+ * Uses curl to transfer the file.
+ */
 export class FTPExporter extends BaseExporter {
     public type = "FTP";
 
@@ -15,23 +19,23 @@ export class FTPExporter extends BaseExporter {
 
     // public supportsDirectories = true;
 
-    setDirectory(directory: string): void {
+    public setDirectory(directory: string): void {
         this.directory = directory;
     }
 
-    setHost(host: string): void {
+    public setHost(host: string): void {
         this.host = host;
     }
 
-    setUsername(username: string): void {
+    public setUsername(username: string): void {
         this.username = username;
     }
 
-    setPassword(password: string): void {
+    public setPassword(password: string): void {
         this.password = password;
     }
 
-    export(): Promise<boolean | string> {
+    public export(): Promise<boolean | string> {
         return new Promise<boolean | string>((resolve, reject) => {
             if (!this.filename) throw new Error("No filename");
             if (!this.extension) throw new Error("No extension");
@@ -44,32 +48,32 @@ export class FTPExporter extends BaseExporter {
             // if (!this.directory) throw new Error("No directory");
             if (!this.getFormattedTitle()) throw new Error("No title");
 
-            const final_filename =
+            const finalFilename =
                 sanitize(this.getFormattedTitle()) + "." + this.extension;
 
-            const filesystem_path = path.join(this.directory, final_filename);
-            const linux_path = filesystem_path.replace(/\\/g, "/");
-            const web_path = encodeURIComponent(linux_path);
+            const filesystemPath = path.join(this.directory, finalFilename);
+            const linuxPath = filesystemPath.replace(/\\/g, "/");
+            const webPath = encodeURIComponent(linuxPath);
 
-            this.remote_file = linux_path;
+            this.remote_file = linuxPath;
 
-            const local_name = this.filename
+            const localName = this.filename
                 .replace(/\\/g, "/")
                 .replace(/^C:/, "");
-            const local_path = local_name.includes(" ")
-                ? `'${local_name}'`
-                : local_name;
+            const localPath = localName.includes(" ")
+                ? `'${localName}'`
+                : localName;
 
-            let ftp_url = `ftp://${this.host}/${web_path}`;
+            let ftpUrl = `ftp://${this.host}/${webPath}`;
             if (this.username && this.password) {
-                ftp_url = `ftp://${this.username}:${this.password}@${this.host}/${web_path}`;
+                ftpUrl = `ftp://${this.username}:${this.password}@${this.host}/${webPath}`;
             }
 
-            if (ftp_url.includes(" ")) ftp_url = `'${ftp_url}'`;
+            if (ftpUrl.includes(" ")) ftpUrl = `'${ftpUrl}'`;
 
             const bin = "curl";
 
-            const args = ["-v", "-g", "-T", local_path, ftp_url];
+            const args = ["-v", "-g", "-T", localPath, ftpUrl];
             //
 
             console.log(`${bin} ${args.join(" ")}`);
@@ -96,22 +100,22 @@ export class FTPExporter extends BaseExporter {
                 if (code !== 0) {
                     reject(new Error(`Failed to clear, code ${code}`));
                 } else {
-                    resolve(linux_path);
+                    resolve(linuxPath);
                 }
             });
         });
     }
 
     // verify that the file exists over ftp
-    async verify(): Promise<boolean> {
-        const web_path = encodeURIComponent(this.remote_file);
+    public async verify(): Promise<boolean> {
+        const webPath = encodeURIComponent(this.remote_file);
 
         const bin = "curl";
         const args = [
             "--list-only",
             `ftp://${this.username}:${this.password}@${
                 this.host
-            }/${path.dirname(web_path)}`,
+            }/${path.dirname(webPath)}`,
         ];
 
         const job = await execSimple(bin, args, "ftp file check");

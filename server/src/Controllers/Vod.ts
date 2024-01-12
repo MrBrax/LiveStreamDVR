@@ -375,7 +375,7 @@ export async function RenderWizard(
     log(
         LOGLEVEL.INFO,
         "route.vod.RenderWizard",
-        `Start render wizard for vod ${vod}`
+        `Start render wizard for vod ${vod.basename}`
     );
     log(LOGLEVEL.INFO, "route.vod.RenderWizard", `chat_width: ${chat_width}`);
     log(LOGLEVEL.INFO, "route.vod.RenderWizard", `chat_height: ${chat_height}`);
@@ -974,7 +974,7 @@ export async function RefreshVodMetadata(
         return;
     }
 
-    const oldDuration = vod.duration;
+    const oldDuration = vod.duration || 0;
 
     let md;
 
@@ -1005,7 +1005,7 @@ export async function RefreshVodMetadata(
             )}. Difference is ${formatDuration(diff)}.`,
             data: md,
         } as ApiResponse);
-        vod.saveJSON("refresh metadata");
+        await vod.saveJSON("refresh metadata");
         return;
     }
 

@@ -1,7 +1,9 @@
 import { debugLog } from "@/Helpers/Console";
-import { GetRunningProcesses, execSimple } from "@/Helpers/Execute";
+import { execSimple, GetRunningProcesses } from "@/Helpers/Execute";
 import { is_docker } from "@/Helpers/System";
 import { isNumber } from "@/Helpers/Types";
+import { TwitchHelper } from "@/Providers/Twitch";
+import { YouTubeHelper } from "@/Providers/YouTube";
 import type { SettingField } from "@common/Config";
 import { settingsFields } from "@common/ServerConfig";
 import type { AxiosResponse } from "axios";
@@ -13,8 +15,6 @@ import minimist from "minimist";
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
-import { TwitchHelper } from "../Providers/Twitch";
-import { YouTubeHelper } from "../Providers/YouTube";
 import {
     AppRoot,
     BaseConfigCacheFolder,
@@ -24,7 +24,7 @@ import {
     DataRoot,
 } from "./BaseConfig";
 import { LiveStreamDVR } from "./LiveStreamDVR";
-import { LOGLEVEL, log, setLogDebug } from "./Log";
+import { log, LOGLEVEL, setLogDebug } from "./Log";
 import { TwitchChannel } from "./Providers/Twitch/TwitchChannel";
 import { YouTubeChannel } from "./Providers/YouTube/YouTubeChannel";
 import { Scheduler } from "./Scheduler";
@@ -36,8 +36,6 @@ export class Config {
     config: Record<string, string | number | boolean | string[]> | undefined;
     private _writeConfig = false;
     watcher: fs.FSWatcher | undefined;
-
-    // forceDebug = false;
 
     gitHash?: string;
     gitBranch?: string;
@@ -57,6 +55,7 @@ export class Config {
     static readonly SeasonFormat = "yyyyMM";
 
     static instance: Config | undefined;
+
     static getInstance(): Config {
         if (this.instance === undefined) {
             this.instance = new Config();
@@ -572,6 +571,15 @@ export class Config {
 
         // no blocks in testing
         // if (process.env.NODE_ENV === "test") return;
+
+        if (Config.getInstance().cfg("storage.no_watch_files", false)) {
+            log(
+                LOGLEVEL.DEBUG,
+                "config.startWatchingConfig",
+                `Not watching config file due to 'storage.no_watch_files' setting`
+            );
+            return false;
+        }
 
         // monitor config for external changes
         this.watcher = fs.watch(

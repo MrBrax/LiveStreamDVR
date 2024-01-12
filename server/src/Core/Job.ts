@@ -21,7 +21,74 @@ export interface TwitchAutomatorJobJSON {
     args?: string[];
 }
 
-export class Job extends EventEmitter {
+interface JobEvents {
+    on(event: "update", listener: (job: ApiJob) => void): this;
+
+    on(event: "save", listener: () => void): this;
+
+    on(event: "clear", listener: (code: number | null) => void): this;
+
+    on(event: "close", listener: (code: number | null) => void): this;
+
+    on(event: "pre_clear", listener: () => void): this;
+
+    on(
+        event: "pid_set",
+        listener: (old_pid: number | undefined, new_pid: number) => void
+    ): this;
+
+    on(
+        event: "process_set",
+        listener: (
+            old_process: ChildProcessWithoutNullStreams | undefined,
+            new_process: ChildProcessWithoutNullStreams
+        ) => void
+    ): this;
+
+    on(
+        event: "metadata_set",
+        listener: (
+            old_metadata: Record<string, unknown> | undefined,
+            new_metadata: Record<string, unknown>
+        ) => void
+    ): this;
+
+    on(
+        event: "metadata_add",
+        listener: (
+            old_metadata: Record<string, unknown> | undefined,
+            new_metadata: Record<string, unknown>
+        ) => void
+    ): this;
+
+    on(event: "pre_kill", listener: (method: NodeJS.Signals) => void): this;
+
+    on(event: "process_start", listener: () => void): this;
+
+    on(
+        event: "process_exit",
+        listener: (code: number | null, signal: NodeJS.Signals) => void
+    ): this;
+
+    on(event: "process_error", listener: (err: Error) => void): this;
+
+    /** @deprecated */
+    on(
+        event: "process_close",
+        listener: (code: number | null, signal: NodeJS.Signals) => void
+    ): this;
+
+    on(event: "stdout", listener: (data: string) => void): this;
+
+    on(event: "stderr", listener: (data: string) => void): this;
+
+    on(
+        event: "log",
+        listener: (type: "stdout" | "stderr", data: string) => void
+    ): this;
+}
+
+export class Job extends EventEmitter implements JobEvents {
     static jobs: Job[] = [];
     static pidstatus: Record<number, boolean> = {};
 
@@ -64,21 +131,20 @@ export class Job extends EventEmitter {
 
     public dummy = false;
 
-    logfile = "";
+    public logfile = "";
 
     private _updateTimer: NodeJS.Timeout | undefined;
     private _progressTimer: NodeJS.Timeout | undefined;
 
-    private realpath(str: string): string {
-        return path.normalize(str);
-    }
+    private progressAccumulator = 0; // FIXME: i hate this implementation
+    private progressUpdatesCleared = 0;
 
     public static loadJobsFromCache() {
         const jobs = fs
             .readdirSync(BaseConfigCacheFolder.pids)
             .filter((f) => f.endsWith(".json"));
-        for (const job_data of jobs) {
-            Job.load(job_data.replace(".json", ""));
+        for (const jobData of jobs) {
+            Job.load(jobData.replace(".json", ""));
         }
         log(
             LOGLEVEL.INFO,
@@ -199,7 +265,7 @@ export class Job extends EventEmitter {
             return false;
         }
 
-        const data: TwitchAutomatorJobJSON = JSON.parse(raw);
+        const data = JSON.parse(raw) as TwitchAutomatorJobJSON;
 
         job.pid = data.pid;
         job.dt_started_at = data.dt_started_at
@@ -314,9 +380,9 @@ export class Job extends EventEmitter {
         //return file_put_contents($this->pidfile, json_encode($this)) != false;
         // console.debug("job save", this);
 
-        let json_data;
+        let jsonData;
         try {
-            json_data = JSON.stringify(this);
+            jsonData = JSON.stringify(this);
         } catch (e) {
             log(
                 LOGLEVEL.FATAL,
@@ -324,10 +390,10 @@ export class Job extends EventEmitter {
                 `Failed to stringify job ${this.name}`,
                 this.metadata
             );
-            return false;
+            throw e;
         }
 
-        fs.writeFileSync(this.pidfile, json_data, "utf8");
+        fs.writeFileSync(this.pidfile, jsonData, "utf8");
 
         const exists = fs.existsSync(this.pidfile);
 
@@ -451,6 +517,11 @@ export class Job extends EventEmitter {
         return this.pid;
     }
 
+    /**
+     * Sets the executable and arguments for the job.
+     * @param bin - The path to the executable.
+     * @param args - The arguments to pass to the executable.
+     */
     public setExec(bin: string, args: string[]): void {
         this.bin = bin;
         this.args = args;
@@ -460,7 +531,7 @@ export class Job extends EventEmitter {
     /**
      * Attach process to job, possibly avoiding the need to check running processes
      *
-     * @param {Process} process Process to attach
+     * @param process Process to attach
      * @return void
      */
     public setProcess(process: ChildProcessWithoutNullStreams): void {
@@ -850,11 +921,11 @@ export class Job extends EventEmitter {
      * @param start_text
      */
     public startLog(filename: string, start_text: string): void {
-        const logs_path = path.join(BaseConfigDataFolder.logs, "software");
+        const logsPath = path.join(BaseConfigDataFolder.logs, "software");
 
         this.logfile = filename;
 
-        const logfile = path.join(logs_path, filename);
+        const logfile = path.join(logsPath, filename);
 
         log(
             LOGLEVEL.DEBUG,
@@ -898,8 +969,6 @@ export class Job extends EventEmitter {
         }
     }
 
-    private progressAccumulator = 0; // FIXME: i hate this implementation
-    private progressUpdatesCleared = 0;
     public setProgress(progress: number): void {
         if (progress > this.progress) {
             // console.debug(`Job ${this.name} progress: ${progress}`);
@@ -963,6 +1032,7 @@ export class Job extends EventEmitter {
             progress: progress,
         });
     }
+
     /**
      * Stop logging to file from the attached process
      */
@@ -1052,55 +1122,43 @@ export class Job extends EventEmitter {
             // )(); // ugly hack
         }
     }
-}
 
-export declare interface Job {
-    on(event: "update", listener: (job: ApiJob) => void): this;
-    on(event: "save", listener: () => void): this;
-    on(event: "clear", listener: (code: number | null) => void): this;
-    on(event: "close", listener: (code: number | null) => void): this;
-    on(event: "pre_clear", listener: () => void): this;
-    on(
-        event: "pid_set",
-        listener: (old_pid: number | undefined, new_pid: number) => void
-    ): this;
-    on(
-        event: "process_set",
-        listener: (
-            old_process: ChildProcessWithoutNullStreams | undefined,
-            new_process: ChildProcessWithoutNullStreams
-        ) => void
-    ): this;
-    on(
-        event: "metadata_set",
-        listener: (
-            old_metadata: Record<string, unknown> | undefined,
-            new_metadata: Record<string, unknown>
-        ) => void
-    ): this;
-    on(
-        event: "metadata_add",
-        listener: (
-            old_metadata: Record<string, unknown> | undefined,
-            new_metadata: Record<string, unknown>
-        ) => void
-    ): this;
-    on(event: "pre_kill", listener: (method: NodeJS.Signals) => void): this;
-    on(event: "process_start", listener: () => void): this;
-    on(
-        event: "process_exit",
-        listener: (code: number | null, signal: NodeJS.Signals) => void
-    ): this;
-    on(event: "process_error", listener: (err: Error) => void): this;
-    /** @deprecated */
-    on(
-        event: "process_close",
-        listener: (code: number | null, signal: NodeJS.Signals) => void
-    ): this;
-    on(event: "stdout", listener: (data: string) => void): this;
-    on(event: "stderr", listener: (data: string) => void): this;
-    on(
-        event: "log",
-        listener: (type: "stdout" | "stderr", data: string) => void
-    ): this;
+    public async waitToFinish(): Promise<number> {
+        if (!this.process) {
+            throw new Error("process not set");
+        }
+
+        log(
+            LOGLEVEL.INFO,
+            "job.waitToFinish",
+            `Waiting for job ${this.name} to finish`,
+            this.metadata
+        );
+
+        return new Promise<number>((resolve, reject) => {
+            this.process?.on("exit", (code, signal) => {
+                if (code == null) {
+                    reject(new Error("code is null"));
+                    return;
+                }
+                resolve(code);
+            });
+
+            this.process?.on("error", (err) => {
+                reject(err);
+            });
+
+            this.process?.on("close", (code, signal) => {
+                if (code == null) {
+                    reject(new Error("code is null"));
+                    return;
+                }
+                resolve(code);
+            });
+        });
+    }
+
+    private realpath(str: string): string {
+        return path.normalize(str);
+    }
 }

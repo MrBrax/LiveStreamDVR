@@ -9,6 +9,7 @@ import type { ExporterOptions } from "@common/Exporter";
 import type { LocalClip } from "@common/LocalClip";
 import type { LocalVideo } from "@common/LocalVideo";
 import type { AudioMetadata, VideoMetadata } from "@common/MediaInfo";
+import type { Clip } from "@common/TwitchAPI/Clips";
 import type { ChannelUpdated } from "@common/Webhook";
 import type chokidar from "chokidar";
 import { format } from "date-fns";
@@ -78,16 +79,111 @@ export class BaseChannel {
     public video_list: LocalVideo[] = [];
     public vods_list: BaseVOD[] = [];
 
-    fileWatcher?: chokidar.FSWatcher;
+    public fileWatcher?: chokidar.FSWatcher;
 
     public _updateTimer: NodeJS.Timeout | undefined;
 
-    get livestreamUrl() {
+    public get livestreamUrl() {
         return "";
     }
 
-    public async startWatching() {
+    public get displayName(): string {
+        return "";
+    }
+
+    public get internalName(): string {
+        return "";
+    }
+
+    public get internalId(): string {
+        return "";
+    }
+
+    public get description(): string {
+        return "";
+    }
+
+    public get url(): string {
+        return "";
+    }
+
+    public get profilePictureUrl(): string {
+        return "";
+    }
+
+    public get channelLogoExists(): boolean {
         throw new Error("Method not implemented.");
+    }
+
+    /**
+     * Get the current capturing vod
+     */
+    public get current_vod(): BaseVOD | undefined {
+        return this.getVods().find((vod) => vod.is_capturing);
+    }
+
+    /**
+     * Get the latest vod of the channel regardless of its status
+     */
+    public get latest_vod(): BaseVOD | undefined {
+        if (!this.getVods() || this.getVods().length == 0) return undefined;
+        return this.getVodByIndex(this.getVods().length - 1); // is this reliable?
+    }
+
+    /**
+     * Returns true if the channel is currently capturing, which also means it is live.
+     * It is dependent on the current vod being captured and the is_capturing flag that gets set after the initial capture process.
+     * @returns {boolean}
+     */
+    public get is_capturing(): boolean {
+        return this.current_vod != undefined && this.current_vod.is_capturing;
+    }
+
+    /**
+     * Returns true if the channel is currently converting a vod (remuxing).
+     * @returns {boolean}
+     */
+    public get is_converting(): boolean {
+        return this.getVods().some((vod) => vod.is_converting) ?? false;
+    }
+
+    public get current_chapter(): BaseVODChapter | undefined {
+        if (
+            !this.current_vod ||
+            !this.current_vod.chapters ||
+            this.current_vod.chapters.length == 0
+        )
+            return undefined;
+        // return this.current_vod.chapters.at(-1);
+        return this.current_vod.chapters[this.current_vod.chapters.length - 1];
+    }
+
+    public get vods_size(): number {
+        return (
+            this.getVods().reduce(
+                (acc, vod) =>
+                    acc +
+                    (vod.segments?.reduce(
+                        (acc, seg) =>
+                            acc + (seg && seg.filesize ? seg.filesize : 0),
+                        0
+                    ) ?? 0),
+                0
+            ) ?? 0
+        );
+    }
+
+    /**
+     * Returns true if the channel is currently live, not necessarily if it is capturing.
+     * It is set when the hook is called with the channel.online event.
+     * @returns {boolean}
+     */
+    public get is_live(): boolean {
+        return false;
+    }
+
+    public async startWatching(): Promise<boolean> {
+        return await Promise.reject(new Error("Method not implemented."));
     }
 
     public async stopWatching() {
@@ -96,16 +192,7 @@ export class BaseChannel {
         // console.log(`Stopped watching ${this.basename}`);
     }
 
-    /**
-     * Returns true if the channel is currently live, not necessarily if it is capturing.
-     * It is set when the hook is called with the channel.online event.
-     * @returns {boolean}
-     */
-    get is_live(): boolean {
-        return false;
-    }
-
-    checkStaleVodsInMemory() {
+    public checkStaleVodsInMemory() {
         throw new Error("Method not implemented.");
     }
 
@@ -176,7 +263,7 @@ export class BaseChannel {
     }
 
     public async toAPI(): Promise<ApiBaseChannel> {
-        const vods_list = await Promise.all(
+        const vodsList = await Promise.all(
             this.getVods().map(async (vod) => await vod.toAPI())
         );
         return await Promise.resolve({
@@ -197,7 +284,7 @@ export class BaseChannel {
             max_vods: this.max_vods,
             download_vod_at_end: this.download_vod_at_end,
             download_vod_at_end_quality: this.download_vod_at_end_quality,
-            vods_list: vods_list || [],
+            vods_list: vodsList || [],
             vods_raw: this.vods_raw,
             vods_size: this.vods_size || 0,
             last_online: this.last_online
@@ -216,74 +303,19 @@ export class BaseChannel {
         });
     }
 
-    /**
-     * Get the current capturing vod
-     */
-    get current_vod(): BaseVOD | undefined {
-        return this.getVods().find((vod) => vod.is_capturing);
-    }
-
-    /**
-     * Get the latest vod of the channel regardless of its status
-     */
-    get latest_vod(): BaseVOD | undefined {
-        if (!this.getVods() || this.getVods().length == 0) return undefined;
-        return this.getVodByIndex(this.getVods().length - 1); // is this reliable?
-    }
-
-    /**
-     * Returns true if the channel is currently capturing, which also means it is live.
-     * It is dependent on the current vod being captured and the is_capturing flag that gets set after the initial capture process.
-     * @returns {boolean}
-     */
-    get is_capturing(): boolean {
-        return this.current_vod != undefined && this.current_vod.is_capturing;
-    }
-
-    /**
-     * Returns true if the channel is currently converting a vod (remuxing).
-     * @returns {boolean}
-     */
-    get is_converting(): boolean {
-        return this.getVods().some((vod) => vod.is_converting) ?? false;
-    }
-
-    get current_chapter(): BaseVODChapter | undefined {
-        if (
-            !this.current_vod ||
-            !this.current_vod.chapters ||
-            this.current_vod.chapters.length == 0
-        )
-            return undefined;
-        // return this.current_vod.chapters.at(-1);
-        return this.current_vod.chapters[this.current_vod.chapters.length - 1];
-    }
-
-    get vods_size(): number {
-        return (
-            this.getVods().reduce(
-                (acc, vod) =>
-                    acc +
-                    (vod.segments?.reduce(
-                        (acc, seg) =>
-                            acc + (seg && seg.filesize ? seg.filesize : 0),
-                        0
-                    ) ?? 0),
-                0
-            ) ?? 0
-        );
-    }
-
     public getChapterData(): BaseVODChapterJSON | undefined {
         throw new Error("Method not implemented.");
     }
 
-    public async createVOD(filename: string): Promise<BaseVOD> {
-        throw new Error("Method not implemented.");
+    public async createVOD(
+        filename: string,
+        capture_id: string
+    ): Promise<BaseVOD> {
+        return await Promise.reject(new Error("Method not implemented."));
     }
 
     public async cleanupVods(ignore_uuid = ""): Promise<number | false> {
-        throw new Error("Method not implemented.");
+        return await Promise.reject(new Error("Method not implemented."));
     }
 
     public incrementStreamNumber(): {
@@ -297,7 +329,7 @@ export class BaseChannel {
             `${this.internalName}.season_identifier`
         );
         if (
-            seasonIdentifier &&
+            seasonIdentifier !== undefined &&
             seasonIdentifier !== format(new Date(), Config.SeasonFormat)
         ) {
             this.current_stream_number = 1;
@@ -363,38 +395,14 @@ export class BaseChannel {
     }
 
     public async downloadLatestVod(quality: VideoQuality): Promise<string> {
-        throw new Error("Method not implemented.");
+        return await Promise.reject(new Error("Method not implemented."));
     }
 
     public sortVods() {
-        return this.vods_list.sort((a, b) => {
+        return this.getVods().sort((a, b) => {
             if (!a.started_at || !b.started_at) return 0;
             return a.started_at.getTime() - b.started_at.getTime();
         });
-    }
-
-    get displayName(): string {
-        return "";
-    }
-
-    get internalName(): string {
-        return "";
-    }
-
-    get internalId(): string {
-        return "";
-    }
-
-    get description(): string {
-        return "";
-    }
-
-    get url(): string {
-        return "";
-    }
-
-    get profilePictureUrl(): string {
-        return "";
     }
 
     /**
@@ -403,9 +411,9 @@ export class BaseChannel {
      * @returns
      */
     public async deleteAllVods(): Promise<boolean> {
-        const total_vods = this.getVods().length;
+        const totalVods = this.getVods().length;
 
-        if (total_vods === 0) {
+        if (totalVods === 0) {
             log(
                 LOGLEVEL.INFO,
                 "channel.deleteAllVods",
@@ -414,7 +422,7 @@ export class BaseChannel {
             throw new Error(`No vods to delete for ${this.internalName}`);
         }
 
-        let deleted_vods = 0;
+        let deletedVods = 0;
         for (const vod of this.getVods()) {
             try {
                 await vod.delete();
@@ -428,9 +436,9 @@ export class BaseChannel {
                 );
                 continue;
             }
-            deleted_vods++;
+            deletedVods++;
         }
-        return deleted_vods == total_vods;
+        return deletedVods == totalVods;
     }
 
     /**
@@ -455,9 +463,9 @@ export class BaseChannel {
             `Remove VOD JSON for ${this.internalName}: ${uuid}`
         );
 
-        vod.stopWatching();
+        void vod.stopWatching();
 
-        this.vods_list = this.vods_list.filter((v) => v.uuid !== uuid);
+        this.vods_list = this.getVods().filter((v) => v.uuid !== uuid);
 
         // remove vod from database
         this.removeVodFromDatabase(
@@ -488,10 +496,10 @@ export class BaseChannel {
     }
 
     public getVodByIndex(index: number): BaseVOD | undefined {
-        if (index < 0 || index >= this.vods_list.length) {
+        if (index < 0 || index >= this.getVods().length) {
             return undefined;
         }
-        return this.vods_list[index];
+        return this.getVods().at(index);
     }
 
     /**
@@ -519,23 +527,23 @@ export class BaseChannel {
             "channel.delete",
             `Deleting channel ${this.internalName}`
         );
-        const index_config =
+        const configIndex =
             LiveStreamDVR.getInstance().channels_config.findIndex(
                 (ch) => ch.provider == "twitch" && ch.uuid === uuid
             );
-        if (index_config !== -1) {
-            LiveStreamDVR.getInstance().channels_config.splice(index_config, 1);
+        if (configIndex !== -1) {
+            LiveStreamDVR.getInstance().channels_config.splice(configIndex, 1);
         }
 
-        const index_channel = LiveStreamDVR.getInstance()
+        const channelIndex = LiveStreamDVR.getInstance()
             .getChannels()
             .findIndex((ch) => ch.uuid === uuid);
-        if (index_channel !== -1) {
-            LiveStreamDVR.getInstance().removeChannelByIndex(index_channel);
+        if (channelIndex !== -1) {
+            LiveStreamDVR.getInstance().removeChannelByIndex(channelIndex);
         }
 
         // TODO: unsub
-        if (this.internalId) this.unsubscribe();
+        if (this.internalId) void this.unsubscribe();
 
         LiveStreamDVR.getInstance().saveChannelsConfig();
 
@@ -546,89 +554,92 @@ export class BaseChannel {
         if (!this.internalName) return;
         this.clips_list = [];
 
-        const clips_downloader_folder = path.join(
+        const clipsDownloaderFolder = path.join(
             BaseConfigDataFolder.saved_clips,
             "downloader",
             this.internalName
         );
-        const clips_downloader = fs.existsSync(clips_downloader_folder)
+        const clipsDownloaderFiles = fs.existsSync(clipsDownloaderFolder)
             ? fs
-                  .readdirSync(clips_downloader_folder)
+                  .readdirSync(clipsDownloaderFolder)
                   .filter((f) => f.endsWith(".mp4"))
-                  .map((f) => path.join(clips_downloader_folder, f))
+                  .map((f) => path.join(clipsDownloaderFolder, f))
             : [];
 
-        const clips_scheduler_folder = path.join(
+        const clipsSchedulerFolder = path.join(
             BaseConfigDataFolder.saved_clips,
             "scheduler",
             this.internalName
         );
-        const clips_scheduler = fs.existsSync(clips_scheduler_folder)
+        const clipsSchedulerFiles = fs.existsSync(clipsSchedulerFolder)
             ? fs
-                  .readdirSync(clips_scheduler_folder)
+                  .readdirSync(clipsSchedulerFolder)
                   .filter((f) => f.endsWith(".mp4"))
-                  .map((f) => path.join(clips_scheduler_folder, f))
+                  .map((f) => path.join(clipsSchedulerFolder, f))
             : [];
 
-        const clips_editor_folder = path.join(
+        const clipsEditorFolder = path.join(
             BaseConfigDataFolder.saved_clips,
             "editor",
             this.internalName
         );
-        const clips_editor = fs.existsSync(clips_editor_folder)
+        const clipsEditorFiles = fs.existsSync(clipsEditorFolder)
             ? fs
-                  .readdirSync(clips_editor_folder)
+                  .readdirSync(clipsEditorFolder)
                   .filter((f) => f.endsWith(".mp4"))
-                  .map((f) => path.join(clips_editor_folder, f))
+                  .map((f) => path.join(clipsEditorFolder, f))
             : [];
 
-        const all_clips = clips_downloader
-            .concat(clips_scheduler)
-            .concat(clips_editor);
+        const allClips = clipsDownloaderFiles
+            .concat(clipsSchedulerFiles)
+            .concat(clipsEditorFiles);
 
-        for (const clip_path of all_clips) {
-            let video_metadata: VideoMetadata | AudioMetadata;
+        for (const clipPath of allClips) {
+            let videoMetadata: VideoMetadata | AudioMetadata;
 
             try {
-                video_metadata = await videometadata(clip_path);
+                videoMetadata = await videometadata(clipPath);
             } catch (error) {
                 log(
                     LOGLEVEL.ERROR,
                     "channel.findClips",
-                    `Failed to get video metadata for clip ${clip_path}: ${
+                    `Failed to get video metadata for clip ${clipPath}: ${
                         (error as Error).message
                     }`
                 );
                 continue;
             }
 
-            if (!video_metadata || video_metadata.type !== "video") continue;
+            if (!videoMetadata || videoMetadata.type !== "video") continue;
 
             let thumbnail;
             try {
-                thumbnail = await videoThumbnail(clip_path, 240);
+                thumbnail = await videoThumbnail(clipPath, 240);
             } catch (error) {
                 log(
                     LOGLEVEL.ERROR,
                     "channel.findClips",
-                    `Failed to generate thumbnail for ${clip_path}: ${error}`
+                    `Failed to generate thumbnail for ${clipPath}: ${
+                        (error as Error).message
+                    }`,
+                    error
                 );
             }
 
-            let clip_metadata = undefined;
-            if (fs.existsSync(clip_path.replace(".mp4", ".info.json"))) {
+            let clipMetadata = undefined;
+            if (fs.existsSync(clipPath.replace(".mp4", ".info.json"))) {
                 try {
-                    clip_metadata = JSON.parse(
+                    clipMetadata = JSON.parse(
                         fs.readFileSync(
-                            clip_path.replace(".mp4", ".info.json"),
+                            clipPath.replace(".mp4", ".info.json"),
                             "utf8"
                         )
-                    );
+                    ) as Clip;
                 } catch (error) {
                     log(
                         LOGLEVEL.ERROR,
                         "channel.findClips",
-                        `Failed to read clip metadata for ${clip_path}: ${
+                        `Failed to read clip metadata for ${clipPath}: ${
                             (error as Error).message
                         }`
                     );
@@ -638,16 +649,16 @@ export class BaseChannel {
             const clip: LocalClip = {
                 folder: path.relative(
                     BaseConfigDataFolder.saved_clips,
-                    path.dirname(clip_path)
+                    path.dirname(clipPath)
                 ),
-                basename: path.basename(clip_path),
-                extension: path.extname(clip_path).substring(1),
+                basename: path.basename(clipPath),
+                extension: path.extname(clipPath).substring(1),
                 channel: this.internalName,
-                duration: video_metadata.duration,
-                size: video_metadata.size,
-                video_metadata: video_metadata,
+                duration: videoMetadata.duration,
+                size: videoMetadata.size,
+                video_metadata: videoMetadata,
                 thumbnail: thumbnail || "dummy",
-                clip_metadata: clip_metadata,
+                clip_metadata: clipMetadata,
             };
 
             this.clips_list.push(clip);
@@ -696,7 +707,7 @@ export class BaseChannel {
             .forEach((v) => {
                 // if (!(v instanceof TwitchVOD)) return;
                 // if (v.channel_uuid !== this.uuid) return;
-                v.stopWatching();
+                void v.stopWatching();
             });
         // LiveStreamDVR.getInstance().vods = LiveStreamDVR.getInstance().vods.filter(v => v.channel_uuid !== this.uuid);
         LiveStreamDVR.getInstance().removeAllVodsByChannelUUID(this.uuid);
@@ -758,48 +769,47 @@ export class BaseChannel {
         if (!Config.getInstance().cfg("channel_folders")) return; // only if channel folders are enabled
         if (!Config.getInstance().cfg("storage.clean_empty_vod_folders"))
             return; // only if clean empty vod folders is enabled
-        const vod_folder = this.getFolder();
+        const vodFolder = this.getFolder();
         // only if channel folder is not the root folder
-        if (vod_folder === BaseConfigDataFolder.vod) {
+        if (vodFolder === BaseConfigDataFolder.vod) {
             debugLog(
-                `Not deleting empty folder ${vod_folder} because it is the root folder`
+                `Not deleting empty folder ${vodFolder} because it is the root folder`
             );
             return;
         }
-        const vod_folders = readdirSync(vod_folder).filter((f) =>
-            fs.statSync(path.join(vod_folder, f)).isDirectory()
+        const vodFolders = readdirSync(vodFolder).filter((f) =>
+            fs.statSync(path.join(vodFolder, f)).isDirectory()
         );
-        for (const vf of vod_folders) {
+        for (const vf of vodFolders) {
             debugLog(`Checking if folder ${vf} is empty`);
-            if (readdirSync(path.join(vod_folder, vf)).length === 0) {
-                fs.rmdirSync(path.join(vod_folder, vf)); // hopefully empty, on linux this will throw an error if not empty but i don't know about windows
-                debugLog(`Deleting empty folder ${vod_folder}`);
+            if (readdirSync(path.join(vodFolder, vf)).length === 0) {
+                fs.rmdirSync(path.join(vodFolder, vf)); // hopefully empty, on linux this will throw an error if not empty but i don't know about windows
+                debugLog(`Deleting empty folder ${vodFolder}`);
             } else {
                 debugLog(`Folder ${vf} is not empty`);
             }
         }
     }
 
-    get channelLogoExists(): boolean {
-        throw new Error("Method not implemented.");
-    }
-
     public getTotalVodsSizeComparedToDisk(): number {
         if (this.getFolder() === BaseConfigDataFolder.vod) return 0; // don't count root folder
 
         const vods = this.getVods();
-        let total_channel_size = 0;
+        let totalChannelSize = 0;
         for (const vod of vods) {
-            for (const afile of vod.associatedFiles) {
-                const afile_path = path.join(vod.directory, afile);
-                if (!fs.existsSync(afile_path)) continue;
-                total_channel_size += fs.statSync(afile_path).size;
+            for (const associatedFile of vod.associatedFiles) {
+                const associatedFilePath = path.join(
+                    vod.directory,
+                    associatedFile
+                );
+                if (!fs.existsSync(associatedFilePath)) continue;
+                totalChannelSize += fs.statSync(associatedFilePath).size;
             }
         }
 
-        const total_disk_size = directorySize(this.getFolder());
+        const totalDiskSize = directorySize(this.getFolder());
 
-        return total_channel_size - total_disk_size;
+        return totalChannelSize - totalDiskSize;
     }
 
     /**
@@ -812,11 +822,11 @@ export class BaseChannel {
         job.save();
         job.broadcastUpdate(); // manual send
 
-        const totalVods = this.vods_list.length;
+        const totalVods = this.getVods().length;
         let completedVods = 0;
         let failedVods = 0;
 
-        for (const vod of this.vods_list) {
+        for (const vod of this.getVods()) {
             if (vod.exportData.exported_at && !force) {
                 completedVods++;
                 log(
@@ -837,7 +847,7 @@ export class BaseChannel {
                 continue;
             }
 
-            const exporter_name = Config.getInstance().cfg<string>(
+            const exporterName = Config.getInstance().cfg<string>(
                 "exporter.default.exporter",
                 ""
             );
@@ -864,7 +874,7 @@ export class BaseChannel {
 
             let exporter: Exporter | undefined;
             try {
-                exporter = GetExporter(exporter_name, "vod", options);
+                exporter = GetExporter(exporterName, "vod", options);
             } catch (error) {
                 log(
                     LOGLEVEL.ERROR,
@@ -899,12 +909,12 @@ export class BaseChannel {
                 log(
                     LOGLEVEL.INFO,
                     "route.channel.ExportAllVods",
-                    `Exporting VOD '${vod.basename}' as '${formattedTitle}' with exporter '${exporter_name}'`
+                    `Exporting VOD '${vod.basename}' as '${formattedTitle}' with exporter '${exporterName}'`
                 );
 
-                let out_path;
+                let outPath;
                 try {
-                    out_path = await exporter.export();
+                    outPath = await exporter.export();
                 } catch (error) {
                     log(
                         LOGLEVEL.ERROR,
@@ -931,7 +941,7 @@ export class BaseChannel {
                     continue;
                 }
 
-                if (out_path) {
+                if (outPath) {
                     let status;
                     try {
                         status = await exporter.verify();
@@ -962,7 +972,7 @@ export class BaseChannel {
                         if (exporter.vod && status) {
                             exporter.vod.exportData.exported_at =
                                 new Date().toISOString();
-                            exporter.vod.exportData.exporter = exporter_name;
+                            exporter.vod.exportData.exporter = exporterName;
                             await exporter.vod.saveJSON("export successful");
                         }
                         completedVods++;

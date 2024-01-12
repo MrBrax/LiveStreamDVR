@@ -184,7 +184,7 @@ export async function HookTwitch(
                     "hook.HookTwitch",
                     "Invalid signature check for challenge!"
                 );
-                await KeyValue.getInstance().setAsync(
+                KeyValue.getInstance().set(
                     `${channel_id}.substatus.${sub_type}`,
                     SubStatus.FAILED
                 );
@@ -198,7 +198,7 @@ export async function HookTwitch(
                 debugMeta
             );
 
-            await KeyValue.getInstance().setAsync(
+            KeyValue.getInstance().set(
                 `${channel_id}.substatus.${sub_type}`,
                 SubStatus.SUBSCRIBED
             );
@@ -292,13 +292,17 @@ export async function HookTwitch(
             };
 
             const TA = new TwitchAutomator();
-            /* await */ TA.handle(data_json, metadata_proxy).catch((error) => {
-                log(
-                    LOGLEVEL.FATAL,
-                    "hook.HookTwitch",
-                    `Automator returned error: ${error.message}`
-                );
-            });
+            /* await */ TA.handle(data_json, metadata_proxy).catch(
+                (error: Error) => {
+                    log(
+                        LOGLEVEL.FATAL,
+                        "hook.HookTwitch",
+                        `Automator returned error: ${error.message}`,
+                        error
+                    );
+                    console.error(error);
+                }
+            );
             res.status(200).send("");
             return;
         } else {

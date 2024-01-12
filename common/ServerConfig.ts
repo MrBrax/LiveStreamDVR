@@ -295,6 +295,14 @@ export const settingsFields: Record<string, SettingField> = {
         help: 'This removes the "Commercial break in progress", but stream is probably going to be cut off anyway',
     },
 
+    "capture.hls_segment_queue_threshold": {
+        group: "Capture",
+        text: "HLS segment queue threshold",
+        type: "number",
+        default: 0,
+        help: "If set to 0, it will be ignored.",
+    },
+
     "capture.use_cache": {
         group: "Capture",
         text: "Use cache",

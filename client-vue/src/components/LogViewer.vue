@@ -15,17 +15,17 @@
     <div ref="logViewer" class="log_viewer">
         <table>
             <tr v-for="(line, lineIndex) in logFiltered" :key="lineIndex" :class="logLineClass(line)">
-                <td v-if="line.metadata?.timestamp">
+                <td v-if="line.metadata?.timestamp" class="log-line-timestamp">
                     {{ formatDate(line.metadata.timestamp) }}
                 </td>
-                <td v-else>(no date)</td>
+                <td v-else class="log-line-timestamp">(no date)</td>
                 <td>
                     <a @click="logSetFilter(line.metadata?.module || '')">{{ line.metadata?.module || "Unknown" }}</a>
                 </td>
                 <td>
                     {{ line.level || "UNKNOWN" }}
                 </td>
-                <td @click="expandLog(lineIndex)">
+                <td @click="expandLog(lineIndex)" class="log-line-message">
                     {{ line.message }}
                 </td>
             </tr>
@@ -200,6 +200,15 @@ defineExpose({
 
     .log-line {
         color: var(--log-color-default);
+
+        .log-line-timestamp {
+            white-space: nowrap;
+        }
+
+        .log-line-message {
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
 
         &.log-line-success {
             // color: #3ea335;

@@ -1,34 +1,34 @@
 import { Job } from "@/Core/Job";
 import { log, LOGLEVEL } from "@/Core/Log";
+import { xClearInterval, xInterval } from "@/Helpers/Timeout";
 import fs from "node:fs";
 import path from "node:path";
 import sanitize from "sanitize-filename";
 import { BaseExporter } from "./Base";
-import { xClearInterval, xInterval } from "@/Helpers/Timeout";
 
+/**
+ * Basic file exporter to copy the VOD to a directory on the local filesystem.
+ */
 export class FileExporter extends BaseExporter {
     public type = "File";
-
     public directory = "";
-
+    public supportsDirectories = true;
     private final_path = "";
 
-    public supportsDirectories = true;
-
-    setDirectory(directory: string): void {
+    public setDirectory(directory: string): void {
         if (!directory) throw new Error("No directory");
         this.directory = directory;
     }
 
-    async export(): Promise<boolean | string> {
+    public override async export(): Promise<boolean | string> {
         if (!this.filename) throw new Error("No filename");
         if (!this.extension) throw new Error("No extension");
         if (!this.getFormattedTitle()) throw new Error("No title");
 
-        const final_filename =
+        const finalFilename =
             sanitize(this.getFormattedTitle()) + "." + this.extension;
 
-        this.final_path = path.join(this.directory, final_filename);
+        this.final_path = path.join(this.directory, finalFilename);
 
         if (fs.existsSync(this.final_path)) {
             throw new Error(`File already exists: ${this.final_path}`);
@@ -67,9 +67,16 @@ export class FileExporter extends BaseExporter {
         return fs.existsSync(this.final_path) ? this.final_path : false;
     }
 
-    async verify(): Promise<boolean> {
+    public override async verify(): Promise<boolean> {
         return await new Promise<boolean>((resolve, reject) => {
-            resolve(fs.existsSync(this.final_path));
+            // resolve(fs.existsSync(this.final_path));
+            fs.access(this.final_path, fs.constants.F_OK, (err) => {
+                if (err) {
+                    reject(err);
+                } else {
+                    resolve(true);
+                }
+            });
         });
     }
 }

@@ -588,6 +588,9 @@ export const useStore = defineStore("twitchAutomator", {
             if (config === null) return false;
             return true; // TODO: actual validation from the same function the server uses
         },
+        hasJob(name: string): boolean {
+            return this.jobList.findIndex((j) => j.name === name) !== -1;
+        }
     },
     getters: {
         isAnyoneLive(): boolean {

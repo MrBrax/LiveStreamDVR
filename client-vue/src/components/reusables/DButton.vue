@@ -1,6 +1,6 @@
 <template>
     <button :class="buttonClass" @click="onClick">
-        <span v-if="icon" class="icon">
+        <span v-if="properIcon" class="icon">
             <font-awesome-icon :icon="properIcon" :spin="iconSpin" />
         </span>
         <span v-if="slots.default"><slot /></span>
@@ -10,6 +10,10 @@
 
 <script lang="ts" setup>
 import { computed, useSlots } from "vue";
+import { library } from "@fortawesome/fontawesome-svg-core";
+import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
+import { faSpinner } from "@fortawesome/free-solid-svg-icons";
+library.add(faSpinner);
 
 const slots = useSlots();
 

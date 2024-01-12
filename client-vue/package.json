@@ -1,6 +1,6 @@
 {
   "name": "livestreamdvr-client",
-  "version": "2.4.1",
+  "version": "2.4.2",
   "private": true,
   "homepage": "https://github.com/MrBrax/LiveStreamDVR",
   "scripts": {
@@ -28,6 +28,7 @@
     "chart.js": "^4.3.0",
     "core-js": "^3.31.1",
     "date-fns": "^2.30.0",
+    "modern-normalize": "^2.0.0",
     "normalize.css": "^8.0.1",
     "pinia": "^2.1.7",
     "vue": "^3.3.7",
@@ -68,6 +69,6 @@
   },
   "packageManager": "yarn@4.0.1",
   "engines": {
-    "node": ">=18"
+    "node": ">=20"
   }
 }

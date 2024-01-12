@@ -30,6 +30,7 @@ import type { BinaryStatus } from "@common/Api/About";
 import type { ChannelConfig } from "@common/Config";
 import { SubStatus } from "@common/Defs";
 import checkDiskSpace from "check-disk-space";
+import readdirRecursive from "fs-readdir-recursive";
 import i18next, { t } from "i18next";
 import path from "node:path";
 import type { WebSocketServer } from "ws";
@@ -257,7 +258,9 @@ export class LiveStreamDVR {
                 log(
                     LOGLEVEL.WARNING,
                     "dvr.loadChannelsConfig",
-                    `Channel ${channel.login} has no quality set, setting to default`
+                    `Channel ${
+                        channel.internalId || channel.login
+                    } has no quality set, setting to default`
                 );
                 channel.quality = ["best"];
                 needsSave = true;
@@ -474,16 +477,19 @@ export class LiveStreamDVR {
 
     public cleanLingeringVODs(): void {
         this.vods.forEach((vod) => {
-            const channel = vod.getChannel();
-            if (!channel) {
+            let channel;
+            try {
+                channel = vod.getChannel();
+            } catch (error) {
                 log(
-                    LOGLEVEL.WARNING,
+                    LOGLEVEL.ERROR,
                     "dvr.cleanLingeringVODs",
                     `Channel ${vod.getChannel().internalName} removed but VOD ${
                         vod.basename
                     } still lingering`
                 );
             }
+
             if (!fs.existsSync(vod.filename)) {
                 log(
                     LOGLEVEL.WARNING,
@@ -521,6 +527,10 @@ export class LiveStreamDVR {
         this.vods.push(vod);
     }
 
+    /**
+     * Adds a channel to the main channel list.
+     * @param channel - The channel to be added.
+     */
     public addChannel(channel: ChannelTypes): void {
         if (!channel.uuid) {
             log(
@@ -703,7 +713,7 @@ export class LiveStreamDVR {
                     path.join(BaseConfigCacheFolder.cache, "currentversion.dat")
                 )
             ) {
-                const old_version = fs.readFileSync(
+                const oldVersion = fs.readFileSync(
                     path.join(
                         BaseConfigCacheFolder.cache,
                         "currentversion.dat"
@@ -713,12 +723,12 @@ export class LiveStreamDVR {
                 let compare;
                 try {
                     compare =
-                        compareVersions(version, old_version) == -1 &&
+                        compareVersions(version, oldVersion) == -1 &&
                         !this.argv["ignore-version"];
                 } catch (error) {
                     console.log(
                         chalk.bgRed.whiteBright(
-                            `Could not compare version ${version} to ${old_version}: ${
+                            `Could not compare version ${version} to ${oldVersion}: ${
                                 (error as Error).message
                             }`
                         )
@@ -728,7 +738,7 @@ export class LiveStreamDVR {
                 if (compare) {
                     console.log(
                         chalk.bgRed.whiteBright(
-                            `Server has been started with an older version than the data folder (old ${old_version}, current ${version}).`
+                            `Server has been started with an older version than the data folder (old ${oldVersion}, current ${version}).`
                         )
                     );
                     console.log(
@@ -847,33 +857,33 @@ export class LiveStreamDVR {
         }
 
         for (const channel of TwitchChannel.getChannels()) {
-            for (const sub_type of TwitchHelper.CHANNEL_SUB_TYPES) {
+            for (const subType of TwitchHelper.CHANNEL_SUB_TYPES) {
                 if (
                     KeyValue.getInstance().get(
-                        `${channel.internalId}.substatus.${sub_type}`
+                        `${channel.internalId}.substatus.${subType}`
                     ) === SubStatus.WAITING
                 ) {
                     errors.push(
-                        `${channel.internalName} is waiting for subscription ${sub_type}. Please check the config.`
+                        `${channel.internalName} is waiting for subscription ${subType}. Please check the config.`
                     );
                 } else if (
                     KeyValue.getInstance().get(
-                        `${channel.internalId}.substatus.${sub_type}`
+                        `${channel.internalId}.substatus.${subType}`
                     ) === SubStatus.FAILED
                 ) {
                     errors.push(
-                        `${channel.internalName} failed to subscribe ${sub_type}. Please check the config.`
+                        `${channel.internalName} failed to subscribe ${subType}. Please check the config.`
                     );
                 } else if (
                     KeyValue.getInstance().get(
-                        `${channel.internalId}.substatus.${sub_type}`
+                        `${channel.internalId}.substatus.${subType}`
                     ) === SubStatus.NONE ||
                     !KeyValue.getInstance().has(
-                        `${channel.internalId}.substatus.${sub_type}`
+                        `${channel.internalId}.substatus.${subType}`
                     )
                 ) {
                     errors.push(
-                        `${channel.internalName} is not subscribed to ${sub_type}. Please check the config and subscribe.`
+                        `${channel.internalName} is not subscribed to ${subType}. Please check the config and subscribe.`
                     );
                 }
             }
@@ -953,6 +963,19 @@ export class LiveStreamDVR {
                         );
                     }
                 }
+            }
+        }
+
+        // check for ts files in storage
+        const files = readdirRecursive(BaseConfigDataFolder.storage);
+        for (const file of files) {
+            if (file.endsWith(".ts")) {
+                errors.push(
+                    `Found ts file in storage folder: ${path.join(
+                        BaseConfigDataFolder.storage,
+                        file
+                    )}`
+                );
             }
         }
 
@@ -1046,11 +1069,11 @@ export class LiveStreamDVR {
             "Checking python virtual environment..."
         );
 
-        const is_enabled = Config.getInstance().cfg<boolean>(
+        const isEnabled = Config.getInstance().cfg<boolean>(
             "python.enable_pipenv"
         );
 
-        if (!is_enabled) {
+        if (!isEnabled) {
             log(
                 LOGLEVEL.INFO,
                 "dvr.venvcheck",
@@ -1059,8 +1082,8 @@ export class LiveStreamDVR {
             return;
         }
 
-        const has_pipenv = Helper.path_pipenv();
-        if (!has_pipenv) {
+        const hasPipenv = Helper.path_pipenv();
+        if (!hasPipenv) {
             log(
                 LOGLEVEL.ERROR,
                 "dvr.venvcheck",
@@ -1069,8 +1092,8 @@ export class LiveStreamDVR {
             return;
         }
 
-        const venv_path = await Helper.path_venv();
-        if (!venv_path && Helper.path_pipenv()) {
+        const venvPath = await Helper.path_venv();
+        if (!venvPath && Helper.path_pipenv()) {
             console.log(
                 chalk.red(
                     "Python virtual environment is enabled but not found."
@@ -1082,7 +1105,7 @@ export class LiveStreamDVR {
             process.exit(1);
         }
 
-        if (!venv_path) {
+        if (!venvPath) {
             log(
                 LOGLEVEL.ERROR,
                 "dvr.venvcheck",
@@ -1091,20 +1114,20 @@ export class LiveStreamDVR {
             return;
         }
 
-        if (venv_path !== Config.getInstance().cfg("python.virtualenv_path")) {
+        if (venvPath !== Config.getInstance().cfg("python.virtualenv_path")) {
             log(
                 LOGLEVEL.INFO,
                 "dvr.venvcheck",
                 "Updating python virtual environment path in config."
             );
-            Config.getInstance().setConfig("python.virtualenv_path", venv_path);
+            Config.getInstance().setConfig("python.virtualenv_path", venvPath);
             Config.getInstance().saveConfig();
         }
 
         log(
             LOGLEVEL.INFO,
             "dvr.venvcheck",
-            `Python virtual environment path: ${venv_path}`
+            `Python virtual environment path: ${venvPath}`
         );
     }
 

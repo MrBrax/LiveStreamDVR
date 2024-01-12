@@ -313,7 +313,7 @@ export async function DeleteChannel(
         return;
     }
 
-    if (req.query.deletevods == "1" && channel.vods_list.length > 0) {
+    if (req.query.deletevods == "1" && channel.getVods().length > 0) {
         try {
             await channel.deleteAllVods();
         } catch (error) {
@@ -923,7 +923,7 @@ export async function DownloadVideo(
             `${basename}.${Config.getInstance().cfg("vod_container", "mp4")}`
         );
 
-        if (TwitchVOD.hasVod(basename)) {
+        if (TwitchVOD.getVodByCaptureId(video.stream_id || video_id)) {
             res.api(400, {
                 status: "ERROR",
                 message: req.t("route.channels.vod-already-exists-basename", [
@@ -979,7 +979,8 @@ export async function DownloadVideo(
             let vod: TwitchVOD;
             try {
                 vod = await channel.createVOD(
-                    path.join(basefolder, `${basename}.json`)
+                    path.join(basefolder, `${basename}.json`),
+                    video.stream_id || video_id
                 );
             } catch (error) {
                 res.api(400, {
@@ -1407,15 +1408,9 @@ export async function RefreshChannel(
     }
 
     if (!isLive) {
-        await KeyValue.getInstance().deleteAsync(
-            `${channel.internalName}.online`
-        );
-        await KeyValue.getInstance().deleteAsync(
-            `${channel.internalName}.vod.id`
-        );
-        await KeyValue.getInstance().deleteAsync(
-            `${channel.internalName}.vod.started_at`
-        );
+        KeyValue.getInstance().delete(`${channel.internalName}.online`);
+        KeyValue.getInstance().delete(`${channel.internalName}.vod.id`);
+        KeyValue.getInstance().delete(`${channel.internalName}.vod.started_at`);
     }
 
     if (success) {
@@ -1520,7 +1515,7 @@ export async function ForceRecord(
                     online: true,
                 } as TwitchVODChapterJSON;
 
-                await KeyValue.getInstance().setObjectAsync(
+                KeyValue.getInstance().setObject(
                     `${stream.user_login}.chapterdata`,
                     chapter_data
                 );
@@ -1574,11 +1569,11 @@ export async function ForceRecord(
             YA.channel = channel;
             // YA.handle(mock_data, req);
 
-            await KeyValue.getInstance().setAsync(
+            KeyValue.getInstance().set(
                 `yt.${YA.getUserID()}.vod.started_at`,
                 streams.snippet?.publishedAt || new Date().toISOString()
             );
-            await KeyValue.getInstance().setAsync(
+            KeyValue.getInstance().set(
                 `yt.${YA.getUserID()}.vod.id`,
                 streams.id?.videoId || "fake"
             );

@@ -84,7 +84,7 @@ If you want the public webapp to have a custom base folder, you must provide `BA
 ## Standalone setup
 
 ### Main requirements
-- [node.js](https://nodejs.org/) 18+
+- [node.js](https://nodejs.org/) 20+
 - npm and yarn 3+
 - Python 3.9+
 - [pip](https://pypi.org/project/pip/)

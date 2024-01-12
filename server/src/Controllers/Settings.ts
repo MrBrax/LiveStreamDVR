@@ -48,15 +48,12 @@ export async function GetSettings(
             guest: is_guest,
             quotas: {
                 twitch: {
-                    max_total_cost: await KeyValue.getInstance().getIntAsync(
+                    max_total_cost: KeyValue.getInstance().getInt(
                         "twitch.max_total_cost"
                     ),
-                    total_cost: await KeyValue.getInstance().getIntAsync(
-                        "twitch.total_cost"
-                    ),
-                    total: await KeyValue.getInstance().getIntAsync(
-                        "twitch.total"
-                    ),
+                    total_cost:
+                        KeyValue.getInstance().getInt("twitch.total_cost"),
+                    total: KeyValue.getInstance().getInt("twitch.total"),
                 },
             },
             websocket_quotas: websocketQuotas,

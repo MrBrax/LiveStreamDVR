@@ -28,7 +28,6 @@ import { format, formatDistanceToNow, isValid, parseJSON } from "date-fns";
 import { t } from "i18next";
 import { spawn } from "node:child_process";
 import fs from "node:fs";
-import type { IncomingHttpHeaders } from "node:http";
 import path from "node:path";
 import sanitize from "sanitize-filename";
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "../../BaseConfig";
@@ -47,35 +46,36 @@ import { TwitchVOD } from "../Twitch/TwitchVOD";
 // import { ChatDumper } from "../../../twitch-chat-dumper/ChatDumper";
 
 export class BaseAutomator {
-    vod: VODTypes | undefined;
-    channel: ChannelTypes | undefined;
+    public vod: VODTypes | undefined;
+    public channel: ChannelTypes | undefined;
 
-    realm = "base";
+    public realm = "base";
 
     public broadcaster_user_id = "";
     public broadcaster_user_login = "";
     public broadcaster_user_name = "";
 
-    /** @deprecated */
-    payload_headers: IncomingHttpHeaders | undefined;
+    public force_record = false;
+    public stream_resolution: VideoQuality | undefined;
 
-    /** @deprecated */
-    // data_cache: EventSubResponse | undefined;
+    public capture_filename = "";
+    public converted_filename = "";
+    public chat_filename = "";
 
-    force_record = false;
-    stream_resolution: VideoQuality | undefined;
-
-    capture_filename = "";
-    converted_filename = "";
-    chat_filename = "";
-
-    captureJob: Job | undefined;
-    chatJob: Job | undefined;
+    public captureJob: Job | undefined;
+    public chatJob: Job | undefined;
 
     private vod_season?: string; // why is this a string
     private vod_absolute_season?: number;
     private vod_episode?: number;
     private vod_absolute_episode?: number;
+
+    private is24HourStream = false;
+
+    private chunks_missing = 0;
+    private stream_pause?: Partial<StreamPause>;
+
+    private vod_id = "";
 
     public basedir(): string {
         if (Config.getInstance().cfg<boolean>("vod_folders")) {
@@ -189,10 +189,7 @@ export class BaseAutomator {
     }
 
     public getVodID(): string | false {
-        const id = KeyValue.getInstance().get(`${this.getLogin()}.vod.id`);
-        if (id) {
-            return id;
-        } else {
+        if (!KeyValue.getInstance().has(`${this.getLogin()}.vod.id`)) {
             log(
                 LOGLEVEL.ERROR,
                 "automator.getVodID",
@@ -200,7 +197,8 @@ export class BaseAutomator {
             );
             return false;
         }
-        // return $this->payload['id'];
+
+        return KeyValue.getInstance().get(`${this.getLogin()}.vod.id`)!;
     }
 
     public getUserID(): string {
@@ -216,10 +214,15 @@ export class BaseAutomator {
     }
 
     public getStartDate(): string {
-        return (
-            KeyValue.getInstance().get(`${this.getLogin()}.vod.started_at`) ||
-            ""
-        );
+        if (!KeyValue.getInstance().has(`${this.getLogin()}.vod.started_at`)) {
+            log(
+                LOGLEVEL.ERROR,
+                "automator.getStartDate",
+                `No start date for ${this.getLogin()}`
+            );
+            return "";
+        }
+        return KeyValue.getInstance().get(`${this.getLogin()}.vod.started_at`)!;
     }
 
     public getTitle(): string {
@@ -266,51 +269,52 @@ export class BaseAutomator {
         return this.channel.livestreamUrl;
     }
 
-    // public async handle(data: EventSubResponse, request: express.Request): Promise<boolean> {
-    //     return false;
-    // }
-
     public async updateGame(from_cache = false, no_run_check = false) {
-        return false;
+        return await Promise.resolve(false);
     }
 
-    notifyChapterChange(channel: TwitchChannel) {
+    /**
+     * Notifies the chapter change to the providers.
+     *
+     * @param channel - The Twitch channel.
+     */
+    public notifyChapterChange(channel: TwitchChannel) {
         const vod = channel.latest_vod;
         if (!vod) return;
 
         if (!vod.chapters || vod.chapters.length == 0) return;
 
-        const current_chapter = vod.chapters[vod.chapters.length - 1];
-        const previous_chapter =
+        const currentChapter = vod.chapters[vod.chapters.length - 1];
+        const previousChapter =
             vod.chapters.length > 2
                 ? vod.chapters[vod.chapters.length - 2]
                 : null;
 
         let title = "";
-        const body = current_chapter.title;
+        const body = currentChapter.title;
         const icon = channel.profilePictureUrl;
 
-        if (current_chapter && !isTwitchVODChapter(current_chapter)) return;
-        if (previous_chapter && !isTwitchVODChapter(previous_chapter)) return;
+        if (currentChapter && !isTwitchVODChapter(currentChapter)) return;
+        if (previousChapter && !isTwitchVODChapter(previousChapter)) return;
 
         let category: NotificationCategory = "streamStatusChange";
         if (
-            (!previous_chapter?.game_id && current_chapter.game_id) || // game changed from null to something
-            (previous_chapter?.game_id &&
-                current_chapter.game_id &&
-                previous_chapter.game_id !== current_chapter.game_id) // game changed
+            (!previousChapter?.game_id && currentChapter.game_id) || // game changed from null to something
+            (previousChapter?.game_id &&
+                currentChapter.game_id &&
+                previousChapter.game_id !== currentChapter.game_id) // game changed
         ) {
-            if (nonGameCategories.includes(current_chapter.game_name)) {
-                if (current_chapter.game?.isFavourite()) {
+            if (nonGameCategories.includes(currentChapter.game_name)) {
+                if (currentChapter.game?.isFavourite()) {
                     title = t(
                         "notify.channel-displayname-is-online-with-one-of-your-favourite-categories-current_chapter-game_name",
-                        [channel.displayName, current_chapter.game_name]
+                        [channel.displayName, currentChapter.game_name]
                     );
                     category = "streamStatusChangeFavourite";
-                } else if (current_chapter.game_name) {
+                } else if (currentChapter.game_name) {
                     title = t(
                         "notify.channel-displayname-is-now-streaming-current_chapter-game_name",
-                        [channel.displayName, current_chapter.game_name]
+                        [channel.displayName, currentChapter.game_name]
                     );
                 } else {
                     title = t(
@@ -319,16 +323,16 @@ export class BaseAutomator {
                     );
                 }
             } else {
-                if (current_chapter.game?.isFavourite()) {
+                if (currentChapter.game?.isFavourite()) {
                     title = t(
                         "notify.channel-displayname-is-now-playing-one-of-your-favourite-games-current_chapter-game_name",
-                        [channel.displayName, current_chapter.game_name]
+                        [channel.displayName, currentChapter.game_name]
                     );
                     category = "streamStatusChangeFavourite";
-                } else if (current_chapter.game_name) {
+                } else if (currentChapter.game_name) {
                     title = t(
                         "notify.channel-displayname-is-now-playing-current_chapter-game_name",
-                        [channel.displayName, current_chapter.game_name]
+                        [channel.displayName, currentChapter.game_name]
                     );
                 } else {
                     title = t(
@@ -337,20 +341,20 @@ export class BaseAutomator {
                     );
                 }
             }
-        } else if (previous_chapter?.game_id && !current_chapter.game_id) {
+        } else if (previousChapter?.game_id && !currentChapter.game_id) {
             title = t(
                 "notify.channel-displayname-is-now-streaming-without-a-game",
                 [channel.displayName]
             );
-        } else if (!previous_chapter?.game_id && !current_chapter.game_id) {
+        } else if (!previousChapter?.game_id && !currentChapter.game_id) {
             title = t(
                 "notify.channel-displayname-is-still-streaming-without-a-game",
                 [channel.displayName]
             );
-        } else if (previous_chapter?.title !== current_chapter.title) {
+        } else if (previousChapter?.title !== currentChapter.title) {
             title = t(
                 "notify.channel-displayname-changed-title-still-playing-streaming-current_chapter-game_name",
-                [channel.displayName, current_chapter.game_name]
+                [channel.displayName, currentChapter.game_name]
             );
         }
 
@@ -360,8 +364,8 @@ export class BaseAutomator {
                 "automator.notifyChapterChange",
                 `No title generated for ${channel.displayName} chapter change.`,
                 {
-                    previous_chapter,
-                    current_chapter,
+                    previous_chapter: previousChapter,
+                    current_chapter: currentChapter,
                     body,
                     icon,
                     category,
@@ -381,7 +385,7 @@ export class BaseAutomator {
     public async getChapterData(
         event: ChannelUpdateEvent
     ): Promise<TwitchVODChapterJSON> {
-        const chapter_data = {
+        const chapterData = {
             started_at: new Date().toISOString(),
             game_id: event.category_id,
             game_name: event.category_name,
@@ -399,9 +403,9 @@ export class BaseAutomator {
 
             if (streams && streams.length > 0) {
                 if (
-                    !(await KeyValue.getInstance().getBoolAsync(
+                    !KeyValue.getInstance().getBool(
                         `${this.broadcaster_user_login}.online`
-                    ))
+                    )
                 ) {
                     log(
                         LOGLEVEL.INFO,
@@ -410,7 +414,7 @@ export class BaseAutomator {
                     );
                 }
 
-                await KeyValue.getInstance().setBoolAsync(
+                KeyValue.getInstance().setBool(
                     `${this.broadcaster_user_login}.online`,
                     true
                 ); // if status has somehow been set to false, set it back to true
@@ -418,7 +422,7 @@ export class BaseAutomator {
                 const stream = streams[0];
 
                 if (stream.viewer_count !== undefined) {
-                    chapter_data.viewer_count = stream.viewer_count;
+                    chapterData.viewer_count = stream.viewer_count;
 
                     if (this.vod) {
                         this.vod.viewers.push({
@@ -442,22 +446,7 @@ export class BaseAutomator {
             }
         }
 
-        return chapter_data;
-    }
-
-    private async cleanup() {
-        // const vods = fs.readdirSync(TwitchHelper.vodFolder(this.getLogin())).filter(f => f.startsWith(`${this.getLogin()}_`) && f.endsWith(".json"));
-
-        if (!this.channel) {
-            log(
-                LOGLEVEL.ERROR,
-                "automator.cleanup",
-                `Tried to cleanup ${this.broadcaster_user_login} but channel was not available.`
-            );
-            return;
-        }
-
-        await this.channel.cleanupVods(this.vod?.uuid);
+        return chapterData;
     }
 
     /**
@@ -471,7 +460,7 @@ export class BaseAutomator {
     public async end(): Promise<boolean> {
         log(LOGLEVEL.INFO, "automator.end", "Stream end");
 
-        await KeyValue.getInstance().setAsync(
+        KeyValue.getInstance().set(
             `${this.broadcaster_user_login}.last.offline`,
             new Date().toISOString()
         );
@@ -530,9 +519,9 @@ export class BaseAutomator {
 
         // download latest vod from channel. is the end hook late enough for it to be available?
         if (this.channel && this.channel.download_vod_at_end) {
-            let download_success = "";
+            let downloadSuccess = "";
             try {
-                download_success = await this.channel.downloadLatestVod(
+                downloadSuccess = await this.channel.downloadLatestVod(
                     this.channel.download_vod_at_end_quality
                 );
             } catch (err) {
@@ -545,7 +534,7 @@ export class BaseAutomator {
                     err
                 );
             }
-            if (download_success !== "") {
+            if (downloadSuccess !== "") {
                 log(
                     LOGLEVEL.INFO,
                     "automator.end",
@@ -557,13 +546,9 @@ export class BaseAutomator {
             }
         }
 
-        await KeyValue.getInstance().deleteAsync(
-            `${this.broadcaster_user_login}.online`
-        );
-        await KeyValue.getInstance().deleteAsync(
-            `${this.broadcaster_user_login}.vod.id`
-        );
-        await KeyValue.getInstance().deleteAsync(
+        KeyValue.getInstance().delete(`${this.broadcaster_user_login}.online`);
+        KeyValue.getInstance().delete(`${this.broadcaster_user_login}.vod.id`);
+        KeyValue.getInstance().delete(
             `${this.broadcaster_user_login}.vod.started_at`
         );
 
@@ -680,7 +665,7 @@ export class BaseAutomator {
                                         ) {
                                             exporter.vod.exportData.exported_at =
                                                 new Date().toISOString();
-                                            exporter.vod.saveJSON(
+                                            void exporter.vod.saveJSON(
                                                 "export successful"
                                             );
                                         }
@@ -768,9 +753,7 @@ export class BaseAutomator {
             }
         }
 
-        await KeyValue.getInstance().deleteAsync(
-            `${this.broadcaster_user_login}.offline`
-        );
+        KeyValue.getInstance().delete(`${this.broadcaster_user_login}.offline`);
 
         return true;
     }
@@ -784,11 +767,17 @@ export class BaseAutomator {
         this.vod_absolute_episode = s.absolute_stream_number;
     }
 
+    /**
+     * Starts the capture of the stream.
+     * @param tries The number of download attempts made (optional, default is 0).
+     * @returns A Promise that resolves to a boolean indicating whether the download was successful.
+     * @throws An error if the channel is not found, no VOD ID is supplied, or if the download fails.
+     */
     public async download(tries = 0): Promise<boolean> {
         // const data_title = this.getTitle();
-        const data_started = this.getStartDate();
-        const data_id = this.getVodID();
-        const data_username = this.getUsername();
+        const dataStarted = this.getStartDate();
+        const dataId = this.getVodID();
+        const dataUsername = this.getUsername();
 
         // const channel = TwitchChannel.getChannelByLogin(this.getLogin());
 
@@ -796,7 +785,7 @@ export class BaseAutomator {
             throw new Error(`Channel ${this.getLogin()} not found, weird.`);
         }
 
-        if (!data_id) {
+        if (!dataId) {
             log(
                 LOGLEVEL.ERROR,
                 "automator.download",
@@ -805,9 +794,7 @@ export class BaseAutomator {
             throw new Error("No vod id supplied");
         }
 
-        if (
-            await KeyValue.getInstance().hasAsync(`${this.getLogin()}.vod.id`)
-        ) {
+        if (KeyValue.getInstance().has(`${this.getLogin()}.vod.id`)) {
             log(
                 LOGLEVEL.ERROR,
                 "automator.download",
@@ -815,7 +802,7 @@ export class BaseAutomator {
             );
         }
 
-        const temp_basename = this.vodBasenameTemplate();
+        const tempBasename = this.vodBasenameTemplate();
 
         // if running
         const job = Job.findJob(
@@ -831,7 +818,7 @@ export class BaseAutomator {
             log(
                 LOGLEVEL.FATAL,
                 "automator.download",
-                `Stream already capturing to ${meta.basename} from ${data_username}, but reached download function regardless!`
+                `Stream already capturing to ${meta.basename} from ${dataUsername}, but reached download function regardless!`
             );
             this.fallbackCapture()
                 .then(() => {
@@ -865,7 +852,7 @@ export class BaseAutomator {
             log(
                 LOGLEVEL.INFO,
                 "automator.download",
-                `Check keyword matches for ${temp_basename}`
+                `Check keyword matches for ${tempBasename}`
             );
 
             for (const m of this.channel.match) {
@@ -879,7 +866,7 @@ export class BaseAutomator {
                 log(
                     LOGLEVEL.WARNING,
                     "automator.download",
-                    `Cancel download of ${temp_basename} due to missing keywords`
+                    `Cancel download of ${tempBasename} due to missing keywords`
                 );
                 return false;
             }
@@ -891,17 +878,17 @@ export class BaseAutomator {
         const basename = this.vodBasenameTemplate();
 
         // folder base depends on vod season/episode now
-        const folder_base = this.fulldir();
-        if (!fs.existsSync(folder_base)) {
+        const folderBase = this.fulldir();
+        if (!fs.existsSync(folderBase)) {
             log(
                 LOGLEVEL.DEBUG,
                 "automator.download",
-                `Making folder for ${temp_basename}.`
+                `Making folder for ${tempBasename}.`
             );
-            fs.mkdirSync(folder_base, { recursive: true });
+            fs.mkdirSync(folderBase, { recursive: true });
         }
 
-        if (TwitchVOD.hasVod(basename)) {
+        if (TwitchVOD.hasVod(basename) || TwitchVOD.getVodByCaptureId(dataId)) {
             log(
                 LOGLEVEL.ERROR,
                 "automator.download",
@@ -931,7 +918,8 @@ export class BaseAutomator {
         // create the vod and put it inside this class
         try {
             this.vod = await this.channel.createVOD(
-                path.join(folder_base, `${basename}.json`)
+                path.join(folderBase, `${basename}.json`),
+                dataId
             );
         } catch (error) {
             log(
@@ -951,8 +939,8 @@ export class BaseAutomator {
         // }
 
         // this.vod.json.meta = $this.payload_eventsub; // what
-        this.vod.capture_id = this.getVodID() || "1";
-        this.vod.started_at = parseJSON(data_started);
+        this.vod.capture_id = dataId || "1";
+        this.vod.started_at = parseJSON(dataStarted);
 
         // this.vod.stream_number = this.channel.incrementStreamNumber();
         // this.vod.stream_season = this.channel.current_season; /** @TODO: field? **/
@@ -976,36 +964,36 @@ export class BaseAutomator {
 
         // update the game + title if it wasn't updated already
         log(LOGLEVEL.INFO, "automator.download", `Update game for ${basename}`);
-        if (
-            await KeyValue.getInstance().hasAsync(
-                `${this.getLogin()}.chapterdata`
-            )
-        ) {
+        if (KeyValue.getInstance().has(`${this.getLogin()}.chapterdata`)) {
             await this.updateGame(true, true);
             // KeyValue.delete(`${this.getLogin()}.channeldata`);
         }
 
-        const container_ext =
+        const containerExtension =
             this.channel.quality && this.channel.quality[0] === "audio_only"
                 ? Config.AudioContainer
                 : Config.getInstance().cfg("vod_container", "mp4");
 
+        // decide on the capture filename
         if (Config.getInstance().cfg("capture.use_cache", false)) {
             this.capture_filename = path.join(
                 BaseConfigCacheFolder.capture,
-                `${basename}.ts`
+                `${this.getLogin()}_${this.getVodID()}_${format(
+                    new Date(),
+                    "yyyy-MM-dd_HH-mm-ss"
+                )}.ts`
             );
         } else {
-            this.capture_filename = path.join(folder_base, `${basename}.ts`);
+            this.capture_filename = path.join(folderBase, `${basename}.ts`);
         }
 
         this.vod.capturingFilename = this.capture_filename;
 
         this.converted_filename = path.join(
-            folder_base,
-            `${basename}.${container_ext}`
+            folderBase,
+            `${basename}.${containerExtension}`
         );
-        this.chat_filename = path.join(folder_base, `${basename}.chatdump`);
+        this.chat_filename = path.join(folderBase, `${basename}.chatdump`);
 
         // capture with streamlink, this is the crucial point in this entire program
         this.startCaptureChat();
@@ -1019,15 +1007,19 @@ export class BaseAutomator {
             this.vod.startWatchingViewerCount();
         }
 
+        this.vod.not_started = false;
+
+        // fingers crossed, this is where the capture happens
         try {
             await this.captureVideo();
         } catch (error) {
             log(
                 LOGLEVEL.FATAL,
                 "automator.download",
-                `Failed to capture video: ${error}`
+                `Failed to capture video: ${(error as Error).message}`,
+                error
             );
-            this.endCaptureChat();
+            void this.endCaptureChat();
             // capture viewer count if enabled
             if (this.vod && isTwitchVOD(this.vod))
                 this.vod.stopWatchingViewerCount();
@@ -1038,23 +1030,23 @@ export class BaseAutomator {
             return false;
         }
 
-        this.endCaptureChat();
+        void this.endCaptureChat();
 
         if (this.vod && isTwitchVOD(this.vod))
             this.vod.stopWatchingViewerCount();
 
-        const capture_success =
+        const captureSuccess =
             fs.existsSync(this.capture_filename) &&
             fs.statSync(this.capture_filename).size > 0;
 
         // send internal webhook for capture start
         Webhook.dispatchAll("end_capture", {
             vod: await this.vod.toAPI(),
-            success: capture_success,
+            success: captureSuccess,
         } as EndCaptureData);
 
         // error handling if nothing got downloaded
-        if (!capture_success) {
+        if (!captureSuccess) {
             log(
                 LOGLEVEL.WARNING,
                 "automator.download",
@@ -1068,8 +1060,8 @@ export class BaseAutomator {
                     `Giving up on downloading, too many tries for ${basename}`
                 );
                 fs.renameSync(
-                    path.join(folder_base, `${basename}.json`),
-                    path.join(folder_base, `${basename}.json.broken`)
+                    path.join(folderBase, `${basename}.json`),
+                    path.join(folderBase, `${basename}.json.broken`)
                 );
                 throw new Error("Too many tries");
                 // TODO: fatal error
@@ -1165,18 +1157,18 @@ export class BaseAutomator {
                 // sleep(10);
                 await Sleep(10 * 1000);
 
-                const convert_success =
+                const convertSuccess =
                     fs.existsSync(this.capture_filename) &&
                     fs.existsSync(this.converted_filename) &&
                     fs.statSync(this.converted_filename).size > 0;
                 // send internal webhook for convert start
                 Webhook.dispatchAll("end_convert", {
                     vod: await this.vod.toAPI(),
-                    success: convert_success,
+                    success: convertSuccess,
                 } as EndConvertData);
 
                 // remove ts if both files exist
-                if (convert_success) {
+                if (convertSuccess) {
                     log(
                         LOGLEVEL.DEBUG,
                         "automator.download",
@@ -1203,7 +1195,9 @@ export class BaseAutomator {
                 );
 
                 this.vod.is_converting = false;
-                this.vod.addSegment(path.basename(this.converted_filename));
+                await this.vod.addSegment(
+                    path.basename(this.converted_filename)
+                );
 
                 if (this.vod.segments.length > 1) {
                     log(
@@ -1227,7 +1221,7 @@ export class BaseAutomator {
                 "automator.download",
                 `No conversion for ${basename}, just add segments`
             );
-            this.vod.addSegment(path.basename(this.capture_filename));
+            await this.vod.addSegment(path.basename(this.capture_filename));
             await this.vod.saveJSON("add segment");
         }
 
@@ -1248,7 +1242,8 @@ export class BaseAutomator {
             log(
                 LOGLEVEL.FATAL,
                 "automator.download",
-                `Failed to finalize ${basename}: ${error}`
+                `Failed to finalize ${basename}: ${(error as Error).message}`,
+                error
             );
             await this.vod.saveJSON("failed to finalize");
         }
@@ -1261,7 +1256,7 @@ export class BaseAutomator {
         log(
             LOGLEVEL.INFO,
             "automator.download",
-            `Cleanup old VODs for ${data_username}`
+            `Cleanup old VODs for ${dataUsername}`
         );
         await this.cleanup();
 
@@ -1284,17 +1279,28 @@ export class BaseAutomator {
             vod: await this.vod.toAPI(),
         } as VodUpdated);
 
-        this.onEndDownload();
+        await this.onEndDownload();
 
         return true;
     }
 
+    /**
+     * Returns an array of provider arguments.
+     * Override this method to add custom arguments.
+     *
+     * @returns {string[]} The provider arguments.
+     */
     public providerArgs(): string[] {
         return [];
     }
 
-    private chunks_missing = 0;
-    private stream_pause?: Partial<StreamPause>;
+    /**
+     * A function to do things with the incoming log data from streamlink.
+     * For example, check for errors or ad-breaks.
+     *
+     * @param source - The source of the data, either "stdout" or "stderr".
+     * @param data - The ticker data received from the streamlink.
+     */
     public captureTicker(source: "stdout" | "stderr", data: string) {
         if (data == null || data == undefined || typeof data !== "string") {
             log(
@@ -1321,10 +1327,18 @@ export class BaseAutomator {
             );
         }
 
+        if (data.includes("already exists, use --force to overwrite")) {
+            log(
+                LOGLEVEL.FATAL,
+                "automator.captureTicker",
+                `File already exists for ${basename}!`
+            );
+        }
+
         // get stream resolution
-        const res_match = data.match(/stream:\s([0-9_a-z]+)\s/);
-        if (res_match) {
-            this.stream_resolution = res_match[1] as VideoQuality;
+        const resolutionMatch = data.match(/stream:\s([0-9_a-z]+)\s/);
+        if (resolutionMatch) {
+            this.stream_resolution = resolutionMatch[1] as VideoQuality;
             if (this.vod) this.vod.stream_resolution = this.stream_resolution;
             log(
                 LOGLEVEL.INFO,
@@ -1594,18 +1608,23 @@ export class BaseAutomator {
 
         // timeout due to ads
         cmd.push(
-            "--hls-timeout",
+            "--stream-timeout",
             Config.getInstance().cfg("hls_timeout", 120).toString()
         );
 
         // timeout due to ads
         cmd.push(
-            "--hls-segment-timeout",
+            "--stream-segment-timeout",
             Config.getInstance().cfg("hls_timeout", 120).toString()
         );
 
+        // streamlink 6.0.0 timeout
+        if (Config.getInstance().cfg("capture.hls_segment_queue_threshold", 0) != 0) {
+            cmd.push("--hls-segment-queue-threshold", Config.getInstance().cfg("capture.hls_segment_queue_threshold", 0).toString());
+        }
+
         // The size of the thread pool used to download HLS segments.
-        cmd.push("--hls-segment-threads", "5");
+        cmd.push("--stream-segment-threads", "5");
 
         // Output container format
         cmd.push("--ffmpeg-fout", "mpegts"); // default is apparently matroska?
@@ -1661,7 +1680,7 @@ export class BaseAutomator {
 
             const basename = this.vodBasenameTemplate();
 
-            const stream_url = this.streamURL();
+            const streamUrl = this.streamURL();
 
             const bin = Helper.path_streamlink();
 
@@ -1675,7 +1694,7 @@ export class BaseAutomator {
                 return;
             }
 
-            const cmd = this.captureStreamlinkArguments(stream_url);
+            const cmd = this.captureStreamlinkArguments(streamUrl);
 
             this.vod.capture_started = new Date();
             this.vod.saveJSON("dt_capture_started set");
@@ -1827,7 +1846,8 @@ export class BaseAutomator {
                 log(
                     LOGLEVEL.ERROR,
                     "automator.captureVideo",
-                    `Error with streamlink for ${basename}: ${err}`
+                    `Error with streamlink for ${basename}: ${err.message}`,
+                    err
                 );
                 reject(false);
             });
@@ -1840,334 +1860,12 @@ export class BaseAutomator {
             // this.vod.generatePlaylistFile();
 
             // send internal webhook for capture start
-            this.vod.toAPI().then((vod) => {
+            void this.vod.toAPI().then((vod) => {
                 Webhook.dispatchAll("start_capture", {
                     vod: vod,
                 } as VodUpdated);
             });
         });
-    }
-
-    is24HourStream = false;
-
-    /**
-     * Fallback capture for when you really really want to capture a VOD even if it's a duplicate or whatever
-     */
-    public fallbackCapture(): Promise<boolean> {
-        if (
-            !Config.getInstance().cfg("capture.fallbackcapture") &&
-            !this.is24HourStream
-        ) {
-            return Promise.reject(new Error("Fallback capture disabled"));
-        }
-
-        return new Promise((resolve, reject) => {
-            const basename = `${this.getVodID()}_${format(
-                new Date(),
-                "yyyy-MM-dd_HH-mm-ss"
-            )}`;
-
-            const stream_url = this.streamURL();
-
-            const bin = Helper.path_streamlink();
-
-            const capture_filename = path.join(
-                BaseConfigDataFolder.saved_vods,
-                `${basename}.mp4`
-            );
-
-            if (!bin) {
-                log(
-                    LOGLEVEL.ERROR,
-                    "automator.fallbackCapture",
-                    "Streamlink not found"
-                );
-                reject(false);
-                return;
-            }
-
-            const cmd = this.captureStreamlinkArguments(stream_url);
-
-            log(
-                LOGLEVEL.INFO,
-                "automator.fallbackCapture",
-                `Starting fallback capture with filename ${path.basename(
-                    capture_filename
-                )}`
-            );
-
-            // TODO: use TwitchHelper.startJob instead
-
-            // spawn process
-            const capture_process = spawn(bin, cmd, {
-                cwd: path.dirname(capture_filename),
-                windowsHide: true,
-            });
-
-            // make job for capture
-            let capture_job: Job;
-            const jobName = `fbcapture_${this.getLogin()}_${this.getVodID()}`;
-
-            if (capture_process.pid) {
-                log(
-                    LOGLEVEL.SUCCESS,
-                    "automator.fallbackCapture",
-                    `Spawned process ${capture_process.pid} for ${jobName}`
-                );
-                capture_job = Job.create(jobName);
-                capture_job.setPid(capture_process.pid);
-                capture_job.setExec(bin, cmd);
-                capture_job.setProcess(capture_process);
-                capture_job.startLog(jobName, `$ ${bin} ${cmd.join(" ")}\n`);
-                capture_job.addMetadata({
-                    login: this.getLogin(), // TODO: username?
-                    capture_filename: capture_filename,
-                    stream_id: this.getVodID(),
-                });
-                if (!capture_job.save()) {
-                    log(
-                        LOGLEVEL.ERROR,
-                        "automator.fallbackCapture",
-                        `Failed to save job ${jobName}`
-                    );
-                }
-            } else {
-                log(
-                    LOGLEVEL.FATAL,
-                    "automator.fallbackCapture",
-                    `Failed to spawn capture process for ${jobName}`
-                );
-                reject(false);
-                return;
-            }
-
-            let lastSize = 0;
-            const keepaliveAlert = () => {
-                if (fs.existsSync(capture_filename)) {
-                    const size = fs.statSync(capture_filename).size;
-                    const bitRate = (size - lastSize) / 120;
-                    lastSize = size;
-                    console.log(
-                        chalk.bgGreen.whiteBright(
-                            `🎥 ${new Date().toISOString()} ${basename} ${
-                                this.stream_resolution
-                            } ` +
-                                `${formatBytes(size)} / ${Math.round(
-                                    (bitRate * 8) / 1000
-                                )} kbps`
-                        )
-                    );
-                } else {
-                    console.log(
-                        chalk.bgRed.whiteBright(
-                            `🎥 ${new Date().toISOString()} ${basename} missing`
-                        )
-                    );
-                }
-            };
-
-            const keepalive = xInterval(keepaliveAlert, 120 * 1000);
-
-            // critical end
-            capture_process.on("close", (code, signal) => {
-                if (code === 0) {
-                    log(
-                        LOGLEVEL.SUCCESS,
-                        "automator.fallbackCapture",
-                        `Job ${jobName} exited with code 0, signal ${signal}`
-                    );
-                } else {
-                    log(
-                        LOGLEVEL.ERROR,
-                        "automator.fallbackCapture",
-                        `Job ${jobName} exited with code ${code}, signal ${signal}`
-                    );
-                }
-
-                xClearInterval(keepalive);
-
-                if (capture_job) {
-                    capture_job.clear();
-                }
-
-                if (
-                    fs.existsSync(capture_filename) &&
-                    fs.statSync(capture_filename).size > 0
-                ) {
-                    resolve(true);
-                } else {
-                    log(
-                        LOGLEVEL.ERROR,
-                        "automator.fallbackCapture",
-                        `Capture ${basename} failed`
-                    );
-                    reject(false);
-                }
-            });
-
-            this.chunks_missing = 0;
-
-            // attach output to parsing
-            capture_process.stdout.on("data", (data) => {
-                this.captureTicker("stdout", data);
-            });
-            capture_process.stderr.on("data", (data) => {
-                this.captureTicker("stderr", data);
-            });
-
-            // check for errors
-            capture_process.on("error", (err) => {
-                xClearInterval(keepalive);
-                log(
-                    LOGLEVEL.ERROR,
-                    "automator.fallbackCapture",
-                    `Error with streamlink for ${basename}: ${err}`
-                );
-                reject(false);
-            });
-        });
-    }
-
-    /**
-     * Capture chat in a "detached" process
-     */
-    startCaptureChat(): boolean {
-        // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
-
-        // chat capture
-        if (this.channel && this.channel.live_chat && this.realm == "twitch") {
-            const data_started = this.getStartDate();
-            // const data_id = this.getVodID();
-            const data_login = this.getLogin();
-            // const data_username = this.getUsername();
-            const data_userid = this.getUserID();
-
-            /*
-            const chat_bin = "node";
-            const chat_cmd: string[] = [];
-
-            // todo: execute directly in node?
-            chat_cmd.push(path.join(AppRoot, "twitch-chat-dumper", "build", "index.js"));
-            chat_cmd.push("--channel", data_login);
-            chat_cmd.push("--userid", data_userid);
-            chat_cmd.push("--date", data_started);
-            chat_cmd.push("--output", this.chat_filename);
-
-            logAdvanced(LOGLEVEL.INFO, "automator", `Starting chat dump with filename ${path.basename(this.chat_filename)}`);
-
-            const chat_job = Helper.startJob(`chatdump_${this.basename()}`, chat_bin, chat_cmd);
-            */
-
-            const chat_job = TwitchChannel.startChatDump(
-                `${this.getLogin()}_${this.getVodID()}`,
-                data_login,
-                data_userid,
-                parseJSON(data_started),
-                this.chat_filename
-            );
-
-            if (chat_job && chat_job.pid) {
-                this.chatJob = chat_job;
-                this.chatJob.addMetadata({
-                    username: data_login,
-                    basename: this.vodBasenameTemplate(),
-                    chat_filename: this.chat_filename,
-                });
-            } else {
-                log(
-                    LOGLEVEL.ERROR,
-                    "automator.captureChat",
-                    `Failed to start chat dump job with filename ${path.basename(
-                        this.chat_filename
-                    )}`
-                );
-                return false;
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Kill the process, stopping chat capture
-     */
-    async endCaptureChat(): Promise<void> {
-        if (this.chatJob) {
-            log(
-                LOGLEVEL.INFO,
-                "automator.endCaptureChat",
-                `Ending chat dump with filename ${path.basename(
-                    this.chat_filename
-                )}`
-            );
-            await this.chatJob.kill();
-        }
-    }
-
-    // maybe use this?
-    async compressChat(): Promise<boolean> {
-        if (fs.existsSync(this.chat_filename)) {
-            await execSimple("gzip", [this.chat_filename], "compress chat");
-            return fs.existsSync(`${this.chat_filename}.gz`);
-        }
-        return false;
-    }
-
-    async convertVideo(): Promise<boolean> {
-        if (!this.vod) throw new Error("VOD not set");
-
-        Webhook.dispatchAll("start_convert", {
-            vod: await this.vod.toAPI(),
-        } as VodUpdated);
-
-        let mf;
-        if (
-            Config.getInstance().cfg("create_video_chapters") &&
-            (await this.vod.saveFFMPEGChapters())
-        ) {
-            mf = this.vod.path_ffmpegchapters;
-        }
-
-        let result: RemuxReturn;
-
-        try {
-            result = await remuxFile(
-                this.capture_filename,
-                this.converted_filename,
-                false,
-                mf
-            );
-        } catch (err) {
-            log(
-                LOGLEVEL.ERROR,
-                "automator.convertVideo",
-                `Failed to convert video: ${err}`
-            );
-            return false;
-        }
-
-        if (result && result.success) {
-            log(
-                LOGLEVEL.SUCCESS,
-                "automator.convertVideo",
-                `Converted video ${this.capture_filename} to ${this.converted_filename}`
-            );
-        } else {
-            log(
-                LOGLEVEL.ERROR,
-                "automator.convertVideo",
-                `Failed to convert video ${this.capture_filename} to ${this.converted_filename}`
-            );
-        }
-
-        Webhook.dispatchAll("end_convert", {
-            vod: await this.vod.toAPI(),
-            success: result && result.success,
-        } as EndConvertData);
-
-        return result && result.success;
     }
 
     public async burnChat(): Promise<void> {
@@ -2216,10 +1914,10 @@ export class BaseAutomator {
             burnOffset: 0,
         };
 
-        let status_renderchat, status_burnchat;
+        let statusRenderchat, statusBurnchat;
 
         try {
-            status_renderchat = await this.vod.renderChat(
+            statusRenderchat = await this.vod.renderChat(
                 settings.chatWidth,
                 settings.chatHeight,
                 settings.chatFont,
@@ -2233,7 +1931,7 @@ export class BaseAutomator {
         }
 
         try {
-            status_burnchat = await this.vod.burnChat(
+            statusBurnchat = await this.vod.burnChat(
                 settings.burnHorizontal,
                 settings.burnVertical,
                 settings.ffmpegPreset,
@@ -2250,7 +1948,344 @@ export class BaseAutomator {
         log(
             LOGLEVEL.INFO,
             "automator.burnChat",
-            `Render: ${status_renderchat}, Burn: ${status_burnchat}`
+            `Render: ${statusRenderchat}, Burn: ${statusBurnchat}`
         );
+    }
+
+    /**
+     * Fallback capture for when you really really want to capture a VOD even if it's a duplicate or whatever
+     */
+    public fallbackCapture(): Promise<boolean> {
+        if (
+            !Config.getInstance().cfg("capture.fallbackcapture") &&
+            !this.is24HourStream
+        ) {
+            return Promise.reject(new Error("Fallback capture disabled"));
+        }
+
+        return new Promise((resolve, reject) => {
+            const basename = `${this.getVodID()}_${format(
+                new Date(),
+                "yyyy-MM-dd_HH-mm-ss"
+            )}`;
+
+            const streamUrl = this.streamURL();
+
+            const bin = Helper.path_streamlink();
+
+            const captureFilename = path.join(
+                BaseConfigDataFolder.saved_vods,
+                `${basename}.mp4`
+            );
+
+            if (!bin) {
+                log(
+                    LOGLEVEL.ERROR,
+                    "automator.fallbackCapture",
+                    "Streamlink not found"
+                );
+                reject(false);
+                return;
+            }
+
+            const cmd = this.captureStreamlinkArguments(streamUrl);
+
+            log(
+                LOGLEVEL.INFO,
+                "automator.fallbackCapture",
+                `Starting fallback capture with filename ${path.basename(
+                    captureFilename
+                )}`
+            );
+
+            // TODO: use TwitchHelper.startJob instead
+
+            // spawn process
+            const captureProcess = spawn(bin, cmd, {
+                cwd: path.dirname(captureFilename),
+                windowsHide: true,
+            });
+
+            // make job for capture
+            let captureJob: Job;
+            const jobName = `fbcapture_${this.getLogin()}_${this.getVodID()}`;
+
+            if (captureProcess.pid) {
+                log(
+                    LOGLEVEL.SUCCESS,
+                    "automator.fallbackCapture",
+                    `Spawned process ${captureProcess.pid} for ${jobName}`
+                );
+                captureJob = Job.create(jobName);
+                captureJob.setPid(captureProcess.pid);
+                captureJob.setExec(bin, cmd);
+                captureJob.setProcess(captureProcess);
+                captureJob.startLog(jobName, `$ ${bin} ${cmd.join(" ")}\n`);
+                captureJob.addMetadata({
+                    login: this.getLogin(), // TODO: username?
+                    capture_filename: captureFilename,
+                    stream_id: this.getVodID(),
+                });
+                if (!captureJob.save()) {
+                    log(
+                        LOGLEVEL.ERROR,
+                        "automator.fallbackCapture",
+                        `Failed to save job ${jobName}`
+                    );
+                }
+            } else {
+                log(
+                    LOGLEVEL.FATAL,
+                    "automator.fallbackCapture",
+                    `Failed to spawn capture process for ${jobName}`
+                );
+                reject(false);
+                return;
+            }
+
+            let lastSize = 0;
+            const keepaliveAlert = () => {
+                if (fs.existsSync(captureFilename)) {
+                    const size = fs.statSync(captureFilename).size;
+                    const bitRate = (size - lastSize) / 120;
+                    lastSize = size;
+                    console.log(
+                        chalk.bgGreen.whiteBright(
+                            `🎥 ${new Date().toISOString()} ${basename} ${
+                                this.stream_resolution
+                            } ` +
+                                `${formatBytes(size)} / ${Math.round(
+                                    (bitRate * 8) / 1000
+                                )} kbps`
+                        )
+                    );
+                } else {
+                    console.log(
+                        chalk.bgRed.whiteBright(
+                            `🎥 ${new Date().toISOString()} ${basename} missing`
+                        )
+                    );
+                }
+            };
+
+            const keepalive = xInterval(keepaliveAlert, 120 * 1000);
+
+            // critical end
+            captureProcess.on("close", (code, signal) => {
+                if (code === 0) {
+                    log(
+                        LOGLEVEL.SUCCESS,
+                        "automator.fallbackCapture",
+                        `Job ${jobName} exited with code 0, signal ${signal}`
+                    );
+                } else {
+                    log(
+                        LOGLEVEL.ERROR,
+                        "automator.fallbackCapture",
+                        `Job ${jobName} exited with code ${code}, signal ${signal}`
+                    );
+                }
+
+                xClearInterval(keepalive);
+
+                if (captureJob) {
+                    captureJob.clear();
+                }
+
+                if (
+                    fs.existsSync(captureFilename) &&
+                    fs.statSync(captureFilename).size > 0
+                ) {
+                    resolve(true);
+                } else {
+                    log(
+                        LOGLEVEL.ERROR,
+                        "automator.fallbackCapture",
+                        `Capture ${basename} failed`
+                    );
+                    reject(false);
+                }
+            });
+
+            this.chunks_missing = 0;
+
+            // attach output to parsing
+            captureProcess.stdout.on("data", (data) => {
+                this.captureTicker("stdout", data);
+            });
+            captureProcess.stderr.on("data", (data) => {
+                this.captureTicker("stderr", data);
+            });
+
+            // check for errors
+            captureProcess.on("error", (err) => {
+                xClearInterval(keepalive);
+                log(
+                    LOGLEVEL.ERROR,
+                    "automator.fallbackCapture",
+                    `Error with streamlink for ${basename}: ${err.message}`,
+                    err
+                );
+                reject(false);
+            });
+        });
+    }
+
+    /**
+     * Capture chat in a "detached" process
+     */
+    private startCaptureChat(): boolean {
+        // const channel = TwitchChannel.getChannelByLogin(this.broadcaster_user_login);
+
+        // chat capture
+        if (this.channel && this.channel.live_chat && this.realm == "twitch") {
+            const dataStarted = this.getStartDate();
+            // const data_id = this.getVodID();
+            const dataLogin = this.getLogin();
+            // const data_username = this.getUsername();
+            const dataUserId = this.getUserID();
+
+            /*
+            const chat_bin = "node";
+            const chat_cmd: string[] = [];
+
+            // todo: execute directly in node?
+            chat_cmd.push(path.join(AppRoot, "twitch-chat-dumper", "build", "index.js"));
+            chat_cmd.push("--channel", data_login);
+            chat_cmd.push("--userid", data_userid);
+            chat_cmd.push("--date", data_started);
+            chat_cmd.push("--output", this.chat_filename);
+
+            logAdvanced(LOGLEVEL.INFO, "automator", `Starting chat dump with filename ${path.basename(this.chat_filename)}`);
+
+            const chat_job = Helper.startJob(`chatdump_${this.basename()}`, chat_bin, chat_cmd);
+            */
+
+            const chatJob = TwitchChannel.startChatDump(
+                `${this.getLogin()}_${this.getVodID()}`,
+                dataLogin,
+                dataUserId,
+                parseJSON(dataStarted),
+                this.chat_filename
+            );
+
+            if (chatJob && chatJob.pid) {
+                this.chatJob = chatJob;
+                this.chatJob.addMetadata({
+                    username: dataLogin,
+                    basename: this.vodBasenameTemplate(),
+                    chat_filename: this.chat_filename,
+                });
+            } else {
+                log(
+                    LOGLEVEL.ERROR,
+                    "automator.captureChat",
+                    `Failed to start chat dump job with filename ${path.basename(
+                        this.chat_filename
+                    )}`
+                );
+                return false;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Kill the process, stopping chat capture
+     */
+    private async endCaptureChat(): Promise<void> {
+        if (this.chatJob) {
+            log(
+                LOGLEVEL.INFO,
+                "automator.endCaptureChat",
+                `Ending chat dump with filename ${path.basename(
+                    this.chat_filename
+                )}`
+            );
+            await this.chatJob.kill();
+        }
+    }
+
+    // maybe use this?
+    private async compressChat(): Promise<boolean> {
+        if (fs.existsSync(this.chat_filename)) {
+            await execSimple("gzip", [this.chat_filename], "compress chat");
+            return fs.existsSync(`${this.chat_filename}.gz`);
+        }
+        return false;
+    }
+
+    private async convertVideo(): Promise<boolean> {
+        if (!this.vod) throw new Error("VOD not set");
+
+        Webhook.dispatchAll("start_convert", {
+            vod: await this.vod.toAPI(),
+        } as VodUpdated);
+
+        let mf;
+        if (
+            Config.getInstance().cfg("create_video_chapters") &&
+            (await this.vod.saveFFMPEGChapters())
+        ) {
+            mf = this.vod.path_ffmpegchapters;
+        }
+
+        let result: RemuxReturn;
+
+        try {
+            result = await remuxFile(
+                this.capture_filename,
+                this.converted_filename,
+                false,
+                mf
+            );
+        } catch (err) {
+            log(
+                LOGLEVEL.ERROR,
+                "automator.convertVideo",
+                `Failed to convert video: ${(err as Error).message}`,
+                err
+            );
+            return false;
+        }
+
+        if (result && result.success) {
+            log(
+                LOGLEVEL.SUCCESS,
+                "automator.convertVideo",
+                `Converted video ${this.capture_filename} to ${this.converted_filename}`
+            );
+        } else {
+            log(
+                LOGLEVEL.ERROR,
+                "automator.convertVideo",
+                `Failed to convert video ${this.capture_filename} to ${this.converted_filename}`
+            );
+        }
+
+        Webhook.dispatchAll("end_convert", {
+            vod: await this.vod.toAPI(),
+            success: result && result.success,
+        } as EndConvertData);
+
+        return result && result.success;
+    }
+
+    private async cleanup() {
+        // const vods = fs.readdirSync(TwitchHelper.vodFolder(this.getLogin())).filter(f => f.startsWith(`${this.getLogin()}_`) && f.endsWith(".json"));
+
+        if (!this.channel) {
+            log(
+                LOGLEVEL.ERROR,
+                "automator.cleanup",
+                `Tried to cleanup ${this.broadcaster_user_login} but channel was not available.`
+            );
+            return;
+        }
+
+        await this.channel.cleanupVods(this.vod?.uuid);
     }
 }

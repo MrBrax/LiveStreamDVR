@@ -1,20 +1,19 @@
 import { BaseConfigCacheFolder, BaseConfigDataFolder } from "@/Core/BaseConfig";
 import { Config } from "@/Core/Config";
 import { Helper } from "@/Core/Helper";
-import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
 import { LOGLEVEL, log } from "@/Core/Log";
 import type { FFProbe } from "@common/FFProbe";
 import type {
     AudioMetadata,
     MediaInfoJSONOutput,
+    MediaInfoObject,
     VideoMetadata,
 } from "@common/MediaInfo";
-import type { MediaInfo } from "@common/mediainfofield";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 import { progressOutput } from "./Console";
-import { execSimple, startJob } from "./Execute";
+import { exec, execSimple, isExecError, startJob } from "./Execute";
 import { formatDuration } from "./Format";
 
 export interface RemuxReturn {
@@ -33,223 +32,265 @@ export interface RemuxReturn {
  * @param metadata_file
  * @returns
  */
-export function remuxFile(
+export async function remuxFile(
     input: string,
     output: string,
     overwrite = false,
     metadata_file?: string
 ): Promise<RemuxReturn> {
-    return new Promise((resolve, reject) => {
-        const ffmpeg_path = Helper.path_ffmpeg();
+    const ffmpegPath = Helper.path_ffmpeg();
 
-        if (!ffmpeg_path) {
-            reject(new Error("Failed to find ffmpeg"));
-            return;
-        }
+    if (!ffmpegPath) {
+        throw new Error("Failed to find ffmpeg");
+    }
 
-        const emptyFile =
-            fs.existsSync(output) && fs.statSync(output).size == 0;
+    const emptyFile = fs.existsSync(output) && fs.statSync(output).size == 0;
 
-        if (!overwrite && fs.existsSync(output) && !emptyFile) {
+    if (!overwrite && fs.existsSync(output) && !emptyFile) {
+        log(
+            LOGLEVEL.ERROR,
+            "video.remux",
+            `Output file ${output} already exists`
+        );
+        throw new Error(`Output file ${output} already exists`);
+    }
+
+    if (emptyFile) {
+        fs.unlinkSync(output);
+    }
+
+    // ffmpeg seems to make ts cfr into vfr, don't know why
+
+    const opts: string[] = [];
+    // "-r", parseInt(info.video.FrameRate).toString(),
+    // "-vsync", "cfr",
+    opts.push("-i", input);
+
+    // write metadata to file
+    if (metadata_file) {
+        if (fs.existsSync(metadata_file)) {
+            opts.push("-i", metadata_file);
+            opts.push("-map_metadata", "1");
+        } else {
             log(
                 LOGLEVEL.ERROR,
                 "video.remux",
-                `Output file ${output} already exists`
-            );
-            reject(new Error(`Output file ${output} already exists`));
-        }
-
-        if (emptyFile) {
-            fs.unlinkSync(output);
-        }
-
-        // ffmpeg seems to make ts cfr into vfr, don't know why
-
-        const opts: string[] = [];
-        // "-r", parseInt(info.video.FrameRate).toString(),
-        // "-vsync", "cfr",
-        opts.push("-i", input);
-
-        // write metadata to file
-        if (metadata_file) {
-            if (fs.existsSync(metadata_file)) {
-                opts.push("-i", metadata_file);
-                opts.push("-map_metadata", "1");
-            } else {
-                log(
-                    LOGLEVEL.ERROR,
-                    "video.remux",
-                    `Metadata file ${metadata_file} does not exist for remuxing ${input}`
-                );
-            }
-        }
-
-        // "-map", "0",
-        // "-analyzeduration",
-
-        opts.push("-c", "copy"); // copy all streams
-
-        if (!output.endsWith(Config.AudioContainer)) {
-            opts.push("-bsf:a", "aac_adtstoasc"); // audio bitstream filter?
-        }
-
-        if (output.endsWith(".mp4")) {
-            opts.push("-movflags", "faststart"); // make streaming possible, not sure if this is a good idea
-        }
-
-        // "-r", parseInt(info.video.FrameRate).toString(),
-        // "-vsync", "cfr",
-        // ...ffmpeg_options,
-        // output,
-
-        if (overwrite || emptyFile) {
-            opts.push("-y");
-        }
-
-        if (Config.getInstance().cfg("app_verbose")) {
-            opts.push("-loglevel", "repeat+level+verbose");
-        }
-
-        if (Config.getInstance().cfg("debug")) {
-            // opts.push("-report"); // can't set output file
-            opts.push(
-                "-progress",
-                path.join(
-                    BaseConfigDataFolder.logs_software,
-                    "ffmpeg_progress.log"
-                )
-            );
-            opts.push("-vstats");
-            opts.push(
-                "-vstats_file",
-                path.join(
-                    BaseConfigDataFolder.logs_software,
-                    "ffmpeg_vstats.log"
-                )
+                `Metadata file ${metadata_file} does not exist for remuxing ${input}`
             );
         }
+    }
 
-        opts.push(output);
+    // "-map", "0",
+    // "-analyzeduration",
 
-        log(LOGLEVEL.INFO, "video.remux", `Remuxing ${input} to ${output}`);
+    opts.push("-c", "copy"); // copy all streams
 
-        const job = startJob(
-            `remux_${path.basename(input)}`,
-            ffmpeg_path,
-            opts
+    if (!output.endsWith(Config.AudioContainer)) {
+        opts.push("-bsf:a", "aac_adtstoasc"); // audio bitstream filter?
+    }
+
+    if (output.endsWith(".mp4")) {
+        opts.push("-movflags", "faststart"); // make streaming possible, not sure if this is a good idea
+    }
+
+    // "-r", parseInt(info.video.FrameRate).toString(),
+    // "-vsync", "cfr",
+    // ...ffmpeg_options,
+    // output,
+
+    if (overwrite || emptyFile) {
+        opts.push("-y");
+    }
+
+    if (Config.getInstance().cfg("app_verbose")) {
+        opts.push("-loglevel", "repeat+level+verbose");
+    }
+
+    if (Config.getInstance().cfg("debug")) {
+        // opts.push("-report"); // can't set output file
+        opts.push(
+            "-progress",
+            path.join(BaseConfigDataFolder.logs_software, "ffmpeg_progress.log")
         );
+        opts.push("-vstats");
+        opts.push(
+            "-vstats_file",
+            path.join(BaseConfigDataFolder.logs_software, "ffmpeg_vstats.log")
+        );
+    }
 
-        if (!job || !job.process) {
+    opts.push(output);
+
+    log(LOGLEVEL.INFO, "video.remux", `Remuxing ${input} to ${output}`);
+
+    let currentSeconds = 0;
+    let totalSeconds = 0;
+
+    // const job = startJob(`remux_${path.basename(input)}`, ffmpegPath, opts);
+
+    let job;
+    try {
+        job = await exec(
+            ffmpegPath,
+            opts,
+            {},
+            `remux_${path.basename(input)}`,
+            (stream: string, data: string) => {
+                const totalDurationMatch = data.match(
+                    /Duration: (\d+):(\d+):(\d+)/
+                );
+                if (totalDurationMatch && !totalSeconds) {
+                    totalSeconds =
+                        parseInt(totalDurationMatch[1]) * 3600 +
+                        parseInt(totalDurationMatch[2]) * 60 +
+                        parseInt(totalDurationMatch[3]);
+                    console.log(
+                        `Remux total duration for ${path.basename(
+                            input
+                        )}: ${totalSeconds}`
+                    );
+                }
+                if (data.match(/moving the moov atom/)) {
+                    console.log(
+                        `Create MOOV atom for ${path.basename(
+                            input
+                        )} (this usually takes a while)`
+                    );
+                }
+            },
+            (data: string) => {
+                const currentTimeMatch = data.match(/time=(\d+):(\d+):(\d+)/);
+                if (currentTimeMatch && totalSeconds > 0) {
+                    currentSeconds =
+                        parseInt(currentTimeMatch[1]) * 3600 +
+                        parseInt(currentTimeMatch[2]) * 60 +
+                        parseInt(currentTimeMatch[3]);
+
+                    // console.debug(`Remux current time: ${currentSeconds}/${totalSeconds}`);
+                    progressOutput(
+                        `🎞 Remuxing ${path.basename(
+                            input
+                        )} - ${currentSeconds}/${totalSeconds} seconds (${Math.round(
+                            (currentSeconds / totalSeconds) * 100
+                        )}%)`
+                    );
+                    return currentSeconds / totalSeconds;
+                }
+            }
+        );
+    } catch (error) {
+        if (isExecError(error)) {
+            log(
+                LOGLEVEL.ERROR,
+                "video.remux",
+                `Failed to remux '${input}' to '${output}': ${error.message}`
+            );
+            throw error;
+        }
+    }
+
+    // this should never happen, but type narrowing needs it
+    if (!job) {
+        throw new Error(
+            `Failed to start job for remuxing ${input} to ${output}`
+        );
+    }
+
+    const success = fs.existsSync(output) && fs.statSync(output).size > 0;
+
+    if (success) {
+        log(LOGLEVEL.SUCCESS, "video.remux", `Remuxed ${input} to ${output}`);
+        return {
+            code: 0,
+            success,
+            stdout: job.stdout,
+            stderr: job.stderr,
+        } as RemuxReturn;
+    }
+
+    log(
+        LOGLEVEL.ERROR,
+        "video.remux",
+        `Failed to remux '${input}' to '${output}'`
+    );
+
+    let message = "Unknown error";
+    const errorSearch = job.stderr.join("").match(/\[error\] (.*)/g);
+    if (errorSearch && errorSearch.length > 0) {
+        message = errorSearch.slice(1).join(", ");
+    }
+
+    if (fs.existsSync(output) && fs.statSync(output).size == 0) {
+        log(
+            LOGLEVEL.ERROR,
+            "video.remux",
+            `Output file ${output} is empty, removing`
+        );
+        fs.unlinkSync(output);
+    }
+
+    // for (const err of errorSearch) {
+    //    message = err[1];
+    throw new Error(`Failed to remux '${input}' to '${output}': ${message}`);
+
+    /*
+    job.process.on("error", (err) => {
+        log(
+            LOGLEVEL.ERROR,
+            "video.remux",
+            `Process ${process.pid} error: ${err.message}`
+        );
+        // reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
+        reject(new Error(`Process ${process.pid} error: ${err.message}`));
+    });
+
+    job.process.on("close", (code) => {
+        if (job) {
+            job.clear();
+        }
+        void LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
+        // const out_log = ffmpeg.stdout.read();
+        const success = fs.existsSync(output) && fs.statSync(output).size > 0;
+        if (success) {
+            log(
+                LOGLEVEL.SUCCESS,
+                "video.remux",
+                `Remuxed ${input} to ${output}`
+            );
+            resolve({
+                code: code || -1,
+                success,
+                stdout: job.stdout,
+                stderr: job.stderr,
+            });
+        } else {
+            log(
+                LOGLEVEL.ERROR,
+                "video.remux",
+                `Failed to remux '${input}' to '${output}'`
+            );
+            // reject({ code, success, stdout: job.stdout, stderr: job.stderr });
+
+            let message = "Unknown error";
+            const errorSearch = job.stderr.join("").match(/\[error\] (.*)/g);
+            if (errorSearch && errorSearch.length > 0) {
+                message = errorSearch.slice(1).join(", ");
+            }
+
+            if (fs.existsSync(output) && fs.statSync(output).size == 0) {
+                fs.unlinkSync(output);
+            }
+
+            // for (const err of errorSearch) {
+            //    message = err[1];
             reject(
                 new Error(
-                    `Failed to start job for remuxing ${input} to ${output}`
+                    `Failed to remux '${input}' to '${output}': ${message}`
                 )
             );
-            return;
         }
-
-        let currentSeconds = 0;
-        let totalSeconds = 0;
-        job.on("log", (stream: string, data: string) => {
-            const totalDurationMatch = data.match(
-                /Duration: (\d+):(\d+):(\d+)/
-            );
-            if (totalDurationMatch && !totalSeconds) {
-                totalSeconds =
-                    parseInt(totalDurationMatch[1]) * 3600 +
-                    parseInt(totalDurationMatch[2]) * 60 +
-                    parseInt(totalDurationMatch[3]);
-                console.log(
-                    `Remux total duration for ${path.basename(
-                        input
-                    )}: ${totalSeconds}`
-                );
-            }
-            const currentTimeMatch = data.match(/time=(\d+):(\d+):(\d+)/);
-            if (currentTimeMatch && totalSeconds > 0) {
-                currentSeconds =
-                    parseInt(currentTimeMatch[1]) * 3600 +
-                    parseInt(currentTimeMatch[2]) * 60 +
-                    parseInt(currentTimeMatch[3]);
-                job.setProgress(currentSeconds / totalSeconds);
-                // console.debug(`Remux current time: ${currentSeconds}/${totalSeconds}`);
-                progressOutput(
-                    `🎞 Remuxing ${path.basename(
-                        input
-                    )} - ${currentSeconds}/${totalSeconds} seconds (${Math.round(
-                        (currentSeconds / totalSeconds) * 100
-                    )}%)`
-                );
-            }
-            if (data.match(/moving the moov atom/)) {
-                console.log(
-                    `Create MOOV atom for ${path.basename(
-                        input
-                    )} (this usually takes a while)`
-                );
-            }
-        });
-
-        job.process.on("error", (err) => {
-            log(
-                LOGLEVEL.ERROR,
-                "video.remux",
-                `Process ${process.pid} error: ${err}`
-            );
-            // reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
-            reject(new Error(`Process ${process.pid} error: ${err}`));
-        });
-
-        job.process.on("close", (code) => {
-            if (job) {
-                job.clear();
-            }
-            LiveStreamDVR.getInstance().updateFreeStorageDiskSpace();
-            // const out_log = ffmpeg.stdout.read();
-            const success =
-                fs.existsSync(output) && fs.statSync(output).size > 0;
-            if (success) {
-                log(
-                    LOGLEVEL.SUCCESS,
-                    "video.remux",
-                    `Remuxed ${input} to ${output}`
-                );
-                resolve({
-                    code: code || -1,
-                    success,
-                    stdout: job.stdout,
-                    stderr: job.stderr,
-                });
-            } else {
-                log(
-                    LOGLEVEL.ERROR,
-                    "video.remux",
-                    `Failed to remux '${input}' to '${output}'`
-                );
-                // reject({ code, success, stdout: job.stdout, stderr: job.stderr });
-
-                let message = "Unknown error";
-                const errorSearch = job.stderr
-                    .join("")
-                    .match(/\[error\] (.*)/g);
-                if (errorSearch && errorSearch.length > 0) {
-                    message = errorSearch.slice(1).join(", ");
-                }
-
-                if (fs.existsSync(output) && fs.statSync(output).size == 0) {
-                    fs.unlinkSync(output);
-                }
-
-                // for (const err of errorSearch) {
-                //    message = err[1];
-                reject(
-                    new Error(
-                        `Failed to remux '${input}' to '${output}': ${message}`
-                    )
-                );
-            }
-        });
     });
+    */
 }
 
 export function cutFile(
@@ -260,9 +301,9 @@ export function cutFile(
     overwrite = false
 ): Promise<RemuxReturn> {
     return new Promise((resolve, reject) => {
-        const ffmpeg_path = Helper.path_ffmpeg();
+        const ffmpegPath = Helper.path_ffmpeg();
 
-        if (!ffmpeg_path) {
+        if (!ffmpegPath) {
             reject(new Error("Failed to find ffmpeg"));
             return;
         }
@@ -301,7 +342,7 @@ export function cutFile(
 
         log(LOGLEVEL.INFO, "video.cut", `Cutting ${input} to ${output}`);
 
-        const job = startJob(`cut_${path.basename(input)}`, ffmpeg_path, opts);
+        const job = startJob(`cut_${path.basename(input)}`, ffmpegPath, opts);
 
         if (!job || !job.process) {
             reject(
@@ -316,10 +357,10 @@ export function cutFile(
             log(
                 LOGLEVEL.ERROR,
                 "video.cut",
-                `Process ${process.pid} error: ${err}`
+                `Process ${process.pid} error: ${err.message}`
             );
             // reject({ code: -1, success: false, stdout: job.stdout, stderr: job.stderr });
-            reject(new Error(`Process ${process.pid} error: ${err}`));
+            reject(new Error(`Process ${process.pid} error: ${err.message}`));
         });
 
         job.process.on("close", (code) => {
@@ -404,6 +445,79 @@ export function cutFile(
     });
 }
 
+export function validateMediaInfo(info: MediaInfoObject): boolean {
+    if (!info.general) {
+        throw new Error("Missing general info");
+    }
+
+    if (!info.general.Format) {
+        throw new Error("Missing general format");
+    }
+
+    if (info.general.Format.startsWith("0x0000")) {
+        throw new Error("Corrupted general format");
+    }
+
+    if (!info.general.Duration) {
+        throw new Error("Missing general duration");
+    }
+
+    if (!info.general.OverallBitRate) {
+        throw new Error("Missing general overall bitrate");
+    }
+
+    if (info.video && !info.video.FrameRate) {
+        throw new Error("Missing video framerate");
+    }
+
+    return true;
+}
+
+export function parseMediainfoOutput(inputData: string): MediaInfoObject {
+    const json: MediaInfoJSONOutput = JSON.parse(inputData);
+
+    const data: any = {};
+
+    for (const track of json.media.track) {
+        if (track["@type"] == "General") {
+            data.general = track;
+        } else if (track["@type"] == "Video") {
+            data.video = track;
+        } else if (track["@type"] == "Audio") {
+            data.audio = track;
+        }
+    }
+
+    /*
+    const data = json.media.track.reduce((acc, track) => {
+        if (track["@type"] == "General") {
+            acc.general = track;
+        } else if (track["@type"] == "Video") {
+            acc.video = track;
+        } else if (track["@type"] == "Audio") {
+            acc.audio = track;
+        }
+        return acc;
+    });
+    */
+
+    try {
+        validateMediaInfo(data);
+    } catch (error) {
+        log(
+            LOGLEVEL.ERROR,
+            "helper.parseMediainfoOutput",
+            `Invalid mediainfo: ${(error as Error).message}`,
+            error
+        );
+        console.error(error);
+        console.error(json);
+        throw error;
+    }
+
+    return data as MediaInfoObject;
+}
+
 /**
  * Return mediainfo for a file
  *
@@ -411,7 +525,7 @@ export function cutFile(
  * @throws
  * @returns
  */
-export async function mediainfo(filename: string): Promise<MediaInfo> {
+export async function mediainfo(filename: string): Promise<MediaInfoObject> {
     log(LOGLEVEL.INFO, "helper.mediainfo", `Run mediainfo on ${filename}`);
 
     if (!filename) {
@@ -426,31 +540,30 @@ export async function mediainfo(filename: string): Promise<MediaInfo> {
         throw new Error("Filesize is 0 for mediainfo");
     }
 
-    const mediainfo_path = Helper.path_mediainfo();
-    if (!mediainfo_path) throw new Error("Failed to find mediainfo");
+    const mediainfoPath = Helper.path_mediainfo();
+    if (!mediainfoPath) throw new Error("Failed to find mediainfo");
 
-    const output = await execSimple(
-        mediainfo_path,
-        ["--Full", "--Output=JSON", filename],
-        "mediainfo"
-    );
+    let output;
+
+    try {
+        output = await exec(
+            mediainfoPath,
+            ["--Full", "--Output=JSON", filename],
+            {},
+            `mediainfo_${path.basename(filename)}`
+        );
+    } catch (error) {
+        log(
+            LOGLEVEL.ERROR,
+            "helper.mediainfo",
+            `Mediainfo of ${filename} returned: ${(error as Error).message}`,
+            error
+        );
+        throw error; // rethrow?
+    }
 
     if (output && output.stdout) {
-        const json: MediaInfoJSONOutput = JSON.parse(output.stdout.join(""));
-
-        const data: any = {};
-
-        for (const track of json.media.track) {
-            if (track["@type"] == "General") {
-                data.general = track;
-            } else if (track["@type"] == "Video") {
-                data.video = track;
-            } else if (track["@type"] == "Audio") {
-                data.audio = track;
-            }
-        }
-
-        return data as MediaInfo;
+        return parseMediainfoOutput(output.stdout.join(""));
     } else {
         log(
             LOGLEVEL.ERROR,
@@ -476,11 +589,11 @@ export async function ffprobe(filename: string): Promise<FFProbe> {
         throw new Error("Filesize is 0 for ffprobe");
     }
 
-    const ffprobe_path = Helper.path_ffprobe();
-    if (!ffprobe_path) throw new Error("Failed to find ffprobe");
+    const ffprobePath = Helper.path_ffprobe();
+    if (!ffprobePath) throw new Error("Failed to find ffprobe");
 
     const output = await execSimple(
-        ffprobe_path,
+        ffprobePath,
         [
             "-v",
             "quiet",
@@ -511,7 +624,7 @@ export async function videometadata(
     filename: string,
     force = false
 ): Promise<VideoMetadata | AudioMetadata> {
-    let data: MediaInfo | false = false;
+    let data: MediaInfoObject | false = false;
 
     const filenameHash = createHash("md5").update(filename).digest("hex"); // TODO: do we need it to by dynamic?
     const dataPath = path.join(
@@ -521,7 +634,9 @@ export async function videometadata(
     );
 
     if (fs.existsSync(dataPath) && !force) {
-        data = JSON.parse(fs.readFileSync(dataPath, { encoding: "utf-8" }));
+        const rawData = fs.readFileSync(dataPath, { encoding: "utf-8" });
+
+        data = JSON.parse(rawData);
 
         if (!data) {
             log(
@@ -540,15 +655,16 @@ export async function videometadata(
     } else {
         try {
             data = await mediainfo(filename);
-        } catch (th) {
+        } catch (error) {
             log(
                 LOGLEVEL.ERROR,
                 "helper.videometadata",
                 `Trying to get mediainfo of ${filename} returned: ${
-                    (th as Error).message
-                }`
+                    (error as Error).message
+                }`,
+                error
             );
-            throw th; // rethrow?
+            throw error; // rethrow?
         }
 
         if (!data) {
@@ -602,7 +718,7 @@ export async function videometadata(
 
     if (isAudio) {
         if (data.audio) {
-            const audio_metadata = {
+            const audioMetadata: AudioMetadata = {
                 type: "audio",
 
                 container: data.general.Format,
@@ -620,21 +736,21 @@ export async function videometadata(
                 audio_bitrate_mode: data.audio.BitRate_Mode as "VBR" | "CBR",
                 audio_sample_rate: parseInt(data.audio.SamplingRate),
                 audio_channels: parseInt(data.audio.Channels),
-            } as AudioMetadata;
+            };
 
             log(
                 LOGLEVEL.SUCCESS,
                 "helper.videometadata",
-                `${filename} is an audio file ${audio_metadata.duration} long.`
+                `${filename} is an audio file ${audioMetadata.duration} long.`
             );
 
-            return audio_metadata;
+            return audioMetadata;
         } else {
             throw new Error("Invalid mediainfo: no audio");
         }
     } else {
         if (data.video && data.audio) {
-            const video_metadata = {
+            const videoMetadata: VideoMetadata = {
                 type: "video",
 
                 container: data.general.Format,
@@ -651,28 +767,28 @@ export async function videometadata(
                 height: parseInt(data.video.Height),
 
                 fps: parseInt(data.video.FrameRate), // TODO: check if this is correct, seems to be variable
-                fps_mode: data.video.FrameRate_Mode as "VFR" | "CFR",
+                fps_mode: data.video.FrameRate_Mode,
 
                 audio_codec: data.audio.Format,
                 audio_bitrate: parseInt(data.audio.BitRate),
-                audio_bitrate_mode: data.audio.BitRate_Mode as "VBR" | "CBR",
+                audio_bitrate_mode: data.audio.BitRate_Mode,
                 audio_sample_rate: parseInt(data.audio.SamplingRate),
                 audio_channels: parseInt(data.audio.Channels),
 
                 video_codec: data.video.Format,
                 video_bitrate: parseInt(data.video.BitRate),
                 video_bitrate_mode: data.video.BitRate_Mode as "VBR" | "CBR",
-            } as VideoMetadata;
+            };
 
             log(
                 LOGLEVEL.SUCCESS,
                 "helper.videometadata",
                 `${filename} is a video file ${formatDuration(
-                    video_metadata.duration
-                )} long at ${video_metadata.height}p${video_metadata.fps}.`
+                    videoMetadata.duration
+                )} long at ${videoMetadata.height}p${videoMetadata.fps}.`
             );
 
-            return video_metadata;
+            return videoMetadata;
         } else {
             throw new Error("Invalid mediainfo: no video/audio");
         }
@@ -719,7 +835,7 @@ export async function videoThumbnail(
         .update(filename + width + offset)
         .digest("hex");
 
-    const output_image = path.join(
+    const outputImage = path.join(
         BaseConfigCacheFolder.public_cache_thumbs,
         `${filenameHash}.${Config.getInstance().cfg<string>(
             "thumbnail_format",
@@ -727,20 +843,20 @@ export async function videoThumbnail(
         )}`
     );
 
-    if (fs.existsSync(output_image)) {
+    if (fs.existsSync(outputImage)) {
         log(
             LOGLEVEL.DEBUG,
             "helper.videoThumbnail",
             `Thumbnail already exists for ${filename}, returning cached version`
         );
-        return path.basename(output_image);
+        return path.basename(outputImage);
     }
 
-    const ffmpeg_path = Helper.path_ffmpeg();
-    if (!ffmpeg_path) throw new Error("Failed to find ffmpeg");
+    const ffmpegPath = Helper.path_ffmpeg();
+    if (!ffmpegPath) throw new Error("Failed to find ffmpeg");
 
     const output = await execSimple(
-        ffmpeg_path,
+        ffmpegPath,
         [
             "-ss",
             ffmpeg_time(offset),
@@ -750,22 +866,22 @@ export async function videoThumbnail(
             `thumbnail,scale=${width}:-1`,
             "-frames:v",
             "1",
-            output_image,
+            outputImage,
         ],
         "ffmpeg video thumbnail"
     );
 
     if (
         output &&
-        fs.existsSync(output_image) &&
-        fs.statSync(output_image).size > 0
+        fs.existsSync(outputImage) &&
+        fs.statSync(outputImage).size > 0
     ) {
         log(
             LOGLEVEL.SUCCESS,
             "helper.videoThumbnail",
             `Created video thumbnail for ${filename}`
         );
-        return path.basename(output_image);
+        return path.basename(outputImage);
     } else {
         log(
             LOGLEVEL.ERROR,
@@ -812,12 +928,12 @@ export async function videoContactSheet(
         `Requested video contact sheet of ${video_filename} with width ${width} and grid ${grid}, output to ${output_image}`
     );
 
-    const vcsi_path = Helper.path_vcsi();
+    const vcsiPath = Helper.path_vcsi();
 
-    if (!vcsi_path) throw new Error("Failed to find vcsi");
+    if (!vcsiPath) throw new Error("Failed to find vcsi");
 
     const output = await execSimple(
-        vcsi_path,
+        vcsiPath,
         [
             video_filename,
             "-t", // show timestamp for each frame

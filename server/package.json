@@ -1,6 +1,6 @@
 {
     "name": "livestreamdvr-server",
-    "version": "1.7.1",
+    "version": "1.7.2",
     "description": "",
     "main": "index.ts",
     "scripts": {
@@ -30,14 +30,14 @@
         "@types/node": "^20.2.5",
         "@types/supertest": "^2.0.12",
         "@types/ws": "^8.5.3",
-        "@typescript-eslint/eslint-plugin": "^5.61.0",
-        "@typescript-eslint/parser": "^5.61.0",
+        "@typescript-eslint/eslint-plugin": "^6.12.0",
+        "@typescript-eslint/parser": "^6.12.0",
         "esbuild": "^0.18.15",
-        "eslint": "^8.45.0",
+        "eslint": "^8.54.0",
         "eslint-config-standard": "^17.1.0",
-        "eslint-plugin-deprecation": "^1.4.1",
-        "eslint-plugin-import": "^2.27.5",
-        "eslint-plugin-n": "^16.0.1",
+        "eslint-plugin-deprecation": "^2.0.0",
+        "eslint-plugin-import": "^2.29.0",
+        "eslint-plugin-n": "^16.3.1",
         "eslint-plugin-node": "^11.1.0",
         "eslint-plugin-promise": "^6.1.1",
         "gaxios": "^6.0.3",
@@ -49,7 +49,7 @@
         "ts-jest": "^29.1.1",
         "ts-node": "^10.9.1",
         "tsconfig-paths": "^4.2.0",
-        "typescript": "^5.1.6"
+        "typescript": "5.1"
     },
     "dependencies": {
         "@googleapis/youtube": "^10.0.0",
@@ -82,7 +82,7 @@
     },
     "packageManager": "yarn@4.0.1",
     "engines": {
-        "node": ">=18"
+        "node": ">=20"
     },
     "dependenciesMeta": {
         "prettier@3.0.0": {

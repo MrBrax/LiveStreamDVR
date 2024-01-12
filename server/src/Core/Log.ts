@@ -168,21 +168,33 @@ export async function getLogLines({
     order?: "desc" | "asc";
 }): Promise<Record<string, WinstonLogLine[]>> {
     return await new Promise((resolve, reject) => {
-        const query = {
-            from: from,
-            until: to,
-            limit: limit,
-            start: start,
-            order: order,
-            fields: ["message", "level", "module", "metadata", "timestamp"],
-        };
+        jsonLogger.query(
+            {
+                from: from,
+                until: to,
+                limit: limit,
+                start: start,
+                order: order,
+                fields: ["message", "level", "module", "metadata", "timestamp"],
+            },
+            (err, results: Record<string, WinstonLogLine[]>) => {
+                if (err) {
+                    reject(err);
+                }
 
-        jsonLogger.query(query, function (err, results) {
-            if (err) {
-                reject(err);
+                // TODO: hacky way to filter out logs that are not in the time range, why does query not do this?
+                const transport = Object.keys(results)[0];
+                if (results[transport])
+                    results[transport] = results[transport].filter(
+                        (result: WinstonLogLine) =>
+                            result.metadata &&
+                            new Date(result.metadata.timestamp) >= from &&
+                            new Date(result.metadata.timestamp) <= to
+                    );
+
+                resolve(results);
             }
-            resolve(results);
-        });
+        );
     });
 }
 
@@ -224,9 +236,11 @@ export function log(
     textLogger.log(winstonLogData); // hack to get query working
 
     // send over websocket, probably extremely slow
+    const instance = Config.getInstance();
     if (
-        Config.getInstance().initialised &&
-        Config.getInstance().cfg<boolean>("websocket_log")
+        instance &&
+        instance.initialised &&
+        instance.cfg<boolean>("websocket_log")
     ) {
         websocket_buffer.push(websocketLogData);
 

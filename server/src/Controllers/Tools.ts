@@ -5,6 +5,7 @@ import { LOGLEVEL, log } from "@/Core/Log";
 import { TwitchChannel } from "@/Core/Providers/Twitch/TwitchChannel";
 import { TwitchVOD } from "@/Core/Providers/Twitch/TwitchVOD";
 import { Scheduler } from "@/Core/Scheduler";
+import { getTwitchClipId, getTwitchVideoId } from "@/Providers/Twitch";
 import type { ApiErrorResponse } from "@common/Api/Api";
 import type { VideoQuality } from "@common/Config";
 import { formatString } from "@common/Format";
@@ -42,17 +43,15 @@ export async function DownloadVod(
         return;
     }
 
-    const id_match = url.match(/\/videos\/([0-9]+)/);
+    const id = getTwitchVideoId(url);
 
-    if (!id_match) {
+    if (!id) {
         res.api(400, {
             status: "ERROR",
             message: "No id found in url",
         });
         return;
     }
-
-    const id = id_match[1];
 
     const metadata = await TwitchVOD.getVideo(id);
 
@@ -65,12 +64,12 @@ export async function DownloadVod(
     }
 
     const basename = `${metadata.user_login}.${id}.${quality}.mp4`;
-    const file_path = path.join(BaseConfigDataFolder.saved_vods, basename);
+    const filePath = path.join(BaseConfigDataFolder.saved_vods, basename);
 
     let success;
 
     try {
-        success = await TwitchVOD.downloadVideo(id, quality, file_path);
+        success = await TwitchVOD.downloadVideo(id, quality, filePath);
     } catch (e) {
         res.api(400, {
             status: "ERROR",
@@ -82,7 +81,7 @@ export async function DownloadVod(
     if (success) {
         res.send({
             status: "OK",
-            message: `Downloaded to ${file_path}`,
+            message: `Downloaded to ${filePath}`,
         });
     } else {
         res.api(400, {
@@ -116,17 +115,15 @@ export async function DownloadChat(
         return;
     }
 
-    const id_match = url.match(/\/videos\/([0-9]+)/);
+    const id = getTwitchVideoId(url);
 
-    if (!id_match) {
+    if (!id) {
         res.api(400, {
             status: "ERROR",
             message: "No id found in url",
         });
         return;
     }
-
-    const id = id_match[1];
 
     let metadata;
 
@@ -151,12 +148,12 @@ export async function DownloadChat(
     }
 
     const basename = `${metadata.user_login}.${id}.chat.json`;
-    const file_path = path.join(BaseConfigDataFolder.saved_vods, basename);
+    const filePath = path.join(BaseConfigDataFolder.saved_vods, basename);
 
     let success;
 
     try {
-        success = await TwitchVOD.downloadChat(method, id, file_path);
+        success = await TwitchVOD.downloadChat(method, id, filePath);
     } catch (e) {
         res.api(400, {
             status: "ERROR",
@@ -168,7 +165,7 @@ export async function DownloadChat(
     if (success) {
         res.send({
             status: "OK",
-            message: `Downloaded to ${file_path}`,
+            message: `Downloaded to ${filePath}`,
         });
     } else {
         res.api(400, {
@@ -191,8 +188,8 @@ export async function ChatDump(
         return;
     }
 
-    const channel_data = await TwitchChannel.getUserDataByLogin(login);
-    if (!channel_data) {
+    const channelData = await TwitchChannel.getUserDataByLogin(login);
+    if (!channelData) {
         res.api(400, {
             status: "ERROR",
             message: "No channel data found",
@@ -200,7 +197,7 @@ export async function ChatDump(
         return;
     }
 
-    const name = `${channel_data.login}-${new Date()
+    const name = `${channelData.login}-${new Date()
         .toISOString()
         .replace(/:/g, "-")}.json`;
     const started = new Date();
@@ -209,7 +206,7 @@ export async function ChatDump(
     const job = TwitchChannel.startChatDump(
         name,
         login,
-        channel_data.id,
+        channelData.id,
         started,
         output
     );
@@ -243,7 +240,7 @@ export async function DownloadClip(
         return;
     }
 
-    const id = TwitchVOD.getClipId(url);
+    const id = getTwitchClipId(url);
 
     if (!id) {
         res.api(400, {
@@ -265,12 +262,12 @@ export async function DownloadClip(
 
     const metadata = clips[0];
 
-    const clip_date = parseJSON(metadata.created_at);
+    const clipDate = parseJSON(metadata.created_at);
 
     const variables: ClipBasenameTemplate = {
         id: metadata.id,
         quality: quality,
-        clip_date: format(clip_date, Config.getInstance().dateFormat),
+        clip_date: format(clipDate, Config.getInstance().dateFormat),
         title: metadata.title,
         creator: metadata.creator_name,
         broadcaster: metadata.broadcaster_name,
@@ -296,21 +293,21 @@ export async function DownloadClip(
         return;
     }
 
-    const file_path = path.join(
+    const filePath = path.join(
         BaseConfigDataFolder.saved_clips,
         "downloader",
         user.login,
         basename
     );
 
-    if (!fs.existsSync(path.dirname(file_path))) {
-        fs.mkdirSync(path.dirname(file_path), { recursive: true });
+    if (!fs.existsSync(path.dirname(filePath))) {
+        fs.mkdirSync(path.dirname(filePath), { recursive: true });
     }
 
     let success;
 
     try {
-        success = await TwitchVOD.downloadClip(id, `${file_path}.mp4`, quality);
+        success = await TwitchVOD.downloadClip(id, `${filePath}.mp4`, quality);
     } catch (e) {
         res.api(400, {
             status: "ERROR",
@@ -320,14 +317,14 @@ export async function DownloadClip(
     }
 
     fs.writeFileSync(
-        `${file_path}.info.json`,
+        `${filePath}.info.json`,
         JSON.stringify(metadata, null, 4)
     );
 
     if (success) {
         res.send({
             status: "OK",
-            message: `Downloaded to ${file_path}`,
+            message: `Downloaded to ${filePath}`,
         });
 
         const channel = TwitchChannel.getChannelById(metadata.broadcaster_id);

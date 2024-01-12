@@ -1,6 +1,7 @@
-import path from "node:path";
+/* eslint-disable @typescript-eslint/naming-convention */
 import minimist from "minimist";
 import os from "node:os";
+import path from "node:path";
 
 const argv = minimist(process.argv.slice(2));
 

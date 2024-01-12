@@ -112,18 +112,18 @@ export async function ListSubscriptions(
             }
 
             if (
-                !(await KeyValue.getInstance().hasAsync(
+                !KeyValue.getInstance().has(
                     `${entry.user_id}.sub.${entry.type}`
-                )) ||
-                !(await KeyValue.getInstance().hasAsync(
+                ) ||
+                !KeyValue.getInstance().has(
                     `${entry.user_id}.substatus.${entry.type}`
-                ))
+                )
             ) {
-                await KeyValue.getInstance().setAsync(
+                KeyValue.getInstance().set(
                     `${entry.user_id}.sub.${entry.type}`,
                     entry.id
                 );
-                await KeyValue.getInstance().setAsync(
+                KeyValue.getInstance().set(
                     `${entry.user_id}.substatus.${entry.type}`,
                     entry.status == "enabled"
                         ? SubStatus.SUBSCRIBED
@@ -216,7 +216,7 @@ export async function UnsubscribeFromId(
         if (sub.condition && sub.condition.broadcaster_user_id) {
             const userid = sub.condition.broadcaster_user_id;
             const type = sub.type;
-            await KeyValue.getInstance().deleteAsync(`${userid}.sub.${type}`);
+            KeyValue.getInstance().delete(`${userid}.sub.${type}`);
             // KeyValue.getInstance().delete(`${userid}.substatus.${sub.type}`);
         }
     } else {

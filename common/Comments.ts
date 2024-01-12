@@ -1,3 +1,4 @@
+/*
 export interface TwitchCommentDump {
     comments: TwitchComment[];
     video: {
@@ -16,81 +17,83 @@ export interface TwitchCommentDump {
         view_count: number;
         viewable: string;
 
-        /** @deprecated */
+        /** @deprecated *
         length?: string;
-        /** @deprecated */
+        /** @deprecated *
         channel?: {
             _id: string;
             display_name: string;
         };
-        /** @deprecated */
+        /** @deprecated *
         _id?: string;
     };
 }
+*/
 
-export interface TwitchCommentDumpTD extends TwitchCommentDump {
-    comments: TwitchCommentTD[];
-    video: TwitchCommentDump["video"] & {
-        start: number;
-        end: number;
+export interface TwitchCommentDumpTD {
+    FileInfo?: {
+        Version: {
+            Major: number;
+            Minor: number;
+            Patch: number;
+        };
+        CreatedAt: string;
+        UpdatedAt: string;
     };
     streamer?: {
         name: string;
         id: number; // ?
     };
-    emotes?: null;
+
+    comments: TwitchComment[];
+    video: {
+        title: string;
+        description: string | null;
+        id: string;
+        created_at: string;
+        start: number;
+        end: number;
+        length: number;
+        viewCount: number;
+        game: string | null;
+        chapters: unknown[]; // TODO
+    };
+    
+    embeddedData: unknown;
 }
 
 export interface TwitchComment {
-    // internal
-    displayed?: boolean;
 
     _id: string;
+    created_at: string;
     channel_id: string;
-    // commenter: Array;
+    content_type: string;
     content_id: string;
-
-    /**
-     * The offset of the comment being displayed in seconds
-     */
     content_offset_seconds: number;
 
-    content_type: "video";
     commenter: {
-        _id: string;
-        bio: string;
-        created_at: string;
         display_name: string;
-        logo: string;
+        _id: string;
         name: string;
-        type: "user";
+        bio: string | null;
+        created_at: string;
         updated_at: string;
+        logo: string;        
     };
     message: {
         body: string;
-        emoticons: TwitchCommentEmoticons[]; // TODO:
-
-        user_notice_params?: {
-            "msg-id": string | null;
-        };
-
+        bits_spent?: number;
         fragments: TwitchCommentMessageFragment[];
         user_badges: TwitchCommentUserBadge[];
         user_color: string | null;
-        bits_spent?: number;
-        is_action?: boolean;
+        // user_notice_params: unknown; // TODO:
+        emoticons: TwitchCommentEmoticons[]; // TODO:
     };
-    more_replies?: boolean;
-    created_at: string;
-    // message: Array;
-    source: "chat";
-    state: string;
-    updated_at: string;
 }
 
-export interface TwitchCommentTD extends TwitchComment {
-    more_replies: boolean;
-}
+// export interface TwitchCommentTD extends TwitchComment {
+//     more_replies: boolean;
+// }
 
 export interface TwitchCommentUserBadge {
     _id: string;
