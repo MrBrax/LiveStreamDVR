@@ -82,7 +82,7 @@
     },
     "packageManager": "yarn@4.0.1",
     "engines": {
-        "node": ">=18"
+        "node": ">=20"
     },
     "dependenciesMeta": {
         "prettier@3.0.0": {

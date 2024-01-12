@@ -1,5 +1,5 @@
 # syntax=docker/dockerfile:1.4
-FROM node:19-bullseye-slim
+FROM node:20-bullseye-slim
 
 # make app folder
 RUN mkdir -p /usr/local/share/twitchautomator \
