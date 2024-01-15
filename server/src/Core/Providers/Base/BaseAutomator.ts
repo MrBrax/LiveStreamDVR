@@ -1619,8 +1619,8 @@ export class BaseAutomator {
         );
 
         // streamlink 6.0.0 timeout
-        if (Config.getInstance().cfg("capture.hls_segment_queue_threshold", 0) != 0) {
-            cmd.push("--hls-segment-queue-threshold", Config.getInstance().cfg("capture.hls_segment_queue_threshold", 0).toString());
+        if (Config.getInstance().cfg("capture.hls_segment_queue_threshold", -1) != -1) {
+            cmd.push("--hls-segment-queue-threshold", Config.getInstance().cfg("capture.hls_segment_queue_threshold", -1).toString());
         }
 
         // The size of the thread pool used to download HLS segments.
