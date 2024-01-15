@@ -299,8 +299,8 @@ export const settingsFields: Record<string, SettingField> = {
         group: "Capture",
         text: "HLS segment queue threshold",
         type: "number",
-        default: 0,
-        help: "If set to 0, it will be ignored.",
+        default: -1,
+        help: "If set to -1, it will be ignored. 0 disables the check.",
     },
 
     "capture.use_cache": {
