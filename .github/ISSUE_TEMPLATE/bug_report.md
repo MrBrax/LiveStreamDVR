@@ -23,6 +23,10 @@ A clear and concise description of what you expected to happen.
 **Screenshots**
 If applicable, add screenshots to help explain your problem.
 
+**Logs**
+Please attach logs for both the main server and capture if applicable, can be found in `data/logs/` and `data/logs/software/` respectively.
+Please also use code tags and try to keep line breaks if possible.
+
 **Server:**
  - OS or Docker: [e.g. Debian]
 
