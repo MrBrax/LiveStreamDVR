@@ -728,13 +728,13 @@
         },
         "streamlink": {
             "hashes": [
-                "sha256:863bb7e138a327f3bf2bded78e181494359330b01cc64c95e9496451457ec5ae",
-                "sha256:8f4d61593bcce10f8d5e84ca956aac4fa639c0a349e7df379834373a883966ed",
-                "sha256:bf6884446dceefea2de8d49e71e0376e7fb65a994ff0b7747c339ecaef4e7fa8",
-                "sha256:dcbd1f0d373a72865521beae298d8e03783a00591c76cebf4f06b766dc41ddb4"
+                "sha256:207fb4ce99c35bfeb1b8f7c76b96cfcb4076ad6881c61eaea553c2ec13d97c57",
+                "sha256:3149945a235ca5af13a87a0a3bd2b50200c354150f4145ff9a19eb843f8a4249",
+                "sha256:5f970e8eee2c3076fefad1c552e5746b4b12550e6e74e840d58ba1bb93312b89",
+                "sha256:edbd492c19f52b8e9dbb6540bd8f15ab0ca03ce737519284a426325c6b0c7642"
             ],
             "index": "pypi",
-            "version": "==6.5.0"
+            "version": "==6.5.1"
         },
         "texttable": {
             "hashes": [
