@@ -1638,7 +1638,9 @@ export class BaseAutomator {
         cmd.push("--retry-max", "5");
 
         // logging level
-        if (Config.debug) {
+        if (Config.getInstance().cfg("capture.loglevel", "info") !== "info") {
+            cmd.push("--loglevel", Config.getInstance().cfg("capture.loglevel", "info"));
+        } else if (Config.debug) {
             cmd.push("--loglevel", "debug");
         } else if (Config.getInstance().cfg("app_verbose", false)) {
             cmd.push("--loglevel", "info");

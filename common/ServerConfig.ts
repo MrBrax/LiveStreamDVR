@@ -303,6 +303,23 @@ export const settingsFields: Record<string, SettingField> = {
         help: "If set to -1, it will be ignored. 0 disables the check.",
     },
 
+    "capture.loglevel": {
+        group: "Capture",
+        text: "Capture log level",
+        type: "object",
+        default: "info",
+        choices: {
+            none: "None",
+            critical: "Critical",
+            error: "Error",
+            warning: "Warning",
+            info: "Info",
+            debug: "Debug",
+            trace: "Trace",
+            all: "All",
+        },
+    },
+
     "capture.use_cache": {
         group: "Capture",
         text: "Use cache",
