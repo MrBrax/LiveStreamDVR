@@ -186,6 +186,8 @@ export class LiveStreamDVR {
 
         await LiveStreamDVR.checkBinaryVersions();
 
+        await LiveStreamDVR.checkTTVLolPlugin();
+
         // monitor for program exit
         // let saidGoobye = false;
         // const goodbye = () => {
@@ -983,6 +985,10 @@ export class LiveStreamDVR {
             }            
         }
 
+        if (Config.getInstance().cfg("capture.twitch-ttv-lol-plugin") && !this.ttvLolPluginAvailable) {
+            errors.push("Twitch TTV LOL plugin is enabled but not available.");
+        }
+
         return errors;
     }
 
@@ -1065,6 +1071,14 @@ export class LiveStreamDVR {
             }
         }
     }
+
+    public static ttvLolPluginAvailable = false;
+    public static async checkTTVLolPlugin() {
+        if ( !Config.getInstance().cfg("capture.twitch-ttv-lol-plugin") ) return false; // not enabled
+        this.ttvLolPluginAvailable = await TwitchHelper.checkTTVLolPlugin();
+        return this.ttvLolPluginAvailable;
+    }
+
 
     public static async checkPythonVirtualEnv() {
         log(

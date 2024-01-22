@@ -468,6 +468,7 @@ export class Config {
         Scheduler.restartScheduler();
         await YouTubeHelper.setupClient();
         await TwitchHelper.setupWebsocket();
+        await LiveStreamDVR.checkTTVLolPlugin();
         LiveStreamDVR.binaryVersions = {}; // reset binary versions for the next page visit
         i18next.changeLanguage(this.cfg("basic.language", "en"));
     }
