@@ -967,16 +967,20 @@ export class LiveStreamDVR {
         }
 
         // check for ts files in storage
-        const files = readdirRecursive(BaseConfigDataFolder.storage);
-        for (const file of files) {
-            if (file.endsWith(".ts")) {
-                errors.push(
-                    `Found ts file in storage folder: ${path.join(
-                        BaseConfigDataFolder.storage,
-                        file
-                    )}`
-                );
-            }
+        for (const channel of this.getInstance().getChannels()) {
+            if ( channel.is_capturing ) continue; // skip currently capturing channels
+            const basePath = channel.getFolder();
+            const files = readdirRecursive(basePath);
+            for (const file of files) {
+                if (file.endsWith(".ts")) {
+                    errors.push(
+                        `Found ts file in channel folder: ${path.join(
+                            basePath,
+                            file
+                        )}`
+                    );
+                }
+            }            
         }
 
         return errors;
