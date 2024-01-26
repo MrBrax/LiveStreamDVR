@@ -18,7 +18,19 @@ export enum ExistStatus {
     UNKNOWN = 4,
 }
 
-export const VideoQualityArray: string[] = ["best", "1080p60", "1080p", "720p60", "720p", "480p", "360p", "160p", "140p", "worst", "audio_only"];
+export const VideoQualityArray: string[] = [
+    "best",
+    "1080p60",
+    "1080p",
+    "720p60",
+    "720p",
+    "480p",
+    "360p",
+    "160p",
+    "140p",
+    "worst",
+    "audio_only",
+];
 
 export const nonGameCategories = [
     "Just Chatting",
@@ -55,6 +67,8 @@ export enum NotificationProvider {
     DISCORD = 1 << 2,
     /** Pushover */
     PUSHOVER = 1 << 3,
+    /** Ntfy */
+    NTFY = 1 << 4,
 }
 
 export const NotificationProvidersList = [
@@ -62,21 +76,34 @@ export const NotificationProvidersList = [
     { id: NotificationProvider.TELEGRAM, name: "Telegram" },
     { id: NotificationProvider.DISCORD, name: "Discord" },
     { id: NotificationProvider.PUSHOVER, name: "Pushover" },
+    { id: NotificationProvider.NTFY, name: "Ntfy" },
 ];
 
 export const NotificationCategories = [
-    { "id": "offlineStatusChange", name: "Offline status change" },
-    { "id": "streamOnline", name: "Stream online" },
-    { "id": "streamOffline", name: "Stream offline" },
-    { "id": "streamStatusChange", name: "Stream status change" },
-    { "id": "streamStatusChangeFavourite", name: "Stream status change with favourite game" },
-    { "id": "vodMuted", name: "VOD muted" },
-    { "id": "vodDeleted", name: "VOD deleted" },
-    { "id": "debug", name: "Debug" },
-    { "id": "system", name: "System" },
+    { id: "offlineStatusChange", name: "Offline status change" },
+    { id: "streamOnline", name: "Stream online" },
+    { id: "streamOffline", name: "Stream offline" },
+    { id: "streamStatusChange", name: "Stream status change" },
+    {
+        id: "streamStatusChangeFavourite",
+        name: "Stream status change with favourite game",
+    },
+    { id: "vodMuted", name: "VOD muted" },
+    { id: "vodDeleted", name: "VOD deleted" },
+    { id: "debug", name: "Debug" },
+    { id: "system", name: "System" },
 ];
 
-export type NotificationCategory = "offlineStatusChange" | "streamOnline" | "streamOffline" | "streamStatusChange" | "streamStatusChangeFavourite" | "vodMuted" | "vodDeleted" | "debug" | "system";
+export type NotificationCategory =
+    | "offlineStatusChange"
+    | "streamOnline"
+    | "streamOffline"
+    | "streamStatusChange"
+    | "streamStatusChangeFavourite"
+    | "vodMuted"
+    | "vodDeleted"
+    | "debug"
+    | "system";
 
 export enum JobStatus {
     NONE = "NONE",

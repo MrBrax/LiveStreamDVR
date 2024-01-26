@@ -605,6 +605,19 @@ export const settingsFields: Record<string, SettingField> = {
         type: "string",
     },
 
+    "notify.ntfy.enabled": {
+        group: "Notifications (Ntfy)",
+        text: "Enable Ntfy notifications",
+        type: "boolean",
+        default: false,
+    },
+
+    "notify.ntfy.url": {
+        group: "Notifications (Ntfy)",
+        text: "Ntfy url with topic",
+        type: "string",
+    },
+
     // discord
     discord_enabled: {
         group: "Notifications (Discord)",
