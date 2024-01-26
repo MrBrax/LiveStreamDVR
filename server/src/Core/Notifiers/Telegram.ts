@@ -4,16 +4,56 @@ import chalk from "chalk";
 import { Config } from "../Config";
 import { LOGLEVEL, log } from "../Log";
 
+interface TelegramSendMessagePayloadEntity {
+    type:
+        | "mention"
+        | "hashtag"
+        | "cashtag"
+        | "bot_command"
+        | "url"
+        | "email"
+        | "phone_number"
+        | "bold"
+        | "italic"
+        | "underline"
+        | "strikethrough"
+        | "code"
+        | "pre";
+    offset: number;
+    length: number;
+    url?: string;
+    user?: unknown;
+    language?: string;
+    custom_emoji_id?: string;
+}
+
 interface TelegramSendMessagePayload {
-    chat_id: number;
+    chat_id: number | string;
+    message_thread_id?: number;
     text: string;
     parse_mode?: "MarkdownV2" | "Markdown" | "HTML";
-    entities?: unknown;
-    disable_web_page_preview?: boolean;
+    entities?: TelegramSendMessagePayloadEntity[];
+    link_preview_options?: {
+        is_disabled?: boolean;
+        url?: string;
+        prefer_small_media?: boolean;
+        prefer_large_media?: boolean;
+        show_above_text?: boolean;
+    };
+    // disable_web_page_preview?: boolean;
     disable_notification?: boolean;
     protect_content?: boolean;
-    reply_to_message_id?: number;
-    allow_sending_without_reply?: boolean;
+    // reply_to_message_id?: number;
+    // allow_sending_without_reply?: boolean;
+    reply_parameters?: {
+        message_id: number;
+        chat_id?: number | string;
+        allow_sending_without_reply?: boolean;
+        quote?: string;
+        quote_parse_mode?: "MarkdownV2" | "Markdown" | "HTML";
+        quote_entities?: unknown;
+        quote_position?: number;
+    };
     reply_markup?: unknown;
 }
 

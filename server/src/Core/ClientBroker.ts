@@ -266,7 +266,7 @@ export class ClientBroker {
                 NotificationProvider.NTFY
             )
         ) {
-            NtfyNotify(title, body, icon, category, url);
+            NtfyNotify({ title, body, icon, category, url });
         }
 
         if (

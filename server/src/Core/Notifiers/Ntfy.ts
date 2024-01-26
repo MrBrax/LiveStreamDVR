@@ -4,15 +4,53 @@ import chalk from "chalk";
 import { Config } from "../Config";
 import { LOGLEVEL, log } from "../Log";
 
-export default function notify(
-    title: string,
+type Action = {
+    action: "view" | "http";
+    label: string;
+    url: string;
+    clear?: boolean;
+    body?: string;
+};
+
+// action=<action1>, label=<label1>, paramN=... [; action=<action2>, label=<label2>, ...]
+function buildActions(actions: Action[]) {
+    return actions
+        .map((action) => {
+            return `action=${action.action}, label=${action.label}, ${
+                action.url ? `url=${action.url}, ` : ""
+            }${action.clear ? `clear=${action.clear}, ` : ""}${
+                action.body ? `body='${action.body}', ` : ""
+            }`;
+        })
+        .join("; ");
+}
+
+export default function notify({
+    title,
     body = "",
     icon = "",
-    category: NotificationCategory, // change this?
+    category, // change this?
     url = "",
-    emoji = ""
-) {
+    emoji = "",
+    actions = [],
+}: {
+    title: string;
+    body?: string;
+    icon?: string;
+    category: NotificationCategory;
+    url?: string;
+    emoji?: string;
+    actions?: Action[];
+}) {
     const ntfyUrl = Config.getInstance().cfg<string>("notifications.ntfy.url");
+
+    if (url) {
+        actions.push({
+            action: "http",
+            label: "Open",
+            url: url,
+        });
+    }
 
     if (ntfyUrl) {
         axios
@@ -20,7 +58,8 @@ export default function notify(
                 url: ntfyUrl,
                 headers: {
                     Title: title,
-                    Actions: url ? `view, Open, ${url}` : undefined,
+                    // Actions: url ? `view, Open, ${url}` : undefined,
+                    Actions: buildActions(actions),
                     Icon: icon ?? undefined,
                     Tags: emoji ? `${emoji},${category}` : category,
                 },
