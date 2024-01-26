@@ -10,7 +10,7 @@ export default function notify(
     icon = "",
     category: NotificationCategory, // change this?
     url = "",
-    tts = false
+    emoji = ""
 ) {
     const ntfyUrl = Config.getInstance().cfg<string>("notifications.ntfy.url");
 
@@ -22,6 +22,7 @@ export default function notify(
                     Title: title,
                     Actions: url ? `view, Open, ${url}` : undefined,
                     Icon: icon ?? undefined,
+                    Tags: emoji ? `${emoji},${category}` : category,
                 },
                 data: body,
                 method: "POST",

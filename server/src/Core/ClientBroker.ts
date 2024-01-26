@@ -256,7 +256,7 @@ export class ClientBroker {
                 NotificationProvider.TELEGRAM
             )
         ) {
-            TelegramNotify(title, body, icon, category, url, tts);
+            TelegramNotify(title, body, icon, category, url);
         }
 
         if (
@@ -266,7 +266,7 @@ export class ClientBroker {
                 NotificationProvider.NTFY
             )
         ) {
-            NtfyNotify(title, body, icon, category, url, tts);
+            NtfyNotify(title, body, icon, category, url);
         }
 
         if (

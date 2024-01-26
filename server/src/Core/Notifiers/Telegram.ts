@@ -22,8 +22,7 @@ export default function notify(
     body = "",
     icon = "",
     category: NotificationCategory, // change this?
-    url = "",
-    tts = false
+    url = ""
 ) {
     // escape with backslash
     // const escaped_title = title.replace(/[!@#$%^&*()_+\-=[\]{};':"\\|,.<>/?]/g, "\\$&");
