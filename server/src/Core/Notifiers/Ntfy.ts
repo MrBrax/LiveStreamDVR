@@ -20,6 +20,8 @@ export default function notify(
                 url: ntfyUrl,
                 headers: {
                     Title: title,
+                    Actions: `view, Open, ${url}`,
+                    Icon: icon,
                 },
                 data: body,
                 method: "POST",
