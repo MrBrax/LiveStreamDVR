@@ -12,7 +12,7 @@ export default function notify(
     url = "",
     tts = false
 ) {
-    const ntfyUrl = Config.getInstance().cfg<string>("notify.ntfy.url");
+    const ntfyUrl = Config.getInstance().cfg<string>("notifications.ntfy.url");
 
     if (ntfyUrl) {
         axios

@@ -79,7 +79,10 @@ export const NotificationProvidersList = [
     { id: NotificationProvider.NTFY, name: "Ntfy" },
 ];
 
-export const NotificationCategories = [
+export const NotificationCategories: {
+    id: NotificationCategory;
+    name: string;
+}[] = [
     { id: "offlineStatusChange", name: "Offline status change" },
     { id: "streamOnline", name: "Stream online" },
     { id: "streamOffline", name: "Stream offline" },

@@ -605,14 +605,14 @@ export const settingsFields: Record<string, SettingField> = {
         type: "string",
     },
 
-    "notify.ntfy.enabled": {
+    "notifications.ntfy.enabled": {
         group: "Notifications (Ntfy)",
         text: "Enable Ntfy notifications",
         type: "boolean",
         default: false,
     },
 
-    "notify.ntfy.url": {
+    "notifications.ntfy.url": {
         group: "Notifications (Ntfy)",
         text: "Ntfy url with topic",
         type: "string",
