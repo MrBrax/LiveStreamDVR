@@ -872,6 +872,12 @@ export const settingsFields: Record<string, SettingField> = {
         default: false,
         help: "Enable auto exporter. Not fully tested yet.",
     },
+    "exporter.auto.exclude_channels": {
+        group: "Exporter",
+        text: "Exclude channels",
+        type: "string",
+        help: "Exclude channels from auto exporter. Separate by semicolons like channel1;channel2",
+    },
 
     "exporter.youtube.playlists": {
         group: "Exporter",

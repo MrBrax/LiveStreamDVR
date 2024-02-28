@@ -555,6 +555,152 @@ export class BaseAutomator {
         return true;
     }
 
+    private async downloadChat() {
+        try {
+            await this.vod?.downloadChat();
+        } catch (error) {
+            log(
+                LOGLEVEL.ERROR,
+                "automator.onEndDownload",
+                `Failed to download chat for ${this.vod?.basename}: ${
+                    (error as Error).message
+                }`
+            );
+        }
+    }
+
+    private afterCaptureExport() {
+        // run auto exporter
+        if (Config.getInstance().cfg("exporter.auto.enabled")) {
+            const exporterDisabledChannels = Config.getInstance()
+                .cfg("exporter.auto.exclude_channels", "")
+                .split(";")
+                .map((x) => x.trim());
+
+            if (
+                exporterDisabledChannels.includes(this.broadcaster_user_login)
+            ) {
+                log(
+                    LOGLEVEL.INFO,
+                    "automator.onEndDownload",
+                    `Auto exporter disabled for ${this.broadcaster_user_login}`
+                );
+                return;
+            }
+
+            const options: ExporterOptions = {
+                vod: this.vod?.uuid,
+                directory: Config.getInstance().cfg(
+                    "exporter.default.directory"
+                ),
+                host: Config.getInstance().cfg("exporter.default.host"),
+                username: Config.getInstance().cfg("exporter.default.username"),
+                password: Config.getInstance().cfg("exporter.default.password"),
+                description: Config.getInstance().cfg(
+                    "exporter.default.description"
+                ),
+                tags: Config.getInstance().cfg("exporter.default.tags"),
+                category: Config.getInstance().cfg("exporter.default.category"),
+                remote: Config.getInstance().cfg("exporter.default.remote"),
+                title_template: Config.getInstance().cfg(
+                    "exporter.default.title_template"
+                ),
+                privacy: Config.getInstance().cfg("exporter.default.privacy"),
+            };
+
+            let exporter: Exporter | undefined;
+            try {
+                exporter = GetExporter(
+                    Config.getInstance().cfg("exporter.default.exporter"),
+                    "vod",
+                    options
+                );
+            } catch (error) {
+                log(
+                    LOGLEVEL.ERROR,
+                    "automator.onEndDownload",
+                    `Auto exporter error: ${(error as Error).message}`
+                );
+            }
+
+            if (exporter) {
+                exporter
+                    .export()
+                    .then((out_path) => {
+                        if (!exporter) return;
+                        if (out_path) {
+                            exporter
+                                .verify()
+                                .then((status) => {
+                                    log(
+                                        LOGLEVEL.SUCCESS,
+                                        "automator.onEndDownload",
+                                        `Exporter finished for ${this.vodBasenameTemplate()}`
+                                    );
+                                    if (exporter && exporter.vod && status) {
+                                        exporter.vod.exportData.exported_at =
+                                            new Date().toISOString();
+                                        void exporter.vod.saveJSON(
+                                            "export successful"
+                                        );
+                                    }
+                                })
+                                .catch((error) => {
+                                    log(
+                                        LOGLEVEL.ERROR,
+                                        "automator.onEndDownload",
+                                        (error as Error).message
+                                            ? `Verify error: ${
+                                                  (error as Error).message
+                                              }`
+                                            : "Unknown error occurred while verifying export"
+                                    );
+                                });
+                        } else {
+                            log(
+                                LOGLEVEL.ERROR,
+                                "automator.onEndDownload",
+                                "Exporter finished but no path output."
+                            );
+                        }
+                    })
+                    .catch((error) => {
+                        log(
+                            LOGLEVEL.ERROR,
+                            "automator.onEndDownload",
+                            (error as Error).message
+                                ? `Export error: ${(error as Error).message}`
+                                : "Unknown error occurred while exporting export"
+                        );
+                    });
+            }
+        }
+    }
+
+    private async afterCaptureReEncode() {
+        if (Config.getInstance().cfg("reencoder.enabled")) {
+            log(
+                LOGLEVEL.INFO,
+                "automator.onEndDownload",
+                `Auto reencoding on ${this.vod?.basename}`
+            );
+            try {
+                await this.vod?.reencodeSegments(
+                    true,
+                    Config.getInstance().cfg("reencoder.delete_source", false) // o_o
+                );
+            } catch (error) {
+                log(
+                    LOGLEVEL.ERROR,
+                    "automator.onEndDownload",
+                    `Failed to reencode ${this.vod?.basename}: ${
+                        (error as Error).message
+                    }`
+                );
+            }
+        }
+    }
+
     /**
      * End of download
      *
@@ -581,17 +727,7 @@ export class BaseAutomator {
                     `Auto download chat on ${this.vod.basename}`
                 );
 
-                try {
-                    await this.vod.downloadChat();
-                } catch (error) {
-                    log(
-                        LOGLEVEL.ERROR,
-                        "automator.onEndDownload",
-                        `Failed to download chat for ${this.vod.basename}: ${
-                            (error as Error).message
-                        }`
-                    );
-                }
+                await this.downloadChat();
 
                 if (this.channel.burn_chat) {
                     // logAdvanced(LOGLEVEL.ERROR, "automator.onEndDownload", "Automatic chat burning has been disabled until settings have been implemented.");
@@ -600,134 +736,10 @@ export class BaseAutomator {
             }
 
             // run auto exporter
-            if (Config.getInstance().cfg("exporter.auto.enabled")) {
-                const options: ExporterOptions = {
-                    vod: this.vod.uuid,
-                    directory: Config.getInstance().cfg(
-                        "exporter.default.directory"
-                    ),
-                    host: Config.getInstance().cfg("exporter.default.host"),
-                    username: Config.getInstance().cfg(
-                        "exporter.default.username"
-                    ),
-                    password: Config.getInstance().cfg(
-                        "exporter.default.password"
-                    ),
-                    description: Config.getInstance().cfg(
-                        "exporter.default.description"
-                    ),
-                    tags: Config.getInstance().cfg("exporter.default.tags"),
-                    category: Config.getInstance().cfg(
-                        "exporter.default.category"
-                    ),
-                    remote: Config.getInstance().cfg("exporter.default.remote"),
-                    title_template: Config.getInstance().cfg(
-                        "exporter.default.title_template"
-                    ),
-                    privacy: Config.getInstance().cfg(
-                        "exporter.default.privacy"
-                    ),
-                };
-
-                let exporter: Exporter | undefined;
-                try {
-                    exporter = GetExporter(
-                        Config.getInstance().cfg("exporter.default.exporter"),
-                        "vod",
-                        options
-                    );
-                } catch (error) {
-                    log(
-                        LOGLEVEL.ERROR,
-                        "automator.onEndDownload",
-                        `Auto exporter error: ${(error as Error).message}`
-                    );
-                }
-
-                if (exporter) {
-                    exporter
-                        .export()
-                        .then((out_path) => {
-                            if (!exporter) return;
-                            if (out_path) {
-                                exporter
-                                    .verify()
-                                    .then((status) => {
-                                        log(
-                                            LOGLEVEL.SUCCESS,
-                                            "automator.onEndDownload",
-                                            `Exporter finished for ${this.vodBasenameTemplate()}`
-                                        );
-                                        if (
-                                            exporter &&
-                                            exporter.vod &&
-                                            status
-                                        ) {
-                                            exporter.vod.exportData.exported_at =
-                                                new Date().toISOString();
-                                            void exporter.vod.saveJSON(
-                                                "export successful"
-                                            );
-                                        }
-                                    })
-                                    .catch((error) => {
-                                        log(
-                                            LOGLEVEL.ERROR,
-                                            "automator.onEndDownload",
-                                            (error as Error).message
-                                                ? `Verify error: ${
-                                                      (error as Error).message
-                                                  }`
-                                                : "Unknown error occurred while verifying export"
-                                        );
-                                    });
-                            } else {
-                                log(
-                                    LOGLEVEL.ERROR,
-                                    "automator.onEndDownload",
-                                    "Exporter finished but no path output."
-                                );
-                            }
-                        })
-                        .catch((error) => {
-                            log(
-                                LOGLEVEL.ERROR,
-                                "automator.onEndDownload",
-                                (error as Error).message
-                                    ? `Export error: ${
-                                          (error as Error).message
-                                      }`
-                                    : "Unknown error occurred while exporting export"
-                            );
-                        });
-                }
-            }
+            this.afterCaptureExport();
 
             // this is a slow solution since we already remux the vod to mp4, and here we reencode that file
-            if (Config.getInstance().cfg("reencoder.enabled")) {
-                log(
-                    LOGLEVEL.INFO,
-                    "automator.onEndDownload",
-                    `Auto reencoding on ${this.vod.basename}`
-                );
-                try {
-                    await this.vod.reencodeSegments(
-                        true,
-                        Config.getInstance().cfg(
-                            "reencoder.delete_source",
-                            false
-                        ) // o_o
-                    );
-                } catch (error) {
-                    log(
-                        LOGLEVEL.ERROR,
-                        "automator.onEndDownload",
-                        `Failed to reencode ${this.vod.basename}: ${
-                            (error as Error).message
-                        }`
-                    );
-                }
-            }
+            await this.afterCaptureReEncode();
 
             // run auto splitter
             if (
@@ -1619,8 +1631,18 @@ export class BaseAutomator {
         );
 
         // streamlink 6.0.0 timeout
-        if (Config.getInstance().cfg("capture.hls_segment_queue_threshold", -1) != -1) {
-            cmd.push("--hls-segment-queue-threshold", Config.getInstance().cfg("capture.hls_segment_queue_threshold", -1).toString());
+        if (
+            Config.getInstance().cfg(
+                "capture.hls_segment_queue_threshold",
+                -1
+            ) != -1
+        ) {
+            cmd.push(
+                "--hls-segment-queue-threshold",
+                Config.getInstance()
+                    .cfg("capture.hls_segment_queue_threshold", -1)
+                    .toString()
+            );
         }
 
         // The size of the thread pool used to download HLS segments.
@@ -1639,7 +1661,10 @@ export class BaseAutomator {
 
         // logging level
         if (Config.getInstance().cfg("capture.loglevel", "info") !== "info") {
-            cmd.push("--loglevel", Config.getInstance().cfg("capture.loglevel", "info"));
+            cmd.push(
+                "--loglevel",
+                Config.getInstance().cfg("capture.loglevel", "info")
+            );
         } else if (Config.debug) {
             cmd.push("--loglevel", "debug");
         } else if (Config.getInstance().cfg("app_verbose", false)) {
