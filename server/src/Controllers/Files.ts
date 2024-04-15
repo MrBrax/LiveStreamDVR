@@ -7,6 +7,12 @@ import sanitize from "sanitize-filename";
 
 const allowedDataPaths = ["storage", "logs"];
 
+/**
+ * Validates a given path to ensure it meets certain criteria.
+ *
+ * @param nastyPath - The path to be validated.
+ * @returns A string indicating the validation error, or `true` if the path is valid.
+ */
 export function validatePath(nastyPath: string): string | boolean {
     // sanitize user path
     nastyPath = nastyPath.normalize();
