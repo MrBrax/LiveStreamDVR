@@ -715,7 +715,7 @@ export class TwitchAutomator extends BaseAutomator {
 
         // streamlink-ttvlol plugin
         if (Config.getInstance().cfg("capture.twitch-ttv-lol-plugin") && LiveStreamDVR.ttvLolPluginAvailable) {
-            cmd.push("--plugin-dirs", BaseConfigDataFolder.streamlink_plugins);
+            cmd.push("--plugin-dir", BaseConfigDataFolder.streamlink_plugins);
 
             if (
                 Config.getInstance().hasValue("capture.twitch-proxy-playlist")
