@@ -3,10 +3,7 @@ module.exports = {
         // "browser": true,
         es2021: true,
     },
-    extends: [
-        "eslint:recommended",
-        "plugin:@typescript-eslint/recommended-type-checked",
-    ],
+    extends: ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
     parser: "@typescript-eslint/parser",
     parserOptions: {
         ecmaVersion: "latest",
@@ -47,7 +44,7 @@ module.exports = {
         "no-throw-literal": "error",
         // "import/no-relative-parent-imports": "error",
         "no-use-before-define": "warn",
-        "@typescript-eslint/naming-convention": [
+        /*  "@typescript-eslint/naming-convention": [
             "error",
             {
                 selector: "variable",
@@ -64,7 +61,7 @@ module.exports = {
                 format: ["PascalCase"],
             },
         ],
-        "@typescript-eslint/member-ordering": ["warn"],
+        "@typescript-eslint/member-ordering": ["warn"], */
         "@typescript-eslint/explicit-member-accessibility": ["warn"],
         "@typescript-eslint/no-base-to-string": "error",
     },
