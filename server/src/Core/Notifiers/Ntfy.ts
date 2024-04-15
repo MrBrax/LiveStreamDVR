@@ -12,18 +12,24 @@ type Action = {
     body?: string;
 };
 
-// action=<action1>, label=<label1>, paramN=... [; action=<action2>, label=<label2>, ...]
-function buildActions(actions: Action[]) {
-    return actions
-        .map((action) => {
-            return `action=${action.action}, label=${action.label}, ${
-                action.url ? `url=${action.url}, ` : ""
-            }${action.clear ? `clear=${action.clear}, ` : ""}${
-                action.body ? `body='${action.body}', ` : ""
-            }`;
-        })
-        .join("; ");
-}
+type NtfyPublish = {
+    topic: string;
+    message?: string;
+    title?: string;
+    tags?: string[];
+    priority?: number;
+    actions?: Action[];
+    click?: string;
+    attach?: string;
+    markdown?: boolean;
+    icon?: string;
+    filename?: string;
+    delay?: string;
+    email?: string;
+    call?: string;
+};
+
+// action=<action1>, label=<label1>, paramN=... [; action=<action2>, label=<label2>, ...]/*
 
 export default function notify({
     title,
@@ -43,6 +49,9 @@ export default function notify({
     actions?: Action[];
 }) {
     const ntfyUrl = Config.getInstance().cfg<string>("notifications.ntfy.url");
+    const ntfyTopic = Config.getInstance().cfg<string>(
+        "notifications.ntfy.topic"
+    );
 
     if (url) {
         actions.push({
@@ -52,18 +61,23 @@ export default function notify({
         });
     }
 
+    const bodyData: NtfyPublish = {
+        topic: ntfyTopic,
+        title: title,
+        message: body,
+        actions: actions,
+        icon: icon ?? undefined,
+        tags: emoji ? [emoji, category] : [category],
+    };
+
     if (ntfyUrl) {
         axios
             .request({
                 url: ntfyUrl,
+                data: bodyData,
                 headers: {
-                    Title: title,
-                    // Actions: url ? `view, Open, ${url}` : undefined,
-                    Actions: buildActions(actions),
-                    Icon: icon ?? undefined,
-                    Tags: emoji ? `${emoji},${category}` : category,
+                    "Content-Type": "application/json",
                 },
-                data: body,
                 method: "POST",
             })
             .then((res) => {

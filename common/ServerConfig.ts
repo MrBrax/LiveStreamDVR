@@ -614,7 +614,13 @@ export const settingsFields: Record<string, SettingField> = {
 
     "notifications.ntfy.url": {
         group: "Notifications (Ntfy)",
-        text: "Ntfy url with topic",
+        text: "Ntfy url without topic",
+        type: "string",
+    },
+
+    "notifications.ntfy.topic": {
+        group: "Notifications (Ntfy)",
+        text: "Ntfy topic",
         type: "string",
     },
 
