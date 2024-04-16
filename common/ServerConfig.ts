@@ -811,7 +811,8 @@ export const settingsFields: Record<string, SettingField> = {
     "exporter.default.directory": {
         group: "Exporter",
         text: "Default directory",
-        type: "string",
+        type: "template",
+        replacements: ExporterFilenameFields,
     },
     "exporter.default.host": {
         group: "Exporter",
