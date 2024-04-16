@@ -4,7 +4,7 @@ import fs from "node:fs";
 import path from "node:path";
 import sanitize from "sanitize-filename";
 import { z } from "zod";
-import { BaseExporter } from "./Base";
+import { FileExporter } from "./File";
 
 // export const rCloneExporterConfigSchema = z.object({
 //     type: z.literal("RClone"),
@@ -23,10 +23,9 @@ const rCloneLsJsonSchema = z.array(
     })
 );
 
-export class RCloneExporter extends BaseExporter {
+export class RCloneExporter extends FileExporter {
     public type = "RClone";
 
-    public directory = "";
     // public host = "";
 
     public remote_file = "";
@@ -84,7 +83,10 @@ export class RCloneExporter extends BaseExporter {
             const finalFilename =
                 sanitize(this.getFormattedTitle()) + "." + this.extension;
 
-            const filesystemPath = path.join(this.directory, finalFilename);
+            const filesystemPath = path.join(
+                this.getFormattedDirectory(),
+                finalFilename
+            );
             const linuxPath = filesystemPath.replace(/\\/g, "/");
             // const escaped_remote_path = linux_path.includes(" ") ? `'${linux_path}'` : linux_path;
             const remotePath = `${this.remote}:${linuxPath}`;
