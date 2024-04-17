@@ -306,12 +306,12 @@ export class Config {
 
         const example: Record<string, string | boolean | number | string[]> =
             {};
-        for (const key in Config.settingsFields) {
-            const field = Config.getSettingField(
-                key as keyof typeof settingsFields
-            );
-            if (field !== undefined && field["default"] !== undefined)
+        for (const rawKey in Config.settingsFields) {
+            const key = rawKey as keyof typeof settingsFields;
+            const field = Config.getSettingField(key);
+            if (field !== undefined && field["default"] !== undefined) {
                 example[key] = field["default"];
+            }
         }
         // example["favourites"] = [];
         // example["streamers"] = [];
