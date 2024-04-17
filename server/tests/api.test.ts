@@ -109,8 +109,9 @@ describe("settings", () => {
 
         const fields = Config.settingsFields;
         for (const key in fields) {
-            const field = fields[key];
-            if (!field.default) continue;
+            const field = fields[key as keyof typeof fields];
+            if (field === undefined || ("default" in field && !field.default))
+                continue;
             expect(res.body.data.config[key]).toBeDefined();
         }
 

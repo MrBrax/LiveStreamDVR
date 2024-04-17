@@ -1,16 +1,14 @@
 import { BaseConfigCacheFolder } from "@/Core/BaseConfig";
 import path from "node:path";
-import { Config } from "@/Core/Config";
-import { log, LOGLEVEL } from "@/Core/Log";
 
 export class TikTokHelper {
-    static readonly accessTokenFile = path.join(
+    public static readonly accessTokenFile = path.join(
         BaseConfigCacheFolder.cache,
         "tiktok_oauth.json"
     );
-    static authenticated: boolean;
+    public static authenticated: boolean;
 
-    static async setupClient() {
+    /* public static async setupClient() {
         const client_id = Config.getInstance().cfg<string>("tiktok.client_id");
         const client_secret = Config.getInstance().cfg<string>(
             "tiktok.client_secret"
@@ -31,5 +29,5 @@ export class TikTokHelper {
             );
             return;
         }
-    }
+    } */
 }

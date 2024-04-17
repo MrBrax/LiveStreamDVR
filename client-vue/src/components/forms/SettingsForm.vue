@@ -9,8 +9,8 @@
             </h3>
             <ul>
                 <li v-for="(setting, key) of newAndInterestingSettings" :key="key">
-                    Under <strong>{{ setting.group }}</strong
-                    >: {{ setting.text }} ({{ setting.help }})
+                    Under <strong>{{ setting?.group }}</strong
+                    >: {{ setting?.text }} ({{ setting !== undefined && "help" in setting ? setting.help : "No help" }})
                 </li>
             </ul>
         </div>
@@ -197,7 +197,7 @@ const { t, te } = useI18n();
 const formStatusText = ref<string>("Ready");
 const formStatus = ref<FormStatus>("IDLE");
 const formData = ref<{ config: Record<string, string | number | boolean> }>({ config: {} });
-const fetchedSettingsFields = ref<typeof settingsFields>({});
+const fetchedSettingsFields = ref<typeof settingsFields>();
 const loading = ref<boolean>(false);
 const searchText = ref<string>("");
 
@@ -205,13 +205,14 @@ const searchText = ref<string>("");
 const settingsGroups = computed((): SettingsGroup[] => {
     if (!fetchedSettingsFields.value) return [];
     const groups: Record<string, SettingsGroup> = {};
-    for (const key in fetchedSettingsFields.value) {
+    for (const rawKey in fetchedSettingsFields.value) {
+        const key = rawKey as keyof typeof fetchedSettingsFields.value;
         const field = fetchedSettingsFields.value[key];
         if (!field.group) continue;
         if (searchText.value) {
             if (
                 !key.toLowerCase().includes(searchText.value.toLowerCase()) &&
-                !field.help?.toLowerCase().includes(searchText.value.toLowerCase()) &&
+                ("help" in field && !field.help?.toLowerCase().includes(searchText.value.toLowerCase())) &&
                 !field.text?.toLowerCase().includes(searchText.value.toLowerCase())
             )
                 continue;
@@ -232,11 +233,14 @@ const settingsGroups = computed((): SettingsGroup[] => {
     */
 });
 
-const newAndInterestingSettings = computed((): typeof settingsFields => {
-    const newSettings: typeof settingsFields = {};
-    for (const key in fetchedSettingsFields.value) {
+const newAndInterestingSettings = computed((): Record<keyof typeof settingsFields, SettingField & { new: boolean }> => {
+    const newSettings: Record<keyof typeof settingsFields, SettingField & { new: boolean }> = {} as any;
+    for (const rawKey in fetchedSettingsFields.value) {
+        const key = rawKey as keyof typeof fetchedSettingsFields.value;
         const field = fetchedSettingsFields.value[key];
-        if (field.new) newSettings[key] = field;
+        if (field !== undefined && "new" in field && field.new) {
+            newSettings[key] = field;
+        }
     }
     return newSettings;
     // return fetchedSettingsFields.value.filter((field) => field.new);
@@ -286,8 +290,8 @@ function fetchData(): void {
 
             // set defaults
             for (const key in fetchedSettingsFields.value) {
-                const field = fetchedSettingsFields.value[key];
-                if (field.default !== undefined && formData.value.config[key] === undefined) {
+                const field = fetchedSettingsFields.value[key as keyof typeof fetchedSettingsFields.value];
+                if ("default" in field && field.default !== undefined && formData.value.config[key] === undefined) {
                     formData.value.config[key] = field.default;
                 }
             }

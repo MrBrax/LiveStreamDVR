@@ -2,6 +2,7 @@ import { AppName } from "@/Core/BaseConfig";
 import { Config } from "@/Core/Config";
 import { KeyValue } from "@/Core/KeyValue";
 import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
+import { LOGLEVEL, log } from "@/Core/Log";
 import { TwitchGame } from "@/Core/Providers/Twitch/TwitchGame";
 import type { ApiSettingsResponse } from "@common/Api/Api";
 import type express from "express";
@@ -17,10 +18,11 @@ export async function GetSettings(
         !req.session.authenticated;
 
     const config: Record<string, any> = {};
-    for (const key in Config.settingsFields) {
-        const field = Config.settingsFields[key];
+    for (const rawKey in Config.settingsFields) {
+        const key = rawKey as keyof typeof Config.settingsFields;
+        const field = Config.getSettingField(key);
         // if (field.secret) continue;
-        if (is_guest && !field.guest) continue;
+        if (is_guest && field !== undefined && !field.guest) continue;
         config[key] = Config.getInstance().cfg(key);
     }
 
@@ -86,8 +88,14 @@ export function SaveSettings(
 
     let fields = 0;
     for (const key in Config.settingsFields) {
-        const setting = Config.settingsFields[key];
-        if (setting.required && postConfig[key] === undefined) {
+        const setting = Config.getSettingField(
+            key as keyof typeof Config.settingsFields
+        );
+        if (
+            setting !== undefined &&
+            setting.required &&
+            postConfig[key] === undefined
+        ) {
             res.api(400, {
                 status: "ERROR",
                 message: `Missing required setting: ${key}`,
@@ -107,8 +115,14 @@ export function SaveSettings(
         return;
     }
 
-    for (const key in Config.settingsFields) {
-        const setting = Config.settingsFields[key];
+    // validate and save settings
+    for (const rawKey in Config.settingsFields) {
+        const key = rawKey as keyof typeof Config.settingsFields;
+        const setting = Config.getSettingField(key);
+        if (setting === undefined) {
+            log(LOGLEVEL.ERROR, "Settings", `Setting not found: ${key}`);
+            continue;
+        }
         if (setting.type === "boolean") {
             Config.getInstance().setConfig<boolean>(key, postConfig[key]);
         } else if (setting.type === "number") {

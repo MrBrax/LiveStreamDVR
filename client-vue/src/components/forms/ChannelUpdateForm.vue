@@ -376,7 +376,7 @@ function deleteChannel() {
 }
 
 function subscribeChannel() {
-    if ((!store.cfg("app_url") || store.cfg("app_url") == "debug") && store.cfg("twitchapi.twitchapi.eventsub_type") === "webhook") {
+    if ((!store.cfg("app_url") || store.cfg("app_url") == "debug") && store.cfg("twitchapi.eventsub_type") === "webhook") {
         alert("Please set the app url in the settings");
         return;
     }

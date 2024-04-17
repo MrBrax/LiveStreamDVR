@@ -7,7 +7,15 @@ import {
 } from "./ReplacementsConsts";
 import { YouTubeCategories } from "./YouTube";
 
-export const settingsFields: Record<string, SettingField> = {
+// export type SettingKey = keyof typeof settingsFields;
+
+function createSettingsFields<T extends Record<string, SettingField>>(
+    fields: T
+): T {
+    return fields;
+}
+
+export const settingsFields = createSettingsFields({
     bin_dir: {
         group: "Binaries",
         text: "Python binary directory",
@@ -1098,4 +1106,4 @@ export const settingsFields: Record<string, SettingField> = {
         choices: ["jpg", "png", "webp"] as string[],
         default: "jpg",
     },
-} as const;
+});
