@@ -118,7 +118,7 @@ describe("settings", () => {
                 console.error("Field is undefined", key);
                 continue;
             }
-            if ("default" in field && !field.default) {
+            if (!("default" in field) || !field.default) {
                 console.error("Field has no default", key);
                 continue;
             }
