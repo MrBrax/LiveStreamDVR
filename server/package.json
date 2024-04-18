@@ -53,7 +53,7 @@
     },
     "dependencies": {
         "@googleapis/youtube": "^10.0.0",
-        "axios": "^1.4.0",
+        "axios": "^1.6.8",
         "basic-auth": "^2.0.1",
         "chalk": "4.1.2",
         "check-disk-space": "^3.4.0",
