@@ -31,7 +31,7 @@ type NtfyPublish = {
 
 // action=<action1>, label=<label1>, paramN=... [; action=<action2>, label=<label2>, ...]/*
 
-export default function notify({
+export default async function notify({
     title,
     body = "",
     icon = "",
@@ -71,77 +71,81 @@ export default function notify({
     };
 
     if (ntfyUrl) {
-        axios
-            .request({
+        let response;
+
+        try {
+            response = await axios.request({
                 url: ntfyUrl,
                 data: bodyData,
                 headers: {
                     "Content-Type": "application/json",
                 },
                 method: "POST",
-            })
-            .then((res) => {
-                log(
-                    LOGLEVEL.DEBUG,
-                    "clientBroker.notify",
-                    "Ntfy response",
-                    res.data
-                );
-            })
-            .catch((err: Error) => {
-                if (axios.isAxiosError(err)) {
-                    if (err.response) {
-                        log(
-                            LOGLEVEL.ERROR,
-                            "clientBroker.notify",
-                            `Ntfy axios error response: ${err.message} (${err.response.data})`,
-                            { err: err, response: err.response.data }
-                        );
-                        console.error(
-                            chalk.bgRed.whiteBright(
-                                `Ntfy axios error response : ${err.message} (${err.response.data})`
-                            ),
-                            JSON.stringify(err, null, 2)
-                        );
-                    } else if (err.request) {
-                        log(
-                            LOGLEVEL.ERROR,
-                            "clientBroker.notify",
-                            `Ntfy axios error request: ${err.message} (${err.request})`,
-                            { err: err, request: err.request }
-                        );
-                        console.error(
-                            chalk.bgRed.whiteBright(
-                                `Ntfy axios error request : ${err.message} (${err.request})`
-                            ),
-                            JSON.stringify(err, null, 2)
-                        );
-                    } else {
-                        log(
-                            LOGLEVEL.ERROR,
-                            "clientBroker.notify",
-                            `Ntfy axios error: ${err.message}`,
-                            { err: err }
-                        );
-                        console.error(
-                            chalk.bgRed.whiteBright(
-                                `Ntfy axios error : ${err.message}`
-                            ),
-                            JSON.stringify(err, null, 2)
-                        );
-                    }
+            });
+        } catch (err) {
+            if (axios.isAxiosError(err)) {
+                if (err.response) {
+                    log(
+                        LOGLEVEL.ERROR,
+                        "clientBroker.notify",
+                        `Ntfy axios error response: ${err.message} (${err.response.data})`,
+                        { err: err, response: err.response.data }
+                    );
+                    console.error(
+                        chalk.bgRed.whiteBright(
+                            `Ntfy axios error response : ${err.message} (${err.response.data})`
+                        ),
+                        JSON.stringify(err, null, 2)
+                    );
+                } else if (err.request) {
+                    log(
+                        LOGLEVEL.ERROR,
+                        "clientBroker.notify",
+                        `Ntfy axios error request: ${err.message} (${err.request})`,
+                        { err: err, request: err.request }
+                    );
+                    console.error(
+                        chalk.bgRed.whiteBright(
+                            `Ntfy axios error request : ${err.message} (${err.request})`
+                        ),
+                        JSON.stringify(err, null, 2)
+                    );
                 } else {
                     log(
                         LOGLEVEL.ERROR,
                         "clientBroker.notify",
-                        `Ntfy error: ${err.message}`,
+                        `Ntfy axios error: ${err.message}`,
                         { err: err }
                     );
                     console.error(
-                        chalk.bgRed.whiteBright(`Ntfy error : ${err.message}`),
+                        chalk.bgRed.whiteBright(
+                            `Ntfy axios error : ${err.message}`
+                        ),
                         JSON.stringify(err, null, 2)
                     );
                 }
-            });
+            } else {
+                log(
+                    LOGLEVEL.ERROR,
+                    "clientBroker.notify",
+                    `Ntfy error: ${(err as Error).message}`,
+                    { err: err }
+                );
+                console.error(
+                    chalk.bgRed.whiteBright(
+                        `Ntfy error : ${(err as Error).message}`
+                    ),
+                    JSON.stringify(err, null, 2)
+                );
+            }
+            return;
+        }
+
+        log(
+            LOGLEVEL.DEBUG,
+            "clientBroker.notify",
+            "Ntfy response",
+            response.data
+        );
     }
 }

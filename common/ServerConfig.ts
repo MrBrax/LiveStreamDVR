@@ -596,12 +596,12 @@ export const settingsFields = createSettingsFields({
     },
 
     // telegram
-    telegram_enabled: {
+    /* telegram_enabled: {
         group: "Notifications (Telegram)",
         text: "Enable Telegram notifications",
         type: "boolean",
         default: false,
-    },
+    }, */
     telegram_token: {
         group: "Notifications (Telegram)",
         text: "Telegram token",
@@ -613,16 +613,17 @@ export const settingsFields = createSettingsFields({
         type: "string",
     },
 
-    "notifications.ntfy.enabled": {
+    /* "notifications.ntfy.enabled": {
         group: "Notifications (Ntfy)",
         text: "Enable Ntfy notifications",
         type: "boolean",
         default: false,
-    },
+    }, */
 
     "notifications.ntfy.url": {
         group: "Notifications (Ntfy)",
-        text: "Ntfy url without topic",
+        text: "Ntfy URL without topic",
+        help: "Include http/https e.g. https://ntfy.example.com",
         type: "string",
     },
 
@@ -633,12 +634,12 @@ export const settingsFields = createSettingsFields({
     },
 
     // discord
-    discord_enabled: {
+    /* discord_enabled: {
         group: "Notifications (Discord)",
         text: "Enable Discord notifications",
         type: "boolean",
         default: false,
-    },
+    }, */
     discord_webhook: {
         group: "Notifications (Discord)",
         text: "Discord webhook",
@@ -646,12 +647,12 @@ export const settingsFields = createSettingsFields({
     },
 
     // pushover
-    "notifications.pushover.enabled": {
+    /* "notifications.pushover.enabled": {
         group: "Notifications (Pushover)",
         text: "Enable Pushover notifications",
         type: "boolean",
         default: false,
-    },
+    }, */
     "notifications.pushover.token": {
         group: "Notifications (Pushover)",
         text: "Pushover token",

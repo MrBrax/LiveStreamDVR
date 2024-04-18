@@ -250,7 +250,6 @@ export class ClientBroker {
         }
 
         if (
-            Config.getInstance().cfg("telegram_enabled") &&
             ClientBroker.getNotificationSettingForProvider(
                 category,
                 NotificationProvider.TELEGRAM
@@ -260,7 +259,6 @@ export class ClientBroker {
         }
 
         if (
-            Config.getInstance().cfg("notifications.ntfy.enabled") &&
             ClientBroker.getNotificationSettingForProvider(
                 category,
                 NotificationProvider.NTFY
@@ -270,7 +268,6 @@ export class ClientBroker {
         }
 
         if (
-            Config.getInstance().cfg("discord_enabled") &&
             ClientBroker.getNotificationSettingForProvider(
                 category,
                 NotificationProvider.DISCORD
@@ -280,7 +277,6 @@ export class ClientBroker {
         }
 
         if (
-            Config.getInstance().cfg("notifications.pushover.enabled") &&
             ClientBroker.getNotificationSettingForProvider(
                 category,
                 NotificationProvider.PUSHOVER
