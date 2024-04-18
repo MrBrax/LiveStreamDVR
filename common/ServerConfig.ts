@@ -820,6 +820,7 @@ export const settingsFields = createSettingsFields({
         group: "Exporter",
         text: "Default directory",
         type: "template",
+        default: "",
         replacements: ExporterFilenameFields,
     },
     "exporter.default.host": {

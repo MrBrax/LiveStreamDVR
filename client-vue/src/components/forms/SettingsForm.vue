@@ -99,7 +99,7 @@
                         </li>
                     </ul>
                     <p class="template-preview">
-                        {{ templatePreview(data, formData.config[key] as string) }}
+                        {{ templatePreview(data, formData.config[key] as string || "(no data)") }}
                     </p>
                 </div>
 
@@ -340,14 +340,24 @@ function doValidateExternalURL() {
         });
 }
 
-function templatePreview(data: SettingField, template: string): string {
+function templatePreview(fieldData: SettingField, templateString: string): string {
     // console.debug("templatePreview", data, template);
-    if (data.type !== "template") return "";
-    if (!data.replacements) return "";
-    const replaced_string = formatString(template, Object.fromEntries(Object.entries(data.replacements).map(([key, value]) => [key, value.display])));
-    if (data.context) {
+    if (fieldData.type !== "template") {
+        console.warn("templatePreview", "not a template", JSON.stringify(fieldData));
+        return "";
+    }
+    if (!fieldData.replacements) {
+        console.warn("templatePreview", "no replacements", JSON.stringify(fieldData));
+        return "";
+    }
+    if (!templateString) {
+        console.warn("templatePreview", "no template", JSON.stringify(fieldData));
+        return "";
+    }
+    const replaced_string = formatString(templateString, Object.fromEntries(Object.entries(fieldData.replacements).map(([key, value]) => [key, value.display])));
+    if (fieldData.context) {
         // return data.context.replace(/{template}/g, replaced_string);
-        return formatString(data.context, Object.fromEntries(Object.entries(data.replacements).map(([key, value]) => [key, value.display]))).replace(
+        return formatString(fieldData.context, Object.fromEntries(Object.entries(fieldData.replacements).map(([key, value]) => [key, value.display]))).replace(
             /{template}/g,
             replaced_string,
         );
