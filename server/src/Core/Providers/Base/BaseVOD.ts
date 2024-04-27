@@ -2574,7 +2574,10 @@ export class BaseVOD {
                     Config.getInstance().cfg("file_chown_uid"),
                     Config.getInstance().cfg("file_chown_gid")
                 );
-                fs.chmodSync(fullpath, Config.getInstance().cfg("file_chmod"));
+                fs.chmodSync(
+                    fullpath,
+                    parseInt(Config.getInstance().cfg("file_chmod"), 8)
+                );
             }
         }
     }
