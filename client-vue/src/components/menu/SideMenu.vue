@@ -4,7 +4,7 @@
             <div v-if="store.config" class="top-menu-item title" :class="{ fancy: store.clientCfg('animationsEnabled') }">
                 <router-link to="/dashboard" class="link" aria-label="Go to dashboard">
                     <div class="bg" />
-                    <img src="../../assets/logo.png" class="favicon" width="24" height="24" :alt="store.cfg('app_name', 'TA') ?? 'TA'" aria-hidden="true" />
+                    <img src="../../assets/logo.png" class="favicon" width="24" height="24" :alt="store.app_name ?? 'TA'" aria-hidden="true" />
                     <h1 class="title" :title="verboseVersion">
                         <span>{{ store.app_name }}</span>
                         <template v-if="isDevelopmentBranch">

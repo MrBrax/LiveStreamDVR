@@ -1,4 +1,5 @@
 import { applySessionParser } from "@/Extend/express-session";
+import type { ApiSettingsResponse } from "@common/Api/Api";
 import type { Express } from "express";
 import express from "express";
 import request from "supertest";
@@ -101,17 +102,27 @@ afterAll(() => {
 describe("settings", () => {
     it("should return settings", async () => {
         const res = await request(app).get("/api/v0/settings");
-        // console.log(res.status, res.body);
+
+        const body = res.body as ApiSettingsResponse;
+
         expect(res.status).toBe(200);
-        expect(res.body).toHaveProperty("data.app_name");
-        expect(res.body).toHaveProperty("data.version");
-        expect(res.body).toHaveProperty("data.config");
+        expect(body).toHaveProperty("data.app_name");
+        expect(body).toHaveProperty("data.version");
+        expect(body).toHaveProperty("data.config");
+        expect(Object.keys(body.data.config).length).toBeGreaterThan(0);
 
         const fields = Config.settingsFields;
         for (const key in fields) {
-            const field = fields[key];
-            if (!field.default) continue;
-            expect(res.body.data.config[key]).toBeDefined();
+            const field = fields[key as keyof typeof fields];
+            if (field === undefined) {
+                console.error("Field is undefined", key);
+                continue;
+            }
+            if (!("default" in field) || !field.default) {
+                console.error("Field has no default", key);
+                continue;
+            }
+            expect(body.data.config[key]).toBeDefined();
         }
 
         expect(res.body.data.app_name).toBe(AppName);

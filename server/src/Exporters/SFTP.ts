@@ -1,26 +1,21 @@
 import { execSimple, startJob } from "@/Helpers/Execute";
 import path from "node:path";
 import sanitize from "sanitize-filename";
-import { BaseExporter } from "./Base";
+import { FileExporter } from "./File";
 
 /**
  * Basic SFTP exporter to transfer the VOD to a remote SFTP server.
  * Uses scp to transfer the file.
  */
-export class SFTPExporter extends BaseExporter {
+export class SFTPExporter extends FileExporter {
     public type = "SFTP";
 
-    public directory = "";
     public host = "";
     public username = "";
 
     public remote_file = "";
 
     public supportsDirectories = true;
-
-    public setDirectory(directory: string): void {
-        this.directory = directory;
-    }
 
     public setHost(host: string): void {
         this.host = host;
@@ -41,7 +36,10 @@ export class SFTPExporter extends BaseExporter {
             const finalFilename =
                 sanitize(this.getFormattedTitle()) + "." + this.extension;
 
-            const filesystemPath = path.join(this.directory, finalFilename);
+            const filesystemPath = path.join(
+                this.getFormattedDirectory(),
+                finalFilename
+            );
             const linuxPath = filesystemPath.replace(/\\/g, "/");
             let remotePath = `${this.host}:'${linuxPath}'`;
             if (this.username) {

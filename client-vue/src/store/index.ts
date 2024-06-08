@@ -65,7 +65,7 @@ export const useStore = defineStore("twitchAutomator", {
             streamerList: [],
             streamerListLoaded: false,
             jobList: [],
-            config: {},
+            config: {} as Record<keyof typeof settingsFields, any> | null,
             favourite_games: [],
             version: "?",
             clientConfig: undefined,
@@ -462,7 +462,7 @@ export const useStore = defineStore("twitchAutomator", {
             // console.debug(job_name, job.dt_started_at, elapsedSeconds, job.progress, calc);
             return calc;
         },
-        updateConfig(data: Record<string, any> | null) {
+        updateConfig(data: Record<keyof typeof settingsFields, any> | null) {
             this.config = data;
         },
         updateClientConfig(data: ClientSettings) {

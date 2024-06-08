@@ -86,6 +86,7 @@ export interface StringSettingField extends BaseSettingField {
     stripslash?: boolean;
     pattern?: string;
     multiline?: boolean;
+    help?: string; // TODO: why is this here twice?
 }
 
 export interface NumberSettingField extends BaseSettingField {
@@ -93,23 +94,27 @@ export interface NumberSettingField extends BaseSettingField {
     default?: number;
     min?: number;
     max?: number;
+    help?: string; // TODO: why is this here twice?
 }
 
 export interface BooleanSettingField extends BaseSettingField {
     type: "boolean";
     default?: boolean;
+    help?: string; // TODO: why is this here twice?
 }
 
 export interface ArraySettingField extends BaseSettingField {
     type: "array";
     default?: string;
     choices: Array<string>;
+    help?: string; // TODO: why is this here twice?
 }
 
 export interface ObjectSettingField extends BaseSettingField {
     type: "object";
     default?: string;
     choices: Record<string, string>;
+    help?: string; // TODO: why is this here twice?
 }
 
 export interface TemplateSettingField extends BaseSettingField {
@@ -121,6 +126,7 @@ export interface TemplateSettingField extends BaseSettingField {
         { display: string; description?: string; deprecated?: boolean }
     >;
     context?: string;
+    help?: string; // TODO: why is this here twice?
 }
 
 export type SettingField =

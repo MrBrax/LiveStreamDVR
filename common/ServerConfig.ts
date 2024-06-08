@@ -7,33 +7,49 @@ import {
 } from "./ReplacementsConsts";
 import { YouTubeCategories } from "./YouTube";
 
-export const settingsFields: Record<string, SettingField> = {
+// export type SettingKey = keyof typeof settingsFields;
+
+function createSettingsFields<T extends Record<string, SettingField>>(
+    fields: T
+): T {
+    return fields;
+}
+
+export const settingsFields = createSettingsFields({
     bin_dir: {
         group: "Binaries",
         text: "Python binary directory",
         type: "string",
         required: true,
-        help: "No trailing slash",
+        help: "No trailing slash. E.g. /usr/bin",
         stripslash: true,
     },
     ffmpeg_path: {
         group: "Binaries",
-        text: "FFmpeg path",
+        text: "FFmpeg executable path",
         type: "string",
+        help: "e.g. /usr/bin/ffmpeg",
         required: true,
     },
     mediainfo_path: {
         group: "Binaries",
-        text: "Mediainfo path",
+        text: "Mediainfo executable path",
         type: "string",
+        help: "e.g. /usr/bin/mediainfo",
         required: true,
     },
     twitchdownloader_path: {
         group: "Binaries",
-        text: "TwitchDownloaderCLI path",
+        text: "TwitchDownloaderCLI executable path",
         type: "string",
+        help: "e.g. /usr/bin/TwitchDownloaderCLI",
     },
-    node_path: { group: "Binaries", text: "NodeJS path", type: "string" },
+    node_path: {
+        group: "Binaries",
+        text: "NodeJS path",
+        type: "string",
+        help: "e.g. /usr/bin/node",
+    },
     "bin_path.python": {
         group: "Binaries",
         text: "Python path",
@@ -588,12 +604,12 @@ export const settingsFields: Record<string, SettingField> = {
     },
 
     // telegram
-    telegram_enabled: {
+    /* telegram_enabled: {
         group: "Notifications (Telegram)",
         text: "Enable Telegram notifications",
         type: "boolean",
         default: false,
-    },
+    }, */
     telegram_token: {
         group: "Notifications (Telegram)",
         text: "Telegram token",
@@ -605,26 +621,33 @@ export const settingsFields: Record<string, SettingField> = {
         type: "string",
     },
 
-    "notifications.ntfy.enabled": {
+    /* "notifications.ntfy.enabled": {
         group: "Notifications (Ntfy)",
         text: "Enable Ntfy notifications",
         type: "boolean",
         default: false,
-    },
+    }, */
 
     "notifications.ntfy.url": {
         group: "Notifications (Ntfy)",
-        text: "Ntfy url with topic",
+        text: "Ntfy URL without topic",
+        help: "Include http/https e.g. https://ntfy.example.com",
+        type: "string",
+    },
+
+    "notifications.ntfy.topic": {
+        group: "Notifications (Ntfy)",
+        text: "Ntfy topic",
         type: "string",
     },
 
     // discord
-    discord_enabled: {
+    /* discord_enabled: {
         group: "Notifications (Discord)",
         text: "Enable Discord notifications",
         type: "boolean",
         default: false,
-    },
+    }, */
     discord_webhook: {
         group: "Notifications (Discord)",
         text: "Discord webhook",
@@ -632,12 +655,12 @@ export const settingsFields: Record<string, SettingField> = {
     },
 
     // pushover
-    "notifications.pushover.enabled": {
+    /* "notifications.pushover.enabled": {
         group: "Notifications (Pushover)",
         text: "Enable Pushover notifications",
         type: "boolean",
         default: false,
-    },
+    }, */
     "notifications.pushover.token": {
         group: "Notifications (Pushover)",
         text: "Pushover token",
@@ -805,7 +828,9 @@ export const settingsFields: Record<string, SettingField> = {
     "exporter.default.directory": {
         group: "Exporter",
         text: "Default directory",
-        type: "string",
+        type: "template",
+        default: "",
+        replacements: ExporterFilenameFields,
     },
     "exporter.default.host": {
         group: "Exporter",
@@ -1091,4 +1116,4 @@ export const settingsFields: Record<string, SettingField> = {
         choices: ["jpg", "png", "webp"] as string[],
         default: "jpg",
     },
-} as const;
+});

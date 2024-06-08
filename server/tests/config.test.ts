@@ -34,7 +34,7 @@ describe("Config", () => {
         config.config = {};
         config.setConfig("app_url", "https://example.com");
         expect(config.cfg("app_url")).toBe("https://example.com");
-        expect(config.cfg("app_url1")).toBeUndefined();
+        expect(config.cfg("app_url1" as any)).toBeUndefined();
 
         // automatic type casting
         config.setConfig("trust_proxy", "1");
@@ -210,8 +210,8 @@ describe("Config", () => {
 
     it("setting exists", () => {
         expect(Config.settingExists("app_url")).toBe(true);
-        expect(Config.settingExists("app_url1")).toBe(false);
+        expect(Config.settingExists("app_url1" as any)).toBe(false);
         expect(Config.getSettingField("app_url")).toHaveProperty("text");
-        expect(Config.getSettingField("app_url1")).toBeUndefined();
+        expect(Config.getSettingField("app_url1" as any)).toBeUndefined();
     });
 });

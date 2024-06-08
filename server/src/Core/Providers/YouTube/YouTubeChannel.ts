@@ -300,7 +300,7 @@ export class YouTubeChannel extends BaseChannel {
         return await this.getUserDataProxy("username", username, force);
     }
 
-    static async getUserDataProxy(
+    public static async getUserDataProxy(
         method: "id" | "username",
         identifier: string,
         force = false

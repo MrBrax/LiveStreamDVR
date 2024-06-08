@@ -1,16 +1,16 @@
 import { execSimple, startJob } from "@/Helpers/Execute";
 import path from "node:path";
 import sanitize from "sanitize-filename";
-import { BaseExporter } from "./Base";
+import { FileExporter } from "./File";
 
 /**
  * Basic FTP exporter to transfer the VOD to a remote FTP server.
  * Uses curl to transfer the file.
  */
-export class FTPExporter extends BaseExporter {
+export class FTPExporter extends FileExporter {
     public type = "FTP";
 
-    public directory = "";
+    // public directory = "";
     public host = "";
     public username = "";
     public password = "";
@@ -18,10 +18,6 @@ export class FTPExporter extends BaseExporter {
     public remote_file = "";
 
     // public supportsDirectories = true;
-
-    public setDirectory(directory: string): void {
-        this.directory = directory;
-    }
 
     public setHost(host: string): void {
         this.host = host;
@@ -51,7 +47,10 @@ export class FTPExporter extends BaseExporter {
             const finalFilename =
                 sanitize(this.getFormattedTitle()) + "." + this.extension;
 
-            const filesystemPath = path.join(this.directory, finalFilename);
+            const filesystemPath = path.join(
+                this.getFormattedDirectory(),
+                finalFilename
+            );
             const linuxPath = filesystemPath.replace(/\\/g, "/");
             const webPath = encodeURIComponent(linuxPath);
 

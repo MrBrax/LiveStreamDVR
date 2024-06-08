@@ -86,6 +86,22 @@
         // don't allow resizing horizontally
         resize: vertical;
     }
+    &.is-highlighted {
+        background-color: rgba(70, 179, 40, 0.19);
+        animation: highlight 1s 5;
+    }
+}
+
+@keyframes highlight {
+    0% {
+        background-color: rgba(70, 179, 40, 0.19);
+    }
+    50% {
+        background-color: rgba(70, 179, 40, 0.39);
+    }
+    100% {
+        background-color: rgba(70, 179, 40, 0.19);
+    }
 }
 
 .input-help {

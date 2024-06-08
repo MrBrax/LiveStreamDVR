@@ -816,7 +816,12 @@ export async function DownloadVideo(
             game_id: extraData.game_id || "",
         };
 
-        return formatString(Config.getInstance().cfg(what), variables);
+        return formatString(
+            Config.getInstance().cfg(
+                what as keyof typeof Config.settingsFields
+            ),
+            variables
+        );
     };
 
     if (isTwitchChannel(channel)) {

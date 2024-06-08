@@ -79,7 +79,15 @@
     <div v-if="exporter == 'file' || exporter == 'sftp' || exporter == 'ftp' || exporter == 'rclone'" class="field">
         <label class="label">{{ t("vod.export.directory") }}</label>
         <div class="control">
-            <input v-model="exportVodSettings.directory" class="input" type="text" />
+            <input id="directory_template" v-model="exportVodSettings.directory" class="input" type="text" />
+            <ul class="template-replacements">
+                <li v-for="(v, k) in ExporterFilenameFields" :key="k">
+                    {{ k }}
+                </li>
+            </ul>
+            <p class="template-preview">
+                {{ templatePreview(exportVodSettings.directory || "") }}
+            </p>
             <p class="input-help">The folder where you want the file to end up in. Both local and remote.</p>
         </div>
     </div>

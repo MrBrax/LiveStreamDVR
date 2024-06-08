@@ -32,46 +32,48 @@ import { Scheduler } from "./Scheduler";
 const argv = minimist(process.argv.slice(2));
 
 export class Config {
-    initialised = false;
-    config: Record<string, string | number | boolean | string[]> | undefined;
+    public initialised = false;
+    public config:
+        | Record<string, string | number | boolean | string[]>
+        | undefined;
     private _writeConfig = false;
-    watcher: fs.FSWatcher | undefined;
+    private watcher: fs.FSWatcher | undefined;
 
-    gitHash?: string;
-    gitBranch?: string;
+    public gitHash?: string;
+    public gitBranch?: string;
 
-    sessionParser?: express.RequestHandler;
+    public sessionParser?: express.RequestHandler;
 
-    static readonly streamerCacheTime = 2592000 * 1000; // 30 days
-    static readonly settingsFields = settingsFields;
+    public static readonly streamerCacheTime = 2592000 * 1000; // 30 days
+    public static readonly settingsFields = settingsFields;
 
-    static MigrateOptions = [
+    public static MigrateOptions = [
         { from: "youtube_client_id", to: "youtube.client_id" },
         { from: "youtube_client_secret", to: "youtube.client_secret" },
     ];
 
-    static readonly AudioContainer = "m4a";
+    public static readonly AudioContainer = "m4a";
 
-    static readonly SeasonFormat = "yyyyMM";
+    public static readonly SeasonFormat = "yyyyMM";
 
-    static instance: Config | undefined;
+    public static instance: Config | undefined;
 
-    static getInstance(): Config {
+    public static getInstance(): Config {
         if (this.instance === undefined) {
             this.instance = new Config();
         }
         return this.instance;
     }
 
-    static getCleanInstance(): Config {
+    public static getCleanInstance(): Config {
         return new Config();
     }
 
-    static destroyInstance() {
+    public static destroyInstance() {
         this.instance = undefined;
     }
 
-    cfg<T>(key: keyof typeof settingsFields, defaultValue?: T): T {
+    public cfg<T>(key: keyof typeof settingsFields, defaultValue?: T): T {
         if (this.config === undefined) {
             console.error("Config not loaded", key, defaultValue);
             throw new Error("Config not loaded");
@@ -125,7 +127,7 @@ export class Config {
         return <T>this.config[key]; // return value
     }
 
-    hasValue(key: keyof typeof settingsFields): boolean {
+    public hasValue(key: keyof typeof settingsFields): boolean {
         if (this.config === undefined) {
             console.error("Config not loaded", key);
             throw new Error("Config not loaded");
@@ -176,7 +178,7 @@ export class Config {
      * @test disable
      * @returns
      */
-    loadConfig() {
+    public loadConfig() {
         console.log(chalk.blue("Loading config..."));
 
         if (!fs.existsSync(BaseConfigPath.config)) {
@@ -215,7 +217,9 @@ export class Config {
 
             // migrate old settings through migrate field
             for (const key in config) {
-                const field = Config.getSettingField(key);
+                const field = Config.getSettingField(
+                    key as keyof typeof settingsFields
+                );
                 if (field && field.migrate) {
                     config[field.migrate] = config[key];
                     delete config[key];
@@ -230,7 +234,7 @@ export class Config {
 
         // delete invalid settings
         for (const key in config) {
-            if (!Config.settingExists(key)) {
+            if (!Config.settingExists(key as keyof typeof settingsFields)) {
                 console.warn(
                     chalk.yellow(
                         `Saved setting '${key}' does not exist, deprecated? Discarding.`
@@ -244,10 +248,17 @@ export class Config {
             throw new Error("Config is empty even after reading it");
         }
 
+        // check for missing default values
         let changed = false;
         for (const key in Config.settingsFields) {
-            const setting = Config.settingsFields[key];
-            if (config[key] === undefined && setting.default !== undefined) {
+            const setting = Config.getSettingField(
+                key as keyof typeof settingsFields
+            );
+            if (
+                setting !== undefined &&
+                config[key] === undefined &&
+                setting.default !== undefined
+            ) {
                 config[key] = setting.default;
                 console.log(
                     chalk.yellow(
@@ -274,7 +285,11 @@ export class Config {
 
         for (const env_var of Object.keys(process.env)) {
             if (env_var.startsWith("TCD_")) {
-                const val = this.cfg(env_var.substring(4).toLowerCase());
+                const val = this.cfg(
+                    env_var
+                        .substring(4)
+                        .toLowerCase() as keyof typeof settingsFields
+                ); // TODO: this is a bit hacky
                 console.log(
                     chalk.green(
                         `Overriding setting '${env_var.substring(
@@ -286,14 +301,17 @@ export class Config {
         }
     }
 
-    generateConfig() {
+    public generateConfig() {
         console.log("Generating config");
 
         const example: Record<string, string | boolean | number | string[]> =
             {};
-        for (const key in Config.settingsFields) {
-            const field = Config.settingsFields[key];
-            if (field["default"] !== undefined) example[key] = field["default"];
+        for (const rawKey in Config.settingsFields) {
+            const key = rawKey as keyof typeof settingsFields;
+            const field = Config.getSettingField(key);
+            if (field !== undefined && field["default"] !== undefined) {
+                example[key] = field["default"];
+            }
         }
         // example["favourites"] = [];
         // example["streamers"] = [];
@@ -302,16 +320,27 @@ export class Config {
         this.saveConfig("generate config");
     }
 
-    static settingExists(key: string): boolean {
+    /**
+     *
+     * @obsolete ? // TODO: check if this is still needed
+     * @param key
+     * @returns
+     */
+    public static settingExists(key: keyof typeof settingsFields): boolean {
         return this.getSettingField(key) !== undefined;
     }
 
-    static getSettingField(key: string): SettingField | undefined {
-        // return this.settingsFields.find(field => field["key"] === key);
+    public static getSettingField(
+        key: keyof typeof settingsFields
+    ): SettingField | undefined {
         return this.settingsFields[key];
     }
 
-    setConfig<T extends number | string | boolean>(
+    /* public static getSettingKeys(): keyof typeof settingsFields[] {
+        return Object.keys(this.settingsFields) as unknown as keyof typeof settingsFields[];
+    } */
+
+    public setConfig<T extends number | string | boolean>(
         key: keyof typeof settingsFields,
         value: T
     ): void {
@@ -403,7 +432,7 @@ export class Config {
         }
     }
 
-    unsetConfig(key: keyof typeof settingsFields): void {
+    public unsetConfig(key: keyof typeof settingsFields): void {
         if (!this.config) {
             throw new Error("Config not loaded");
         }
@@ -418,7 +447,7 @@ export class Config {
      * @param source
      * @returns
      */
-    saveConfig(source = "unknown"): boolean {
+    public saveConfig(source = "unknown"): boolean {
         this._writeConfig = true;
         this.stopWatchingConfig();
 
@@ -463,7 +492,7 @@ export class Config {
         return success;
     }
 
-    async postSaveConfig() {
+    private async postSaveConfig() {
         await TwitchHelper.setupAxios();
         Scheduler.restartScheduler();
         await YouTubeHelper.setupClient();
@@ -473,7 +502,7 @@ export class Config {
         i18next.changeLanguage(this.cfg("basic.language", "en"));
     }
 
-    backupConfig() {
+    private backupConfig() {
         if (fs.existsSync(BaseConfigPath.config)) {
             fs.copyFileSync(
                 BaseConfigPath.config,
@@ -482,7 +511,7 @@ export class Config {
         }
     }
 
-    static createFolders() {
+    public static createFolders() {
         for (const folder of Object.values(BaseConfigFolder)) {
             if (!fs.existsSync(folder)) {
                 console.warn(
@@ -518,7 +547,7 @@ export class Config {
         }
     }
 
-    generateEventSubSecret() {
+    public generateEventSubSecret() {
         if (this.hasValue("eventsub_secret")) return;
         console.log(chalk.yellow("Generating eventsub secret..."));
         const secret = crypto.randomBytes(16).toString("hex");
@@ -526,7 +555,7 @@ export class Config {
         this.saveConfig("eventsub_secret not set");
     }
 
-    getWebsocketClientUrl(): string | undefined {
+    public getWebsocketClientUrl(): string | undefined {
         if (!this.cfg("websocket_enabled")) return undefined;
 
         // override
@@ -567,7 +596,7 @@ export class Config {
     /**
      * @test disable
      */
-    startWatchingConfig() {
+    public startWatchingConfig() {
         if (this.watcher) this.stopWatchingConfig();
 
         // no blocks in testing
@@ -599,11 +628,11 @@ export class Config {
         );
     }
 
-    stopWatchingConfig() {
+    public stopWatchingConfig() {
         if (this.watcher) this.watcher.close();
     }
 
-    checkPermissions() {
+    public checkPermissions() {
         const folder = DataRoot;
         const testfile = `${folder}/perm`;
         try {
@@ -620,7 +649,7 @@ export class Config {
     /**
      * @test disable
      */
-    static checkBuiltDependencies() {
+    public static checkBuiltDependencies() {
         // check if the client is built before starting the server
         if (!fs.existsSync(path.join(BaseConfigFolder.client, "index.html"))) {
             console.error(
@@ -704,7 +733,7 @@ export class Config {
     /**
      * @test disable
      */
-    static checkAppRoot() {
+    public static checkAppRoot() {
         // check that the app root is not outside of the root
         if (
             !fs.existsSync(path.join(BaseConfigFolder.server, "tsconfig.json"))
@@ -727,7 +756,7 @@ export class Config {
         }
     }
 
-    static async resetChannels() {
+    public static async resetChannels() {
         TwitchChannel.channels_cache = {};
         LiveStreamDVR.getInstance().channels_config = [];
         LiveStreamDVR.getInstance()
@@ -741,7 +770,7 @@ export class Config {
         await LiveStreamDVR.getInstance().loadChannels();
     }
 
-    async validateExternalURL(test_url = ""): Promise<boolean> {
+    public async validateExternalURL(test_url = ""): Promise<boolean> {
         const url = test_url !== "" ? test_url : this.cfg<string>("app_url");
 
         Config.validateExternalURLRules(url);
@@ -797,7 +826,7 @@ export class Config {
         return true;
     }
 
-    static validateExternalURLRules(url: string) {
+    public static validateExternalURLRules(url: string) {
         debugLog(`Validating external url: ${url}`);
 
         // no url
@@ -829,7 +858,7 @@ export class Config {
 
     private static _debug = false;
 
-    static get debug(): boolean {
+    public static get debug(): boolean {
         // if (argv.debug) return true;
         // if (!Config.getInstance().initialised) return false;
         // if (Config.getInstance().forceDebug) return true;
@@ -837,12 +866,12 @@ export class Config {
         return this._debug;
     }
 
-    static set debug(value: boolean) {
+    public static set debug(value: boolean) {
         this._debug = value;
         setLogDebug(value);
     }
 
-    static updateDebug() {
+    public static updateDebug() {
         if (argv.debug) {
             Config.debug = true;
         } else if (!Config.getInstance().initialised) {
@@ -852,7 +881,7 @@ export class Config {
         }
     }
 
-    static get can_shutdown(): boolean {
+    public static get can_shutdown(): boolean {
         if (
             !LiveStreamDVR.getInstance().getChannels() ||
             LiveStreamDVR.getInstance().getChannels().length === 0
@@ -864,7 +893,7 @@ export class Config {
             .some((c) => c.is_live); // if there are any live channels, don't allow shutdown
     }
 
-    async getGitHash() {
+    public async getGitHash() {
         let ret;
         try {
             ret = await execSimple(
@@ -898,7 +927,7 @@ export class Config {
         }
     }
 
-    async getGitBranch() {
+    public async getGitBranch() {
         let ret;
         try {
             ret = await execSimple(
@@ -932,18 +961,18 @@ export class Config {
         }
     }
 
-    static debugLocalUrl() {
+    public static debugLocalUrl() {
         if (is_docker()) {
             return "localhost:8082";
         }
         return "localhost:8080";
     }
 
-    get dateFormat() {
-        return this.cfg("date_format", "yyyy-MM-dd"); // if you're crazy enough to not use ISO8601
+    public get dateFormat() {
+        return this.cfg("locale.date-format", "yyyy-MM-dd"); // if you're crazy enough to not use ISO8601
     }
 
-    hasEnvVar(key: keyof typeof settingsFields): boolean {
+    public hasEnvVar(key: keyof typeof settingsFields): boolean {
         const val =
             process.env[`TCD_${key.toUpperCase().replaceAll(".", "_")}`];
 
@@ -953,11 +982,11 @@ export class Config {
         return true;
     }
 
-    envVarValue(key: keyof typeof settingsFields): string | undefined {
+    private envVarValue(key: keyof typeof settingsFields): string | undefined {
         return process.env[`TCD_${key.toUpperCase().replaceAll(".", "_")}`];
     }
 
-    static getBasePath(): string {
+    public static getBasePath(): string {
         if (!Config.getInstance().initialised)
             return process.env.BASE_PATH ?? "";
         return Config.getInstance().cfg<string>("basepath", "");

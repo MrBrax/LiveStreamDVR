@@ -68,7 +68,7 @@
                             </strong>
                         </span>
                     </em>
-                    <template v-if="store.cfg('chat_dump')">
+                    <!-- <template v-if="store.cfg('chat_dump')">
                         <br /><em>
                             <span v-if="vod.getChatDumpStatus()">
                                 <span class="icon"><fa icon="sync" spin /></span>
@@ -82,7 +82,7 @@
                                 </strong>
                             </span>
                         </em>
-                    </template>
+                    </template> -->
                 </template>
             </template>
             <template v-else-if="!vod.is_capturing && !vod.is_converting && !vod.is_finalized">

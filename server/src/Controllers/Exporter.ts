@@ -51,6 +51,11 @@ export function GetExporter(
             if (!options.host) throw new Error("No host set");
             if (!options.username) throw new Error("No username set");
             exporter = new SFTPExporter();
+            if (!(exporter instanceof SFTPExporter)) {
+                throw new Error(
+                    "Exporter is not an SFTPExporter (why does typescript need this?)"
+                );
+            }
             exporter.setDirectory(output_directory);
             exporter.setHost(options.host);
             exporter.setUsername(options.username);
@@ -86,6 +91,11 @@ export function GetExporter(
             if (!output_directory) throw new Error("No directory set");
             if (!options.remote) throw new Error("No remote set");
             exporter = new RCloneExporter();
+            if (!(exporter instanceof RCloneExporter)) {
+                throw new Error(
+                    "Exporter is not an RCloneExporter (why does typescript need this?)"
+                );
+            }
             exporter.setDirectory(output_directory);
             exporter.setRemote(options.remote);
         }
