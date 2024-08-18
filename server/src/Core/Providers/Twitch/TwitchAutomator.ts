@@ -683,6 +683,15 @@ export class TwitchAutomator extends BaseAutomator {
         // disable reruns
         cmd.push("--twitch-disable-reruns");
 
+        // Add additional args
+        if (Config.getInstance().hasValue("capture.streamlink-args")) {
+            cmd.push(
+                ...Config.getInstance()
+                    .cfg<string>("capture.streamlink-args")
+                    .split(" ")
+            );
+        }
+
         // one custom api header
         if (Config.getInstance().hasValue("capture.twitch-api-header")) {
             cmd.push(
