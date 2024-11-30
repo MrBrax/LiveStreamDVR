@@ -1,4 +1,5 @@
-#what  i will try to do in this fork:
+# what  i will try to do in this fork:
+
 -delete the capture if it is still exists and download the vod to fix the cut segments in the captured vod
 
 
