@@ -1,3 +1,7 @@
+#what  i will try to do in this fork:
+-delete the capture if it is still exists and download the vod to fix the cut segments in the captured vod
+
+
 # LiveStreamDVR
 
 [![Check Server](https://github.com/MrBrax/LiveStreamDVR/actions/workflows/check-server.yml/badge.svg)](https://github.com/MrBrax/LiveStreamDVR/actions/workflows/check-server.yml) [![Check Client](https://github.com/MrBrax/LiveStreamDVR/actions/workflows/check-client.yml/badge.svg)](https://github.com/MrBrax/LiveStreamDVR/actions/workflows/check-client.yml) [![Publish Docker image](https://github.com/MrBrax/LiveStreamDVR/actions/workflows/docker-publish.yml/badge.svg)](https://github.com/MrBrax/LiveStreamDVR/actions/workflows/docker-publish.yml)
