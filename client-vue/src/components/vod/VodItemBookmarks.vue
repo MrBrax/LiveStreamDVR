@@ -124,6 +124,7 @@ function playerLink(bookmark: VODBookmark): RouteLocationRaw {
         },
     };
 }
+
 </script>
 
 <style lang="scss" scoped>
