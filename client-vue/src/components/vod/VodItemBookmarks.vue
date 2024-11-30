@@ -49,6 +49,8 @@ import { onMounted, ref } from "vue";
 import { useI18n } from "vue-i18n";
 import type { VODTypes } from "@/twitchautomator";
 import type { VODBookmark } from "@common/Bookmark";
+import type { RouteLocationRaw } from "vue-router";
+
 
 const props = defineProps({
     vod: {
@@ -107,8 +109,11 @@ function doDeleteBookmark(i: number) {
         });
 }
 
-function playerLink(bookmark: VODBookmark) {
-    if (!props.vod) return;
+function playerLink(bookmark: VODBookmark): RouteLocationRaw {
+    if (!props.vod) {
+        // return a fallback route if props.vod is not defined
+        return "/";
+    }
     return {
         name: "Editor",
         params: {
@@ -118,7 +123,6 @@ function playerLink(bookmark: VODBookmark) {
             start: bookmark.offset,
         },
     };
-    // return `/player/${props.vod.uuid}?bookmark=${bookmark.offset}`;
 }
 </script>
 
