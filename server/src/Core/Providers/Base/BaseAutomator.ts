@@ -1659,6 +1659,13 @@ export class BaseAutomator {
         // stop retrying the fetch after COUNT retry attempt(s).
         cmd.push("--retry-max", "5");
 
+        if (Config.getInstance().cfg("capture.http_proxy")) {
+            cmd.push(
+                "--http-proxy",
+                Config.getInstance().cfg("capture.http_proxy")
+            );
+        }
+
         // logging level
         if (Config.getInstance().cfg("capture.loglevel", "info") !== "info") {
             cmd.push(
