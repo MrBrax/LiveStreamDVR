@@ -1512,7 +1512,11 @@ export class TwitchHelper {
             throw new Error("Streamlink binary not found");
         }
 
-        const args = ["--twitch-proxy-playlist"];
+        const args = [
+            "--plugin-dir",
+            BaseConfigDataFolder.streamlink_plugins,
+            "--twitch-proxy-playlist",
+        ];
 
         let execReturn;
 
