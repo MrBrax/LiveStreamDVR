@@ -1659,10 +1659,10 @@ export class BaseAutomator {
         // stop retrying the fetch after COUNT retry attempt(s).
         cmd.push("--retry-max", "5");
 
-        if (Config.getInstance().cfg("capture.http_proxy")) {
+        if (Config.getInstance().cfg("capture.http_proxy", "")) {
             cmd.push(
                 "--http-proxy",
-                Config.getInstance().cfg("capture.http_proxy")
+                Config.getInstance().cfg("capture.http_proxy", "")
             );
         }
 
