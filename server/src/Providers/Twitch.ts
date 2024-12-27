@@ -1506,7 +1506,6 @@ export class TwitchHelper {
     }
 
     public static async checkTTVLolPlugin() {
-
         const bin = Helper.path_streamlink();
 
         if (!bin) {
@@ -1514,20 +1513,43 @@ export class TwitchHelper {
         }
 
         const args = [
+            "--plugin-dir",
+            BaseConfigDataFolder.streamlink_plugins,
             "--twitch-proxy-playlist",
         ];
 
-        const execReturn = await execSimple(bin, args, "streamlink ttv lol plugin check");
+        let execReturn;
 
-        const log = execReturn.stdout.join("\n") + "\n" + execReturn.stderr.join("\n");
+        try {
+            execReturn = await execSimple(
+                bin,
+                args,
+                "streamlink ttv lol plugin check"
+            );
+        } catch (error) {
+            log(
+                LOGLEVEL.ERROR,
+                "tw.helper.checkTTVLolPlugin",
+                `Error checking streamlink ttv lol plugin: ${
+                    (error as Error).message
+                }`,
+                error
+            );
 
-        if (log.includes("unrecognized arguments: --twitch-proxy-playlist")) {
+            return false;
+        }
+
+        const fullLog =
+            execReturn.stdout.join("\n") + "\n" + execReturn.stderr.join("\n");
+
+        if (
+            fullLog.includes("unrecognized arguments: --twitch-proxy-playlist")
+        ) {
             return false;
         }
 
         return true;
     }
-
 }
 
 /*

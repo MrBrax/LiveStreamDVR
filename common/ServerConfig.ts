@@ -415,6 +415,12 @@ export const settingsFields = createSettingsFields({
         default: false,
     },
 
+    "capture.http_proxy": {
+        group: "Capture",
+        text: "HTTP proxy",
+        type: "string",
+    },
+
     // sub_lease: { group: "Advanced", text: "Subscription lease", type: "number", default: 604800 },
     api_client_id: {
         group: "Twitch",
