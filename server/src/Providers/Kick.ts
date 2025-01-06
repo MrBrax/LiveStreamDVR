@@ -6,15 +6,23 @@ import type {
     KickChannelVideo,
 } from "@common/KickAPI/Kick";
 import axios, { isAxiosError } from "axios";
-import { wrapper } from "axios-cookiejar-support";
-import { CookieJar } from "tough-cookie";
+import https from "https";
+// import { wrapper } from "axios-cookiejar-support";
+// import { CookieJar } from "tough-cookie";
 
-const jar = new CookieJar();
-const kickAxios = wrapper(axios.create({ jar }));
+// const jar = new CookieJar();
+// const kickAxios = wrapper(axios.create({ jar }));
 
-const baseURL = "https://kick.com/api/v2/";
+const kickAxios = axios.create({
+    httpsAgent: new https.Agent({
+        rejectUnauthorized: false,
+        timeout: 10000,
+    }),
+});
 
-const kickCookies: Record<string, string> = {};
+// const baseURL = "https://kick.com/api/v2/";
+
+// const kickCookies: Record<string, string> = {};
 
 /* function baseFetchOptions(): RequestInit {
     return {
@@ -60,6 +68,8 @@ export async function fetchXSFRToken(currentTry = 0): Promise<boolean> {
                 "User-Agent":
                     "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0",
                 "Sec-Fetch-User": "?1",
+                "Accept-Language": "en-US",
+                Referer: "https://kick.com/",
             },
         });
     } catch (error) {
@@ -113,14 +123,14 @@ export async function fetchXSFRToken(currentTry = 0): Promise<boolean> {
     }
 
     // remove all cookies to make sure we don't have any old ones
-    Object.keys(kickCookies).forEach((key) => {
+    /* Object.keys(kickCookies).forEach((key) => {
         delete kickCookies[key];
     });
 
     cookies.forEach((cookie: string) => {
         const [key, value] = cookie.split(";")[0].split("=");
         kickCookies[key] = value;
-    });
+    }); */
 
     const xsrfCookie = cookies.find(
         (cookie) =>
@@ -168,8 +178,8 @@ export async function getRequest<T>(url: string): Promise<FetchResponse<T>> {
                 Accept: "application/json",
                 "Accept-Language": "en-US",
                 Referer: "https://kick.com/",
-                // Authorization: `Bearer ${xsrfToken}`,
-                // "Sec-Fetch-User": "?1",
+                Authorization: `Bearer ${xsrfToken}`,
+                "Sec-Fetch-User": "?1",
             },
         });
     } catch (error) {
