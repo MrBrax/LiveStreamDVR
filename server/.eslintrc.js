@@ -64,6 +64,7 @@ module.exports = {
         "@typescript-eslint/member-ordering": ["warn"], */
         "@typescript-eslint/explicit-member-accessibility": ["warn"],
         "@typescript-eslint/no-base-to-string": "error",
+        "@typescript-eslint/no-unused-vars": "warn",
     },
     ignorePatterns: [".eslintrc.js"],
 };
