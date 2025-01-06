@@ -206,7 +206,7 @@ export async function GetStream(
     // const response = await request;
     // return response.data ? response.data.data : undefined;
     const response = await getRequest<KickChannelLivestreamResponse>(
-        `channels/${username}/livestream`
+        `https://kick.com/api/v2/channels/${username}/livestream`
     );
     return response.data ? response.data.data : undefined;
 }

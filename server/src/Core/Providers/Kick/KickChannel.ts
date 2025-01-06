@@ -2,6 +2,7 @@ import type { ApiKickChannel } from "@common/Api/Client";
 import type { KickChannelConfig } from "@common/Config";
 import type { Providers } from "@common/Defs";
 import type {
+    KickChannelLivestream,
     KickChannel as KickChannelT,
     KickUser,
 } from "@common/KickAPI/Kick";
@@ -328,5 +329,9 @@ export class KickChannel extends BaseChannel {
             ...(await super.toAPI()),
             provider: "kick",
         };
+    }
+
+    public async getStreams(): Promise<KickChannelLivestream | false> {
+        return (await GetStream(this.internalName)) || false;
     }
 }
