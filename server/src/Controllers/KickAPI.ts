@@ -1,8 +1,8 @@
 import type { ApiErrorResponse } from "@common/Api/Api";
 import type express from "express";
-import { GetChannel, GetUser } from "../Providers/Kick";
+import { GetChannel } from "../Providers/Kick";
 
-export async function KickAPIUser(
+/* export async function KickAPIUser(
     req: express.Request,
     res: express.Response
 ): Promise<void> {
@@ -39,7 +39,7 @@ export async function KickAPIUser(
         data: user,
         status: "OK",
     });
-}
+} */
 
 export async function KickAPIChannel(
     req: express.Request,

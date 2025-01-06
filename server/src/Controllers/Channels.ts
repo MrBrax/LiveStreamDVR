@@ -700,7 +700,7 @@ export async function AddChannel(
         let api_channel_data;
 
         try {
-            api_channel_data = await KickChannel.getUserDataBySlug(
+            api_channel_data = await KickChannel.getChannelDataBySlug(
                 channel_config.internalName
             );
         } catch (error) {

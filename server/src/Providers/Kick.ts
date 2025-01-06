@@ -4,11 +4,13 @@ import type {
     KickChannelLivestream,
     KickChannelLivestreamResponse,
     KickChannelVideo,
-    KickUser,
 } from "@common/KickAPI/Kick";
 import axios, { isAxiosError } from "axios";
+import { wrapper } from "axios-cookiejar-support";
+import { CookieJar } from "tough-cookie";
 
-const kickAxios = axios.create({});
+const jar = new CookieJar();
+const kickAxios = wrapper(axios.create({ jar }));
 
 const baseURL = "https://kick.com/api/v2/";
 
@@ -42,7 +44,7 @@ interface FetchResponse<T> {
 }
 
 // get xsrf token from cookie
-export async function fetchXSFRToken(): Promise<boolean> {
+export async function fetchXSFRToken(currentTry = 0): Promise<boolean> {
     /* const request = await fetch("https://kick.com", {
         ...baseFetchOptions(),
         method: "GET",
@@ -55,18 +57,51 @@ export async function fetchXSFRToken(): Promise<boolean> {
             method: "GET",
             headers: {
                 // "Content-Type": "application/json",
-                // "User-Agent":
-                //     "Mozilla/5.0 (Windows NT 10.0; rv:114.0) Gecko/20100101 Firefox/133.0",
-                // "Sec-Fetch-User": "?1",
+                "User-Agent":
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0",
+                "Sec-Fetch-User": "?1",
             },
         });
     } catch (error) {
-        log(
-            LOGLEVEL.ERROR,
-            "KickAPI.fetchXSFRToken",
-            `Error getting XSFR token: ${error}`
-        );
-        throw error;
+        if (isAxiosError(error)) {
+            log(
+                LOGLEVEL.ERROR,
+                "KickAPI.fetchXSFRToken",
+                `Error getting XSFR token: (${error.response?.config.url}): ${error.response?.data}`,
+                error
+            );
+
+            for (const header in error.response?.headers) {
+                log(
+                    LOGLEVEL.DEBUG,
+                    "KickAPI.fetchXSFRToken",
+                    `${header}: ${error.response?.headers[header]}`
+                );
+            }
+
+            console.log(error.response?.data);
+        } else {
+            log(
+                LOGLEVEL.ERROR,
+                "KickAPI.fetchXSFRToken",
+                `Error getting XSFR token: ${error}`
+            );
+        }
+        // throw error;
+
+        /* if (currentTry < 3) {
+            await Sleep(5000);
+            log(LOGLEVEL.DEBUG, "KickAPI.fetchXSFRToken", "Retrying");
+            return fetchXSFRToken(currentTry + 1);
+        }
+        */
+
+        return false;
+    }
+
+    if (request == undefined) {
+        log(LOGLEVEL.ERROR, "KickAPI.fetchXSFRToken", "Request is undefined");
+        return false;
     }
 
     // const cookies = request.headers.get("set-cookie");
@@ -87,7 +122,10 @@ export async function fetchXSFRToken(): Promise<boolean> {
         kickCookies[key] = value;
     });
 
-    const xsrfCookie = cookies.find((cookie) => cookie.includes("XSRF-TOKEN"));
+    const xsrfCookie = cookies.find(
+        (cookie) =>
+            cookie.includes("XSRF-TOKEN") || cookie.includes("xsrf-token")
+    );
 
     if (!xsrfCookie) {
         console.log(cookies);
@@ -112,9 +150,11 @@ export async function getRequest<T>(url: string): Promise<FetchResponse<T>> {
 
     log(LOGLEVEL.DEBUG, "KickAPI.getRequest", `Getting ${url}`);
 
-    if (!xsrfToken) {
-        await fetchXSFRToken();
-    }
+    /* if (!xsrfToken) {
+        if (!(await fetchXSFRToken())) {
+            throw new Error("Error getting XSRF token");
+        }
+    } */
 
     let request;
 
@@ -125,7 +165,11 @@ export async function getRequest<T>(url: string): Promise<FetchResponse<T>> {
                 "Content-Type": "application/json",
                 "User-Agent":
                     "Mozilla/5.0 (Windows NT 10.0; rv:114.0) Gecko/20100101 Firefox/133.0",
-                "Sec-Fetch-User": "?1",
+                Accept: "application/json",
+                "Accept-Language": "en-US",
+                Referer: "https://kick.com/",
+                // Authorization: `Bearer ${xsrfToken}`,
+                // "Sec-Fetch-User": "?1",
             },
         });
     } catch (error) {
@@ -169,7 +213,7 @@ export async function getRequest<T>(url: string): Promise<FetchResponse<T>> {
     };
 }
 
-export async function GetUser(username: string): Promise<KickUser | undefined> {
+/* export async function GetUser(username: string): Promise<KickUser | undefined> {
     log(LOGLEVEL.DEBUG, "KickAPI.GetUser", `Getting user ${username}`);
     let response;
     try {
@@ -195,7 +239,7 @@ export async function GetUser(username: string): Promise<KickUser | undefined> {
         `Got user ${response.data.username}`
     );
     return response.data;
-}
+} */
 
 export async function GetChannel(
     username: string
