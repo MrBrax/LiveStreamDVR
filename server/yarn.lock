@@ -1979,6 +1979,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"agent-base@npm:^7.1.3":
+  version: 7.1.3
+  resolution: "agent-base@npm:7.1.3"
+  checksum: 3db6d8d4651f2aa1a9e4af35b96ab11a7607af57a24f3bc721a387eaa3b5f674e901f0a648b0caefd48f3fd117c7761b79a3b55854e2aebaa96c3f32cf76af84
+  languageName: node
+  linkType: hard
+
 "agentkeepalive@npm:^4.2.1":
   version: 4.2.1
   resolution: "agentkeepalive@npm:4.2.1"
@@ -2227,14 +2234,26 @@ __metadata:
   languageName: node
   linkType: hard
 
-"axios@npm:^1.6.8":
-  version: 1.6.8
-  resolution: "axios@npm:1.6.8"
+"axios-cookiejar-support@npm:^5.0.5":
+  version: 5.0.5
+  resolution: "axios-cookiejar-support@npm:5.0.5"
+  dependencies:
+    http-cookie-agent: "npm:^6.0.8"
+  peerDependencies:
+    axios: ">=0.20.0"
+    tough-cookie: ">=4.0.0"
+  checksum: 4d3acdef40ee54dd76941c5551de61b5cd71dc7a4be75a918a77dd52905758b84d9b43e3c56bd92a4e281f3be2e799e9ec1491fbf5178bb1aa1c5e4c15f2164e
+  languageName: node
+  linkType: hard
+
+"axios@npm:^1.7.9":
+  version: 1.7.9
+  resolution: "axios@npm:1.7.9"
   dependencies:
     follow-redirects: "npm:^1.15.6"
     form-data: "npm:^4.0.0"
     proxy-from-env: "npm:^1.1.0"
-  checksum: 3f9a79eaf1d159544fca9576261ff867cbbff64ed30017848e4210e49f3b01e97cf416390150e6fdf6633f336cd43dc1151f890bbd09c3c01ad60bb0891eee63
+  checksum: b7a5f660ea53ba9c2a745bf5ad77ad8bf4f1338e13ccc3f9f09f810267d6c638c03dac88b55dae8dc98b79c57d2d6835be651d58d2af97c174f43d289a9fd007
   languageName: node
   linkType: hard
 
@@ -4492,6 +4511,21 @@ __metadata:
   languageName: node
   linkType: hard
 
+"http-cookie-agent@npm:^6.0.8":
+  version: 6.0.8
+  resolution: "http-cookie-agent@npm:6.0.8"
+  dependencies:
+    agent-base: "npm:^7.1.3"
+  peerDependencies:
+    tough-cookie: ^4.0.0 || ^5.0.0
+    undici: ^5.11.0 || ^6.0.0
+  peerDependenciesMeta:
+    undici:
+      optional: true
+  checksum: 16880d703707aa7609b92e62491ef8059b62effd9b19cdf2f8d49b5bdcab60c57c3e210c89d2126d0343347a4d6fe7e285b9f64b498518714c65486bac931f87
+  languageName: node
+  linkType: hard
+
 "http-errors@npm:2.0.0":
   version: 2.0.0
   resolution: "http-errors@npm:2.0.0"
@@ -5705,7 +5739,8 @@ __metadata:
     "@types/ws": "npm:^8.5.3"
     "@typescript-eslint/eslint-plugin": "npm:^6.12.0"
     "@typescript-eslint/parser": "npm:^6.12.0"
-    axios: "npm:^1.6.8"
+    axios: "npm:^1.7.9"
+    axios-cookiejar-support: "npm:^5.0.5"
     basic-auth: "npm:^2.0.1"
     chalk: "npm:4.1.2"
     check-disk-space: "npm:^3.4.0"
@@ -5740,6 +5775,7 @@ __metadata:
     prettier: "npm:^3.0.0"
     sanitize-filename: "npm:^1.6.3"
     supertest: "npm:^6.3.3"
+    tough-cookie: "npm:^5.0.0"
     true-case-path: "npm:^2.2.1"
     ts-jest: "npm:^29.1.1"
     ts-node: "npm:^10.9.1"
@@ -7484,6 +7520,24 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tldts-core@npm:^6.1.71":
+  version: 6.1.71
+  resolution: "tldts-core@npm:6.1.71"
+  checksum: 9bed9e06791c9044d5f6cfe75c7b685c650c1d5cd3fc6f8c5ee3b24478925a1c356a621fe592b889f11b340e5db96a8876ec810379abad11c71700c9d4fe86b7
+  languageName: node
+  linkType: hard
+
+"tldts@npm:^6.1.32":
+  version: 6.1.71
+  resolution: "tldts@npm:6.1.71"
+  dependencies:
+    tldts-core: "npm:^6.1.71"
+  bin:
+    tldts: bin/cli.js
+  checksum: 6a3e9ebf140c45ce5e179b3d9011b6b828c14bacfb2834f3ca61e8a5557b29b2a4e0b62da2c0382156d09e265e0f16255b5acdfef1cbccb25d7cd051ef11e9eb
+  languageName: node
+  linkType: hard
+
 "tmpl@npm:1.0.5":
   version: 1.0.5
   resolution: "tmpl@npm:1.0.5"
@@ -7522,6 +7576,15 @@ __metadata:
   bin:
     nodetouch: ./bin/nodetouch.js
   checksum: ece1d9693fbc9b73d8a6d902537b787b5685ac1aeab7562857c50e6671415a73c985055393442b518f4ac37b85c3e7a3e6c36af71142fed13b8bb04fb6664936
+  languageName: node
+  linkType: hard
+
+"tough-cookie@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "tough-cookie@npm:5.0.0"
+  dependencies:
+    tldts: "npm:^6.1.32"
+  checksum: a98d3846ed386e399e8b470c1eb08a6a296944246eabc55c9fe79d629bd2cdaa62f5a6572f271fe0060987906bd20468d72a219a3b4cbe51086bea48d2d677b6
   languageName: node
   linkType: hard
 

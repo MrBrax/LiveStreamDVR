@@ -41,7 +41,8 @@ const RAW_RUNTIME_STATE =
           ["@types/ws", "npm:8.5.3"],\
           ["@typescript-eslint/eslint-plugin", "virtual:d78a2ce42d5279889122669697987a3f9ba038f8d2a01bb5bb7cc449b44eb1ac843364d15adc7813894c4f6884ebaf23a3b942d248859563cf369b98d76414a7#npm:6.12.0"],\
           ["@typescript-eslint/parser", "virtual:d78a2ce42d5279889122669697987a3f9ba038f8d2a01bb5bb7cc449b44eb1ac843364d15adc7813894c4f6884ebaf23a3b942d248859563cf369b98d76414a7#npm:6.12.0"],\
-          ["axios", "npm:1.6.8"],\
+          ["axios", "npm:1.7.9"],\
+          ["axios-cookiejar-support", "virtual:d78a2ce42d5279889122669697987a3f9ba038f8d2a01bb5bb7cc449b44eb1ac843364d15adc7813894c4f6884ebaf23a3b942d248859563cf369b98d76414a7#npm:5.0.5"],\
           ["basic-auth", "npm:2.0.1"],\
           ["chalk", "npm:4.1.2"],\
           ["check-disk-space", "npm:3.4.0"],\
@@ -76,6 +77,7 @@ const RAW_RUNTIME_STATE =
           ["prettier", "npm:3.0.0"],\
           ["sanitize-filename", "npm:1.6.3"],\
           ["supertest", "npm:6.3.3"],\
+          ["tough-cookie", "npm:5.0.0"],\
           ["true-case-path", "npm:2.2.1"],\
           ["ts-jest", "virtual:d78a2ce42d5279889122669697987a3f9ba038f8d2a01bb5bb7cc449b44eb1ac843364d15adc7813894c4f6884ebaf23a3b942d248859563cf369b98d76414a7#npm:29.1.1"],\
           ["ts-node", "virtual:d78a2ce42d5279889122669697987a3f9ba038f8d2a01bb5bb7cc449b44eb1ac843364d15adc7813894c4f6884ebaf23a3b942d248859563cf369b98d76414a7#npm:10.9.1"],\
@@ -2722,6 +2724,13 @@ const RAW_RUNTIME_STATE =
           ["debug", "virtual:428f325a939c2653ad822eb3d75efb02ac311523dd0d4f9645afc39ea00bd86eceac35a9d59c9b6977d76b670a4ef0ae057ea572338a44729aa592711a8c05a3#npm:4.3.3"]\
         ],\
         "linkType": "HARD"\
+      }],\
+      ["npm:7.1.3", {\
+        "packageLocation": "./.yarn/cache/agent-base-npm-7.1.3-b2c16e72fb-3db6d8d465.zip/node_modules/agent-base/",\
+        "packageDependencies": [\
+          ["agent-base", "npm:7.1.3"]\
+        ],\
+        "linkType": "HARD"\
       }]\
     ]],\
     ["agentkeepalive", [\
@@ -3006,13 +3015,40 @@ const RAW_RUNTIME_STATE =
       }]\
     ]],\
     ["axios", [\
-      ["npm:1.6.8", {\
-        "packageLocation": "./.yarn/cache/axios-npm-1.6.8-85cf1e7152-3f9a79eaf1.zip/node_modules/axios/",\
+      ["npm:1.7.9", {\
+        "packageLocation": "./.yarn/cache/axios-npm-1.7.9-3c98466f87-b7a5f660ea.zip/node_modules/axios/",\
         "packageDependencies": [\
-          ["axios", "npm:1.6.8"],\
-          ["follow-redirects", "virtual:85cf1e7152e3c0d8e39e61ad2b81b59a43fb6bdb8f3bf49869bb97804b1403ecaee4505fcb0d4869cfdd99ee3eaa880b79498575407fb770c800bf64c64156ec#npm:1.15.6"],\
+          ["axios", "npm:1.7.9"],\
+          ["follow-redirects", "virtual:3c98466f874305529f1a16589101c28705aa489e7ec8ffcbfb5cc062090761c951973322264d8039ff40de705a591171bac1067843c49b197410972b4a9ed9f4#npm:1.15.6"],\
           ["form-data", "npm:4.0.0"],\
           ["proxy-from-env", "npm:1.1.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["axios-cookiejar-support", [\
+      ["npm:5.0.5", {\
+        "packageLocation": "./.yarn/cache/axios-cookiejar-support-npm-5.0.5-fbdf9ef825-4d3acdef40.zip/node_modules/axios-cookiejar-support/",\
+        "packageDependencies": [\
+          ["axios-cookiejar-support", "npm:5.0.5"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:d78a2ce42d5279889122669697987a3f9ba038f8d2a01bb5bb7cc449b44eb1ac843364d15adc7813894c4f6884ebaf23a3b942d248859563cf369b98d76414a7#npm:5.0.5", {\
+        "packageLocation": "./.yarn/__virtual__/axios-cookiejar-support-virtual-66f30d5cad/0/cache/axios-cookiejar-support-npm-5.0.5-fbdf9ef825-4d3acdef40.zip/node_modules/axios-cookiejar-support/",\
+        "packageDependencies": [\
+          ["axios-cookiejar-support", "virtual:d78a2ce42d5279889122669697987a3f9ba038f8d2a01bb5bb7cc449b44eb1ac843364d15adc7813894c4f6884ebaf23a3b942d248859563cf369b98d76414a7#npm:5.0.5"],\
+          ["@types/axios", null],\
+          ["@types/tough-cookie", null],\
+          ["axios", "npm:1.7.9"],\
+          ["http-cookie-agent", "virtual:66f30d5cad55dba7f7b41b5387b40abf47f7511e45d58a57c155c4cdac15a7328630b5a4a75686d8a9621e72049a799428fbbd59b8f98cfbe3df67a94343b8f2#npm:6.0.8"],\
+          ["tough-cookie", "npm:5.0.0"]\
+        ],\
+        "packagePeers": [\
+          "@types/axios",\
+          "@types/tough-cookie",\
+          "axios",\
+          "tough-cookie"\
         ],\
         "linkType": "HARD"\
       }]\
@@ -5115,10 +5151,10 @@ const RAW_RUNTIME_STATE =
         ],\
         "linkType": "SOFT"\
       }],\
-      ["virtual:85cf1e7152e3c0d8e39e61ad2b81b59a43fb6bdb8f3bf49869bb97804b1403ecaee4505fcb0d4869cfdd99ee3eaa880b79498575407fb770c800bf64c64156ec#npm:1.15.6", {\
-        "packageLocation": "./.yarn/__virtual__/follow-redirects-virtual-7bb5ea93fd/0/cache/follow-redirects-npm-1.15.6-50635fe51d-70c7612c4c.zip/node_modules/follow-redirects/",\
+      ["virtual:3c98466f874305529f1a16589101c28705aa489e7ec8ffcbfb5cc062090761c951973322264d8039ff40de705a591171bac1067843c49b197410972b4a9ed9f4#npm:1.15.6", {\
+        "packageLocation": "./.yarn/__virtual__/follow-redirects-virtual-70c04bb564/0/cache/follow-redirects-npm-1.15.6-50635fe51d-70c7612c4c.zip/node_modules/follow-redirects/",\
         "packageDependencies": [\
-          ["follow-redirects", "virtual:85cf1e7152e3c0d8e39e61ad2b81b59a43fb6bdb8f3bf49869bb97804b1403ecaee4505fcb0d4869cfdd99ee3eaa880b79498575407fb770c800bf64c64156ec#npm:1.15.6"],\
+          ["follow-redirects", "virtual:3c98466f874305529f1a16589101c28705aa489e7ec8ffcbfb5cc062090761c951973322264d8039ff40de705a591171bac1067843c49b197410972b4a9ed9f4#npm:1.15.6"],\
           ["@types/debug", null],\
           ["debug", null]\
         ],\
@@ -5708,6 +5744,33 @@ const RAW_RUNTIME_STATE =
         "packageLocation": "./.yarn/cache/http-cache-semantics-npm-4.1.0-860520a31f-c9c29508b2.zip/node_modules/http-cache-semantics/",\
         "packageDependencies": [\
           ["http-cache-semantics", "npm:4.1.0"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["http-cookie-agent", [\
+      ["npm:6.0.8", {\
+        "packageLocation": "./.yarn/cache/http-cookie-agent-npm-6.0.8-34bc9d3ed4-16880d7037.zip/node_modules/http-cookie-agent/",\
+        "packageDependencies": [\
+          ["http-cookie-agent", "npm:6.0.8"]\
+        ],\
+        "linkType": "SOFT"\
+      }],\
+      ["virtual:66f30d5cad55dba7f7b41b5387b40abf47f7511e45d58a57c155c4cdac15a7328630b5a4a75686d8a9621e72049a799428fbbd59b8f98cfbe3df67a94343b8f2#npm:6.0.8", {\
+        "packageLocation": "./.yarn/__virtual__/http-cookie-agent-virtual-33383d1f89/0/cache/http-cookie-agent-npm-6.0.8-34bc9d3ed4-16880d7037.zip/node_modules/http-cookie-agent/",\
+        "packageDependencies": [\
+          ["http-cookie-agent", "virtual:66f30d5cad55dba7f7b41b5387b40abf47f7511e45d58a57c155c4cdac15a7328630b5a4a75686d8a9621e72049a799428fbbd59b8f98cfbe3df67a94343b8f2#npm:6.0.8"],\
+          ["@types/tough-cookie", null],\
+          ["@types/undici", null],\
+          ["agent-base", "npm:7.1.3"],\
+          ["tough-cookie", "npm:5.0.0"],\
+          ["undici", null]\
+        ],\
+        "packagePeers": [\
+          "@types/tough-cookie",\
+          "@types/undici",\
+          "tough-cookie",\
+          "undici"\
         ],\
         "linkType": "HARD"\
       }]\
@@ -7088,7 +7151,8 @@ const RAW_RUNTIME_STATE =
           ["@types/ws", "npm:8.5.3"],\
           ["@typescript-eslint/eslint-plugin", "virtual:d78a2ce42d5279889122669697987a3f9ba038f8d2a01bb5bb7cc449b44eb1ac843364d15adc7813894c4f6884ebaf23a3b942d248859563cf369b98d76414a7#npm:6.12.0"],\
           ["@typescript-eslint/parser", "virtual:d78a2ce42d5279889122669697987a3f9ba038f8d2a01bb5bb7cc449b44eb1ac843364d15adc7813894c4f6884ebaf23a3b942d248859563cf369b98d76414a7#npm:6.12.0"],\
-          ["axios", "npm:1.6.8"],\
+          ["axios", "npm:1.7.9"],\
+          ["axios-cookiejar-support", "virtual:d78a2ce42d5279889122669697987a3f9ba038f8d2a01bb5bb7cc449b44eb1ac843364d15adc7813894c4f6884ebaf23a3b942d248859563cf369b98d76414a7#npm:5.0.5"],\
           ["basic-auth", "npm:2.0.1"],\
           ["chalk", "npm:4.1.2"],\
           ["check-disk-space", "npm:3.4.0"],\
@@ -7123,6 +7187,7 @@ const RAW_RUNTIME_STATE =
           ["prettier", "npm:3.0.0"],\
           ["sanitize-filename", "npm:1.6.3"],\
           ["supertest", "npm:6.3.3"],\
+          ["tough-cookie", "npm:5.0.0"],\
           ["true-case-path", "npm:2.2.1"],\
           ["ts-jest", "virtual:d78a2ce42d5279889122669697987a3f9ba038f8d2a01bb5bb7cc449b44eb1ac843364d15adc7813894c4f6884ebaf23a3b942d248859563cf369b98d76414a7#npm:29.1.1"],\
           ["ts-node", "virtual:d78a2ce42d5279889122669697987a3f9ba038f8d2a01bb5bb7cc449b44eb1ac843364d15adc7813894c4f6884ebaf23a3b942d248859563cf369b98d76414a7#npm:10.9.1"],\
@@ -9028,6 +9093,25 @@ const RAW_RUNTIME_STATE =
         "linkType": "HARD"\
       }]\
     ]],\
+    ["tldts", [\
+      ["npm:6.1.71", {\
+        "packageLocation": "./.yarn/cache/tldts-npm-6.1.71-74ea01b8d1-6a3e9ebf14.zip/node_modules/tldts/",\
+        "packageDependencies": [\
+          ["tldts", "npm:6.1.71"],\
+          ["tldts-core", "npm:6.1.71"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["tldts-core", [\
+      ["npm:6.1.71", {\
+        "packageLocation": "./.yarn/cache/tldts-core-npm-6.1.71-cc68dd578b-9bed9e0679.zip/node_modules/tldts-core/",\
+        "packageDependencies": [\
+          ["tldts-core", "npm:6.1.71"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
     ["tmpl", [\
       ["npm:1.0.5", {\
         "packageLocation": "./.yarn/cache/tmpl-npm-1.0.5-d399ba37e2-cd922d9b85.zip/node_modules/tmpl/",\
@@ -9071,6 +9155,16 @@ const RAW_RUNTIME_STATE =
         "packageDependencies": [\
           ["touch", "npm:3.1.0"],\
           ["nopt", "npm:1.0.10"]\
+        ],\
+        "linkType": "HARD"\
+      }]\
+    ]],\
+    ["tough-cookie", [\
+      ["npm:5.0.0", {\
+        "packageLocation": "./.yarn/cache/tough-cookie-npm-5.0.0-93c44236b9-a98d3846ed.zip/node_modules/tough-cookie/",\
+        "packageDependencies": [\
+          ["tough-cookie", "npm:5.0.0"],\
+          ["tldts", "npm:6.1.71"]\
         ],\
         "linkType": "HARD"\
       }]\
