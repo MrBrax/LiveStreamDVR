@@ -53,8 +53,7 @@
     },
     "dependencies": {
         "@googleapis/youtube": "^10.0.0",
-        "axios": "^1.7.9",
-        "axios-cookiejar-support": "^5.0.5",
+        "axios": "^1.6.8",
         "basic-auth": "^2.0.1",
         "chalk": "4.1.2",
         "check-disk-space": "^3.4.0",
@@ -75,7 +74,6 @@
         "minimist": "^1.2.8",
         "morgan": "^1.10.0",
         "sanitize-filename": "^1.6.3",
-        "tough-cookie": "^5.0.0",
         "true-case-path": "^2.2.1",
         "winston": "^3.10.0",
         "winston-daily-rotate-file": "^4.7.1",
