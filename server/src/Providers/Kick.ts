@@ -8,17 +8,19 @@ import type {
 } from "@common/KickAPI/Kick";
 import axios, { isAxiosError } from "axios";
 
+const kickAxios = axios.create({});
+
 const baseURL = "https://kick.com/api/v2/";
 
-const cookies: Record<string, string> = {};
+const kickCookies: Record<string, string> = {};
 
-function baseFetchOptions(): RequestInit {
+/* function baseFetchOptions(): RequestInit {
     return {
         headers: {
             "User-Agent":
                 "Mozilla/5.0 (Windows NT 10.0; rv:114.0) Gecko/20100101 Firefox/114.0",
             Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*;q=0.8",
-            Cookie: Object.entries(cookies)
+            Cookie: Object.entries(kickCookies)
                 .map(([key, value]) => `${key}=${value}`)
                 .join("; "),
         },
@@ -28,7 +30,7 @@ function baseFetchOptions(): RequestInit {
         redirect: "follow",
         cache: "no-cache",
     };
-}
+} */
 
 let xsrfToken: string | undefined;
 
@@ -41,23 +43,61 @@ interface FetchResponse<T> {
 
 // get xsrf token from cookie
 export async function fetchXSFRToken(): Promise<boolean> {
-    const request = await fetch("https://kick.com", {
+    /* const request = await fetch("https://kick.com", {
         ...baseFetchOptions(),
         method: "GET",
-    });
+    }); */
 
-    const cookies = request.headers.get("set-cookie");
+    let request;
+
+    try {
+        request = await kickAxios.get("https://kick.com", {
+            method: "GET",
+            headers: {
+                // "Content-Type": "application/json",
+                // "User-Agent":
+                //     "Mozilla/5.0 (Windows NT 10.0; rv:114.0) Gecko/20100101 Firefox/133.0",
+                // "Sec-Fetch-User": "?1",
+            },
+        });
+    } catch (error) {
+        log(
+            LOGLEVEL.ERROR,
+            "KickAPI.fetchXSFRToken",
+            `Error getting XSFR token: ${error}`
+        );
+        throw error;
+    }
+
+    // const cookies = request.headers.get("set-cookie");
+
+    const cookies = request.headers["set-cookie"];
+
     if (!cookies) {
         throw new Error("No cookies");
     }
-    const xsrfCookie = cookies
-        .split(";")
-        .find((cookie) => cookie.includes("XSRF-TOKEN"));
+
+    // remove all cookies to make sure we don't have any old ones
+    Object.keys(kickCookies).forEach((key) => {
+        delete kickCookies[key];
+    });
+
+    cookies.forEach((cookie: string) => {
+        const [key, value] = cookie.split(";")[0].split("=");
+        kickCookies[key] = value;
+    });
+
+    const xsrfCookie = cookies.find((cookie) => cookie.includes("XSRF-TOKEN"));
+
     if (!xsrfCookie) {
         console.log(cookies);
         throw new Error("No XSRF-TOKEN cookie");
     }
+
     xsrfToken = xsrfCookie.split("=")[1];
+
+    console.log(`Got XSRF-TOKEN: ${xsrfToken}`);
+
     return true;
 }
 
@@ -72,15 +112,20 @@ export async function getRequest<T>(url: string): Promise<FetchResponse<T>> {
 
     log(LOGLEVEL.DEBUG, "KickAPI.getRequest", `Getting ${url}`);
 
+    if (!xsrfToken) {
+        await fetchXSFRToken();
+    }
+
     let request;
 
     try {
-        request = await axios.get(url, {
+        request = await kickAxios.get(url, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
                 "User-Agent":
-                    "Mozilla/5.0 (Windows NT 10.0; rv:114.0) Gecko/20100101 Firefox/114.0",
+                    "Mozilla/5.0 (Windows NT 10.0; rv:114.0) Gecko/20100101 Firefox/133.0",
+                "Sec-Fetch-User": "?1",
             },
         });
     } catch (error) {
@@ -88,7 +133,7 @@ export async function getRequest<T>(url: string): Promise<FetchResponse<T>> {
             log(
                 LOGLEVEL.ERROR,
                 "KickAPI.getRequest",
-                `Error getting data (${error.response?.config.url}): ${error.response?.data}`,
+                `Error getting data from '${url}' : (${error.response?.config.url}): ${error.response?.data}`,
                 error
             );
             if (
@@ -102,6 +147,13 @@ export async function getRequest<T>(url: string): Promise<FetchResponse<T>> {
                 );
                 throw new Error("Cloudflare challenge");
             }
+        } else {
+            log(
+                LOGLEVEL.ERROR,
+                "KickAPI.getRequest",
+                `Error getting data from '${url}' : ${error}`,
+                error
+            );
         }
 
         throw error;
@@ -124,7 +176,11 @@ export async function GetUser(username: string): Promise<KickUser | undefined> {
         // response = await axiosInstance.get<KickUser>(`users/${username}`);
         response = await getRequest<KickUser>(`users/${username}`);
     } catch (error) {
-        log(LOGLEVEL.ERROR, "KickAPI.GetUser", `Error getting data: ${error}`);
+        log(
+            LOGLEVEL.ERROR,
+            "KickAPI.GetUser",
+            `Error getting user data: ${error}`
+        );
         throw error;
     }
 
