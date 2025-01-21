@@ -372,7 +372,11 @@ export const settingsFields = createSettingsFields({
         default: false,
         help: "Capture to saved_vods if any of the capture methods fail",
     },
-
+    "capture.streamlink-args": {
+        group: "Capture",
+        text: "Additional Streamlink Args",
+        type: "string",
+    },
     "capture.twitch-api-header": {
         group: "Capture",
         text: "Twitch API header",

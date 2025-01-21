@@ -460,6 +460,16 @@ export class TwitchVOD extends BaseVOD {
                 cmd.push("--loglevel", "info");
             }
 
+            // Add additional args
+            if (Config.getInstance().hasValue("capture.streamlink-args")) {
+                cmd.push(
+                    ...Config.getInstance()
+                        .cfg<string>("capture.streamlink-args")
+                        .split(" ")
+                );
+            }
+            
+
             log(
                 LOGLEVEL.INFO,
                 "tw.vod.downloadVideo",
@@ -722,6 +732,16 @@ export class TwitchVOD extends BaseVOD {
             } else if (Config.getInstance().cfg("app_verbose", false)) {
                 cmd.push("--loglevel", "info");
             }
+
+            // Add additional args
+            if (Config.getInstance().hasValue("capture.streamlink-args")) {
+                cmd.push(
+                    ...Config.getInstance()
+                        .cfg<string>("capture.streamlink-args")
+                        .split(" ")
+                );
+            }
+
 
             log(
                 LOGLEVEL.INFO,
