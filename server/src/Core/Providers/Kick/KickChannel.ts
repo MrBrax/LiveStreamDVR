@@ -2,6 +2,7 @@ import type { ApiKickChannel } from "@common/Api/Client";
 import type { KickChannelConfig } from "@common/Config";
 import type { Providers } from "@common/Defs";
 import type {
+    KickChannelLivestream,
     KickChannel as KickChannelT,
     KickUser,
 } from "@common/KickAPI/Kick";
@@ -10,7 +11,7 @@ import { KeyValue } from "../../../Core/KeyValue";
 import { LiveStreamDVR } from "../../../Core/LiveStreamDVR";
 import { LOGLEVEL, log } from "../../../Core/Log";
 import { isKickChannel } from "../../../Helpers/Types";
-import { GetChannel, GetStream, GetUser } from "../../../Providers/Kick";
+import { GetChannel, GetStream } from "../../../Providers/Kick";
 import { BaseChannel } from "../Base/BaseChannel";
 
 export class KickChannel extends BaseChannel {
@@ -33,7 +34,7 @@ export class KickChannel extends BaseChannel {
         return this.user_data?.username ?? "";
     }
 
-    public static async getUserDataBySlug(
+    /* public static async getUserDataBySlug(
         slug: string
     ): Promise<KickUser | undefined> {
         let data;
@@ -45,7 +46,7 @@ export class KickChannel extends BaseChannel {
         }
 
         return data;
-    }
+    } */
 
     /**
      * API does not seem to support looking up by id
@@ -112,7 +113,9 @@ export class KickChannel extends BaseChannel {
                 `Channel ${config.internalName} already exists in channels`
             );
 
-        const data = await KickChannel.getUserDataBySlug(config.internalName);
+        const data = await KickChannel.getChannelDataBySlug(
+            config.internalName
+        );
         if (!data)
             throw new Error(
                 `Could not get channel data for channel slug: ${config.internalName}`
@@ -219,7 +222,7 @@ export class KickChannel extends BaseChannel {
     public static async channelIdFromSlug(
         slug: string
     ): Promise<string | false> {
-        const userData = await this.getUserDataBySlug(slug);
+        const userData = await this.getChannelDataBySlug(slug);
         return userData ? userData.id.toString() : false;
     }
 
@@ -328,5 +331,9 @@ export class KickChannel extends BaseChannel {
             ...(await super.toAPI()),
             provider: "kick",
         };
+    }
+
+    public async getStreams(): Promise<KickChannelLivestream | false> {
+        return (await GetStream(this.internalName)) || false;
     }
 }

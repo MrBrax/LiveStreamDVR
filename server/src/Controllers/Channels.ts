@@ -4,6 +4,7 @@ import { KeyValue } from "@/Core/KeyValue";
 import { LiveStreamDVR } from "@/Core/LiveStreamDVR";
 import { LOGLEVEL, log } from "@/Core/Log";
 import { BaseChannel } from "@/Core/Providers/Base/BaseChannel";
+import { KickAutomator } from "@/Core/Providers/Kick/KickAutomator";
 import { KickChannel } from "@/Core/Providers/Kick/KickChannel";
 import type { AutomatorMetadata } from "@/Core/Providers/Twitch/TwitchAutomator";
 import { TwitchAutomator } from "@/Core/Providers/Twitch/TwitchAutomator";
@@ -21,7 +22,12 @@ import {
     validateRelativePath,
 } from "@/Helpers/Filesystem";
 import { generateStreamerList } from "@/Helpers/StreamerList";
-import { isError, isTwitchChannel, isYouTubeChannel } from "@/Helpers/Types";
+import {
+    isError,
+    isKickChannel,
+    isTwitchChannel,
+    isYouTubeChannel,
+} from "@/Helpers/Types";
 import { VideoQuality } from "@/Zod/Base";
 import type {
     ApiChannelResponse,
@@ -694,7 +700,7 @@ export async function AddChannel(
         let api_channel_data;
 
         try {
-            api_channel_data = await KickChannel.getUserDataBySlug(
+            api_channel_data = await KickChannel.getChannelDataBySlug(
                 channel_config.internalName
             );
         } catch (error) {
@@ -1584,6 +1590,49 @@ export async function ForceRecord(
             );
 
             YA.download();
+
+            res.api(200, {
+                status: "OK",
+                message: req.t(
+                    "route.channels.forced-recording-of-channel-channel-internalname",
+                    [channel.internalName]
+                ),
+            });
+        } else {
+            res.api(400, {
+                status: "ERROR",
+                message: req.t("route.channels.no-streams-found"),
+            } as ApiErrorResponse);
+        }
+
+        return;
+    } else if (isKickChannel(channel)) {
+        const streams = await channel.getStreams();
+
+        if (streams) {
+            log(
+                LOGLEVEL.INFO,
+                "route.channels.force_record",
+                `Forcing record for ${channel.internalName}`
+            );
+
+            const KA = new KickAutomator();
+            KA.broadcaster_user_id = channel.internalId;
+            KA.broadcaster_user_name = channel.displayName;
+            KA.broadcaster_user_login = channel.internalName;
+            KA.channel = channel;
+            // KA.handle(mock_data, req);
+
+            KeyValue.getInstance().set(
+                `kick.${KA.getUserID()}.vod.started_at`,
+                streams.created_at || new Date().toISOString()
+            );
+            KeyValue.getInstance().set(
+                `kick.${KA.getUserID()}.vod.id`,
+                streams.id.toString() || "fake"
+            );
+
+            KA.download();
 
             res.api(200, {
                 status: "OK",

@@ -415,7 +415,7 @@ export class TwitchVOD extends BaseVOD {
 
             cmd.push("-o", captureFilename); // output file
 
-            cmd.push("--hls-segment-threads", "10");
+            cmd.push("--stream-segment-threads", "10");
 
             cmd.push("--url", videoUrl); // stream url
 
@@ -708,7 +708,7 @@ export class TwitchVOD extends BaseVOD {
 
             cmd.push("-o", captureFilename); // output file
 
-            cmd.push("--hls-segment-threads", "10");
+            cmd.push("--stream-segment-threads", "10");
 
             cmd.push("--url", videoUrl); // stream url
 

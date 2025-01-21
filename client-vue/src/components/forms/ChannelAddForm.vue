@@ -410,7 +410,7 @@ function getYouTubeChannelId() {
 
 function fetchKickSlug() {
     axios
-        .get<IApiResponse<KickUser>>(`/api/v0/kickapi/users/${formData.value.internalName}`)
+        .get<IApiResponse<KickUser>>(`/api/v0/kickapi/channels/${formData.value.internalName}`)
         .then((response) => {
             const json = response.data;
             if (json.status == "OK") {
