@@ -77,6 +77,7 @@ const computedText = computed(() => {
     justify-content: flex-start;
     align-items: stretch;
     align-content: stretch;
+    padding-bottom: 70px;
     .form-status {
         flex-grow: 1;
         display: flex;
