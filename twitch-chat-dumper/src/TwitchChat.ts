@@ -779,9 +779,10 @@ export class TwitchChat extends EventEmitter {
             }
         }
 
+        const badge_infos: TwitchCommentUserBadge[] = [];
         if (message.tags?.["badge-info"]) {
             for (const badge in message.tags["badge-info"]) {
-                badges.push({
+                badge_infos.push({
                     "_id": badge,
                     "version": message.tags["badge-info"][badge],
                 });
@@ -809,6 +810,7 @@ export class TwitchChat extends EventEmitter {
                 emoticons: emoticons,
                 fragments: fragments,
                 user_badges: badges || null,
+                user_badge_infos: badge_infos || null,
                 user_color: message.tags?.color || "#FFFFFF",
                 // is_action: message.isAction || false,
             },

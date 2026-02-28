@@ -85,6 +85,7 @@ export interface TwitchComment {
         bits_spent?: number;
         fragments: TwitchCommentMessageFragment[];
         user_badges: TwitchCommentUserBadge[];
+        user_badge_infos: TwitchCommentUserBadge[];
         user_color: string | null;
         // user_notice_params: unknown; // TODO:
         emoticons: TwitchCommentEmoticons[]; // TODO:
