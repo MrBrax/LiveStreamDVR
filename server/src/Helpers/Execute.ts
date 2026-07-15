@@ -372,12 +372,15 @@ export function exec(
     ticker?: (source: "stdout" | "stderr", data: string) => void,
     progressFunction?: (log: string) => number | undefined
 ): Promise<ExecReturn> {
+    // inherit the parent environment (PATH, locale, etc) instead of replacing it;
+    // an empty env made mediainfo unable to open non-ascii filenames
+    const spawnEnv = { ...process.env, ...env };
     return new Promise((resolve, reject) => {
         const stdout: string[] = [];
         const stderr: string[] = [];
 
         const process = spawn(bin, args || [], {
-            env: env,
+            env: spawnEnv,
         });
 
         process.on("error", (err) => {
@@ -547,7 +550,9 @@ export function startJob(
     args: string[],
     env: Record<string, string> = {}
 ): Job | false {
-    const envs = Object.keys(env).length > 0 ? env : process.env;
+    // inherit the parent environment (PATH, locale, etc) and overlay the custom values,
+    // so child processes can still open non-ascii filenames
+    const envs = { ...process.env, ...env };
 
     const stdout: string[] = [];
     const stderr: string[] = [];
