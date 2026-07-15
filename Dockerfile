@@ -14,6 +14,10 @@ ENV VITE_IS_DEV=${IS_DEV}
 ENV BUILD_DATE=${BUILD_DATE}
 ENV VITE_BUILD_DATE=${BUILD_DATE}
 
+# utf-8 locale so child processes (mediainfo etc) can open non-ascii filenames
+ENV LANG=C.UTF-8
+ENV LC_ALL=C.UTF-8
+
 # system packages
 #RUN apk --no-cache add \
 #    gcc g++ libc-dev git curl \
