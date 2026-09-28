@@ -74,6 +74,12 @@ Hub: https://hub.docker.com/r/mrbrax/twitchautomator
 
 *The dockerhub build is preconfigured to be hosted at the root (`/`) and such, does not work when placed in a subdirectory.*
 
+### Easypanel
+
+[Easypanel](https://easypanel.io) is a self-hosted Docker deployment platform, and it maintains a one-click deployment template for LiveStreamDVR built on the mrbrax/twitchautomator image:
+
+[![Deploy on Easypanel](https://easypanel.io/img/deploy-on-easypanel-40.svg)](https://easypanel.io/templates/livestreamdvr)
+
 ### Manual build
 Run `docker-compose up --build -d` in the app directory. The `docker-compose.yml` file is required.
 
