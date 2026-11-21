@@ -54,6 +54,7 @@ export default defineConfig({
         navigateFallbackDenylist: [
           /\/api\//,
           /\/socket\//,
+          /^\/cdn-cgi\//,
           /\/cache\//,
           /\/vodplayer\//,
           /\/vods\//,
